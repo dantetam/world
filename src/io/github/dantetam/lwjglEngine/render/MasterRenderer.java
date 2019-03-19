@@ -5,6 +5,7 @@ import org.lwjgl.util.vector.Matrix4f;
 
 import io.github.dantetam.lwjglEngine.entities.Camera;
 import io.github.dantetam.lwjglEngine.entities.Light;
+import io.github.dantetam.lwjglEngine.fontRendering.TextMaster;
 import io.github.dantetam.lwjglEngine.gui.GuiRenderer;
 import io.github.dantetam.lwjglEngine.shaders.StaticShader;
 import io.github.dantetam.lwjglEngine.toolbox.MousePicker;
@@ -13,32 +14,27 @@ public class MasterRenderer {
 
 	private StaticShader shader = new StaticShader();
 	public GuiRenderer guiRenderer;
-	// private TextMaster textMaster;
+	private TextMaster textMaster;
 
 	public Matrix4f projectionMatrix;
 
 	public MasterRenderer() {
-		// Back culling; do not render faces that are hidden from camera
-		enableCulling();
-
 		// Create the transformation matrix only once and parse it to other renderers
 		createProjectionMatrix();
 
 		guiRenderer = new GuiRenderer();
-		// textMaster = new TextMaster();
-		// TextMaster.init(loader);
-		GL11.glDisable(GL11.GL_CULL_FACE);
+		textMaster = new TextMaster();
+		disableCulling();
+		
 	}
 
 	public static void enableCulling() {
 		// Perhaps checking the culling would be a nice way to find the correct normals
-		/*
-		 * GL11.glEnable(GL11.GL_CULL_FACE); GL11.glCullFace(GL11.GL_BACK);
-		 */
+		GL11.glEnable(GL11.GL_CULL_FACE); GL11.glCullFace(GL11.GL_BACK);
 	}
 
 	public static void disableCulling() {
-		// GL11.glDisable(GL11.GL_CULL_FACE);
+		GL11.glDisable(GL11.GL_CULL_FACE);
 	}
 
 	// Return a new MousePicker
