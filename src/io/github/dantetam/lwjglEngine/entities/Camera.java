@@ -17,7 +17,7 @@ public class Camera {
 	private static final float LOWER_BOUND_Y = 40, UPPER_BOUND_Y = 400;
 
 	public Camera() {
-		
+
 	}
 	// public Camera(Vector3f p, float a, float b, float c) {}
 
@@ -35,8 +35,10 @@ public class Camera {
 	}
 
 	/**
-	 * Move the camera with either 'stored' movement or user key holds (from native JOGL bindings).
-	 * @return True if 
+	 * Move the camera with either 'stored' movement or user key holds (from native
+	 * JOGL bindings).
+	 * 
+	 * @return True if
 	 */
 	public boolean move() {
 		if (turnsPitch > 0 || turnsYaw > 0) {
@@ -93,11 +95,11 @@ public class Camera {
 			pitch -= tilt;
 		if (Keyboard.isKeyDown(GLFW.GLFW_KEY_J))
 			pitch += tilt;
-		
-		int[] inputKeys = new int[] {GLFW.GLFW_KEY_A, GLFW.GLFW_KEY_D, GLFW.GLFW_KEY_S, GLFW.GLFW_KEY_W, 
-				GLFW.GLFW_KEY_Q, GLFW.GLFW_KEY_E, GLFW.GLFW_KEY_H, GLFW.GLFW_KEY_K, GLFW.GLFW_KEY_U, GLFW.GLFW_KEY_J, 
-				GLFW.GLFW_KEY_I, GLFW.GLFW_KEY_O};
-		for (int inputKey: inputKeys) {
+
+		int[] inputKeys = new int[] { GLFW.GLFW_KEY_A, GLFW.GLFW_KEY_D, GLFW.GLFW_KEY_S, GLFW.GLFW_KEY_W,
+				GLFW.GLFW_KEY_Q, GLFW.GLFW_KEY_E, GLFW.GLFW_KEY_H, GLFW.GLFW_KEY_K, GLFW.GLFW_KEY_U, GLFW.GLFW_KEY_J,
+				GLFW.GLFW_KEY_I, GLFW.GLFW_KEY_O };
+		for (int inputKey : inputKeys) {
 			if (Keyboard.isKeyDown(inputKey)) {
 				return true;
 			}

@@ -4,7 +4,6 @@ import org.lwjgl.util.vector.Vector2f;
 import org.lwjgl.util.vector.Vector4f;
 
 import io.github.dantetam.lwjglEngine.render.DisplayManager;
-import io.github.dantetam.render.TextBox;
 
 //Completely scrap t
 
@@ -30,7 +29,7 @@ public class GuiQuad {
 	public boolean within(float x, float y) {
 		return x > pixelPos.x && x < pixelPos.x + pixelSize.x && y > pixelPos.y && y < pixelPos.y + pixelSize.y;
 	}
-	
+
 	public void move(float x, float y) {
 		pos.x = x / DisplayManager.width;
 		pos.y = y / DisplayManager.height;
@@ -38,7 +37,7 @@ public class GuiQuad {
 		pixelPos.x = x;
 		pixelPos.y = y;
 	}
-	
+
 	public GuiQuad center() {
 		this.move(pixelPos.x - pixelSize.x / 2, pixelPos.y - pixelSize.y / 2);
 		return this;

@@ -1,17 +1,11 @@
 package io.github.dantetam.system;
 
-import io.github.dantetam.lwjglEngine.fontRendering.TextMaster;
-import io.github.dantetam.lwjglEngine.render.DisplayManager;
-
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 
 import org.lwjgl.glfw.GLFW;
 
-import io.github.dantetam.render.CivGame;
-import io.github.dantetam.render.TextBox;
-import io.github.dantetam.system.MenuSystem.Click;
+import io.github.dantetam.render.GameLauncher;
 
 public class InputSystem extends BaseSystem {
 
@@ -32,8 +26,7 @@ public class InputSystem extends BaseSystem {
 		FUNCTION_4(GLFW.GLFW_KEY_F4, GLFW.GLFW_KEY_4), FUNCTION_5(GLFW.GLFW_KEY_F5, GLFW.GLFW_KEY_5),
 		FUNCTION_6(GLFW.GLFW_KEY_F6, GLFW.GLFW_KEY_6), FUNCTION_7(GLFW.GLFW_KEY_F7, GLFW.GLFW_KEY_7),
 		FUNCTION_8(GLFW.GLFW_KEY_F8, GLFW.GLFW_KEY_8), FUNCTION_9(GLFW.GLFW_KEY_F9, GLFW.GLFW_KEY_9),
-		FUNCTION_0(GLFW.GLFW_KEY_F10, GLFW.GLFW_KEY_0), 
-		CONSOLE ('`', '~'),
+		FUNCTION_0(GLFW.GLFW_KEY_F10, GLFW.GLFW_KEY_0), CONSOLE('`', '~'),
 		/*
 		 * CONSOLE ('`', '~'), FUNCTION_1 ('1', 131), FUNCTION_2 ('2', 132), FUNCTION_3
 		 * ('3', 133), FUNCTION_4 ('4', 134), FUNCTION_5 ('5', 135), FUNCTION_6 ('6',
@@ -94,7 +87,7 @@ public class InputSystem extends BaseSystem {
 		public char key1, key2;
 	}
 
-	public InputSystem(CivGame main) {
+	public InputSystem(GameLauncher main) {
 		super(main);
 		keyPresses = new ArrayList<Integer>();
 		setKeyBinds();
@@ -123,18 +116,16 @@ public class InputSystem extends BaseSystem {
 			keyPresses.remove(i);
 		}
 		// Prevent key presses
-		
-		if (moving || lastMoving)
-		{
+
+		if (moving || lastMoving) {
 			main.menuSystem.forceFullUIUpdate();
 		}
-		
+
 		lastMoving = moving;
 		if (main.menuSystem.menuActivated) {
 			clicks.clear();
-			//main.menuSystem.menuActivated = false;
-		}
-		else { //Process the clicks remaining in the queue
+			// main.menuSystem.menuActivated = false;
+		} else { // Process the clicks remaining in the queue
 			for (int i = clicks.size() - 1; i >= 0; i--) {
 				Click c = clicks.get(i);
 				if (c.type.equals("Left")) {
@@ -189,16 +180,16 @@ public class InputSystem extends BaseSystem {
 	// private ArrayList<GameEntity> lastList = null;
 	// private int num = 0;
 	public void processLeftMouseClick(float mouseX, float mouseY) {
-		
+
 	}
 
 	public void processRightMouseClick(float mouseX, float mouseY) {
-		
+
 	}
 
 	public void executeAction(String action) {
 		System.out.println("InputSystem executed " + action);
-		
+
 		main.menuSystem.forceFullUIUpdate();
 	}
 

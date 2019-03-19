@@ -1,11 +1,5 @@
 package io.github.dantetam.lwjglEngine.terrain;
 
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-
-import javax.imageio.ImageIO;
-
 import org.lwjgl.util.vector.Vector2f;
 import org.lwjgl.util.vector.Vector3f;
 
@@ -135,7 +129,7 @@ public class GeneratedTerrain extends Terrain {
 	private float getTerrainHeight(double[][] terrain, double r, double c) {
 		if (r < 0 || r >= terrain.length || c < 0 || c >= terrain.length)
 			return 0;
-		return (float)inter.getValue(terrain, r, c);
+		return (float) inter.getValue(terrain, r, c);
 	}
 
 	private float getTerrainHeight(Vector2f[][] points, double r, double c) {

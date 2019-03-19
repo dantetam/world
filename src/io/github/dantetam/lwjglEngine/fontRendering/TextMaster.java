@@ -7,8 +7,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import io.github.dantetam.lwjglEngine.fontMeshCreator.FontType;
-import io.github.dantetam.lwjglEngine.fontMeshCreator.TextMeshData;
+import io.github.dantetam.lwjglEngine.fontMesh.FontType;
+import io.github.dantetam.lwjglEngine.fontMesh.TextMeshData;
 import io.github.dantetam.lwjglEngine.render.VBOLoader;
 import io.github.dantetam.render.Menu;
 import io.github.dantetam.render.TextBox;
@@ -28,7 +28,8 @@ public class TextMaster {
 		if (!init) {
 			init = true;
 			renderer = new FontRenderer();
-			defaultFont = new FontType(VBOLoader.loadTexture("dejavusans", false, false), new File("res/dejavusans.fnt"));
+			defaultFont = new FontType(VBOLoader.loadTexture("fonts/dejavusans", false, false),
+					new File("res/fonts/dejavusans.fnt"));
 		}
 	}
 
@@ -77,11 +78,11 @@ public class TextMaster {
 			if (menu.active())
 				for (TextBox textBox : menu.buttons)
 					allGuis.add(textBox);
-		for (TextBox textBox : menuSystem.textboxes) 
+		for (TextBox textBox : menuSystem.textboxes)
 			allGuis.add(textBox);
-		for (TextBox textBox : guiSystem.getAllTextUI()) 
+		for (TextBox textBox : guiSystem.getAllTextUI())
 			allGuis.add(textBox);
-		
+
 		for (Entry<FontType, List<TextBox>> en : texts.entrySet()) {
 			List<TextBox> guis = en.getValue();
 			for (int i = guis.size() - 1; i >= 0; i--) // Backwards for arraylist trap

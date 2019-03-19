@@ -1,4 +1,4 @@
-package io.github.dantetam.lwjglEngine.fontMeshCreator;
+package io.github.dantetam.lwjglEngine.fontMesh;
 
 import java.io.File;
 import java.util.ArrayList;

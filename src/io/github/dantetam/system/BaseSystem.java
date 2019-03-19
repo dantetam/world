@@ -1,16 +1,15 @@
 package io.github.dantetam.system;
 
-import io.github.dantetam.render.CivGame;
+import io.github.dantetam.render.GameLauncher;
 
 public abstract class BaseSystem {
 
-	public CivGame main;
-	
-	public BaseSystem(CivGame civGame)
-	{
+	public GameLauncher main;
+
+	public BaseSystem(GameLauncher civGame) {
 		main = civGame;
 	}
-	
+
 	public abstract void tick();
-	
+
 }

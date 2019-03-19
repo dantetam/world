@@ -10,7 +10,7 @@ import org.lwjgl.opengl.GL30;
 import org.lwjgl.util.vector.Vector2f;
 import org.lwjgl.util.vector.Vector3f;
 
-import io.github.dantetam.lwjglEngine.fontMeshCreator.FontType;
+import io.github.dantetam.lwjglEngine.fontMesh.FontType;
 import io.github.dantetam.render.TextBox;
 
 public class FontRenderer {
@@ -20,43 +20,45 @@ public class FontRenderer {
 	public FontRenderer() {
 		shader = new FontShader();
 	}
-	
-	public void render(Map<FontType, List<TextBox>> texts){
+
+	public void render(Map<FontType, List<TextBox>> texts) {
 		prepare();
-		for(FontType font : texts.keySet()){
+		for (FontType font : texts.keySet()) {
 			GL13.glActiveTexture(GL13.GL_TEXTURE0);
 			GL11.glBindTexture(GL11.GL_TEXTURE_2D, font.getTextureAtlas());
-			for(TextBox text : texts.get(font)){
+			for (TextBox text : texts.get(font)) {
 				renderText(text);
 			}
 		}
 		endRendering();
 	}
 
-	public void cleanUp(){
+	public void cleanUp() {
 		shader.cleanUp();
 	}
-	
-	private void prepare(){
+
+	private void prepare() {
 		GL11.glEnable(GL11.GL_BLEND);
 		GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 		GL11.glDisable(GL11.GL_DEPTH_TEST);
 		shader.start();
 	}
-	
-	private void renderText(TextBox text){
+
+	private void renderText(TextBox text) {
 		GL30.glBindVertexArray(text.textMeshVao);
 		GL20.glEnableVertexAttribArray(0);
 		GL20.glEnableVertexAttribArray(1);
-		shader.loadColour(new Vector3f(text.textColor.x/255f, text.textColor.y/255f, text.textColor.z/255f));
-		shader.loadTranslation(new Vector2f(text.pos.x + text.size.x/2f, text.pos.y));
-		GL11.glDrawArrays(GL11.GL_TRIANGLES, 0, text.vertexCount); //problem probably has to do with incorrect setting of maxlines and other textbox properties (lwjgl inherited)
+		shader.loadColour(new Vector3f(text.textColor.x / 255f, text.textColor.y / 255f, text.textColor.z / 255f));
+		shader.loadTranslation(new Vector2f(text.pos.x + text.size.x / 2f, text.pos.y));
+		GL11.glDrawArrays(GL11.GL_TRIANGLES, 0, text.vertexCount); // problem probably has to do with incorrect setting
+																	// of maxlines and other textbox properties (lwjgl
+																	// inherited)
 		GL20.glDisableVertexAttribArray(0);
 		GL20.glDisableVertexAttribArray(1);
 		GL30.glBindVertexArray(0);
 	}
-	
-	private void endRendering(){
+
+	private void endRendering() {
 		shader.stop();
 		GL11.glDisable(GL11.GL_BLEND);
 		GL11.glEnable(GL11.GL_DEPTH_TEST);

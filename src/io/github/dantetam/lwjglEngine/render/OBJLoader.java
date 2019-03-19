@@ -22,7 +22,9 @@ import io.github.dantetam.vector.CustomVector3f;
 /**
  * OBJLoader parser intended for use on OBJ files in combination with MTL files.
  * The .obj files should contain simple geometry with vertices and triangles,
- * and should be in the same directory as the optional .mtl files and accompanying assets.
+ * and should be in the same directory as the optional .mtl files and
+ * accompanying assets.
+ * 
  * @author Dante
  *
  */
@@ -40,7 +42,7 @@ public class OBJLoader {
 			e.printStackTrace();
 			return null;
 		}
-		
+
 		BufferedReader objReaderFirstPass = new BufferedReader(fr);
 		String line;
 		File mtlFile = null;
@@ -60,7 +62,7 @@ public class OBJLoader {
 		if (mtlFile == null) {
 			throw new IllegalArgumentException("Obj contains a missing mtl file reference");
 		}
-		
+
 		Map<String, String> basicMatLocalName = new HashMap<>();
 		try {
 			fr = new FileReader(mtlFile);
@@ -75,8 +77,7 @@ public class OBJLoader {
 			while (line != null) {
 				if (line.startsWith("newmtl ")) {
 					materialKey = line.substring(7);
-				}
-				else if (line.startsWith("map_Kd ")) {
+				} else if (line.startsWith("map_Kd ")) {
 					basicMatLocalName.put(materialKey, line.substring(7));
 					materialKey = null;
 				}
@@ -86,7 +87,7 @@ public class OBJLoader {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
+
 		try {
 			fr = new FileReader(objFile);
 		} catch (FileNotFoundException e) {
@@ -101,9 +102,9 @@ public class OBJLoader {
 		float[] verticesArray;
 		List<Vector3f> singleModelNormals;
 		List<Vector2f> singleModelTextures;
-		
+
 		List<Entity> allObjParts = new ArrayList<>();
-		
+
 		String currentMtlLocalFile = "";
 		String currentObjGroup = null;
 		try {
@@ -135,12 +136,12 @@ public class OBJLoader {
 					break;
 				}
 			}
-			
+
 			System.out.println("------------------");
-			for (Vector2f texture: textures) {
+			for (Vector2f texture : textures) {
 				System.out.println(texture.toString());
 			}
-			
+
 			verticesArray = new float[vertices.size() * 3]; // Convert lists to array
 			int vertexPointer = 0;
 			for (Vector3f vertex : vertices) {
@@ -148,16 +149,17 @@ public class OBJLoader {
 				verticesArray[vertexPointer++] = vertex.y;
 				verticesArray[vertexPointer++] = vertex.z;
 			}
-			
+
 			while (true) {
 				// Make sure a face line is being read
 				line = objReaderSecondPass.readLine();
 				if (line == null) {
-					if (currentObjGroup != null) {	
+					if (currentObjGroup != null) {
 						String fullTextureName = objDirectory.getPath() + "\\" + currentMtlLocalFile;
-						Entity objPartEntity = createNewEntityFromFloatData(verticesArray, singleModelTextures, singleModelNormals, indices, fullTextureName);
+						Entity objPartEntity = createNewEntityFromFloatData(verticesArray, singleModelTextures,
+								singleModelNormals, indices, fullTextureName);
 						allObjParts.add(objPartEntity);
-						
+
 						singleModelTextures.clear();
 						singleModelNormals.clear();
 						indices.clear();
@@ -166,22 +168,21 @@ public class OBJLoader {
 				}
 				if (!line.startsWith("f ")) {
 					if (line.startsWith("g ")) {
-						if (currentObjGroup != null) {	
+						if (currentObjGroup != null) {
 							String fullTextureName = objDirectory.getPath() + "\\" + currentMtlLocalFile;
-							Entity objPartEntity = createNewEntityFromFloatData(verticesArray, singleModelTextures, singleModelNormals, indices, fullTextureName);
+							Entity objPartEntity = createNewEntityFromFloatData(verticesArray, singleModelTextures,
+									singleModelNormals, indices, fullTextureName);
 							allObjParts.add(objPartEntity);
-							
+
 							singleModelTextures.clear();
 							singleModelNormals.clear();
 							indices.clear();
 						}
 						currentObjGroup = line.substring(2);
-					}
-					else if (line.startsWith("usemtl ")) {
+					} else if (line.startsWith("usemtl ")) {
 						currentMtlLocalFile = basicMatLocalName.get(line.substring(7));
 					}
-				}
-				else {
+				} else {
 					// A face is in the from f x/y/z a/b/c d/e/f
 					// Split into these 4 sections
 					// and then split the sections by slashes to get the numbers x, y, z, etc.
@@ -189,65 +190,64 @@ public class OBJLoader {
 					String[] vertex1 = currentLine[1].split("/");
 					String[] vertex2 = currentLine[2].split("/");
 					String[] vertex3 = currentLine[3].split("/");
-	
+
 					processVertex(vertex1, indices, textures, normals, singleModelTextures, singleModelNormals);
 					processVertex(vertex2, indices, textures, normals, singleModelTextures, singleModelNormals);
 					processVertex(vertex3, indices, textures, normals, singleModelTextures, singleModelNormals);
 				}
 			}
-			
+
 			objReaderSecondPass.close();
-		}
-		catch (Exception e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
+
 		Group objGroup = new Group(allObjParts);
 		return objGroup;
 	}
-	
-	public static Entity createNewEntityFromFloatData(float[] verticesArray, 
-			List<Vector2f> singleModelTextures, List<Vector3f> singleModelNormals, List<Integer> indices, 
-			String fullTextureName) {
+
+	public static Entity createNewEntityFromFloatData(float[] verticesArray, List<Vector2f> singleModelTextures,
+			List<Vector3f> singleModelNormals, List<Integer> indices, String fullTextureName) {
 		int[] indicesArray = new int[indices.size()];
 		for (int i = 0; i < indices.size(); i++) {
 			indicesArray[i] = indices.get(i);
 		}
-		
+
 		float[] texturesArray = new float[singleModelTextures.size() * 2];
 		float[] normalsArray = new float[singleModelNormals.size() * 3];
 		for (int i = 0; i < singleModelTextures.size(); i++) {
-			texturesArray[i*2] = singleModelTextures.get(i).x;
-			texturesArray[i*2 + 1] = singleModelTextures.get(i).y;
-			normalsArray[i*3] = singleModelNormals.get(i).x;
-			normalsArray[i*3 + 1] = singleModelNormals.get(i).y;
-			normalsArray[i*3 + 2] = singleModelNormals.get(i).z;
+			texturesArray[i * 2] = singleModelTextures.get(i).x;
+			texturesArray[i * 2 + 1] = singleModelTextures.get(i).y;
+			normalsArray[i * 3] = singleModelNormals.get(i).x;
+			normalsArray[i * 3 + 1] = singleModelNormals.get(i).y;
+			normalsArray[i * 3 + 2] = singleModelNormals.get(i).z;
 		}
-		
+
 		RawModel model = VBOLoader.loadToVAO(verticesArray, texturesArray, normalsArray, indicesArray);
 		singleModelTextures.clear();
 		singleModelNormals.clear();
 		indices.clear();
-		
-		Entity objPartEntity = newObjectFromModel(new CustomVector3f(0), new CustomVector3f(0), new CustomVector3f(3), 3, model, fullTextureName); 
+
+		Entity objPartEntity = newObjectFromModel(new CustomVector3f(0), new CustomVector3f(0), new CustomVector3f(3),
+				3, model, fullTextureName);
 		return objPartEntity;
 	}
-	
-	public static Entity newObjectFromModel(CustomVector3f position, CustomVector3f rotation, CustomVector3f size, float scale, RawModel model, String textureName)
-	{
+
+	public static Entity newObjectFromModel(CustomVector3f position, CustomVector3f rotation, CustomVector3f size,
+			float scale, RawModel model, String textureName) {
 		LoadedIdTexture texture = new LoadedIdTexture(VBOLoader.loadTexture(textureName));
 		TexturedModel texturedModel = new TexturedModel(model, texture);
-		Entity entity = new Entity(texturedModel,position,rotation.x,rotation.y,rotation.z,1);
+		Entity entity = new Entity(texturedModel, position, rotation.x, rotation.y, rotation.z, 1);
 		entity.scale = scale;
 		return entity;
 	}
-	
-	public static Entity newObjectFromModel(CustomVector3f position, CustomVector3f rotation, CustomVector3f size, float scale, String objFile, String textureName)
-	{
+
+	public static Entity newObjectFromModel(CustomVector3f position, CustomVector3f rotation, CustomVector3f size,
+			float scale, String objFile, String textureName) {
 		RawModel model = OBJLoader.loadObjModel(objFile);
 		return newObjectFromModel(position, rotation, size, scale, model, textureName);
 	}
-	
+
 	public static RawModel loadObjModel(String fileName) {
 		FileReader fr = null;
 		try {
@@ -257,7 +257,7 @@ public class OBJLoader {
 			e.printStackTrace();
 			return null;
 		}
-		
+
 		BufferedReader reader = new BufferedReader(fr);
 		String line;
 		List<Vector3f> vertices = new ArrayList<Vector3f>();
@@ -347,7 +347,7 @@ public class OBJLoader {
 		normalsArray[currentVertex * 3 + 1] = currentNorm.y;
 		normalsArray[currentVertex * 3 + 2] = currentNorm.z;
 	}
-	
+
 	private static void processVertex(String[] vertexData, List<Integer> indices, List<Vector2f> textures,
 			List<Vector3f> normals, List<Vector2f> textureSubset, List<Vector3f> normalsSubset) {
 		int currentVertex = Integer.parseInt(vertexData[0]) - 1;

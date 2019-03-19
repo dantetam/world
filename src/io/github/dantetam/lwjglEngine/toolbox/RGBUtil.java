@@ -17,7 +17,7 @@ public class RGBUtil {
 		int col = (r << 16) | (g << 8) | b;
 		return col;
 	}
-	
+
 	public static void writeBlendMapToFile(BufferedImage image, String fileName) {
 		if (image == null)
 			return;
@@ -30,5 +30,5 @@ public class RGBUtil {
 			// e.printStackTrace();
 		}
 	}
-	
+
 }

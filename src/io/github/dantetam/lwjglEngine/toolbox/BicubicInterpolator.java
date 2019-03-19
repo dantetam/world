@@ -8,11 +8,11 @@ public class BicubicInterpolator {
 		x -= xi;
 		arr[0] = cubicGetValue(p[Math.max(0, xi - 1)], y);
 		arr[1] = cubicGetValue(p[xi], y);
-		arr[2] = cubicGetValue(p[Math.min(p.length - 1,xi + 1)], y);
+		arr[2] = cubicGetValue(p[Math.min(p.length - 1, xi + 1)], y);
 		arr[3] = cubicGetValue(p[Math.min(p.length - 1, xi + 2)], y);
-		return cubicGetValue(arr, x+ 1);
+		return cubicGetValue(arr, x + 1);
 	}
-	
+
 	public double cubicGetValue(double[] p, double x) {
 		int xi = (int) x;
 		x -= xi;

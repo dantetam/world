@@ -1,18 +1,15 @@
 package io.github.dantetam.system;
 
-import io.github.dantetam.lwjglEngine.fontRendering.TextMaster;
-import io.github.dantetam.lwjglEngine.gui.GuiQuad;
-import io.github.dantetam.lwjglEngine.render.DisplayManager;
-import io.github.dantetam.lwjglEngine.render.VBOLoader;
-
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map.Entry;
-
-import org.lwjgl.util.vector.Vector3f;
 
 import io.github.dantetam.localdata.ConstantData;
-import io.github.dantetam.render.*;
+import io.github.dantetam.lwjglEngine.fontRendering.TextMaster;
+import io.github.dantetam.lwjglEngine.render.VBOLoader;
+import io.github.dantetam.render.Button;
+import io.github.dantetam.render.GameLauncher;
+import io.github.dantetam.render.Menu;
+import io.github.dantetam.render.TextBox;
 
 public class MenuSystem extends BaseSystem {
 
@@ -21,20 +18,21 @@ public class MenuSystem extends BaseSystem {
 
 	private List<Click> clicks;
 
-	//The menuActivated field is updated whenever a user clicks on any active menu.
-	//This signals to systems after, that the user's input should be restricted to menus only.
+	// The menuActivated field is updated whenever a user clicks on any active menu.
+	// This signals to systems after, that the user's input should be restricted to
+	// menus only.
 	public boolean menuActivated = false, menuHighlighted = false;
-	
+
 	private int guiDefaultTexture;
 
 	public Button[] shortcuts = new Button[10];
-	
-	//Done in this function ideally after GL context has been set up
+
+	// Done in this function ideally after GL context has been set up
 	public void setupLoader() {
 		guiDefaultTexture = VBOLoader.loadTexture("guiDefaultTexture");
 	}
 
-	public MenuSystem(CivGame civGame) {
+	public MenuSystem(GameLauncher civGame) {
 		super(civGame);
 		menus = new ArrayList<Menu>();
 		textboxes = new ArrayList<TextBox>();
@@ -42,11 +40,12 @@ public class MenuSystem extends BaseSystem {
 	}
 
 	public void setupMenus() {
-		
+
 	}
 
 	public void tick() {
-		menuActivated = false; //Update as default false, i.e. user clicks should propogate, and then determine if the user clicked on a menu
+		menuActivated = false; // Update as default false, i.e. user clicks should propogate, and then
+								// determine if the user clicked on a menu
 		menuHighlighted = false;
 		for (int menu = 0; menu < menus.size(); menu++) {
 			// if (!main.enabled) break;
@@ -59,8 +58,7 @@ public class MenuSystem extends BaseSystem {
 					String command = menus.get(menu).click(click);
 					if (command != null && command.equals(ConstantData.MOUSE_HIGHLIGHT_NO_CLICK)) {
 						menuHighlighted = true;
-					}
-					else if (command != null && !command.equals("")) {
+					} else if (command != null && !command.equals("")) {
 						menuActivated = true;
 						// Replace with function that returns true if the menu resetting should happen
 						if (executeAction(command)) {
@@ -102,7 +100,7 @@ public class MenuSystem extends BaseSystem {
 
 	public class Click {
 		public float mouseX, mouseY;
-		public boolean isActualClick; //as opposed to a hover or 'mouse pass'
+		public boolean isActualClick; // as opposed to a hover or 'mouse pass'
 
 		public Click(boolean click, float x, float y) {
 			this.isActualClick = click;
@@ -135,7 +133,7 @@ public class MenuSystem extends BaseSystem {
 	}
 
 	public void closeMenus() {
-		
+
 	}
 
 	public TextBox findButtonWithin(float mouseX, float mouseY) {

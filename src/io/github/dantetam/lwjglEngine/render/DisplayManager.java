@@ -2,10 +2,8 @@ package io.github.dantetam.lwjglEngine.render;
 
 import static org.lwjgl.glfw.GLFW.GLFW_CONTEXT_VERSION_MAJOR;
 import static org.lwjgl.glfw.GLFW.GLFW_CONTEXT_VERSION_MINOR;
-import static org.lwjgl.glfw.GLFW.GLFW_KEY_SPACE;
 import static org.lwjgl.glfw.GLFW.GLFW_OPENGL_CORE_PROFILE;
 import static org.lwjgl.glfw.GLFW.GLFW_OPENGL_PROFILE;
-import static org.lwjgl.glfw.GLFW.GLFW_RELEASE;
 import static org.lwjgl.glfw.GLFW.GLFW_RESIZABLE;
 import static org.lwjgl.glfw.GLFW.glfwCreateWindow;
 import static org.lwjgl.glfw.GLFW.glfwDestroyWindow;
@@ -13,7 +11,6 @@ import static org.lwjgl.glfw.GLFW.glfwInit;
 import static org.lwjgl.glfw.GLFW.glfwMakeContextCurrent;
 import static org.lwjgl.glfw.GLFW.glfwPollEvents;
 import static org.lwjgl.glfw.GLFW.glfwSetErrorCallback;
-import static org.lwjgl.glfw.GLFW.glfwSetKeyCallback;
 import static org.lwjgl.glfw.GLFW.glfwShowWindow;
 import static org.lwjgl.glfw.GLFW.glfwSwapBuffers;
 import static org.lwjgl.glfw.GLFW.glfwWindowHint;
@@ -30,10 +27,9 @@ import org.lwjgl.glfw.GLFWMouseButtonCallback;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GLContext;
 
-import io.github.dantetam.lwjglEngine.fontRendering.TextMaster;
 import io.github.dantetam.lwjglEngine.gui.Keyboard;
 import io.github.dantetam.lwjglEngine.gui.Mouse;
-import io.github.dantetam.render.CivGame;
+import io.github.dantetam.render.GameLauncher;
 
 /**
  * 
@@ -46,7 +42,7 @@ public class DisplayManager {
 
 	public static int width, height;
 	public static long window;
-	public static CivGame main;
+	public static GameLauncher main;
 
 	// Store the callbacks in memory
 	private static GLFWErrorCallback errorCallback;
@@ -54,11 +50,11 @@ public class DisplayManager {
 	private static GLFWCursorPosCallback cursorPosCallback;
 	public static GLFWMouseButtonCallback mouseButtonCallback;
 
-	public static void createDisplay(CivGame m) {
+	public static void createDisplay(GameLauncher m) {
 		main = m;
-		width = (int) CivGame.WIDTH;
-		height = (int) CivGame.HEIGHT;
-		
+		width = (int) GameLauncher.WIDTH;
+		height = (int) GameLauncher.HEIGHT;
+
 		glfwInit();
 		glfwSetErrorCallback(errorCallback = Callbacks.errorCallbackPrint(System.err));
 
@@ -82,23 +78,24 @@ public class DisplayManager {
 		GL11.glViewport(0, 0, width, height);
 	}
 
-	//For cursor movement (no click)
+	// For cursor movement (no click)
 	public static void setCursorPosCallback() {
 		GLFW.glfwSetCursorPosCallback(window, (cursorPosCallback = new GLFWCursorPosCallback() {
 			public void invoke(long window, double xpos, double ypos) {
 				Mouse.setMouse((float) xpos, (float) ypos);
-				//main.menuSystem.queueMousePass(Mouse.getX(), Mouse.getY());
+				// main.menuSystem.queueMousePass(Mouse.getX(), Mouse.getY());
 			}
 		}));
 	}
 
-	//For mouse clicks and releases only
+	// For mouse clicks and releases only
 	public static void setMouseCallback() {
 		GLFW.glfwSetMouseButtonCallback(DisplayManager.window,
 				(DisplayManager.mouseButtonCallback = new GLFWMouseButtonCallback() {
 					public void invoke(long window, int button, int action, int mods) {
 						if (action == GLFW.GLFW_PRESS) {
-							main.menuSystem.queueClick(Mouse.getX(), Mouse.getY()); // includes button == 2 i.e. scroll wheel
+							main.menuSystem.queueClick(Mouse.getX(), Mouse.getY()); // includes button == 2 i.e. scroll
+																					// wheel
 							if (button == 0) {
 								main.inputSystem.queueLeftClick(Mouse.getX(), Mouse.getY());
 							} else if (button == 1) {

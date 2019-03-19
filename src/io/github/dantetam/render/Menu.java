@@ -2,10 +2,8 @@ package io.github.dantetam.render;
 
 import java.util.ArrayList;
 
-import org.lwjgl.util.vector.Vector2f;
-
 import io.github.dantetam.localdata.ConstantData;
-import io.github.dantetam.lwjglEngine.fontMeshCreator.FontType;
+import io.github.dantetam.lwjglEngine.fontMesh.FontType;
 import io.github.dantetam.system.MenuSystem.Click;
 
 public class Menu {
@@ -75,14 +73,15 @@ public class Menu {
 	}
 
 	public String click(boolean isActualClick, float mouseX, float mouseY) {
-		//System.out.println("-----------------");
-		//System.out.println(buttons.size());
+		// System.out.println("-----------------");
+		// System.out.println(buttons.size());
 		for (TextBox b : buttons) {
 			/*
-			System.out.println(b.getDisplay().get(0) + "; Pos: " + b.pixelPos + "; Size: " + b.pixelSize
-					+ "; Bounding Box Edge: " + new Vector2f(b.pixelPos.x + b.pixelSize.x, b.pixelPos.y + b.pixelSize.y)
-					+ "; Mouse: " + mouseX + "," + mouseY);
-					*/
+			 * System.out.println(b.getDisplay().get(0) + "; Pos: " + b.pixelPos +
+			 * "; Size: " + b.pixelSize + "; Bounding Box Edge: " + new
+			 * Vector2f(b.pixelPos.x + b.pixelSize.x, b.pixelPos.y + b.pixelSize.y) +
+			 * "; Mouse: " + mouseX + "," + mouseY);
+			 */
 			if (b instanceof Button)
 				if (b.within(mouseX, mouseY)) { // mouseX > b.pos.x && mouseX < b.pos.x+b.size.x && mouseY > b.pos.y &&
 												// mouseY < b.pos.y+b.size.y
@@ -93,15 +92,14 @@ public class Menu {
 		}
 		return null;
 	}
-	
+
 	public String click(Click click) {
 		for (TextBox b : buttons) {
 			if (b instanceof Button)
-				if (b.within(click.mouseX, click.mouseY)) { 
+				if (b.within(click.mouseX, click.mouseY)) {
 					if (click.isActualClick || (!clickOnly)) {
 						return ((Button) b).command;
-					}
-					else {
+					} else {
 						return ConstantData.MOUSE_HIGHLIGHT_NO_CLICK;
 					}
 				}

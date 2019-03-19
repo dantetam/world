@@ -7,13 +7,12 @@ public class RGBTerrainTexturePack implements TerrainTexturePack {
 	public TerrainTexture gTexture;
 	public TerrainTexture bTexture;
 
-	public RGBTerrainTexturePack(TerrainTexture backgroundTexture,
-			TerrainTexture rTexture, TerrainTexture gTexture,
+	public RGBTerrainTexturePack(TerrainTexture backgroundTexture, TerrainTexture rTexture, TerrainTexture gTexture,
 			TerrainTexture bTexture) {
 		this.backgroundTexture = backgroundTexture;
 		this.rTexture = rTexture;
 		this.gTexture = gTexture;
 		this.bTexture = bTexture;
 	}
-	
+
 }

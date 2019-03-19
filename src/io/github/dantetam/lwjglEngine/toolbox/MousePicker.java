@@ -49,25 +49,28 @@ public class MousePicker {
 		return (Vector3f) rayWorld.normalise();
 	}
 
-	// This is the "normal" forward directed transformation from world space to viewport space.
-	// OpenGL automatically adds perspective division in its pipeline, so it is included here 
+	// This is the "normal" forward directed transformation from world space to
+	// viewport space.
+	// OpenGL automatically adds perspective division in its pipeline, so it is
+	// included here
 	// (and not in the inverse calculation).
 	public Vector2f calculateScreenPos(Vector3f worldPosition) {
 		return calculateScreenPos(worldPosition.x, worldPosition.y, worldPosition.z);
 	}
+
 	public Vector2f calculateScreenPos(float posX, float posY, float posZ) {
 		// Create a new transformation matrix for the different position
 		Matrix4f transformMatrix = MatrixMathUtil.createTransformMatrix(new Vector3f(posX, posY, posZ), 0, 0, 0, 1);
 		Vector4f worldPosition = Matrix4f.transform(transformMatrix, new Vector4f(0, 0, 0, 1.0f), null);
-		
+
 		// equivalent: glPosition = projectionMatrix * (viewMatrix * worldPosition);
 		Vector4f glPosition = Matrix4f.transform(projMatrix, Matrix4f.transform(viewMatrix, worldPosition, null), null);
-		
+
 		Vector2f perspectiveDivide = new Vector2f(glPosition.x / glPosition.w, glPosition.y / glPosition.w);
-		
+
 		Vector2f ndc = new Vector2f((perspectiveDivide.x + 1f) * DisplayManager.width / 2f,
 				(perspectiveDivide.y + 1f) * DisplayManager.height / 2f);
-		
+
 		return new Vector2f(ndc.x, DisplayManager.height - ndc.y);
 	}
 

@@ -6,9 +6,8 @@ public class TexturedModel {
 
 	private RawModel rawModel;
 	private LoadedIdTexture texture;
-	
-	public TexturedModel(RawModel m, LoadedIdTexture t)
-	{
+
+	public TexturedModel(RawModel m, LoadedIdTexture t) {
 		rawModel = m;
 		texture = t;
 	}

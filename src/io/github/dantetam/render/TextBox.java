@@ -5,9 +5,8 @@ import java.util.List;
 
 import org.lwjgl.util.vector.Vector2f;
 import org.lwjgl.util.vector.Vector3f;
-import org.lwjgl.util.vector.Vector4f;
 
-import io.github.dantetam.lwjglEngine.fontMeshCreator.FontType;
+import io.github.dantetam.lwjglEngine.fontMesh.FontType;
 import io.github.dantetam.lwjglEngine.fontRendering.TextMaster;
 import io.github.dantetam.lwjglEngine.gui.GuiQuad;
 import io.github.dantetam.lwjglEngine.render.DisplayManager;
@@ -76,7 +75,7 @@ public class TextBox extends GuiQuad {
 		// tooltip.add(text);
 		// enabled = false;
 
-		//this.fontSize = fontSize;
+		// this.fontSize = fontSize;
 		// this.font = font;
 		this.fontSize = 0.5f;
 		this.lineMaxSize = 1f;
@@ -85,7 +84,7 @@ public class TextBox extends GuiQuad {
 		updateTextTextureVao();
 	}
 
-	//For legacy Processing rendering systems
+	// For legacy Processing rendering systems
 	public TextBox(int texture, String text, float a, float b, float c, float d) {
 		super(texture, new Vector2f(a, b), new Vector2f(c, d));
 		display = new ArrayList<String>();
@@ -149,7 +148,7 @@ public class TextBox extends GuiQuad {
 		size.y = y / DisplayManager.height;
 		pixelSize = new Vector2f(x, y);
 	}
-	
+
 	public TextBox center() {
 		this.move(pixelPos.x - pixelSize.x / 2, pixelPos.y - pixelSize.y / 2);
 		return this;
@@ -219,8 +218,7 @@ public class TextBox extends GuiQuad {
 	public void setDisplayText(int index, String line) {
 		if (index >= display.size()) {
 			addDisplayText(line);
-		}
-		else {
+		} else {
 			display.set(index, line);
 			updateTextTextureVao();
 		}
@@ -229,8 +227,7 @@ public class TextBox extends GuiQuad {
 	public void setTooltipText(int index, String line) {
 		if (index >= tooltip.size()) {
 			addTooltipText(line);
-		}
-		else {
+		} else {
 			tooltip.set(index, line);
 			updateTextTextureVao();
 		}

@@ -8,10 +8,9 @@ public class Light {
 
 	public Vector3f position, color;
 
-	public Light(Vector3f p, Vector3f c)
-	{
+	public Light(Vector3f p, Vector3f c) {
 		position = p;
 		color = c;
 	}
-	
+
 }
