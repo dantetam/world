@@ -5,6 +5,8 @@ package io.github.dantetam.world.grid;
  * but can still take space on the floor or someone's inventory.
  * @author Dante
  *
+ * TODO: Use XML parsers to create items, recipes, and so on
+ *
  */
 
 public class Item {

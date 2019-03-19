@@ -15,5 +15,7 @@
 	</classpathentry>
 	<classpathentry kind="lib" path="lib/slick-util.jar"/>
 	<classpathentry kind="lib" path="lib/slick.jar"/>
+	<classpathentry kind="lib" path="lib/danteterraingen.jar"/>
+	<classpathentry kind="lib" path="lib/commons-csv-1.6.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

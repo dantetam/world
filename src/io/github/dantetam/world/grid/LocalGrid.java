@@ -79,7 +79,13 @@ public class LocalGrid {
 	}
 	
 	public void movePerson(Person person, LocalTile tile) {
+		if (person.location != null) {
+			person.location.removePerson(person);
+		}
 		person.location = tile;
+		if (person.location != null) {
+			person.location.addPerson(person);
+		}
 	}
 	
 	public static void main(String[] args) {
