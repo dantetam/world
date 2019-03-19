@@ -71,8 +71,19 @@ public class LocalGrid {
 		building.setPrimaryLocation(null);
 	}
 	
+	public boolean personHasAccessTile(Person person, LocalTile tile) {
+		if (tile == null) {
+			return false;
+		}
+		return true;
+	}
+	
+	public void movePerson(Person person, LocalTile tile) {
+		person.location = tile;
+	}
+	
 	public static void main(String[] args) {
-		LocalGrid grid = new LocalGrid(new Vector3i(50,50,50));
+		LocalGrid grid = new LocalGrid(new Vector3i(200,200,50));
 		List<Vector3i> listOffsets = Arrays.asList(new Vector3i[] {
 				new Vector3i(0),
 				new Vector3i(1,0,0),
