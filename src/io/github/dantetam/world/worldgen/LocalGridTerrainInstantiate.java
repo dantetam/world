@@ -63,7 +63,7 @@ public class LocalGridTerrainInstantiate {
 	}
 	
 	//Return item id associated with soil composition
-	public int getSoilItemIdFromData(double[] data) {
+	public void getSoilItemIdFromData(double[] data) {
 		double rand = Math.random();
 		double clay = data[0], sand = data[1], silt = data[2];
 		String soilName;
@@ -99,11 +99,11 @@ public class LocalGridTerrainInstantiate {
 	}
 	
 	public double[] generateSandstoneIgneousHeights() {
-		
+		return null;
 	}
 	
 	public double[] generateIgneousMetaHeights() {
-		
+		return null;
 	}
 	
 }

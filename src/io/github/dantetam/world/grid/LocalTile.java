@@ -16,7 +16,7 @@ public class LocalTile {
 	public int tileId; //Representing the block which occupies this position
 		//Note if filled is false, this holds the previous tile data 
 		//(e.g. recording that a hole was dug into this dirt).
-	public int itemOnFloorId;
+	public InventoryItem itemOnFloorId;
 	
 	public LocalTile(Vector3i coords) {
 		this.coords = coords;

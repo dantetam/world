@@ -4,19 +4,22 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.StreamSupport;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
 
 public class WorldCsvParser {
-
-	public static void main(String[] args) throws IOException, FileNotFoundException {
-		for (CSVRecord record: parseCsvFile("res/")) {
-			
-		}
+	
+	//Global initialization of all CSV parsers
+	public static void init() {
+		ItemCsvParser.init();
 	}
 	
-	public static Iterable<CSVRecord> parseCsvFile(String fileName) {
+	public static List<CSVRecord> parseCsvFile(String fileName) {
 		Reader in = null;
 		try {
 			in = new FileReader(fileName);
@@ -24,10 +27,17 @@ public class WorldCsvParser {
 			e.printStackTrace();
 		}
 		try {
-			Iterable<CSVRecord> records = CSVFormat.EXCEL.parse(in);
-			return records;
+			Iterable<CSVRecord> records = CSVFormat.DEFAULT.withHeader().withSkipHeaderRecord().parse(in);
+			List<CSVRecord> recordsList = new ArrayList<>();
+			for (CSVRecord record: records) {
+				if (!record.get(0).isBlank()) {
+					recordsList.add(record);
+				}
+			}
+			return recordsList;
 		} catch (IOException e) {
 			e.printStackTrace();
+			
 		}
 		return null;
 	}

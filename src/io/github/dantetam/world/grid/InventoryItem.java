@@ -13,10 +13,12 @@ public class InventoryItem {
 
 	public int id;
 	public int quantity;
+	public String name;
 	
-	public InventoryItem(int id, int quantity) {
+	public InventoryItem(int id, int quantity, String name) {
 		this.id = id;
 		this.quantity = quantity;
+		this.name = name;
 	}
 	
 }
