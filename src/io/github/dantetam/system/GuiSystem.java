@@ -5,10 +5,10 @@ import java.util.List;
 
 import io.github.dantetam.lwjglEngine.gui.GuiQuad;
 import io.github.dantetam.lwjglEngine.render.VBOLoader;
-import io.github.dantetam.lwjglEngine.toolbox.MousePicker;
 import io.github.dantetam.render.Button;
 import io.github.dantetam.render.GameLauncher;
 import io.github.dantetam.render.TextBox;
+import io.github.dantetam.toolbox.MousePicker;
 
 public class GuiSystem extends BaseSystem {
 

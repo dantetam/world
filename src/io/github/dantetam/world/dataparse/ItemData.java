@@ -36,6 +36,13 @@ public class ItemData {
 		return new InventoryItem(item.id, quantity, item.name);
 	}
 	
+	public static int getIdFromName(String name) {
+		if (!itemNamesToIds.containsKey(name)) {
+			throw new IllegalArgumentException("Could not find item name: " + name);
+		}
+		return itemNamesToIds.get(name);
+	}
+	
 	public static InventoryItem createItemByName(String name, int quantity) {
 		if (itemNamesToIds.containsKey(name)) {
 			int id = itemNamesToIds.get(name);
@@ -44,7 +51,7 @@ public class ItemData {
 		return null;
 	}
 	
-	public static void addItemToDatabase(int id, String name, boolean placeable, String[] groups, int stackable) {
+	public static void addItemToDatabase(int id, String name, boolean placeable, String[] groups, Integer stackable) {
 		InventoryItem newItem = new InventoryItem(id, 0, name);
 		allItemsById.put(id, newItem);
 		itemNamesToIds.put(name, id);
@@ -57,9 +64,9 @@ public class ItemData {
 				itemGroups.get(group).add(id);
 			}
 		}
-		stackableMap.put(id, stackable);
+		if (stackable != null && stackable > 1) {
+			stackableMap.put(id, stackable);
+		}
 	}
-	
-	
 	
 }

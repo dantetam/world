@@ -7,8 +7,8 @@ import io.github.dantetam.lwjglEngine.fontRendering.TextMaster;
 import io.github.dantetam.lwjglEngine.render.DisplayManager;
 import io.github.dantetam.lwjglEngine.render.MasterRenderer;
 import io.github.dantetam.lwjglEngine.render.VBOLoader;
-import io.github.dantetam.lwjglEngine.toolbox.MousePicker;
 import io.github.dantetam.render.GameLauncher;
+import io.github.dantetam.toolbox.MousePicker;
 
 public class MainGameLoop {
 

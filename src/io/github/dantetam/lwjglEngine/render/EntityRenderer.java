@@ -14,7 +14,7 @@ import io.github.dantetam.lwjglEngine.models.RawModel;
 import io.github.dantetam.lwjglEngine.models.TexturedModel;
 import io.github.dantetam.lwjglEngine.shaders.StaticShader;
 import io.github.dantetam.lwjglEngine.textures.LoadedIdTexture;
-import io.github.dantetam.lwjglEngine.toolbox.MatrixMathUtil;
+import io.github.dantetam.toolbox.MatrixMathUtil;
 
 public class EntityRenderer {
 

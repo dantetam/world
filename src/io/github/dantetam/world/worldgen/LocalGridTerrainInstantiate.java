@@ -1,69 +1,109 @@
 package io.github.dantetam.world.worldgen;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
-import io.github.dantetam.lwjglEngine.toolbox.CustomMathUtil;
+import io.github.dantetam.lwjglEngine.terrain.ForestGeneration;
+import io.github.dantetam.lwjglEngine.terrain.ForestGeneration.BiomeData;
+import io.github.dantetam.lwjglEngine.terrain.ForestGeneration.ProceduralTree;
+import io.github.dantetam.toolbox.CustomMathUtil;
 import io.github.dantetam.vector.Vector3i;
+import io.github.dantetam.world.dataparse.ItemData;
 import io.github.dantetam.world.grid.LocalGrid;
+import io.github.dantetam.world.grid.LocalTile;
+import kn.uni.voronoitreemap.gui.JSite;
+import kn.uni.voronoitreemap.j2d.Point2D;
+import kn.uni.voronoitreemap.j2d.PolygonSimple;
 import terrain.BaseTerrain;
 import terrain.DiamondSquare;
 
 public class LocalGridTerrainInstantiate {
 
-	public LocalGrid localGrid;
+	private LocalGrid localGrid;
+	private int generatedTerrainLen;
+	private int localGridBiome;
 	
-	private int terrainPower2;
-	
-	public LocalGridTerrainInstantiate(Vector3i sizes) {
+	public LocalGridTerrainInstantiate(Vector3i sizes, int biome) {
 		localGrid = new LocalGrid(sizes);
-		terrainPower2 = (int) CustomMathUtil.roundToPower2(Math.max(Math.max(sizes.x, sizes.y), sizes.z));
+		generatedTerrainLen = (int) CustomMathUtil.roundToPower2(Math.max(Math.max(sizes.x, sizes.y), sizes.z));
+		localGridBiome = biome;
 	}
 	
-	public void setupGrid() {
+	public LocalGrid setupGrid() {
+		double[][] terrain = generateTerrain();
+		double[][] soilLevels = generateSoilLevels();
+		int[][] soilCompositions = generateSoilCompositions();
+		for (int r = 0; r < localGrid.rows; r++) {
+			for (int c = 0; c < localGrid.cols; c++) {
+				for (double h = terrain[r][c]; h >= terrain[r][c] - soilLevels[r][c]; h--) {
+					if (h <= 0) break;
+					int height = (int) h;
+					Vector3i coords = new Vector3i(r,c,height);
+					LocalTile newTile = new LocalTile(coords);
+					newTile.tileBlockId = soilCompositions[r][c];
+					newTile.tileFloorId = soilCompositions[r][c];
+					localGrid.setTileInstantiate(coords, newTile);
+				}
+			}
+		}
 		
+		int[][] biomes = generateFlatTableInt(localGrid.rows, localGrid.cols, localGridBiome);
+		double[][] temperature = generateFlatTableDouble(localGrid.rows, localGrid.cols, 0);
+		double[][] rain = generateFlatTableDouble(localGrid.rows, localGrid.cols, 0);
+		Map<int[], ProceduralTree> gridTrees = generateTrees(terrain, biomes, temperature, rain);
+		for (Entry<int[], ProceduralTree> entry: gridTrees.entrySet()) {
+			System.out.println(Arrays.toString(entry.getKey()));
+		}
+		System.out.println(gridTrees.size());
+		
+		return localGrid;
 	}
 	
 	public double[][] generateTerrain() {
-		double[][] temp = DiamondSquare.makeTable(30, 30, 30, 30, terrainPower2 + 1);
+		double[][] temp = DiamondSquare.makeTable(30, 30, 30, 30, generatedTerrainLen + 1);
 		BaseTerrain map = new DiamondSquare(temp);
-		double[][] terrain = map.generate(new double[] { 0, 0, terrainPower2, 8, 0.5 });
+		double[][] terrain = map.generate(new double[] { 0, 0, generatedTerrainLen, 8, 0.5 });
 		return terrain;
 	}
 	
 	public double[][] generateSoilLevels() {
-		double[][] temp = DiamondSquare.makeTable(0, 0, 0, 0, terrainPower2 + 1);
+		double[][] temp = DiamondSquare.makeTable(0, 0, 0, 0, generatedTerrainLen + 1);
 		BaseTerrain map = new DiamondSquare(temp);
-		double[][] soilLevels = map.generate(new double[] { 0, 0, terrainPower2, 5, 0.65 });
+		double[][] soilLevels = map.generate(new double[] { 0, 0, generatedTerrainLen, 5, 0.65 });
 		return soilLevels;
 	}
 	
-	public double[][][] generateSoilCompositions() {
-		double[][] temp = DiamondSquare.makeTable(20, 20, 20, 20, terrainPower2 + 1);
+	public int[][] generateSoilCompositions() {
+		double[][] temp = DiamondSquare.makeTable(20, 20, 20, 20, generatedTerrainLen + 1);
 		BaseTerrain map = new DiamondSquare(temp);
-		double[][] clayLevels = map.generate(new double[] { 0, 0, terrainPower2, 5, 0.55 });
+		double[][] clayLevels = map.generate(new double[] { 0, 0, generatedTerrainLen, 5, 0.55 });
 		
-		temp = DiamondSquare.makeTable(30, 30, 30, 30, terrainPower2 + 1);
+		temp = DiamondSquare.makeTable(30, 30, 30, 30, generatedTerrainLen + 1);
 		map = new DiamondSquare(temp);
-		double[][] sandLevels = map.generate(new double[] { 0, 0, terrainPower2, 25, 0.45 });
+		double[][] sandLevels = map.generate(new double[] { 0, 0, generatedTerrainLen, 25, 0.45 });
 		
-		temp = DiamondSquare.makeTable(20, 20, 20, 20, terrainPower2 + 1);
+		temp = DiamondSquare.makeTable(20, 20, 20, 20, generatedTerrainLen + 1);
 		map = new DiamondSquare(temp);
-		double[][] siltLevels = map.generate(new double[] { 0, 0, terrainPower2, 10, 0.45 });
-		
-		double[][][] normalizedSoilData = new double[terrainPower2 + 1][terrainPower2 + 1][3];
-		for (int r = 0; r < terrainPower2 + 1; r++) {
-			for (int c = 0; c < terrainPower2 + 1; c++) {
+		double[][] siltLevels = map.generate(new double[] { 0, 0, generatedTerrainLen, 10, 0.45 });
+
+		int[][] soilIdsForTiles = new int[generatedTerrainLen + 1][generatedTerrainLen + 1];
+		for (int r = 0; r < generatedTerrainLen + 1; r++) {
+			for (int c = 0; c < generatedTerrainLen + 1; c++) {
 				double[] data = {clayLevels[r][c], sandLevels[r][c], siltLevels[r][c]};
 				double sum = Arrays.stream(data).sum();
-				data = Arrays.stream(data).map(amount -> amount / sum).toArray();
-				normalizedSoilData[r][c] = data;
+				double[] normalizedSoilData = Arrays.stream(data).map(amount -> amount / sum).toArray();
+				int soilId = getSoilItemIdFromData(normalizedSoilData);
+				soilIdsForTiles[r][c] = soilId;
 			}
 		}
-		return normalizedSoilData;
+		return soilIdsForTiles;
 	}
 	
 	//Return item id associated with soil composition
-	public void getSoilItemIdFromData(double[] data) {
+	public int getSoilItemIdFromData(double[] data) {
 		double rand = Math.random();
 		double clay = data[0], sand = data[1], silt = data[2];
 		String soilName;
@@ -96,6 +136,56 @@ public class LocalGridTerrainInstantiate {
 		else {
 			soilName = "Soil";
 		}
+		return ItemData.getIdFromName(soilName);
+	}
+	
+	/**
+	 * @param terrain
+	 * @param biomes
+	 * @param temperature
+	 * @param rain
+	 * @return A map of 2D tile coordinates to tree objects containing type, size, etc.
+	 */
+	public Map<int[], ProceduralTree> generateTrees(double[][] terrain, int[][] biomes, double[][] temperature, double[][] rain) {
+		int rasterExpandFactor = 6;
+		Point2D topLeftBound = new Point2D(0,0),
+				bottomRightBound = new Point2D(localGrid.rows * rasterExpandFactor, localGrid.cols * rasterExpandFactor);
+		int averageDistance = 3 * rasterExpandFactor;
+		
+		Object[] forestData = ForestGeneration.generateForest(topLeftBound, bottomRightBound, averageDistance, 
+				terrain, biomes, temperature, rain); 
+		List<JSite> voronoi = (List) forestData[0]; 
+		Map<Integer, ProceduralTree> polygonForestData = (Map) forestData[1]; 
+		Map<Integer, BiomeData> polygonBiomeData = (Map) forestData[2];
+		
+		Map<int[], ProceduralTree> treesByTileLocations = new HashMap<>();
+		for (Entry<Integer, ProceduralTree> entry: polygonForestData.entrySet()) {
+			JSite polygon = voronoi.get(entry.getKey());
+			Point2D centroid = polygon.getSite().getPolygon().getCentroid();
+			int[] tileLocation = {(int) (centroid.x / rasterExpandFactor), (int) (centroid.y / rasterExpandFactor)};
+			treesByTileLocations.put(tileLocation, entry.getValue());
+		}
+		return treesByTileLocations;
+	}
+	
+	public double[][] generateFlatTableDouble(int rows, int cols, double level) {
+		double[][] newTable = new double[rows][cols];
+		for (int r = 0; r < rows; r++) {
+			for (int c = 0; c < cols; c++) {
+				newTable[r][c] = level;
+			}
+		}
+		return newTable;
+	}
+	
+	public int[][] generateFlatTableInt(int rows, int cols, int level) {
+		int[][] newTable = new int[rows][cols];
+		for (int r = 0; r < rows; r++) {
+			for (int c = 0; c < cols; c++) {
+				newTable[r][c] = level;
+			}
+		}
+		return newTable;
 	}
 	
 	public double[] generateSandstoneIgneousHeights() {

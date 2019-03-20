@@ -8,7 +8,7 @@ import io.github.dantetam.lwjglEngine.entities.Light;
 import io.github.dantetam.lwjglEngine.fontRendering.TextMaster;
 import io.github.dantetam.lwjglEngine.gui.GuiRenderer;
 import io.github.dantetam.lwjglEngine.shaders.StaticShader;
-import io.github.dantetam.lwjglEngine.toolbox.MousePicker;
+import io.github.dantetam.toolbox.MousePicker;
 
 public class MasterRenderer {
 

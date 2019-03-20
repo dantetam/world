@@ -7,7 +7,7 @@ import io.github.dantetam.lwjglEngine.models.RawModel;
 import io.github.dantetam.lwjglEngine.render.VBOLoader;
 import io.github.dantetam.lwjglEngine.textures.TerrainTexture;
 import io.github.dantetam.lwjglEngine.textures.TerrainTexturePack;
-import io.github.dantetam.lwjglEngine.toolbox.BicubicInterpolator;
+import io.github.dantetam.toolbox.BicubicInterpolator;
 
 public class GeneratedTerrain extends Terrain {
 

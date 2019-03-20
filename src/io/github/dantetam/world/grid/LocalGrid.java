@@ -20,13 +20,6 @@ public class LocalGrid {
 	public LocalGrid(Vector3i size) {
 		rows = size.x; cols = size.y; heights = size.z;
 		grid = new LocalTile[rows][cols][heights];
-		for (int r = 0; r < rows; r++) {
-			for (int c = 0; c < cols; c++) {
-				for (int h = 0; h < heights; h++) {
-					grid[r][c][h] = new LocalTile(new Vector3i(r,c,h));
-				}
-			}
-		}
 	}
 	
 	/**
@@ -37,6 +30,18 @@ public class LocalGrid {
 		if (r < 0 || c < 0 || h < 0 || r >= rows || c >= cols || h >= heights)
 			return null;
 		return grid[r][c][h];
+	}
+	
+	/**
+	 * Used only for world creation, to create individual tiles
+	 * @param coords
+	 * @param tile
+	 */
+	public void setTileInstantiate(Vector3i coords, LocalTile tile) {
+		int r = coords.x, c = coords.y, h = coords.z;
+		if (r < 0 || c < 0 || h < 0 || r >= rows || c >= cols || h >= heights)
+			throw new IllegalArgumentException("Invalid tile added to coords: " + coords.toString());
+		grid[r][c][h] = tile;
 	}
 	
 	public boolean buildingCanFitAt(LocalBuilding building, Vector3i newPrimaryCoords) {

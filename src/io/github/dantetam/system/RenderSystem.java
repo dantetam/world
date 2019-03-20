@@ -1,7 +1,7 @@
 package io.github.dantetam.system;
 
-import io.github.dantetam.lwjglEngine.toolbox.MousePicker;
 import io.github.dantetam.render.GameLauncher;
+import io.github.dantetam.toolbox.MousePicker;
 
 public class RenderSystem extends BaseSystem {
 

@@ -1,4 +1,4 @@
-package io.github.dantetam.lwjglEngine.toolbox;
+package io.github.dantetam.toolbox;
 
 import java.awt.image.BufferedImage;
 import java.io.File;

@@ -8,6 +8,8 @@ import io.github.dantetam.lwjglEngine.entities.Camera;
 import io.github.dantetam.lwjglEngine.render.DisplayManager;
 import io.github.dantetam.lwjglEngine.tests.MainGameLoop;
 import io.github.dantetam.system.*;
+import io.github.dantetam.world.dataparse.WorldCsvParser;
+import io.github.dantetam.world.grid.WorldGrid;
 
 public class GameLauncher {
 
@@ -54,6 +56,10 @@ public class GameLauncher {
 			// setKeyCallback();
 			GLFW.glfwShowWindow(DisplayManager.window);
 
+			WorldCsvParser.init();
+			
+			WorldGrid worldGrid = new WorldGrid();
+			
 			menuSystem.setupLoader();
 			guiSystem.setupLoader();
 
@@ -61,6 +67,7 @@ public class GameLauncher {
 			lwjglSystem = new MainGameLoop(this);
 
 			inputSystem.on = false;
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

@@ -14,10 +14,10 @@ import org.lwjgl.util.vector.Vector4f;
 import io.github.dantetam.lwjglEngine.models.RawModel;
 import io.github.dantetam.lwjglEngine.render.DisplayManager;
 import io.github.dantetam.lwjglEngine.render.VBOLoader;
-import io.github.dantetam.lwjglEngine.toolbox.MatrixMathUtil;
 import io.github.dantetam.render.Menu;
 import io.github.dantetam.system.GuiSystem;
 import io.github.dantetam.system.MenuSystem;
+import io.github.dantetam.toolbox.MatrixMathUtil;
 
 public class GuiRenderer {
 

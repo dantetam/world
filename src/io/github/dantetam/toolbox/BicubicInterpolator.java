@@ -1,4 +1,4 @@
-package io.github.dantetam.lwjglEngine.toolbox;
+package io.github.dantetam.toolbox;
 
 public class BicubicInterpolator {
 	private double[] arr = new double[4];

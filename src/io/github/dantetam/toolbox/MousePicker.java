@@ -1,4 +1,4 @@
-package io.github.dantetam.lwjglEngine.toolbox;
+package io.github.dantetam.toolbox;
 
 import org.lwjgl.util.vector.Matrix4f;
 import org.lwjgl.util.vector.Vector2f;

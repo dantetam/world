@@ -4,7 +4,7 @@ import org.lwjgl.util.vector.Matrix4f;
 
 import io.github.dantetam.lwjglEngine.entities.Camera;
 import io.github.dantetam.lwjglEngine.entities.Light;
-import io.github.dantetam.lwjglEngine.toolbox.MatrixMathUtil;
+import io.github.dantetam.toolbox.MatrixMathUtil;
 
 public class StaticShader extends ShaderProgram {
 

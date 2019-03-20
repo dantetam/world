@@ -12,7 +12,7 @@ public class ItemCsvParser extends WorldCsvParser {
 			String[] groups = record.get("Groups").split(";");
 			String stackable = record.get("Stackable");
 			Integer stackNum = null;
-			if (stackable.isBlank()) {
+			if (!stackable.isBlank()) {
 				try {
 					stackNum = Integer.parseInt(stackable);
 				} catch (NumberFormatException e) {

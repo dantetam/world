@@ -211,7 +211,7 @@ public class ForestGeneration {
 		List<Integer> fringe = new ArrayList<>();
 		Set<Integer> visited = new HashSet<>();
 		fringe.add(startPolygonIndex);
-
+		
 		int roundNumber = 0;
 		while (fringe.size() > 0) {
 			List<Integer> newFringe = new ArrayList<>();

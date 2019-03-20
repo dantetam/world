@@ -7,16 +7,17 @@ import io.github.dantetam.vector.Vector3i;
 
 public class LocalTile {
 
+	private static final int EMPTY_ID = -1;
+	
 	public Vector3i coords;
 	
 	public LocalBuilding building;
 	private List<Person> people;
 	
-	public boolean filled; //Representing if this block is filled with the current tileId
 	public int tileBlockId; //Representing the block which occupies this position
 		//Note if filled is false, this holds the previous tile data 
 		//(e.g. recording that a hole was dug into this dirt).
-	public int tileFloorId;
+	public int tileFloorId; //Representing the floor below the block (the block may or may not exist)
 	public InventoryItem itemOnFloorId;
 	
 	public LocalTile(Vector3i coords) {

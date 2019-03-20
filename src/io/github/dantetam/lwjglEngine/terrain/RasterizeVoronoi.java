@@ -26,8 +26,8 @@ import kn.uni.voronoitreemap.gui.VoronoiLibrary;
 import kn.uni.voronoitreemap.j2d.Point2D;
 import kn.uni.voronoitreemap.j2d.PolygonSimple;
 import io.github.dantetam.lwjglEngine.terrain.NeighborsGraphStructure.Edge;
-import io.github.dantetam.lwjglEngine.toolbox.CustomMathUtil;
-import io.github.dantetam.lwjglEngine.toolbox.RGBUtil;
+import io.github.dantetam.toolbox.CustomMathUtil;
+import io.github.dantetam.toolbox.RGBUtil;
 
 public class RasterizeVoronoi {
 
