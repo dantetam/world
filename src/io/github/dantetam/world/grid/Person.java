@@ -10,7 +10,7 @@ public class Person {
 	public String name;
 
 	// Maps item id to item objects, for finding out quickly if this person has item x
-	public Map<Integer, Item> inventory;
+	public Map<Integer, InventoryItem> inventory;
 
 	public Person(String name) {
 		this.name = name;

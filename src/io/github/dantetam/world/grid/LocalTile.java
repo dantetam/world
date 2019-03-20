@@ -12,6 +12,12 @@ public class LocalTile {
 	public LocalBuilding building;
 	private List<Person> people;
 	
+	public boolean filled; //Representing if this block is filled with the current tileId
+	public int tileId; //Representing the block which occupies this position
+		//Note if filled is false, this holds the previous tile data 
+		//(e.g. recording that a hole was dug into this dirt).
+	public int itemOnFloorId;
+	
 	public LocalTile(Vector3i coords) {
 		this.coords = coords;
 	}

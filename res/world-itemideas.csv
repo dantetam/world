@@ -1,0 +1,24 @@
+Item Name,Item Id,Item Description,CanBeBlock,OnBlockHarvest (Inventory Item)
+,,,,
+Soil (Clay),,,Y,"Soil, 1; Clay, 0.3"
+Soil (Sand),,,Y,"Soil, 1; Sand, 0.3"
+Soil (Silt),,,Y,"Soil, 1; Silt, 0.3"
+,,,,
+Clay,,,Y,"Clay, 1"
+Sand,,,Y,"Sand, 1"
+Soil,,,Y,"Soil, 1"
+Silt,,,Y,"Silt, 1"
+,,,,
+Basalt,,,Y,"Basalt, 1"
+Quartz,,,Y,"Quartz, 1"
+Granite,,,Y,"Granite, 1"
+Diorite,,,Y,"Diorite, 1"
+Olivine,,,Y,"Olivine, 1"
+,,,,
+Sandstone,,,Y,"Sandstone, 1"
+Mudstone,,,Y,"Mudstone, 1"
+Limestone,,,Y,"Limestone, 1"
+,,,,
+Gneiss,,,Y,"Gneiss, 1"
+Slate,,,Y,"Slate, 1"
+Marble,,,Y,"Marble, 1"

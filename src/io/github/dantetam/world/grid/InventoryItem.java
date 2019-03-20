@@ -9,12 +9,12 @@ package io.github.dantetam.world.grid;
  *
  */
 
-public class Item {
+public class InventoryItem {
 
 	public int id;
 	public int quantity;
 	
-	public Item(int id, int quantity) {
+	public InventoryItem(int id, int quantity) {
 		this.id = id;
 		this.quantity = quantity;
 	}

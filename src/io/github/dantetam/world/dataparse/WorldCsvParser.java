@@ -11,11 +11,25 @@ import org.apache.commons.csv.CSVRecord;
 public class WorldCsvParser {
 
 	public static void main(String[] args) throws IOException, FileNotFoundException {
-		Reader in = new FileReader("path/to/file.csv");
-		Iterable<CSVRecord> records = CSVFormat.EXCEL.parse(in);
-		for (CSVRecord record : records) {
-		    System.out.println(record.toString());
+		for (CSVRecord record: parseCsvFile("res/")) {
+			
 		}
+	}
+	
+	public static Iterable<CSVRecord> parseCsvFile(String fileName) {
+		Reader in = null;
+		try {
+			in = new FileReader(fileName);
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+		try {
+			Iterable<CSVRecord> records = CSVFormat.EXCEL.parse(in);
+			return records;
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return null;
 	}
 	
 }

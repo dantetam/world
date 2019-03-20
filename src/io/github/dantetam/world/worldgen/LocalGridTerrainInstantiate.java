@@ -67,11 +67,9 @@ public class LocalGridTerrainInstantiate {
 		double rand = Math.random();
 		double clay = data[0], sand = data[1], silt = data[2];
 		String soilName;
-		if (clay > 0.6) {
-			soilName = "Clay";
-		}
-		else if (clay > 0.4) {
-			if (sand < 0.3 && silt < 0.3) soilName = "Soil";
+		if (clay > 0.4) {
+			if (clay > 0.6) soilName = "Clay";
+			else if (sand < 0.3 && silt < 0.3) soilName = "Soil";
 			else if (sand > silt) {
 				soilName = rand < sand ? "Soil (Sand)" : "Soil (Clay)";
 			}
@@ -94,6 +92,9 @@ public class LocalGridTerrainInstantiate {
 			else {
 				soilName = rand < clay ? "Soil (Clay)" : "Soil (Sand)";
 			}
+		}
+		else {
+			soilName = "Soil";
 		}
 	}
 	
