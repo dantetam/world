@@ -5,10 +5,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import io.github.dantetam.lwjglEngine.render.VBOLoader;
 import io.github.dantetam.world.grid.InventoryItem;
 
 public class ItemData {
 
+	public static final int ITEM_EMPTY_ID = -1;
+	
 	private static Map<Integer, InventoryItem> allItemsById = new HashMap<>();
 	private static Map<String, Integer> itemNamesToIds = new HashMap<>();
 	
@@ -43,6 +46,13 @@ public class ItemData {
 		return itemNamesToIds.get(name);
 	}
 	
+	public static String getNameFromId(int id) {
+		if (!allItemsById.containsKey(id)) {
+			throw new IllegalArgumentException("Could not find item id: " + id);
+		}
+		return allItemsById.get(id).name;
+	}
+	
 	public static InventoryItem createItemByName(String name, int quantity) {
 		if (itemNamesToIds.containsKey(name)) {
 			int id = itemNamesToIds.get(name);
@@ -67,6 +77,11 @@ public class ItemData {
 		if (stackable != null && stackable > 1) {
 			stackableMap.put(id, stackable);
 		}
+	}
+
+	public static int getTextureFromItemId(int id) {
+		String itemName = getNameFromId(id);
+		return VBOLoader.loadTexture("res/tiles/" + itemName + ".png");
 	}
 	
 }

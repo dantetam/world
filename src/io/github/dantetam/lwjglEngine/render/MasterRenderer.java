@@ -23,11 +23,10 @@ public class MasterRenderer {
 		createProjectionMatrix();
 
 		guiRenderer = new GuiRenderer();
-		textMaster = new TextMaster();
+		//textMaster = new TextMaster();
 		disableCulling();
-		
 	}
-
+	
 	public static void enableCulling() {
 		// Perhaps checking the culling would be a nice way to find the correct normals
 		GL11.glEnable(GL11.GL_CULL_FACE); GL11.glCullFace(GL11.GL_BACK);
@@ -37,25 +36,9 @@ public class MasterRenderer {
 		GL11.glDisable(GL11.GL_CULL_FACE);
 	}
 
-	// Return a new MousePicker
-	public MousePicker setupMousePicker(Camera c) {
-		MousePicker temp = new MousePicker(projectionMatrix, c);
-		return temp;
-	}
-
-	public void render(Light light, Camera camera, MousePicker mp) {
-		prepare();
-
-		shader.start();
-		shader.loadLight(light);
-		shader.loadViewMatrix(camera);
-		// renderer.render(entities);
-		shader.stop();
-	}
-
 	public void prepare() {
 		GL11.glEnable(GL11.GL_DEPTH_TEST);
-		GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
+		GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
 		GL11.glClearColor(150F / 255F, 225F / 255F, 255F / 255F, 0);
 	}
 

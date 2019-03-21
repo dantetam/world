@@ -33,8 +33,16 @@ public class GuiRenderer {
 		quad = VBOLoader.loadToVAO(positions);
 		shader = new GuiShader();
 	}
+	
+	public void prepare() {
+		GL11.glDisable(GL11.GL_DEPTH_TEST);
+		GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
+		GL11.glClearColor(150F / 255F, 225F / 255F, 255F / 255F, 0);
+	}
 
 	public void render() {
+		prepare();
+		
 		shader.start();
 		GL30.glBindVertexArray(quad.vaoID);
 		GL20.glEnableVertexAttribArray(0);

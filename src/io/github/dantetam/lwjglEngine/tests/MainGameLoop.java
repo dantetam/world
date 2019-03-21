@@ -29,11 +29,9 @@ public class MainGameLoop {
 			TextMaster.init();
 			main.menuSystem.setupMenus(); // Set up menus once loader is not null
 
-			light = new Light(new Vector3f(500, 500, 500), new Vector3f(1, 1, 1));
-
 			// Keep updating the display until the user exits
 			renderer = new MasterRenderer();
-			mousePicker = renderer.setupMousePicker(main.camera);
+			mousePicker = new MousePicker(main.camera);
 			main.renderSystem.mousePicker = mousePicker;
 			main.guiSystem.mousePicker = mousePicker;
 
@@ -71,7 +69,7 @@ public class MainGameLoop {
 				main.systems.get(i).tick();
 			}
 
-			renderer.render(light, main.camera, mousePicker);
+			//renderer.render(light, main.camera, mousePicker);
 			renderer.guiRenderer.render();
 
 			TextMaster.render();

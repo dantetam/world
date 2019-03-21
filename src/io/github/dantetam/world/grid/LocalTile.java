@@ -4,10 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import io.github.dantetam.vector.Vector3i;
+import io.github.dantetam.world.dataparse.ItemData;
 
 public class LocalTile {
-
-	private static final int EMPTY_ID = -1;
 	
 	public Vector3i coords;
 	
@@ -18,10 +17,12 @@ public class LocalTile {
 		//Note if filled is false, this holds the previous tile data 
 		//(e.g. recording that a hole was dug into this dirt).
 	public int tileFloorId; //Representing the floor below the block (the block may or may not exist)
-	public InventoryItem itemOnFloorId;
+	public InventoryItem itemOnFloor;
 	
 	public LocalTile(Vector3i coords) {
 		this.coords = coords;
+		tileBlockId = ItemData.ITEM_EMPTY_ID;
+		tileFloorId = ItemData.ITEM_EMPTY_ID;
 	}
 	
 	public void addPerson(Person person) {
@@ -40,6 +41,10 @@ public class LocalTile {
 	
 	public List<Person> getPeople() {
 		return people;
+	}
+	
+	public boolean isOccupied() {
+		return tileBlockId != ItemData.ITEM_EMPTY_ID || tileFloorId != ItemData.ITEM_EMPTY_ID;
 	}
 	
 }

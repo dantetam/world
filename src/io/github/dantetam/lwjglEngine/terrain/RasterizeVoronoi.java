@@ -150,7 +150,7 @@ public class RasterizeVoronoi {
 	 * @param rasterColTimes
 	 * @return
 	 */
-	private static double[][] getPixelRasterGridFromVoronoi(List<JSite> voronoi, Rectangle2D.Double voronoiBounds,
+	public static double[][] getPixelRasterGridFromVoronoi(List<JSite> voronoi, Rectangle2D.Double voronoiBounds,
 			int[][] biomesGuide, int rasterRowTimes, int rasterColTimes) {
 		int rows = biomesGuide.length, cols = biomesGuide[0].length;
 		double[][] rasterResults = new double[cols * rasterColTimes][rows * rasterRowTimes];

@@ -5,12 +5,12 @@ import io.github.dantetam.world.worldgen.LocalGridTerrainInstantiate;
 
 public class WorldGrid {
 
-	public LocalGrid testGrid;
+	public LocalGrid activeLocalGrid;
 	
 	public WorldGrid() {
 		Vector3i sizes = new Vector3i(200,200,50);
 		int biome = 3;
-		testGrid = new LocalGridTerrainInstantiate(sizes, biome).setupGrid();
+		activeLocalGrid = new LocalGridTerrainInstantiate(sizes, biome).setupGrid();
 	}
 	
 }

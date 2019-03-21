@@ -15,7 +15,7 @@ import io.github.dantetam.vector.Vector3i;
 public class LocalGrid {
 
 	public int rows, cols, heights; //Sizes of the three dimensions of this local grid
-	private LocalTile[][][] grid; 
+	private LocalTile[][][] grid; //A 3D grid, with the third dimension representing height, such that [][][50] is one level higher than [][][49].
 	
 	public LocalGrid(Vector3i size) {
 		rows = size.x; cols = size.y; heights = size.z;

@@ -93,9 +93,10 @@ public class MenuSystem extends BaseSystem {
 	}
 
 	public void forceFullUIUpdate() {
-		main.guiSystem.updateUI();
-		TextMaster.update(this, main.guiSystem);
-		main.lwjglSystem.renderer.guiRenderer.update(this, main.guiSystem);
+		System.out.println("force update");
+		gameLauncher.guiSystem.updateUI();
+		TextMaster.update(this, gameLauncher.guiSystem);
+		gameLauncher.lwjglSystem.renderer.guiRenderer.update(this, gameLauncher.guiSystem);
 	}
 
 	public class Click {

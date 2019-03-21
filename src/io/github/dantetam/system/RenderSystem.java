@@ -12,7 +12,7 @@ public class RenderSystem extends BaseSystem {
 	}
 
 	public void tick() {
-		mousePicker.update();
+		
 	}
 
 }

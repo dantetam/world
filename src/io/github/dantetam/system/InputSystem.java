@@ -115,14 +115,15 @@ public class InputSystem extends BaseSystem {
 			executeAction(keyPresses.get(i));
 			keyPresses.remove(i);
 		}
-		// Prevent key presses
+		
+		moving = gameLauncher.camera.move();
 
 		if (moving || lastMoving) {
-			main.menuSystem.forceFullUIUpdate();
+			gameLauncher.menuSystem.forceFullUIUpdate();
 		}
 
 		lastMoving = moving;
-		if (main.menuSystem.menuActivated) {
+		if (gameLauncher.menuSystem.menuActivated) {
 			clicks.clear();
 			// main.menuSystem.menuActivated = false;
 		} else { // Process the clicks remaining in the queue
@@ -190,7 +191,7 @@ public class InputSystem extends BaseSystem {
 	public void executeAction(String action) {
 		System.out.println("InputSystem executed " + action);
 
-		main.menuSystem.forceFullUIUpdate();
+		gameLauncher.menuSystem.forceFullUIUpdate();
 	}
 
 	public void executeAction(int key) {

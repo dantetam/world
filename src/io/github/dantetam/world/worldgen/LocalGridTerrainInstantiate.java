@@ -1,5 +1,6 @@
 package io.github.dantetam.world.worldgen;
 
+import java.awt.geom.Rectangle2D;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -9,11 +10,14 @@ import java.util.Map.Entry;
 import io.github.dantetam.lwjglEngine.terrain.ForestGeneration;
 import io.github.dantetam.lwjglEngine.terrain.ForestGeneration.BiomeData;
 import io.github.dantetam.lwjglEngine.terrain.ForestGeneration.ProceduralTree;
+import io.github.dantetam.lwjglEngine.terrain.RasterizeVoronoi;
 import io.github.dantetam.toolbox.CustomMathUtil;
 import io.github.dantetam.vector.Vector3i;
 import io.github.dantetam.world.dataparse.ItemData;
 import io.github.dantetam.world.grid.LocalGrid;
 import io.github.dantetam.world.grid.LocalTile;
+import kdtreegeo.KdTree;
+import kn.uni.voronoitreemap.convexHull.JVertex;
 import kn.uni.voronoitreemap.gui.JSite;
 import kn.uni.voronoitreemap.j2d.Point2D;
 import kn.uni.voronoitreemap.j2d.PolygonSimple;
@@ -34,12 +38,19 @@ public class LocalGridTerrainInstantiate {
 	
 	public LocalGrid setupGrid() {
 		double[][] terrain = generateTerrain();
+		int[][] biomes = generateFlatTableInt(localGrid.rows, localGrid.cols, localGridBiome);
+		double[][] temperature = generateFlatTableDouble(localGrid.rows, localGrid.cols, 0);
+		double[][] rain = generateFlatTableDouble(localGrid.rows, localGrid.cols, 0);
+		
+		int grassId = ItemData.getIdFromName("Grass");
+		double[][] gridGrasses = generateGrass(terrain, biomes, temperature, rain);
+		
 		double[][] soilLevels = generateSoilLevels();
-		int[][] soilCompositions = generateSoilCompositions();
+		int[][] soilCompositions = generateSoilCompositions();		
 		for (int r = 0; r < localGrid.rows; r++) {
 			for (int c = 0; c < localGrid.cols; c++) {
 				for (double h = terrain[r][c]; h >= terrain[r][c] - soilLevels[r][c]; h--) {
-					if (h <= 0) break;
+					if (h < 0 || h >= localGrid.heights) break;
 					int height = (int) h;
 					Vector3i coords = new Vector3i(r,c,height);
 					LocalTile newTile = new LocalTile(coords);
@@ -47,16 +58,28 @@ public class LocalGridTerrainInstantiate {
 					newTile.tileFloorId = soilCompositions[r][c];
 					localGrid.setTileInstantiate(coords, newTile);
 				}
+				
+				int grassHeight = (int) Math.floor(terrain[r][c]) + 1;
+				if (grassHeight < 0 || grassHeight >= localGrid.heights) break;
+				Vector3i grassCoord = new Vector3i(r,c,grassHeight);
+				
+				LocalTile topTile = new LocalTile(grassCoord);
+				topTile.tileFloorId = soilCompositions[r][c];
+				if (gridGrasses[r][c] != 0) {
+					System.out.println("Put grass");
+					topTile.tileBlockId = grassId;
+				}
+				localGrid.setTileInstantiate(grassCoord, topTile);
 			}
 		}
 		
-		int[][] biomes = generateFlatTableInt(localGrid.rows, localGrid.cols, localGridBiome);
-		double[][] temperature = generateFlatTableDouble(localGrid.rows, localGrid.cols, 0);
-		double[][] rain = generateFlatTableDouble(localGrid.rows, localGrid.cols, 0);
 		Map<int[], ProceduralTree> gridTrees = generateTrees(terrain, biomes, temperature, rain);
+		/*
 		for (Entry<int[], ProceduralTree> entry: gridTrees.entrySet()) {
 			System.out.println(Arrays.toString(entry.getKey()));
 		}
+		*/
+		System.out.println(localGrid.rows + " " + localGrid.cols + " " + localGrid.heights);
 		System.out.println(gridTrees.size());
 		
 		return localGrid;
@@ -150,14 +173,15 @@ public class LocalGridTerrainInstantiate {
 		int rasterExpandFactor = 6;
 		Point2D topLeftBound = new Point2D(0,0),
 				bottomRightBound = new Point2D(localGrid.rows * rasterExpandFactor, localGrid.cols * rasterExpandFactor);
-		int averageDistance = 3 * rasterExpandFactor;
+		int averageDistance = 25;
 		
 		Object[] forestData = ForestGeneration.generateForest(topLeftBound, bottomRightBound, averageDistance, 
-				terrain, biomes, temperature, rain); 
+				terrain, biomes, temperature, rain, 1); 
 		List<JSite> voronoi = (List) forestData[0]; 
 		Map<Integer, ProceduralTree> polygonForestData = (Map) forestData[1]; 
 		Map<Integer, BiomeData> polygonBiomeData = (Map) forestData[2];
 		
+		//Directly convert the centroids of the Voronoi polygons into tree tile locations
 		Map<int[], ProceduralTree> treesByTileLocations = new HashMap<>();
 		for (Entry<Integer, ProceduralTree> entry: polygonForestData.entrySet()) {
 			JSite polygon = voronoi.get(entry.getKey());
@@ -166,6 +190,25 @@ public class LocalGridTerrainInstantiate {
 			treesByTileLocations.put(tileLocation, entry.getValue());
 		}
 		return treesByTileLocations;
+	}
+	
+	public double[][] generateGrass(double[][] terrain, int[][] biomes, double[][] temperature, double[][] rain) {
+		int rasterExpandFactor = 6;
+		Point2D topLeftBound = new Point2D(0,0),
+				bottomRightBound = new Point2D(localGrid.rows * rasterExpandFactor, localGrid.cols * rasterExpandFactor);
+		int averageDistance = 25;
+		
+		//Use the Forest Generation to create a forest using the Voronoi libraries and advanced terrain generation
+		Object[] forestData = ForestGeneration.generateForest(topLeftBound, bottomRightBound, averageDistance, 
+				terrain, biomes, temperature, rain, 2.5); 
+		List<JSite> voronoi = (List) forestData[0]; 
+		
+		//Rasterize the Voronoi polygons tile by tile
+		Rectangle2D.Double voronoiBounds = new Rectangle2D.Double(
+				topLeftBound.x, topLeftBound.y, bottomRightBound.x, bottomRightBound.y);
+		double[][] rasterizedGrass = RasterizeVoronoi.getPixelRasterGridFromVoronoi(voronoi, voronoiBounds, 
+				biomes, 1, 1);
+		return rasterizedGrass;
 	}
 	
 	public double[][] generateFlatTableDouble(int rows, int cols, double level) {

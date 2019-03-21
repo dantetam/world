@@ -1,21 +1,31 @@
 package io.github.dantetam.system;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import org.lwjgl.util.vector.Vector2f;
+
+import io.github.dantetam.lwjglEngine.entities.Gui2DCamera;
 import io.github.dantetam.lwjglEngine.gui.GuiQuad;
+import io.github.dantetam.lwjglEngine.render.DisplayManager;
 import io.github.dantetam.lwjglEngine.render.VBOLoader;
 import io.github.dantetam.render.Button;
 import io.github.dantetam.render.GameLauncher;
 import io.github.dantetam.render.TextBox;
 import io.github.dantetam.toolbox.MousePicker;
+import io.github.dantetam.vector.Vector3i;
+import io.github.dantetam.world.dataparse.ItemData;
+import io.github.dantetam.world.grid.LocalGrid;
+import io.github.dantetam.world.grid.LocalTile;
 
 public class GuiSystem extends BaseSystem {
 
 	public MousePicker mousePicker;
 
-	// private Map<City, List<GuiQuad>> cityUIPictures;
-
+	private Map<LocalTile, List<GuiQuad>> tileDisplay;
+	
 	private List<GuiQuad> allGuiQuad;
 	private List<TextBox> allGuiText;
 
@@ -26,43 +36,77 @@ public class GuiSystem extends BaseSystem {
 		guiDefaultTexture = VBOLoader.loadTexture("guiDefaultTexture");
 	}
 
-	public GuiSystem(GameLauncher civGame) {
-		super(civGame);
-		// cityUIPictures = new HashMap<>();
+	public GuiSystem(GameLauncher gameLauncher) {
+		super(gameLauncher);
+		tileDisplay = new HashMap<>();
 	}
 
 	public void updateUI() {
-		// cityUIPictures.entrySet().removeIf(entry -> entry.getKey().location == null);
-		// Put stuff into cityUIPictures
-
-		updateNonTextUI();
-		updateTextUI();
+		//tileDisplay.entrySet().removeIf(entry -> entry.getKey().location == null);
+		LocalGrid activeGrid = gameLauncher.worldGrid.activeLocalGrid;
+		Gui2DCamera camera = super.gameLauncher.camera;
+		
+		List<GuiQuad> listGuis = new ArrayList<>();
+		List<TextBox> listTexts = new ArrayList<>();
+		
+		int height = (int) Math.floor(camera.tileLocationPosition.y);
+		int minX = (int) Math.floor(camera.tileLocationPosition.x - camera.numTilesX);
+		int minZ = (int) Math.floor(camera.tileLocationPosition.z - camera.numTilesZ);
+		int maxX = (int) Math.ceil(camera.tileLocationPosition.x + camera.numTilesX);
+		int maxZ = (int) Math.ceil(camera.tileLocationPosition.z + camera.numTilesZ);
+		
+		float guiWidth = DisplayManager.width / (camera.numTilesX * 2 + 1);
+		float guiHeight = DisplayManager.height / (camera.numTilesZ * 2 + 1);
+		Vector2f guiDim = new Vector2f(guiWidth, guiHeight);
+		
+		for (int x = minX; x <= maxX; x++) {
+			for (int z = minZ; z <= maxZ; z++) {
+				Vector2f guiPos = new Vector2f(guiWidth * (x - minX), guiHeight * (z - minZ)); 
+				int candidateHeight = height; //Find the highest height <= camera height, in the rendering style of DF
+				LocalTile tile = activeGrid.getTile(new Vector3i(x,z,candidateHeight));
+				while (candidateHeight > 0) {
+					if (tile != null) {
+						if (tile.isOccupied()) {
+							if (tile.tileBlockId != ItemData.ITEM_EMPTY_ID) {
+								int tileTexture = ItemData.getTextureFromItemId(tile.tileBlockId);
+								listGuis.add(new GuiQuad(tileTexture, guiPos, guiDim));
+							}
+							else if (tile.tileFloorId != ItemData.ITEM_EMPTY_ID) {
+								int tileTexture = ItemData.getTextureFromItemId(tile.tileFloorId);
+								listGuis.add(new GuiQuad(tileTexture, guiPos, guiDim));
+							}
+							if (tile.building != null) {
+								TextBox buildingTextBox = getDefaultTextBoxGui(guiDefaultTexture, "B", "", guiPos.x, guiPos.y, guiWidth, guiHeight);
+								listTexts.add(buildingTextBox);
+							}
+							if (tile.itemOnFloor != null) {
+								TextBox buildingTextBox = getDefaultTextBoxGui(guiDefaultTexture, "I", "", guiPos.x, guiPos.y, guiWidth, guiHeight);
+								listTexts.add(buildingTextBox);
+							}
+							break;
+						}
+					}
+					candidateHeight--;
+				}
+			}
+		} 
+		
+		allGuiQuad = listGuis;
+		allGuiText = listTexts;
 	}
 
 	public List<GuiQuad> getAllNonTextUI() {
 		if (allGuiQuad == null) {
-			updateNonTextUI();
+			updateUI();
 		}
 		return allGuiQuad;
 	}
 
 	public List<TextBox> getAllTextUI() {
 		if (allGuiText == null) {
-			updateTextUI();
+			updateUI();
 		}
 		return allGuiText;
-	}
-
-	private void updateNonTextUI() {
-		List<GuiQuad> listGuiQuad = new ArrayList<>();
-		// cityUIPictures
-		this.allGuiQuad = listGuiQuad;
-	}
-
-	private void updateTextUI() {
-		List<TextBox> listTextBox = new ArrayList<>();
-
-		this.allGuiText = listTextBox;
 	}
 
 	public TextBox getDefaultTextButton(int texture, String command, String display, String tooltip, float a, float b,
@@ -79,7 +123,7 @@ public class GuiSystem extends BaseSystem {
 
 	@Override
 	public void tick() {
-		if (main.inputSystem.lastMoving || main.inputSystem.moving) {
+		if (gameLauncher.inputSystem.lastMoving || gameLauncher.inputSystem.moving) {
 			updateUI();
 		}
 	}

@@ -30,42 +30,8 @@ import kn.uni.voronoitreemap.j2d.PolygonSimple;
 
 public class ForestGeneration {
 
-	/*
-	 * public static void main(String[] args) { Point2D topLeftBound = new
-	 * Point2D(0, 0); Point2D bottomRightBound = new Point2D(1600, 1600); double
-	 * averageDistance = 50;
-	 * 
-	 * double cutoff = 50;
-	 * 
-	 * double seed = 500;
-	 * 
-	 * BaseTerrain map = new PerlinNoise(seed); double[][] terrain =
-	 * map.generate(new double[] { 32, 32, 150, 8, 1, 0.8, 6, 64 });
-	 * 
-	 * double[][] temperature = new PerlinNoise(seed).generate(new double[] { 32,
-	 * 32, 3, 16, 3, 1, 3, 64 });
-	 * 
-	 * Random rainRandom = new Random((long) seed); double[][] rain = new
-	 * double[temperature.length][temperature[0].length]; for (int i = 0; i <
-	 * temperature.length; i++) { for (int j = 0; j < temperature[0].length; j++) {
-	 * rain[i][j] = rainRandom.nextDouble() * temperature[i][j] +
-	 * rainRandom.nextDouble(); } }
-	 * 
-	 * int[][] biomes = new int[32][32]; for (int r = 0; r < biomes.length; r++) {
-	 * for (int c = 0; c < biomes[0].length; c++) { if (terrain[r][c] >= cutoff) {
-	 * biomes[r][c] = GameTerrainGeneration.returnBiome(temperature[r][c],
-	 * rain[r][c]); } else biomes[r][c] = -1; } }
-	 * 
-	 * 
-	 * Object[] forestData = generateForest(topLeftBound, bottomRightBound,
-	 * averageDistance, terrain, biomes, temperature, rain); List<JSite> voronoi =
-	 * (List<JSite>) forestData[0]; Map<Integer, ProceduralTree> polygonForestData =
-	 * (Map) forestData[1]; Map<Integer, BiomeData> polygonBiomeData = (Map)
-	 * forestData[2]; }
-	 */
-
 	public static Object[] generateForest(Point2D topLeftBound, Point2D bottomRightBound, double averageDistance,
-			double[][] terrain, int[][] biomes, double[][] temperature, double[][] rain) {
+			double[][] terrain, int[][] biomes, double[][] temperature, double[][] rain, double initialSeedsScale) {
 		int lloydRelaxationTimes = 1;
 		List<JSite> voronoi = VoronoiLibrary.voronoiLib(topLeftBound, bottomRightBound, averageDistance,
 				lloydRelaxationTimes);
@@ -90,7 +56,8 @@ public class ForestGeneration {
 		Map<Integer, Set<Integer>> polygonNeighborMap = (Map) results[0];
 		// Map<Edge, List<Integer>> sharedEdgesMap = (Map) results[1];
 
-		int initialRandomSeeds = (int) Math.round(Math.sqrt(voronoi.size()));
+		int initialRandomSeeds = (int) Math.round(initialSeedsScale * Math.sqrt(voronoi.size()));
+		initialRandomSeeds = Math.min(initialRandomSeeds, voronoi.size());
 		while (initialRandomSeeds > 0) {
 			int randomPolyIndex = (int) (Math.random() * voronoi.size());
 			PolygonSimple polygon = voronoi.get(randomPolyIndex).getSite().getPolygon();
