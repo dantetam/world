@@ -45,6 +45,8 @@ public class LocalGridTerrainInstantiate {
 		int grassId = ItemData.getIdFromName("Grass");
 		double[][] gridGrasses = generateGrass(terrain, biomes, temperature, rain);
 		
+		int quartzId = ItemData.getIdFromName("Quartz");
+		
 		double[][] soilLevels = generateSoilLevels();
 		int[][] soilCompositions = generateSoilCompositions();		
 		for (int r = 0; r < localGrid.rows; r++) {
@@ -62,13 +64,22 @@ public class LocalGridTerrainInstantiate {
 				int grassHeight = (int) Math.floor(terrain[r][c]) + 1;
 				if (grassHeight < 0 || grassHeight >= localGrid.heights) break;
 				Vector3i grassCoord = new Vector3i(r,c,grassHeight);
-				
 				LocalTile topTile = new LocalTile(grassCoord);
 				topTile.tileFloorId = soilCompositions[r][c];
 				if (gridGrasses[r][c] != 0) {
 					topTile.tileBlockId = grassId;
 				}
 				localGrid.setTileInstantiate(grassCoord, topTile);
+				
+				for (double h = terrain[r][c] - soilLevels[r][c] - 1; h >= 0; h--) {
+					if (h < 0 || h >= localGrid.heights) break;
+					int height = (int) h;
+					Vector3i coords = new Vector3i(r,c,height);
+					LocalTile newTile = new LocalTile(coords);
+					newTile.tileBlockId = quartzId;
+					newTile.tileFloorId = quartzId;
+					localGrid.setTileInstantiate(coords, newTile);
+				}
 			}
 		}
 		

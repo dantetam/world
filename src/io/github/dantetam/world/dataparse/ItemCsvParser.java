@@ -6,7 +6,11 @@ public class ItemCsvParser extends WorldCsvParser {
 
 	public static void init() {
 		for (CSVRecord record: parseCsvFile("res/items/world-itemideas.csv")) {
-			int id = Integer.parseInt(record.get("Item Id"));
+			String idString = record.get("Item Id");
+			if (idString.isBlank()) {
+				continue;
+			}
+			int id = Integer.parseInt(idString);
 			String name = record.get("Item Name");
 			boolean placeable = record.get("CanBeBlock").equals("Y");
 			String[] groups = record.get("Groups").split(";");
