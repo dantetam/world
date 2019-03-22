@@ -66,7 +66,6 @@ public class LocalGridTerrainInstantiate {
 				LocalTile topTile = new LocalTile(grassCoord);
 				topTile.tileFloorId = soilCompositions[r][c];
 				if (gridGrasses[r][c] != 0) {
-					System.out.println("Put grass");
 					topTile.tileBlockId = grassId;
 				}
 				localGrid.setTileInstantiate(grassCoord, topTile);

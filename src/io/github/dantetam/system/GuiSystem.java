@@ -63,10 +63,19 @@ public class GuiSystem extends BaseSystem {
 			for (int z = minZ; z <= maxZ; z++) {
 				Vector2f guiPos = new Vector2f(guiWidth * (x - minX), guiHeight * (z - minZ)); 
 				int candidateHeight = height; //Find the highest height <= camera height, in the rendering style of DF
-				LocalTile tile = activeGrid.getTile(new Vector3i(x,z,candidateHeight));
+				LocalTile tile;
 				while (candidateHeight > 0) {
+					tile = activeGrid.getTile(new Vector3i(x,z,candidateHeight));
 					if (tile != null) {
 						if (tile.isOccupied()) {
+							if (candidateHeight != height) {
+								int id = ItemData.getIdFromName("Air");
+								int tileTexture = ItemData.getTextureFromItemId(id);
+								listGuis.add(new GuiQuad(tileTexture, guiPos, guiDim));
+								//System.out.println("Render air");
+								break;
+							}
+							
 							if (tile.tileBlockId != ItemData.ITEM_EMPTY_ID) {
 								int tileTexture = ItemData.getTextureFromItemId(tile.tileBlockId);
 								listGuis.add(new GuiQuad(tileTexture, guiPos, guiDim));

@@ -1,0 +1,16 @@
+Process Name,Required Input,Required Buildings,Process Steps,Output,BulkOption
+,,,,,
+Basic Stone Cutting,1 <Stone>,Basic Chisel,"Input; Supervised, 60; Output","<Stone> Block, 1, 10, 15",
+,,,,,
+,,,,,
+,,,,,
+,,,,,
+,,,,,
+Basic Milling Grain,1 <HarvestedGrain>,Quern,"Input; Supervised, 5; Output","_refine <RawGrain>, 1",50
+,,,,,
+,,,,,
+,,,,,
+,,,,,
+,,,,,
+,,,,,
+Basic Smelting,1 <RawOre>,Air Furnace,"Input; Supervised, 10; Output","_refine <RawOre>, 1, 1, 3",5
