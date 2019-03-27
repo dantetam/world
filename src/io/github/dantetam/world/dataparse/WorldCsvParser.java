@@ -17,6 +17,7 @@ public class WorldCsvParser {
 	//Global initialization of all CSV parsers
 	public static void init() {
 		ItemCsvParser.init();
+		RecipeCsvParser.init();
 	}
 	
 	public static List<CSVRecord> parseCsvFile(String fileName) {
@@ -37,7 +38,6 @@ public class WorldCsvParser {
 			return recordsList;
 		} catch (IOException e) {
 			e.printStackTrace();
-			
 		}
 		return null;
 	}

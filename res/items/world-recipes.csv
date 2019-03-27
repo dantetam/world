@@ -13,7 +13,7 @@ Basic Milling Grain,1 <HarvestedGrain>,Quern,,"I / Scook, 15 / O",refine(<Harves
 ,,,,,,
 ,,,,,,
 ,,,,,,
-Farming,1 <Seed>,,Site; Soil,"I / Ufarm, U(1440, 2880) / Grow / repeat(4, 1, 2) / B",refine(<Seed>) 1,
+Farming,1 <Seed>,,<Site>; Soil,"I / Ufarm, U(1440, 2880) / Grow / repeat(4, 1, 2) / B",refine(<Seed>) 1,
 Straw Bale,20 <Straw>,,,"I / Scraft, 30 / O",Straw Bale,
 ,,,,,,
 ,,,,,,

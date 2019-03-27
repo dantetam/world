@@ -15,4 +15,14 @@ Name -> Name, 1, 1, 1
 Name, Count -> Name, Count, Count, 1
 Name, Min, Max -> Name, Min, Max, 1
 
+
+
+
+
+
+Recipes or processes are predefined flows which civilizations must assign people to go through and complete. 
+A flow can only be started if the conditions (input, building, and location) are met by the person starting the process.
+The process then starts, and moves through every completed step.
+
+
  

@@ -78,6 +78,13 @@ public class ItemData {
 			stackableMap.put(id, stackable);
 		}
 	}
+	
+	public static List<Integer> getGroupIds(String name) {
+		if (!itemGroups.containsKey(name)) {
+			throw new IllegalArgumentException("Could not find group name: " + name);
+		}
+		return itemGroups.get(name);
+	}
 
 	public static int getTextureFromItemId(int id) {
 		String itemName = getNameFromId(id);

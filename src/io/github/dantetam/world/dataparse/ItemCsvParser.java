@@ -24,7 +24,7 @@ public class ItemCsvParser extends WorldCsvParser {
 		Map<String, List<Integer>> groupToItemsMap = getGroupsFromCSV(csvRecords);
 		
 		//Parse all the items line by line, keeping in mind that generic item groups may exist
-		for (CSVRecord record: parseCsvFile("res/items/world-itemideas.csv")) {
+		for (CSVRecord record: csvRecords) {
 			String name = record.get("Item Name");
 			String pattern = "(.*)(<.*>)(.*)";
 		    Matcher matcher = Pattern.compile(pattern).matcher(name);
