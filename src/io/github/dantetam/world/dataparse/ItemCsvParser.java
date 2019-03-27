@@ -118,6 +118,27 @@ public class ItemCsvParser extends WorldCsvParser {
 		}
 		return itemDrops;
 	}
+	private static ItemTotalDrops processItemDropsString(String dropString) {
+		if (dropString.isBlank()) return null;
+		String[] trials = dropString.split("/");
+		ItemTotalDrops itemDrops = new ItemTotalDrops();
+		for (String trial : trials) {
+			List<ItemDrop> trialArgs = new ArrayList<>();
+			String[] itemDropsStr = trial.split(";");
+			for (String itemDrop : itemDropsStr) {
+				String[] args = itemDrop.split(",");
+				String itemName = args[0].strip();
+				int id = ItemData.getIdFromName(itemName);
+				int min = args.length > 0 ? Integer.parseInt(args[1]) : 1;
+				int max = args.length > 1 ? Integer.parseInt(args[2]) : 1;
+				double prob = args.length > 2 ? Double.parseDouble(args[3]) : 1.0;
+				trialArgs.add(new ItemDrop(id, min, max, prob));
+			}
+			ItemDropTrial itemDropTrial = new ItemDropTrial(trialArgs);
+			itemDrops.independentDrops.add(itemDropTrial);
+		}
+		return itemDrops;
+	}
 	
 	/**
 	 * @return Return the map between item id and item name (a one-to-one mapping), 
