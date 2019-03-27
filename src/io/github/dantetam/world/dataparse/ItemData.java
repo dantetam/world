@@ -17,12 +17,15 @@ public class ItemData {
 	
 	//Map group name to list of item ids in group e.g. Stone -> Basalt, Quartz, ...
 	private static Map<String, List<Integer>> itemGroups = new HashMap<>();
+	private static Map<Integer, String> groupNameById = new HashMap<>();
 	
 	//Map item ids to the maximum amount allowed in one inventory space,
 	//where negative numbers, 0, and 1 mean not stackable.
 	private static Map<Integer, Integer> stackableMap = new HashMap<>();
 	
 	private static Map<Integer, Boolean> placeableBlock = new HashMap<>();
+	
+	private static Map<Integer, ItemTotalDrops> allItemDropsById = new HashMap<>();
 	
 	public static InventoryItem createItem(int id, int quantity) {
 		if (allItemsById.containsKey(id)) {
@@ -36,7 +39,7 @@ public class ItemData {
 		return cloneItem(item, item.quantity);
 	}
 	public static InventoryItem cloneItem(InventoryItem item, int quantity) {
-		return new InventoryItem(item.id, quantity, item.name);
+		return new InventoryItem(item.itemId, quantity, item.name);
 	}
 	
 	public static int getIdFromName(String name) {
@@ -61,7 +64,8 @@ public class ItemData {
 		return null;
 	}
 	
-	public static void addItemToDatabase(int id, String name, boolean placeable, String[] groups, Integer stackable) {
+	public static void addItemToDatabase(int id, String name, boolean placeable, 
+			String[] groups, Integer stackable, ItemTotalDrops itemTotalDrops) {
 		InventoryItem newItem = new InventoryItem(id, 0, name);
 		allItemsById.put(id, newItem);
 		itemNamesToIds.put(name, id);
@@ -72,18 +76,28 @@ public class ItemData {
 					itemGroups.put(group, new ArrayList<>());
 				}
 				itemGroups.get(group).add(id);
+				groupNameById.put(id, group);
 			}
 		}
 		if (stackable != null && stackable > 1) {
 			stackableMap.put(id, stackable);
 		}
+		allItemDropsById.put(id, itemTotalDrops);
 	}
 	
 	public static List<Integer> getGroupIds(String name) {
-		if (!itemGroups.containsKey(name)) {
+		if (!isGroup(name)) {
 			throw new IllegalArgumentException("Could not find group name: " + name);
 		}
 		return itemGroups.get(name);
+	}
+	
+	public static String getGroupNameById(int id) {
+		return groupNameById.get(id);
+	}
+	 
+	public static boolean isGroup(String name) {
+		return itemGroups.containsKey(name);
 	}
 
 	public static int getTextureFromItemId(int id) {

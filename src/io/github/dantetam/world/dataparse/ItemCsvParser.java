@@ -17,7 +17,7 @@ public class ItemCsvParser extends WorldCsvParser {
 	public static void init() {
 		List<CSVRecord> csvRecords = parseCsvFile("res/items/world-itemideas.csv");
 		
-		Object[] stringIdData = getItemIdMappingFromCSV(csvRecords);
+		Map[] stringIdData = getItemIdMappingFromCSV(csvRecords);
 		Map<Integer, String> itemIdsMap = (Map<Integer, String>) stringIdData[0];
 		Map<String, Integer> namesToIdsMap = (Map<String, Integer>) stringIdData[1];
 		
@@ -36,6 +36,7 @@ public class ItemCsvParser extends WorldCsvParser {
 			}
 			int id = Integer.parseInt(idString);
 		    
+			//Duplicate a whole group into its item rows if the group <caret> notation is present
 			if (matcher.matches()) {
 				String templateNamePre = matcher.group(0);
 				String templateNamePost = matcher.group(2);
@@ -86,9 +87,16 @@ public class ItemCsvParser extends WorldCsvParser {
 			}
 		}
 		ItemTotalDrops itemDrops = processItemDropsString(record.get("OnBlockHarvest"), namesToIdsMap);
-		ItemData.addItemToDatabase(id, name, placeable, groups, stackNum);
+		ItemData.addItemToDatabase(id, name, placeable, groups, stackNum, itemDrops);
 	}
 	
+	/**
+	 * 
+	 * @param dropString
+	 * @param namesToIdsMap
+	 * @return Convert a string from the CSV into the ItemTotalDrops object, a code representation
+	 * 	of a probabilistic item dropping.
+	 */
 	private static ItemTotalDrops processItemDropsString(String dropString, Map<String, Integer> namesToIdsMap) {
 		if (dropString.isBlank()) return null;
 		String[] trials = dropString.split("/");
@@ -111,7 +119,11 @@ public class ItemCsvParser extends WorldCsvParser {
 		return itemDrops;
 	}
 	
-	private static Object[] getItemIdMappingFromCSV(List<CSVRecord> csvRecords) {
+	/**
+	 * @return Return the map between item id and item name (a one-to-one mapping), 
+	 * in two maps that are the inverse of each other.
+	 */
+	private static Map[] getItemIdMappingFromCSV(List<CSVRecord> csvRecords) {
 		Map<Integer, String> itemIdsMap = new HashMap<>();
 		Map<String, Integer> namesToIdsMap = new HashMap<>();
 		for (CSVRecord record: parseCsvFile("res/items/world-itemideas.csv")) {
@@ -129,7 +141,7 @@ public class ItemCsvParser extends WorldCsvParser {
 			itemIdsMap.put(id, name);
 			namesToIdsMap.put(name, id);
 		}
-		return new Object[] {itemIdsMap, namesToIdsMap};
+		return new Map[] {itemIdsMap, namesToIdsMap};
 	}
 	
 	/**

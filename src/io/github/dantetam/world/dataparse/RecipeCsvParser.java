@@ -14,7 +14,7 @@ public class RecipeCsvParser extends WorldCsvParser {
 	public static void init() {
 		List<CSVRecord> csvRecords = parseCsvFile("res/items/world-recipes.csv");
 		for (CSVRecord record : csvRecords) {
-		String name = record.get("Required Input");
+			String name = record.get("Required Input");
 			String pattern = "(.*)(<.*>)(.*)";
 		    Matcher matcher = Pattern.compile(pattern).matcher(name);
 		    
