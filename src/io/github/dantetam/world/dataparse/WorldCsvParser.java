@@ -16,8 +16,8 @@ public class WorldCsvParser {
 	
 	//Global initialization of all CSV parsers
 	public static void init() {
-		ItemCsvParser.init();
-		RecipeCsvParser.init();
+		ItemCSVParser.init();
+		ProcessCSVParser.init();
 	}
 	
 	public static List<CSVRecord> parseCsvFile(String fileName) {

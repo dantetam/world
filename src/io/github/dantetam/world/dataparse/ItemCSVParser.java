@@ -12,7 +12,7 @@ import org.apache.commons.csv.CSVRecord;
 import io.github.dantetam.world.dataparse.ItemTotalDrops.ItemDrop;
 import io.github.dantetam.world.dataparse.ItemTotalDrops.ItemDropTrial;
 
-public class ItemCsvParser extends WorldCsvParser {
+public class ItemCSVParser extends WorldCsvParser {
 
 	public static void init() {
 		List<CSVRecord> csvRecords = parseCsvFile("res/items/world-itemideas.csv");
@@ -118,7 +118,7 @@ public class ItemCsvParser extends WorldCsvParser {
 		}
 		return itemDrops;
 	}
-	private static ItemTotalDrops processItemDropsString(String dropString) {
+	public static ItemTotalDrops processItemDropsString(String dropString) {
 		if (dropString.isBlank()) return null;
 		String[] trials = dropString.split("/");
 		ItemTotalDrops itemDrops = new ItemTotalDrops();
