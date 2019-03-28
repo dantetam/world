@@ -13,7 +13,7 @@ public class ItemData {
 	public static final int ITEM_EMPTY_ID = -1;
 	
 	private static Map<Integer, InventoryItem> allItemsById = new HashMap<>();
-	private static Map<String, Integer> itemNamesToIds = new HashMap<>();
+	static Map<String, Integer> itemNamesToIds = new HashMap<>();
 	
 	//Map group name to list of item ids in group e.g. Stone -> Basalt, Quartz, ...
 	private static Map<String, List<Integer>> itemGroups = new HashMap<>();
@@ -26,6 +26,8 @@ public class ItemData {
 	private static Map<Integer, Boolean> placeableBlock = new HashMap<>();
 	
 	private static Map<Integer, ItemTotalDrops> allItemDropsById = new HashMap<>();
+	
+	private static Map<Integer, Integer> refinedFormsById = new HashMap<>();
 	
 	public static InventoryItem createItem(int id, int quantity) {
 		if (allItemsById.containsKey(id)) {
@@ -65,12 +67,13 @@ public class ItemData {
 	}
 	
 	public static void addItemToDatabase(int id, String name, boolean placeable, 
-			String[] groups, Integer stackable, ItemTotalDrops itemTotalDrops) {
+			String[] groups, Integer stackable, int refinedForm, ItemTotalDrops itemTotalDrops) {
 		InventoryItem newItem = new InventoryItem(id, 0, name);
 		allItemsById.put(id, newItem);
 		itemNamesToIds.put(name, id);
 		placeableBlock.put(id, placeable);
 		for (String group: groups) {
+			group = group.trim();
 			if (!group.isBlank()) {
 				if (!itemGroups.containsKey(group)) {
 					itemGroups.put(group, new ArrayList<>());
@@ -81,6 +84,9 @@ public class ItemData {
 		}
 		if (stackable != null && stackable > 1) {
 			stackableMap.put(id, stackable);
+		}
+		if (refinedForm != ItemData.ITEM_EMPTY_ID) {
+			refinedFormsById.put(id, refinedForm);
 		}
 		allItemDropsById.put(id, itemTotalDrops);
 	}
@@ -100,6 +106,10 @@ public class ItemData {
 		return itemGroups.containsKey(name);
 	}
 
+	public static int getRefinedFormId(Integer id) {
+		return refinedFormsById.containsKey(id) ? refinedFormsById.get(id) : ItemData.ITEM_EMPTY_ID;
+	}
+	
 	public static int getTextureFromItemId(int id) {
 		String itemName = getNameFromId(id);
 		return VBOLoader.loadTexture("res/tiles/" + itemName + ".png");

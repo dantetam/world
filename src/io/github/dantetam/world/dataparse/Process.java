@@ -15,20 +15,21 @@ import io.github.dantetam.world.grid.InventoryItem;
 public class Process {
 
 	public String name;
-	public List<InventoryItem> inputItems, outputItems;
+	public List<InventoryItem> inputItems;
+	public ItemTotalDrops outputItems;
 	public List<Integer> requiredBuildingIds;
 	public boolean isCreatedAtSite;
-	public int requiredTileFloorId;
+	public String requiredTileNameOrGroup;
 	public List<ProcessStep> processSteps;
 	
-	public Process(String name, List<InventoryItem> input, List<InventoryItem> output, 
-			List<Integer> buildingIds, boolean site, int tileFloorId, List<ProcessStep> steps) {
+	public Process(String name, List<InventoryItem> input, ItemTotalDrops output, 
+			List<Integer> buildingIds, boolean site, String tileFloorId, List<ProcessStep> steps) {
 		this.name = name;
 		this.inputItems = input;
 		this.outputItems = output;
 		this.requiredBuildingIds = buildingIds;
 		this.isCreatedAtSite = site;
-		this.requiredTileFloorId = tileFloorId;
+		this.requiredTileNameOrGroup = tileFloorId;
 		this.processSteps = steps;
 	}
 	

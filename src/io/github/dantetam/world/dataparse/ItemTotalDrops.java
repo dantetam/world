@@ -1,7 +1,9 @@
 package io.github.dantetam.world.dataparse;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import io.github.dantetam.toolbox.CustomMathUtil;
 
@@ -31,6 +33,16 @@ public class ItemTotalDrops {
 			trialDrops.add(drop);
 		}
 		return trialDrops;
+	}
+	
+	public Set<Integer> getAllItems() {
+		Set<Integer> allItems = new HashSet<>();
+		for (ItemDropTrial trial: independentDrops) {
+			for (ItemDrop drop: trial.itemDrops) {
+				allItems.add(drop.itemId);
+			}
+		}
+		return allItems;
 	}
 	
 	//Establish a single independent 'trial' that can only drop one item

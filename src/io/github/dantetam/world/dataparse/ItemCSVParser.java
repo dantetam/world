@@ -38,9 +38,9 @@ public class ItemCSVParser extends WorldCsvParser {
 		    
 			//Duplicate a whole group into its item rows if the group <caret> notation is present
 			if (matcher.matches()) {
-				String templateNamePre = matcher.group(0);
-				String templateNamePost = matcher.group(2);
-				String groupName = matcher.group(1);
+				String templateNamePre = matcher.group(1);
+				String templateNamePost = matcher.group(3);
+				String groupName = matcher.group(2);
 				groupName = groupName.substring(1, groupName.length() - 1); //Remove the carets
 				if (groupToItemsMap.containsKey(groupName)) {
 					List<Integer> groupIds = groupToItemsMap.get(groupName);
@@ -87,7 +87,16 @@ public class ItemCSVParser extends WorldCsvParser {
 			}
 		}
 		ItemTotalDrops itemDrops = processItemDropsString(record.get("OnBlockHarvest"), namesToIdsMap);
-		ItemData.addItemToDatabase(id, name, placeable, groups, stackNum, itemDrops);
+		String refinedFormName = record.get("Refined Form").strip();
+		System.out.println(namesToIdsMap.get(refinedFormName) + " " + refinedFormName);
+		int refinedId = ItemData.ITEM_EMPTY_ID;
+		if (!refinedFormName.isBlank()) {
+			if (namesToIdsMap.containsKey(refinedFormName))
+				refinedId = namesToIdsMap.get(refinedFormName);
+			else
+				throw new IllegalArgumentException("Could not find refined form of name: " + refinedFormName);
+		}
+		ItemData.addItemToDatabase(id, name, placeable, groups, stackNum, refinedId, itemDrops);
 	}
 	
 	/**
@@ -107,10 +116,16 @@ public class ItemCSVParser extends WorldCsvParser {
 			for (String itemDrop : itemDropsStr) {
 				String[] args = itemDrop.split(",");
 				String itemName = args[0].strip();
-				int id = namesToIdsMap.get(itemName);
-				int min = args.length > 0 ? Integer.parseInt(args[1]) : 1;
-				int max = args.length > 1 ? Integer.parseInt(args[2]) : 1;
-				double prob = args.length > 2 ? Double.parseDouble(args[3]) : 1.0;
+				int id = 0;
+				try {
+					id = namesToIdsMap.get(itemName);
+				} catch (NullPointerException e) {
+					e.printStackTrace();
+					throw new IllegalArgumentException("Could not find item name: " + itemName);
+				}
+				int min = args.length >= 2 ? Integer.parseInt(args[1].strip()) : 1;
+				int max = args.length >= 3 ? Integer.parseInt(args[2].strip()) : 1;
+				double prob = args.length >= 4 ? Double.parseDouble(args[3].strip()) : 1.0;
 				trialArgs.add(new ItemDrop(id, min, max, prob));
 			}
 			ItemDropTrial itemDropTrial = new ItemDropTrial(trialArgs);
@@ -119,25 +134,7 @@ public class ItemCSVParser extends WorldCsvParser {
 		return itemDrops;
 	}
 	public static ItemTotalDrops processItemDropsString(String dropString) {
-		if (dropString.isBlank()) return null;
-		String[] trials = dropString.split("/");
-		ItemTotalDrops itemDrops = new ItemTotalDrops();
-		for (String trial : trials) {
-			List<ItemDrop> trialArgs = new ArrayList<>();
-			String[] itemDropsStr = trial.split(";");
-			for (String itemDrop : itemDropsStr) {
-				String[] args = itemDrop.split(",");
-				String itemName = args[0].strip();
-				int id = ItemData.getIdFromName(itemName);
-				int min = args.length > 0 ? Integer.parseInt(args[1]) : 1;
-				int max = args.length > 1 ? Integer.parseInt(args[2]) : 1;
-				double prob = args.length > 2 ? Double.parseDouble(args[3]) : 1.0;
-				trialArgs.add(new ItemDrop(id, min, max, prob));
-			}
-			ItemDropTrial itemDropTrial = new ItemDropTrial(trialArgs);
-			itemDrops.independentDrops.add(itemDropTrial);
-		}
-		return itemDrops;
+		return processItemDropsString(dropString, ItemData.itemNamesToIds);
 	}
 	
 	/**

@@ -28,9 +28,9 @@ public class ProcessCSVParser extends WorldCsvParser {
 			    
 				//Duplicate a whole group into its item rows if the group <caret> notation is present
 				if (inputGroupMatcher.matches()) {
-					String templateNamePre = inputGroupMatcher.group(0);
-					String templateNamePost = inputGroupMatcher.group(2);
-					String groupName = inputGroupMatcher.group(1);
+					String templateNamePre = inputGroupMatcher.group(1);
+					String templateNamePost = inputGroupMatcher.group(3);
+					String groupName = inputGroupMatcher.group(2);
 					groupName = groupName.substring(1, groupName.length() - 1); //Remove the carets
 					
 					List<Integer> groupIds = ItemData.getGroupIds(groupName);
@@ -47,11 +47,30 @@ public class ProcessCSVParser extends WorldCsvParser {
 						String outputData = copyRecord.get("Output");
 						Matcher outputGroupMatcher = Pattern.compile(pattern).matcher(outputData);
 						if (outputGroupMatcher.matches()) {
-							String outputNamePre = outputGroupMatcher.group(0);
-							String outputNamePost = outputGroupMatcher.group(2);
+							String outputNamePre = outputGroupMatcher.group(1);
+							String outputNamePost = outputGroupMatcher.group(3);
 							String newOutputString = outputNamePre + groupItemName + outputNamePost;
 							copyRecord.put("Output", newOutputString);
 						}
+						
+						outputData = copyRecord.get("Output");
+						//TODO: Generalize for all functions
+						String functionPattern = "(.*)(refine\\((.*)\\))(.*)";
+					    Matcher outputFuncMatcher = Pattern.compile(functionPattern).matcher(outputData);
+						if (outputFuncMatcher.matches()) {
+							String rawForm = outputFuncMatcher.group(3);
+							System.out.println(rawForm);
+							int refinedForm = ItemData.getRefinedFormId(ItemData.getIdFromName(rawForm));
+							String refinedFormName = ItemData.getNameFromId(refinedForm);
+							
+							String outputNamePre = outputFuncMatcher.group(1),
+									outputNamePost = outputFuncMatcher.group(4);
+							
+							String newOutputString = outputNamePre + refinedFormName + outputNamePost;
+							copyRecord.put("Output", newOutputString);
+						}
+						
+						System.out.println(copyRecord);
 						
 						processRecipeDataMap(copyRecord);
 					}
@@ -64,12 +83,7 @@ public class ProcessCSVParser extends WorldCsvParser {
 		}
 	}
 	
-	public Process(String name, List<InventoryItem> input, List<InventoryItem> output, 
-			List<Integer> buildingIds, boolean site, int tileFloorId, List<ProcessStep> steps)
-	
 	private static void processRecipeDataMap(Map<String, String> record) {
-		String processName = record.get("Process Name");
-		
 		List<InventoryItem> inputItems = new ArrayList<>();
 		String inputString = record.get("Required Input");
 		String[] itemStrings = inputString.split(",");
@@ -81,7 +95,7 @@ public class ProcessCSVParser extends WorldCsvParser {
 			inputItems.add(new InventoryItem(id, quantity, ""));
 		}
 		
-		String outputString = record.get("Required Output");
+		String outputString = record.get("Output");
 		ItemTotalDrops processOutput = ItemCSVParser.processItemDropsString(outputString);
 		
 		List<Integer> buildingIds = null;
@@ -101,18 +115,25 @@ public class ProcessCSVParser extends WorldCsvParser {
 				
 		List<ProcessStep> steps = getProcessingSteps(record.get("Process Steps"));
 		
+		String processName = record.get("Process Name");
 		if (processName.isBlank()) {
 			processName = outputString;
 		}
+		
+		ProcessData.addProcess(processName, inputItems, processOutput, 
+				buildingIds, site, tileFloorId, steps);
 	}
 	
 	private static List<ProcessStep> getProcessingSteps(String processString) {
+		List<ProcessStep> steps = new ArrayList<>();
 		String[] originalSteps = processString.split("/");
-	}
-	
-	public ProcessStep(String type, int time) {
-		this.stepType = type;
-		this.timeTicks = time;
+		for (String originalStep : originalSteps) {
+			String[] originalStepArgs = originalStep.split(",");
+			int time = originalStepArgs.length > 1 ? Integer.parseInt(originalStepArgs[1].trim()) : 0;
+			ProcessStep step = new ProcessStep(originalStepArgs[0], time);
+			steps.add(step);
+		}
+		return steps;
 	}
 	
 }
