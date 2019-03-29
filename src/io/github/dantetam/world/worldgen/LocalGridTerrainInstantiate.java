@@ -71,7 +71,7 @@ public class LocalGridTerrainInstantiate {
 				}
 				localGrid.setTileInstantiate(grassCoord, topTile);
 				
-				for (double h = terrain[r][c] - soilLevels[r][c] - 1; h >= 0; h--) {
+				for (double h = terrain[r][c] - soilLevels[r][c]; h >= 0; h--) {
 					if (h < 0 || h >= localGrid.heights) break;
 					int height = (int) h;
 					Vector3i coords = new Vector3i(r,c,height);
@@ -84,11 +84,10 @@ public class LocalGridTerrainInstantiate {
 		}
 		
 		Map<int[], ProceduralTree> gridTrees = generateTrees(terrain, biomes, temperature, rain);
-		/*
-		for (Entry<int[], ProceduralTree> entry: gridTrees.entrySet()) {
-			System.out.println(Arrays.toString(entry.getKey()));
+		for (Entry<int[], ProceduralTree> entry : gridTrees.entrySet()) {
+			TreeVoxelGeneration.generateSingle3dTree(localGrid, entry.getKey(), entry.getValue());
 		}
-		*/
+		
 		System.out.println(localGrid.rows + " " + localGrid.cols + " " + localGrid.heights);
 		System.out.println(gridTrees.size());
 		

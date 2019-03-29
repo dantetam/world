@@ -38,6 +38,8 @@ public class ForestGeneration {
 
 		double[][] biomesD = toDoubleTable(biomes);
 
+		double[][] generatedFertility = generateFertility(terrain, biomes, temperature, rain);
+		
 		Map<Integer, BiomeData> polygonBiomeData = new HashMap<>();
 		Map<Integer, ProceduralTree> polygonForestData = new HashMap<>();
 
@@ -173,6 +175,11 @@ public class ForestGeneration {
 
 		return new Object[] { voronoi, polygonForestData, polygonBiomeData };
 	}
+	
+	private static double[][] generateFertility(double[][] terrain, int[][] biomes, 
+			double[][] temperature, double[][] rain) {
+		return null;
+	}
 
 	private static Set<Integer> randomDfsPolygon(Map<Integer, Set<Integer>> polygonEdgesMap, int startPolygonIndex) {
 		List<Integer> fringe = new ArrayList<>();
@@ -220,13 +227,14 @@ public class ForestGeneration {
 	}
 
 	public static class BiomeData {
-		public double terrainHeight, biome, temperature, rain;
+		public double terrainHeight, biome, temperature, rain, fertility;
 
 		public BiomeData(double terrainHeight, double biome, double temperature, double rain) {
 			this.terrainHeight = terrainHeight;
 			this.biome = biome;
 			this.temperature = temperature;
 			this.rain = rain;
+			fertility = 0;
 		}
 	}
 

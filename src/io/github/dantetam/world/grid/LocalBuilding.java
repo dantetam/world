@@ -10,37 +10,40 @@ public class LocalBuilding {
 
 	public String name;
 	
-	private LocalTile primaryLocation;
+	private Vector3i primaryLocation;
 	private List<Vector3i> locationOffsets; //Contains every location, including primary
 	public List<Vector3i> calculatedLocations; //Contains the absolute location of every part of this building
+	public List<Integer> buildingBlockIds;
 	
-	public LocalBuilding(String name, LocalTile tile) {
-		this(name, tile, null);
-	}
-	
-	public LocalBuilding(String name, LocalTile tile, List<Vector3i> offsets) {
+	public LocalBuilding(String name, Vector3i primaryLoc, List<Vector3i> offsets, List<Integer> blockIds) {
 		this.name = name;
-		primaryLocation = tile;
+		primaryLocation = primaryLoc;
+		if (offsets.size() != blockIds.size()) {
+			throw new IllegalArgumentException("When creating building, offset list and block id list"
+					+ "must have same size");
+		}
+		buildingBlockIds = blockIds;
 		setLocationOffsets(offsets);
 	}
 	
-	public void setPrimaryLocation(LocalTile primaryLocation) {
+	public void setPrimaryLocation(Vector3i primaryLocation) {
 		this.primaryLocation = primaryLocation;
 		setLocationOffsets(locationOffsets);
 	}
 	
 	public void setLocationOffsets(List<Vector3i> offsets) {
+		if (offsets == null) {
+			offsets = Collections.singletonList(new Vector3i(0));
+		}
+		locationOffsets = offsets;
+		
 		if (primaryLocation == null) {
 			calculatedLocations = null;
 		}
 		else {
-			if (offsets == null) {
-				offsets = Collections.singletonList(new Vector3i(0));
-			}
-			locationOffsets = offsets;
 			calculatedLocations = new ArrayList<>();
 			for (Vector3i offset: offsets) {
-				calculatedLocations.add(primaryLocation.coords.getSum(offset));
+				calculatedLocations.add(primaryLocation.getSum(offset));
 			}
 		}
 	}

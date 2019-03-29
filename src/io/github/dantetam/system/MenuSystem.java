@@ -93,7 +93,7 @@ public class MenuSystem extends BaseSystem {
 	}
 
 	public void forceFullUIUpdate() {
-		System.out.println("force update");
+		//System.out.println("force update");
 		gameLauncher.guiSystem.updateUI();
 		TextMaster.update(this, gameLauncher.guiSystem);
 		gameLauncher.lwjglSystem.renderer.guiRenderer.update(this, gameLauncher.guiSystem);

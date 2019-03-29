@@ -51,9 +51,11 @@ public class Gui2DCamera {
 				GLFW.GLFW_KEY_I, GLFW.GLFW_KEY_O };
 		for (int inputKey : inputKeys) {
 			if (Keyboard.isKeyDown(inputKey)) {
+				System.out.println(tileLocationPosition);
 				return true;
 			}
 		}
+		
 		return false;
 	}
 

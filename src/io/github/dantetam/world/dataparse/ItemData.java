@@ -11,7 +11,7 @@ import io.github.dantetam.world.grid.InventoryItem;
 public class ItemData {
 
 	public static final int ITEM_EMPTY_ID = -1;
-	public static int GENERATED_BASE_ID = 0; //Use the maximum id of all items plus 1
+	private static int GENERATED_BASE_ID = 0; //Use the maximum id of all items plus 1
 		//to generate new items with unique ids
 	
 	private static Map<Integer, InventoryItem> allItemsById = new HashMap<>();

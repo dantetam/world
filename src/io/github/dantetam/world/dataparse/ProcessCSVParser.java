@@ -31,7 +31,6 @@ public class ProcessCSVParser extends WorldCsvParser {
 		
 		for (String singleInput : multipleInput) {
 			String pattern = "(.*)(<.*>)(.*)";
-			System.out.println(":::" + singleInput);
 		    Matcher inputGroupMatcher = Pattern.compile(pattern).matcher(singleInput);
 		    
 			//Duplicate a whole group into its item rows if the group <caret> notation is present
@@ -68,7 +67,6 @@ public class ProcessCSVParser extends WorldCsvParser {
 				    Matcher outputFuncMatcher = Pattern.compile(functionPattern).matcher(outputData);
 					if (outputFuncMatcher.matches()) {
 						String rawForm = outputFuncMatcher.group(3);
-						System.out.println(rawForm);
 						int refinedForm = ItemData.getRefinedFormId(ItemData.getIdFromName(rawForm));
 						String refinedFormName = ItemData.getNameFromId(refinedForm);
 						
@@ -79,8 +77,6 @@ public class ProcessCSVParser extends WorldCsvParser {
 						copyRecord.put("Output", newOutputString);
 					}
 					
-					System.out.println(copyRecord);
-					
 					preprocessExpandingRecipe(copyRecord);
 				}
 				
@@ -88,7 +84,6 @@ public class ProcessCSVParser extends WorldCsvParser {
 			else { //No more groups to expand within this recipe, actually begin to process a 'pure' recipe
 				Map<String, String> copyRecord = new HashMap<>(record);
 				copyRecord.put("Required Input", singleInput);
-				System.out.println(">>>>" + copyRecord);
 				processRecipeDataMap(copyRecord);
 			}
 		}
