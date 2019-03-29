@@ -15,9 +15,9 @@ public class ProcessData {
 	public static Map<Integer, List<Integer>> recipesByOutput = new HashMap<>();
 
 	public static void addProcess(String name, List<InventoryItem> input, ItemTotalDrops output, 
-			List<Integer> buildingIds, boolean site, String tileFloor, List<ProcessStep> steps) {
+			String[] buildingNames, boolean site, String tileFloor, List<ProcessStep> steps) {
 		int index = processes.size();
-		processes.add(new Process(name, input, output, buildingIds, site, tileFloor, steps));
+		processes.add(new Process(name, input, output, buildingNames, site, tileFloor, steps));
 		for (InventoryItem inputItem: input) {
 			if (!recipesByInput.containsKey(inputItem.itemId)) {
 				recipesByInput.put(inputItem.itemId, new ArrayList<>());

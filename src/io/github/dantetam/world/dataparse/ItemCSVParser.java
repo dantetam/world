@@ -120,8 +120,9 @@ public class ItemCSVParser extends WorldCsvParser {
 				try {
 					id = namesToIdsMap.get(itemName);
 				} catch (NullPointerException e) {
-					e.printStackTrace();
-					throw new IllegalArgumentException("Could not find item name: " + itemName);
+					//e.printStackTrace();
+					System.err.println("Could not find item name: " + itemName);
+					ItemData.generateItem(itemName);
 				}
 				int min = args.length >= 2 ? Integer.parseInt(args[1].strip()) : 1;
 				int max = args.length >= 3 ? Integer.parseInt(args[2].strip()) : 1;

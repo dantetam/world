@@ -17,17 +17,17 @@ public class Process {
 	public String name;
 	public List<InventoryItem> inputItems;
 	public ItemTotalDrops outputItems;
-	public List<Integer> requiredBuildingIds;
+	public String[] requiredBuildNameOrGroups;
 	public boolean isCreatedAtSite;
 	public String requiredTileNameOrGroup;
 	public List<ProcessStep> processSteps;
 	
 	public Process(String name, List<InventoryItem> input, ItemTotalDrops output, 
-			List<Integer> buildingIds, boolean site, String tileFloorId, List<ProcessStep> steps) {
+			String[] buildingNames, boolean site, String tileFloorId, List<ProcessStep> steps) {
 		this.name = name;
 		this.inputItems = input;
 		this.outputItems = output;
-		this.requiredBuildingIds = buildingIds;
+		this.requiredBuildNameOrGroups = buildingNames;
 		this.isCreatedAtSite = site;
 		this.requiredTileNameOrGroup = tileFloorId;
 		this.processSteps = steps;

@@ -2,6 +2,7 @@ package io.github.dantetam.world.dataparse;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -17,68 +18,78 @@ public class ProcessCSVParser extends WorldCsvParser {
 	
 	public static void init() {
 		List<CSVRecord> csvRecords = parseCsvFile("res/items/world-recipes.csv");
-		for (CSVRecord record : csvRecords) {
-			String allInput = record.get("Required Input");
-			
-			String[] multipleInput = allInput.split("/");
-			
-			for (String singleInput : multipleInput) {
-				String pattern = "(.*)(<.*>)(.*)";
-			    Matcher inputGroupMatcher = Pattern.compile(pattern).matcher(singleInput);
-			    
-				//Duplicate a whole group into its item rows if the group <caret> notation is present
-				if (inputGroupMatcher.matches()) {
-					String templateNamePre = inputGroupMatcher.group(1);
-					String templateNamePost = inputGroupMatcher.group(3);
-					String groupName = inputGroupMatcher.group(2);
-					groupName = groupName.substring(1, groupName.length() - 1); //Remove the carets
+		for (CSVRecord csvRecord : csvRecords) {
+			Map<String, String> record = csvRecord.toMap();
+			preprocessExpandingRecipe(record);
+		}
+	}
+	
+	private static void preprocessExpandingRecipe(Map<String, String> record) {
+		String allInput = record.get("Required Input");
+		
+		String[] multipleInput = allInput.split("/");
+		
+		for (String singleInput : multipleInput) {
+			String pattern = "(.*)(<.*>)(.*)";
+			System.out.println(":::" + singleInput);
+		    Matcher inputGroupMatcher = Pattern.compile(pattern).matcher(singleInput);
+		    
+			//Duplicate a whole group into its item rows if the group <caret> notation is present
+		    //Continue the recursion because of more data to process
+			if (inputGroupMatcher.matches()) {
+				String templateNamePre = inputGroupMatcher.group(1);
+				String templateNamePost = inputGroupMatcher.group(3);
+				String groupName = inputGroupMatcher.group(2);
+				groupName = groupName.substring(1, groupName.length() - 1); //Remove the carets
+				
+				List<Integer> groupIds = ItemData.getGroupIds(groupName);
+				
+				for (int offset = 0; offset < groupIds.size(); offset++) {
+					int groupItemId = groupIds.get(offset);
+					String groupItemName = ItemData.getNameFromId(groupItemId);
+					String newItemName = templateNamePre + groupItemName + templateNamePost;
 					
-					List<Integer> groupIds = ItemData.getGroupIds(groupName);
+					Map<String, String> copyRecord = new HashMap<>(record);
 					
-					for (int offset = 0; offset < groupIds.size(); offset++) {
-						int groupItemId = groupIds.get(offset);
-						String groupItemName = ItemData.getNameFromId(groupItemId);
-						String newItemName = templateNamePre + groupItemName + templateNamePost;
-						
-						Map<String, String> copyRecord = record.toMap();
-						
-						copyRecord.put("Required Input", newItemName);
-						
-						String outputData = copyRecord.get("Output");
-						Matcher outputGroupMatcher = Pattern.compile(pattern).matcher(outputData);
-						if (outputGroupMatcher.matches()) {
-							String outputNamePre = outputGroupMatcher.group(1);
-							String outputNamePost = outputGroupMatcher.group(3);
-							String newOutputString = outputNamePre + groupItemName + outputNamePost;
-							copyRecord.put("Output", newOutputString);
-						}
-						
-						outputData = copyRecord.get("Output");
-						//TODO: Generalize for all functions
-						String functionPattern = "(.*)(refine\\((.*)\\))(.*)";
-					    Matcher outputFuncMatcher = Pattern.compile(functionPattern).matcher(outputData);
-						if (outputFuncMatcher.matches()) {
-							String rawForm = outputFuncMatcher.group(3);
-							System.out.println(rawForm);
-							int refinedForm = ItemData.getRefinedFormId(ItemData.getIdFromName(rawForm));
-							String refinedFormName = ItemData.getNameFromId(refinedForm);
-							
-							String outputNamePre = outputFuncMatcher.group(1),
-									outputNamePost = outputFuncMatcher.group(4);
-							
-							String newOutputString = outputNamePre + refinedFormName + outputNamePost;
-							copyRecord.put("Output", newOutputString);
-						}
-						
-						System.out.println(copyRecord);
-						
-						processRecipeDataMap(copyRecord);
+					copyRecord.put("Required Input", newItemName);
+					
+					String outputData = copyRecord.get("Output");
+					Matcher outputGroupMatcher = Pattern.compile(pattern).matcher(outputData);
+					if (outputGroupMatcher.matches()) {
+						String outputNamePre = outputGroupMatcher.group(1);
+						String outputNamePost = outputGroupMatcher.group(3);
+						String newOutputString = outputNamePre + groupItemName + outputNamePost;
+						copyRecord.put("Output", newOutputString);
 					}
 					
+					outputData = copyRecord.get("Output");
+					//TODO: Generalize for all functions
+					String functionPattern = "(.*)(refine\\((.*)\\))(.*)";
+				    Matcher outputFuncMatcher = Pattern.compile(functionPattern).matcher(outputData);
+					if (outputFuncMatcher.matches()) {
+						String rawForm = outputFuncMatcher.group(3);
+						System.out.println(rawForm);
+						int refinedForm = ItemData.getRefinedFormId(ItemData.getIdFromName(rawForm));
+						String refinedFormName = ItemData.getNameFromId(refinedForm);
+						
+						String outputNamePre = outputFuncMatcher.group(1),
+								outputNamePost = outputFuncMatcher.group(4);
+						
+						String newOutputString = outputNamePre + refinedFormName + outputNamePost;
+						copyRecord.put("Output", newOutputString);
+					}
+					
+					System.out.println(copyRecord);
+					
+					preprocessExpandingRecipe(copyRecord);
 				}
-				else {
-					processRecipeDataMap(record.toMap());
-				}
+				
+			}
+			else { //No more groups to expand within this recipe, actually begin to process a 'pure' recipe
+				Map<String, String> copyRecord = new HashMap<>(record);
+				copyRecord.put("Required Input", singleInput);
+				System.out.println(">>>>" + copyRecord);
+				processRecipeDataMap(copyRecord);
 			}
 		}
 	}
@@ -88,6 +99,7 @@ public class ProcessCSVParser extends WorldCsvParser {
 		String inputString = record.get("Required Input");
 		String[] itemStrings = inputString.split(",");
 		for (String itemString : itemStrings) {
+			itemString = itemString.strip();
 			int index = itemString.indexOf(" ");
 			int quantity = Integer.parseInt(itemString.substring(0, index));
 			String itemName = itemString.substring(index + 1).strip();
@@ -98,13 +110,10 @@ public class ProcessCSVParser extends WorldCsvParser {
 		String outputString = record.get("Output");
 		ItemTotalDrops processOutput = ItemCSVParser.processItemDropsString(outputString);
 		
-		List<Integer> buildingIds = null;
+		String[] buildingNames = null;
 		String buildingNamesString = record.get("Required Buildings");
 		if (!buildingNamesString.isBlank()) {
-			String[] buildingNames = buildingNamesString.split("/");
-			buildingIds = Arrays.stream(buildingNames)
-					.map(name -> ItemData.getIdFromName(name))
-					.collect(Collectors.toList());
+			buildingNames = buildingNamesString.split("/");
 		}
 		
 		boolean site = record.get("Is Site").equals("Y");
@@ -121,7 +130,7 @@ public class ProcessCSVParser extends WorldCsvParser {
 		}
 		
 		ProcessData.addProcess(processName, inputItems, processOutput, 
-				buildingIds, site, tileFloorId, steps);
+				buildingNames, site, tileFloorId, steps);
 	}
 	
 	private static List<ProcessStep> getProcessingSteps(String processString) {
@@ -129,7 +138,14 @@ public class ProcessCSVParser extends WorldCsvParser {
 		String[] originalSteps = processString.split("/");
 		for (String originalStep : originalSteps) {
 			String[] originalStepArgs = originalStep.split(",");
-			int time = originalStepArgs.length > 1 ? Integer.parseInt(originalStepArgs[1].trim()) : 0;
+			String timeString = "1";
+			if (originalStepArgs.length >= 2) {
+				timeString = originalStepArgs[1].trim();
+				if (timeString.contains("U(")) {
+					timeString = timeString.replaceAll("[^\\d.]", "");
+				}
+			}
+			int time = originalStepArgs.length > 1 ? Integer.parseInt(timeString) : 0;
 			ProcessStep step = new ProcessStep(originalStepArgs[0], time);
 			steps.add(step);
 		}

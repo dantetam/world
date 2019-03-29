@@ -11,6 +11,8 @@ import io.github.dantetam.world.grid.InventoryItem;
 public class ItemData {
 
 	public static final int ITEM_EMPTY_ID = -1;
+	public static int GENERATED_BASE_ID = 0; //Use the maximum id of all items plus 1
+		//to generate new items with unique ids
 	
 	private static Map<Integer, InventoryItem> allItemsById = new HashMap<>();
 	static Map<String, Integer> itemNamesToIds = new HashMap<>();
@@ -72,14 +74,16 @@ public class ItemData {
 		allItemsById.put(id, newItem);
 		itemNamesToIds.put(name, id);
 		placeableBlock.put(id, placeable);
-		for (String group: groups) {
-			group = group.trim();
-			if (!group.isBlank()) {
-				if (!itemGroups.containsKey(group)) {
-					itemGroups.put(group, new ArrayList<>());
+		if (groups != null) {
+			for (String group: groups) {
+				group = group.trim();
+				if (!group.isBlank()) {
+					if (!itemGroups.containsKey(group)) {
+						itemGroups.put(group, new ArrayList<>());
+					}
+					itemGroups.get(group).add(id);
+					groupNameById.put(id, group);
 				}
-				itemGroups.get(group).add(id);
-				groupNameById.put(id, group);
 			}
 		}
 		if (stackable != null && stackable > 1) {
@@ -88,7 +92,16 @@ public class ItemData {
 		if (refinedForm != ItemData.ITEM_EMPTY_ID) {
 			refinedFormsById.put(id, refinedForm);
 		}
-		allItemDropsById.put(id, itemTotalDrops);
+		if (itemTotalDrops != null) {
+			allItemDropsById.put(id, itemTotalDrops);
+		}
+		GENERATED_BASE_ID = Math.max(GENERATED_BASE_ID, id + 1);
+	}
+	
+	public static int generateItem(String name) {
+		addItemToDatabase(GENERATED_BASE_ID, name, false, null, 15, ItemData.ITEM_EMPTY_ID, null);
+		GENERATED_BASE_ID++;
+		return GENERATED_BASE_ID - 1;
 	}
 	
 	public static List<Integer> getGroupIds(String name) {
