@@ -119,6 +119,13 @@ public class ItemData {
 		return itemGroups.containsKey(name);
 	}
 
+	public static ItemTotalDrops getOnBlockItemDrops(int id) {
+		if (!allItemsById.containsKey(id)) {
+			throw new IllegalArgumentException("Could not find item id: " + id);
+		}
+		return allItemDropsById.get(id);
+	}
+	
 	public static int getRefinedFormId(Integer id) {
 		return refinedFormsById.containsKey(id) ? refinedFormsById.get(id) : ItemData.ITEM_EMPTY_ID;
 	}

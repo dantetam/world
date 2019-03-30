@@ -13,7 +13,7 @@ import io.github.dantetam.world.grid.LocalTile;
 public class TreeVoxelGeneration {
 
 	public static void generateSingle3dTree(LocalGrid grid, int[] coords, ProceduralTree proceduralTree) {
-		int startingHeight = grid.findHighestEmptyHeight(coords[0], coords[1]);
+		int startingHeight = grid.findLowestEmptyHeight(coords[0], coords[1]);
 		LocalTile startTile = grid.getTile(new Vector3i(coords[0], coords[1], startingHeight));
 		
 		int treeHeight = Math.max((int) proceduralTree.size / 4, 5);

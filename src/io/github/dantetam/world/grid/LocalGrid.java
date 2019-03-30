@@ -108,7 +108,7 @@ public class LocalGrid {
 		}
 	}
 	
-	public int findHighestEmptyHeight(int r, int c) {
+	public int findLowestEmptyHeight(int r, int c) {
 		for (int h = heights - 1; h >= 0; h--) {
 			if (getTile(new Vector3i(r, c, h)) == null) {
 				continue;

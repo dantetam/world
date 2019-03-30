@@ -1,8 +1,10 @@
 package io.github.dantetam.world.dataparse;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import io.github.dantetam.toolbox.CustomMathUtil;
@@ -45,6 +47,19 @@ public class ItemTotalDrops {
 		return allItems;
 	}
 	
+	public Map<Integer, Double> itemExpectation() {
+		Map<Integer, Double> allItems = new HashMap<>();
+		for (ItemDropTrial trial: independentDrops) {
+			for (ItemDrop drop: trial.itemDrops) {
+				if (!allItems.containsKey(drop.itemId)) {
+					allItems.put(drop.itemId, 0.0);
+				}
+				allItems.put(drop.itemId, allItems.get(drop.itemId) + (drop.min + drop.max) / 2 * drop.probability);
+			}
+		}
+		return allItems;
+	}
+	
 	//Establish a single independent 'trial' that can only drop one item
 	public static class ItemDropTrial {
 		public List<ItemDrop> itemDrops;
@@ -61,6 +76,7 @@ public class ItemTotalDrops {
 		}
 		
 		/** 
+		 * TODO: Implement custom probability distributions
 		 * @return The item id and item quantity, respectively
 		 */
 		public int[] getItemDrop() {
