@@ -4,7 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import io.github.dantetam.vector.Vector3i;
+import io.github.dantetam.world.civilization.Person;
 import io.github.dantetam.world.dataparse.ItemData;
+import io.github.dantetam.world.items.InventoryItem;
 
 public class LocalTile {
 	

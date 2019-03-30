@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.List;
 
 import io.github.dantetam.vector.Vector3i;
+import io.github.dantetam.world.civilization.Person;
 import io.github.dantetam.world.dataparse.ItemData;
 import io.github.dantetam.world.dataparse.WorldCsvParser;
 
@@ -59,8 +60,8 @@ public class LocalGrid {
 		return true;
 	}
 	
-	public void addBuilding(LocalBuilding building, Vector3i newPrimaryCoords) {
-		if (buildingCanFitAt(building, newPrimaryCoords)) {
+	public void addBuilding(LocalBuilding building, Vector3i newPrimaryCoords, boolean overrideGrid) {
+		if (buildingCanFitAt(building, newPrimaryCoords) || overrideGrid) {
 			removeBuilding(building);
 			building.setPrimaryLocation(newPrimaryCoords);
 			List<Vector3i> newAbsLocations = building.calculatedLocations;
@@ -72,7 +73,6 @@ public class LocalGrid {
 					grid[newAbsLocation.x][newAbsLocation.y][newAbsLocation.z] = newTile;
 					absTile = newTile;
 				}
-				System.out.println(newAbsLocation + "<<<>>>");
 				absTile.building = building;
 				absTile.tileBlockId = building.buildingBlockIds.get(buildingTileIndex);
 			}
@@ -82,8 +82,11 @@ public class LocalGrid {
 	public void removeBuilding(LocalBuilding building) {
 		List<Vector3i> oldAbsLocations = building.calculatedLocations;
 		for (Vector3i oldAbsLocation: oldAbsLocations) {
-			getTile(oldAbsLocation).building = null;
-			getTile(oldAbsLocation).tileBlockId = ItemData.ITEM_EMPTY_ID;
+			LocalTile oldTile = getTile(oldAbsLocation);
+			if (oldTile != null) {
+				getTile(oldAbsLocation).building = null;
+				getTile(oldAbsLocation).tileBlockId = ItemData.ITEM_EMPTY_ID;
+			}
 		}
 		building.setPrimaryLocation(null);
 	}
@@ -123,27 +126,25 @@ public class LocalGrid {
 		LocalGrid grid = new LocalGrid(new Vector3i(200,200,50));
 		List<Vector3i> listOffsets = Arrays.asList(new Vector3i[] {
 				new Vector3i(0),
-				new Vector3i(1,0,0),
-				new Vector3i(0,3,0)
+				new Vector3i(1,0,10),
+				new Vector3i(0,0,10)
 		});
 		List<Integer> listBlockIds = Arrays.asList(new Integer[] {
 				ItemData.getIdFromName("Wooden Artisan"),
 				ItemData.getIdFromName("Brick Wall"),
 				ItemData.getIdFromName("Anvil")
 				});
-		LocalBuilding building = new LocalBuilding("Test1", new Vector3i(25, 25, 25), listOffsets, listBlockIds);
+		LocalBuilding building = new LocalBuilding("Test1", new Vector3i(25, 25, 35), listOffsets, listBlockIds);
 		
-		System.out.println(building.getLocationOffsets() + "<<<");
-		
-		grid.addBuilding(building, new Vector3i(25,25,25));
+		grid.addBuilding(building, new Vector3i(25,25,35), true);
 		
 		System.out.println(Arrays.toString(building.calculatedLocations.toArray())); //[25 25 25, 26 25 25, 25 28 25]
-		System.out.println(grid.getTile(new Vector3i(25,28,25))); //This tile should have been created
-		System.out.println(grid.getTile(new Vector3i(25,28,25)).building.name); //Test1
+		System.out.println(grid.getTile(new Vector3i(26,25,45))); //This tile should have been created
+		System.out.println(grid.getTile(new Vector3i(25,25,45)).building.name); //Test1
 		
 		grid.removeBuilding(building);
 		
-		System.out.println(grid.getTile(new Vector3i(25,28,25)).building); //null
+		System.out.println(grid.getTile(new Vector3i(26,25,45)).building); //null
 	}
 	
 }

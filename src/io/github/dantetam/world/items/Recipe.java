@@ -1,7 +1,9 @@
-package io.github.dantetam.world.grid;
+package io.github.dantetam.world.items;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import io.github.dantetam.world.grid.LocalBuilding;
 
 public class Recipe {
 

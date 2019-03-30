@@ -2,7 +2,7 @@ package io.github.dantetam.world.dataparse;
 
 import java.util.List;
 
-import io.github.dantetam.world.grid.InventoryItem;
+import io.github.dantetam.world.items.InventoryItem;
 
 /**
  * A process or flow which a person can take up and complete.

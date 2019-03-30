@@ -1,7 +1,7 @@
-package io.github.dantetam.world.grid;
+package io.github.dantetam.world.civilization;
 
-import java.util.HashMap;
-import java.util.Map;
+import io.github.dantetam.world.grid.LocalTile;
+import io.github.dantetam.world.items.Inventory;
 
 public class Person {
 
@@ -10,11 +10,11 @@ public class Person {
 	public String name;
 
 	// Maps item id to item objects, for finding out quickly if this person has item x
-	public Map<Integer, InventoryItem> inventory;
+	public Inventory inventory;
 
 	public Person(String name) {
 		this.name = name;
-		inventory = new HashMap<>();
+		inventory = new Inventory();
 	}
 
 	public boolean equals(Object other) {

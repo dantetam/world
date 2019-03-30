@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import io.github.dantetam.lwjglEngine.render.VBOLoader;
-import io.github.dantetam.world.grid.InventoryItem;
+import io.github.dantetam.world.items.InventoryItem;
 
 public class ItemData {
 

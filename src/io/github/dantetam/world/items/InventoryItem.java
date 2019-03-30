@@ -1,4 +1,4 @@
-package io.github.dantetam.world.grid;
+package io.github.dantetam.world.items;
 
 /**
  * Represents an item that has been 'compressed' e.g. is not a building,
