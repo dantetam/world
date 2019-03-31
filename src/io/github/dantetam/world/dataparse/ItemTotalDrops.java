@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import io.github.dantetam.toolbox.CustomMathUtil;
+import io.github.dantetam.toolbox.MathUti;
 
 /**
  * Represent a propabilistic item dropping. The format for one 'trial':
@@ -85,7 +85,7 @@ public class ItemTotalDrops {
 			for (ItemDrop itemDrop : itemDrops) {
 				rollingSum += itemDrop.probability;
 				if (chosenRandom < rollingSum) {
-					int quantity = CustomMathUtil.discreteUniform(itemDrop.min, itemDrop.max);
+					int quantity = MathUti.discreteUniform(itemDrop.min, itemDrop.max);
 					return new int[] {itemDrop.itemId, quantity};
 				}
 			}

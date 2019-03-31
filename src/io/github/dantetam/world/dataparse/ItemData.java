@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import io.github.dantetam.lwjglEngine.render.VBOLoader;
+import io.github.dantetam.world.dataparse.Process.ProcessStep;
 import io.github.dantetam.world.items.InventoryItem;
 
 public class ItemData {
@@ -26,6 +27,10 @@ public class ItemData {
 	private static Map<Integer, Integer> stackableMap = new HashMap<>();
 	
 	private static Map<Integer, Boolean> placeableBlock = new HashMap<>();
+	private static Map<Integer, Integer> pickupTime = new HashMap<>();
+	private static Map<Integer, Double> baseItemValue = new HashMap<>();
+	
+	private static Map<Integer, List<ProcessStep>> itemActionsById = new HashMap<>();
 	
 	private static Map<Integer, ItemTotalDrops> allItemDropsById = new HashMap<>();
 	
@@ -69,7 +74,8 @@ public class ItemData {
 	}
 	
 	public static void addItemToDatabase(int id, String name, boolean placeable, 
-			String[] groups, Integer stackable, int refinedForm, ItemTotalDrops itemTotalDrops) {
+			String[] groups, Integer stackable, int refinedForm, ItemTotalDrops itemTotalDrops,
+			int time, double baseValue, List<ProcessStep> itemActions) {
 		InventoryItem newItem = new InventoryItem(id, 0, name);
 		allItemsById.put(id, newItem);
 		itemNamesToIds.put(name, id);
@@ -95,11 +101,16 @@ public class ItemData {
 		if (itemTotalDrops != null) {
 			allItemDropsById.put(id, itemTotalDrops);
 		}
+		pickupTime.put(id, time);
+		baseItemValue.put(id, baseValue);
+		if (itemActions != null) {
+			itemActionsById.put(id, itemActions);
+		}
 		GENERATED_BASE_ID = Math.max(GENERATED_BASE_ID, id + 1);
 	}
 	
 	public static int generateItem(String name) {
-		addItemToDatabase(GENERATED_BASE_ID, name, false, null, 15, ItemData.ITEM_EMPTY_ID, null);
+		addItemToDatabase(GENERATED_BASE_ID, name, false, null, 15, ItemData.ITEM_EMPTY_ID, null, 100, 0.0, null);
 		GENERATED_BASE_ID++;
 		return GENERATED_BASE_ID - 1;
 	}
@@ -124,6 +135,31 @@ public class ItemData {
 			throw new IllegalArgumentException("Could not find item id: " + id);
 		}
 		return allItemDropsById.get(id);
+	}
+	
+	public static boolean isPlaceable(int id) {
+		if (!allItemsById.containsKey(id)) {
+			throw new IllegalArgumentException("Could not find item id: " + id);
+		}
+		return placeableBlock.get(id);
+	}
+	
+	public static int getPickupTime(Integer id) {
+		if (!pickupTime.containsKey(id)) {
+			throw new IllegalArgumentException("Could not find item id: " + id);
+		}
+		return pickupTime.get(id);
+	}
+	
+	public static List<ProcessStep> getItemActions(Integer id) {
+		return itemActionsById.get(id);
+	}
+	
+	public static double getBaseItemValue(Integer id) {
+		if (!baseItemValue.containsKey(id)) {
+			throw new IllegalArgumentException("Could not find item id: " + id);
+		}
+		return baseItemValue.get(id);
 	}
 	
 	public static int getRefinedFormId(Integer id) {

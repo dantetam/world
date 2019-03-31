@@ -36,10 +36,17 @@ public class Process {
 	public static class ProcessStep {
 		public String stepType;
 		public int timeTicks;
+		public double modifier;
 		
 		public ProcessStep(String type, int time) {
 			this.stepType = type;
 			this.timeTicks = time;
+		}
+		
+		public ProcessStep(String type, int time, double modifier) {
+			this.stepType = type;
+			this.timeTicks = time;
+			this.modifier = modifier;
 		}
 	}
 	

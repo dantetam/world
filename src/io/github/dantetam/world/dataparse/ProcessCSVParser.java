@@ -128,7 +128,7 @@ public class ProcessCSVParser extends WorldCsvParser {
 				buildingNames, site, tileFloorId, steps);
 	}
 	
-	private static List<ProcessStep> getProcessingSteps(String processString) {
+	static List<ProcessStep> getProcessingSteps(String processString) {
 		List<ProcessStep> steps = new ArrayList<>();
 		String[] originalSteps = processString.split("/");
 		for (String originalStep : originalSteps) {
@@ -140,8 +140,15 @@ public class ProcessCSVParser extends WorldCsvParser {
 					timeString = timeString.replaceAll("[^\\d.]", "");
 				}
 			}
+			ProcessStep step;
 			int time = originalStepArgs.length > 1 ? Integer.parseInt(timeString) : 0;
-			ProcessStep step = new ProcessStep(originalStepArgs[0], time);
+			if (originalStepArgs.length >= 3 && originalStepArgs[2].indexOf(")") == -1) {
+				double modifierData = Double.parseDouble(originalStepArgs[2]);
+				step = new ProcessStep(originalStepArgs[0], time, modifierData);
+			}
+			else {
+				step = new ProcessStep(originalStepArgs[0], time);
+			}
 			steps.add(step);
 		}
 		return steps;

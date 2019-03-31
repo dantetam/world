@@ -11,6 +11,7 @@ import org.apache.commons.csv.CSVRecord;
 
 import io.github.dantetam.world.dataparse.ItemTotalDrops.ItemDrop;
 import io.github.dantetam.world.dataparse.ItemTotalDrops.ItemDropTrial;
+import io.github.dantetam.world.dataparse.Process.ProcessStep;
 
 public class ItemCSVParser extends WorldCsvParser {
 
@@ -90,13 +91,27 @@ public class ItemCSVParser extends WorldCsvParser {
 		String refinedFormName = record.get("Refined Form").strip();
 		System.out.println(namesToIdsMap.get(refinedFormName) + " " + refinedFormName);
 		int refinedId = ItemData.ITEM_EMPTY_ID;
+		
+		String pickupTimeStr = record.get("PickupTime");
+		int pickupTime = pickupTimeStr.isBlank() ? 100 : Integer.parseInt(pickupTimeStr);
+		
+		String baseValueStr = record.get("Base Value");
+		double baseValue = baseValueStr.isBlank() ? 0 : Double.parseDouble(baseValueStr);
+		
+		String processString = record.get("Action");
+		List<ProcessStep> itemActions = null;
+		if (!processString.isBlank()) {
+			itemActions = ProcessCSVParser.getProcessingSteps(processString);
+		}
+		
 		if (!refinedFormName.isBlank()) {
 			if (namesToIdsMap.containsKey(refinedFormName))
 				refinedId = namesToIdsMap.get(refinedFormName);
 			else
 				throw new IllegalArgumentException("Could not find refined form of name: " + refinedFormName);
 		}
-		ItemData.addItemToDatabase(id, name, placeable, groups, stackNum, refinedId, itemDrops);
+		ItemData.addItemToDatabase(id, name, placeable, groups, stackNum, refinedId, itemDrops, 
+				pickupTime, baseValue, itemActions);
 	}
 	
 	/**

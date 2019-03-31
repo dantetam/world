@@ -4,7 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import io.github.dantetam.vector.Vector3i;
-import io.github.dantetam.world.civilization.Person;
+import io.github.dantetam.world.civilization.Human;
+import io.github.dantetam.world.civilization.LivingEntity;
 import io.github.dantetam.world.dataparse.ItemData;
 import io.github.dantetam.world.items.InventoryItem;
 
@@ -12,8 +13,9 @@ public class LocalTile {
 	
 	public Vector3i coords;
 	
+	public Human humanClaim;
 	public LocalBuilding building;
-	private List<Person> people;
+	private List<LivingEntity> people;
 	
 	public int tileBlockId; //Representing the block which occupies this position
 		//Note if filled is false, this holds the previous tile data 
@@ -27,21 +29,21 @@ public class LocalTile {
 		tileFloorId = ItemData.ITEM_EMPTY_ID;
 	}
 	
-	public void addPerson(Person person) {
+	public void addPerson(LivingEntity person) {
 		if (people == null) {
 			people = new ArrayList<>();
 		}
 		people.add(person);
 	}
 	
-	public void removePerson(Person person) {
+	public void removePerson(LivingEntity person) {
 		people.remove(person);
 		if (people.size() == 0) {
 			people = null;
 		}
 	}
 	
-	public List<Person> getPeople() {
+	public List<LivingEntity> getPeople() {
 		return people;
 	}
 	

@@ -5,7 +5,8 @@ import java.util.Collections;
 import java.util.List;
 
 import io.github.dantetam.vector.Vector3i;
-import io.github.dantetam.world.civilization.Person;
+import io.github.dantetam.world.civilization.Human;
+import io.github.dantetam.world.civilization.LivingEntity;
 import io.github.dantetam.world.dataparse.ItemData;
 import io.github.dantetam.world.dataparse.WorldCsvParser;
 
@@ -91,14 +92,21 @@ public class LocalGrid {
 		building.setPrimaryLocation(null);
 	}
 	
-	public boolean personHasAccessTile(Person person, LocalTile tile) {
+	public void addHuman(Human human, Vector3i coords) {
+		LocalTile tile = getTile(coords);
+		if (tile != null) {
+			human.location = tile;
+		}
+	}
+	
+	public boolean personHasAccessTile(LivingEntity person, LocalTile tile) {
 		if (tile == null) {
 			return false;
 		}
 		return true;
 	}
 	
-	public void movePerson(Person person, LocalTile tile) {
+	public void movePerson(LivingEntity person, LocalTile tile) {
 		if (person.location != null) {
 			person.location.removePerson(person);
 		}
@@ -118,6 +126,27 @@ public class LocalGrid {
 			}
 		}
 		return 0;
+	}
+	
+	public void claimTile(Human human, Vector3i coords, boolean override) {
+		LocalTile tile = getTile(coords);
+		if (tile != null) {
+			if (tile.humanClaim == null || override) {
+				unclaimTile(coords);
+				tile.humanClaim = human;
+				human.allClaims.add(coords);
+			}
+		}
+	}
+	
+	public void unclaimTile(Vector3i coords) {
+		LocalTile tile = getTile(coords);
+		if (tile != null) {
+			if (tile.humanClaim != null) {
+				tile.humanClaim.allClaims.remove(coords);
+				tile.humanClaim = null;
+			}
+		}
 	}
 	
 	public static void main(String[] args) {
