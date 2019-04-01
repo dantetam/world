@@ -92,14 +92,16 @@ public class ProcessCSVParser extends WorldCsvParser {
 	private static void processRecipeDataMap(Map<String, String> record) {
 		List<InventoryItem> inputItems = new ArrayList<>();
 		String inputString = record.get("Required Input");
-		String[] itemStrings = inputString.split(",");
-		for (String itemString : itemStrings) {
-			itemString = itemString.strip();
-			int index = itemString.indexOf(" ");
-			int quantity = Integer.parseInt(itemString.substring(0, index));
-			String itemName = itemString.substring(index + 1).strip();
-			int id = ItemData.getIdFromName(itemName);
-			inputItems.add(new InventoryItem(id, quantity, ""));
+		if (!inputString.isBlank()) {
+			String[] itemStrings = inputString.split(",");
+			for (String itemString : itemStrings) {
+				itemString = itemString.strip();
+				int index = itemString.indexOf(" ");
+				int quantity = Integer.parseInt(itemString.substring(0, index));
+				String itemName = itemString.substring(index + 1).strip();
+				int id = ItemData.getIdFromName(itemName);
+				inputItems.add(new InventoryItem(id, quantity, ""));
+			}
 		}
 		
 		String outputString = record.get("Output");

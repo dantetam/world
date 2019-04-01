@@ -37,6 +37,114 @@ public class Society {
 		inhabitants.add(person);
 	}
 	
+	public Process findBestProcess(Map<Integer, Double> allItemsUtility, int outputItemId) {
+		Set<Integer> visitedItemIds = new HashSet<>();
+		Set<Integer> fringe = new HashSet<>();
+		fringe.add(outputItemId);
+		
+		while (fringe.size() > 0) {
+			Map<Process, Double> currentUtilCandidates = new HashMap<>();
+			
+			Set<Integer> newFringe = new HashSet<>();
+			for (Integer fringeId: fringe) {
+				List<Process> processes = ProcessData.getProcessesByOutput(fringeId);
+				for (Process process: processes) {
+					List<InventoryItem> inputs = process.inputItems;
+					for (InventoryItem input: inputs) {
+						double util = allItemsUtility.get(input.itemId);
+						MathUti.insertKeepMaxMap(currentUtilCandidates, process, util);
+						if (!visitedItemIds.contains(input.itemId)) {
+							newFringe.add(input.itemId);
+						}
+					}
+				}
+				visitedItemIds.add(fringeId);
+			}
+			
+			currentUtilCandidates = MathUti.getSortedMapByValue(currentUtilCandidates);
+			
+			Object[] orderedProcesses = currentUtilCandidates.keySet().toArray();
+			for (Object obj: orderedProcesses) {
+				Process process = (Process) obj;
+				if (canCompleteProcess(process)) {
+					return process;
+				}
+			}
+			
+			fringe = newFringe;
+		}
+		
+		return null;
+	}
+	
+	public boolean canCompleteProcess(Process process, Set<Integer> availableItemIds) {
+		//Check for resources
+		
+		//Check for buildings
+		
+		//Check for required location and/or site
+	}
+	
+	/**
+	 * @return A mapping of every item in the world available to its calcuated utility.
+	 */
+	public Map<Integer, Double> findCompleteUtilityAllItems() {
+		Map<Integer, Double> allRarity = findAllAvailableResourceRarity();
+		Set<Integer> availableItemIds = allRarity.keySet();
+		
+		Map<String, Double> needsIntensity = findAllNeedsIntensity();
+		
+		//Used to normalize the values and determine 
+		Map<String, Double> totalNeedsUtility = new HashMap<>(); 
+		
+		Map<Integer, Double> finalOutputUtility = new HashMap<>();
+		
+		for (int itemId : availableItemIds) {
+			double itemRarity = new Double(Math.log10(allRarity.get(itemId)));
+			
+			Function<Entry<String, Double>, Double> utilCalcBalance = e -> {
+				Double intensity = needsIntensity.get(e.getKey());
+				if (intensity == null) {
+					intensity = new Double(0.5);
+				}
+				return e.getValue() * intensity / itemRarity;
+			};
+			
+			//Develop a basic utility value: item use * need for item use / rareness
+			Map<String, Double> needsUtilityFromItems = findUtilityByNeed(itemId);
+			needsUtilityFromItems.entrySet().stream().collect(Collectors.toMap(Entry::getKey,
+					utilCalcBalance
+					));
+			
+			double sumWeightsUtility = 0;
+			
+			for (Entry<String, Double> entry: needsUtilityFromItems.entrySet()) {
+				MathUti.addNumMap(totalNeedsUtility, entry.getKey(), entry.getValue());
+				sumWeightsUtility += entry.getValue();
+			}
+			
+			finalOutputUtility.put(itemId, sumWeightsUtility);
+			
+			/*
+			Map<String, Double> needsUtilityFromItems = findUtilityByNeed(itemId);
+			needsUtilityFromItems.entrySet().stream().collect(Collectors.toMap(Entry::getKey,
+					e -> e.getValue() * needsIntensity.get(e.getKey()) / itemRarity
+					));
+			*/
+		}
+		
+		Map<Integer, Double> propogatedFinalUtil = backpropUtilToComponents(finalOutputUtility, availableItemIds);
+		
+		
+		Map<String, Double> sortedNeedUtility = MathUti.getSortedMapByValue(totalNeedsUtility);
+		
+		Map<String, Double> needWeights = new HashMap<>();
+		
+		//for 
+		
+		return propogatedFinalUtil;
+	}
+	
 	/**
 	 * Directly count the physical rarity and presence of all items available on the map
 	 */
@@ -124,63 +232,6 @@ public class Society {
 				e -> e.getValue() * ItemData.getBaseItemValue(e.getKey())));
 		
 		return itemRarity;
-	}
-	
-	public Map<Integer, Double> findCompleteUtilityAllItems() {
-		Map<Integer, Double> allRarity = findAllAvailableResourceRarity();
-		Set<Integer> availableItemIds = allRarity.keySet();
-		
-		Map<String, Double> needsIntensity = findAllNeedsIntensity();
-		
-		//Used to normalize the values and determine 
-		Map<String, Double> totalNeedsUtility = new HashMap<>(); 
-		
-		Map<Integer, Double> finalOutputUtility = new HashMap<>();
-		
-		for (int itemId : availableItemIds) {
-			double itemRarity = new Double(Math.log10(allRarity.get(itemId)));
-			
-			Function<Entry<String, Double>, Double> utilCalcBalance = e -> {
-				Double intensity = needsIntensity.get(e.getKey());
-				if (intensity == null) {
-					intensity = new Double(0.5);
-				}
-				return e.getValue() * intensity / itemRarity;
-			};
-			
-			//Develop a basic utility value: item use * need for item use / rareness
-			Map<String, Double> needsUtilityFromItems = findUtilityByNeed(itemId);
-			needsUtilityFromItems.entrySet().stream().collect(Collectors.toMap(Entry::getKey,
-					utilCalcBalance
-					));
-			
-			double sumWeightsUtility = 0;
-			
-			for (Entry<String, Double> entry: needsUtilityFromItems.entrySet()) {
-				MathUti.addNumMap(totalNeedsUtility, entry.getKey(), entry.getValue());
-				sumWeightsUtility += entry.getValue();
-			}
-			
-			finalOutputUtility.put(itemId, sumWeightsUtility);
-			
-			/*
-			Map<String, Double> needsUtilityFromItems = findUtilityByNeed(itemId);
-			needsUtilityFromItems.entrySet().stream().collect(Collectors.toMap(Entry::getKey,
-					e -> e.getValue() * needsIntensity.get(e.getKey()) / itemRarity
-					));
-			*/
-		}
-		
-		Map<Integer, Double> propogatedFinalUtil = backpropUtilToComponents(finalOutputUtility, availableItemIds);
-		
-		
-		Map<String, Double> sortedNeedUtility = MathUti.sortMapByValue(totalNeedsUtility);
-		
-		Map<String, Double> needWeights = new HashMap<>();
-		
-		//for 
-		
-		return propogatedFinalUtil;
 	}
 	
 	private Map<Integer, Double> backpropUtilToComponents(Map<Integer, Double> finalOutputUtility, 

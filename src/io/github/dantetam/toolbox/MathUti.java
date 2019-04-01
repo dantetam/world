@@ -1,6 +1,8 @@
 package io.github.dantetam.toolbox;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -59,7 +61,8 @@ public class MathUti {
 		}
 	}
 
-	public static <K, V extends Comparable<? super V>> Map<K, V> sortMapByValue(Map<K, V> map) {
+	//Ascending sort on a generic mapping
+	public static <K, V extends Comparable<? super V>> Map<K, V> getSortedMapByValue(Map<K, V> map) {
         List<Entry<K, V>> list = new ArrayList<>(map.entrySet());
         list.sort(Entry.comparingByValue());
 
@@ -70,5 +73,15 @@ public class MathUti {
 
         return result;
     }
+	
+	public static void main(String[] args) {
+		Map<Integer, Integer> data = new HashMap<>();
+		data.put(1, 2);
+		data.put(3, 9);
+		data.put(4, 7);
+		data = getSortedMapByValue(data);
+		System.out.println(data);
+		System.out.println(Arrays.toString(data.entrySet().toArray()));
+	}
 	
 }

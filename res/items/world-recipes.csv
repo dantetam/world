@@ -76,3 +76,11 @@ Basic Meat Preservation,"1 <Bucket>, 5 <RawMeat>, 2 Salt",<Cooking Tool>,,,"I / 
 ,,,,,,,
 Basic Cooking,6 <RawFood>,<Cooking Tool>,,,"I / Scook, 60 / O",Cooked Veggies,3
 Basic Meat Cooking,"3 <RawMeat>, 4 <RawFood>",<Cooking Tool>,,,"I / Scook, 60 / O",Cooked Meat Dish,3
+,,,,,,,
+,,,,,,,
+,,,,,,,
+,,,,,,,
+,,,,,,,
+,,,,,,,
+,,,,,,,
+Basic Wood Cutting,,Pine Tree,Y,,"Swoodcut, 120 / D",,
