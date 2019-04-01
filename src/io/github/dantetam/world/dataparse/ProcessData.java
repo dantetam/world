@@ -10,9 +10,9 @@ import io.github.dantetam.world.items.InventoryItem;
 
 public class ProcessData {
 
-	public static List<Process> processes = new ArrayList<>();
-	public static Map<Integer, List<Integer>> recipesByInput = new HashMap<>();
-	public static Map<Integer, List<Integer>> recipesByOutput = new HashMap<>();
+	private static List<Process> processes = new ArrayList<>();
+	private static Map<Integer, List<Integer>> recipesByInput = new HashMap<>();
+	private static Map<Integer, List<Integer>> recipesByOutput = new HashMap<>();
 
 	public static void addProcess(String name, List<InventoryItem> input, ItemTotalDrops output, 
 			String[] buildingNames, boolean site, String tileFloor, List<ProcessStep> steps) {
@@ -30,6 +30,34 @@ public class ProcessData {
 			}
 			recipesByOutput.get(itemId).add(index);
 		}
+	}
+	
+	/**
+	 * @return All processes where item with itemId is an input
+	 */
+	public static List<Process> getProcessesByInput(int itemId) {
+		List<Process> subsetProcesses = new ArrayList<>();
+		if (recipesByInput.containsKey(itemId)) {
+			List<Integer> indices = recipesByInput.get(itemId);
+			for (int index: indices) {
+				subsetProcesses.add(processes.get(index));
+			}
+		}
+		return subsetProcesses;
+	}
+	
+	/**
+	 * @return All processes where item with itemId is an output
+	 */
+	public static List<Process> getProcessesByOutput(int itemId) {
+		List<Process> subsetProcesses = new ArrayList<>();
+		if (recipesByOutput.containsKey(itemId)) {
+			List<Integer> indices = recipesByOutput.get(itemId);
+			for (int index: indices) {
+				subsetProcesses.add(processes.get(index));
+			}
+		}
+		return subsetProcesses;
 	}
 	
 }

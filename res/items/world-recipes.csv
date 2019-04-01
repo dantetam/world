@@ -1,11 +1,12 @@
 Process Name,Required Input,Required Buildings,Is Site,Required Location,Process Steps,Output,BulkOption
 ,,,,,,,
+,,,,,,,
 Basic Stone Cutting,1 <Stone>,Basic Chisel,,,"I / Sstone, 30 / O","<Stone> Block, 10, 15",
 ,,,,,,,
 ,,,,,,,
 ,,,,,,,
 ,,,,,,,
-,,,,,,,
+Quern Building,5 <Stone> Block,,,,"I / Sbuild, 60 / O",Quern,
 Basic Milling Grain,1 <HarvestedGrain>,Quern,,,"I / Scook, 15 / O",refine(<HarvestedGrain>),50
 ,,,,,,,
 ,,,,,,,
@@ -20,7 +21,7 @@ Straw Bale,20 Straw,,,,"I / Scraft, 30 / O",Straw Bale,
 Composting,10 <OrganicMaterial>,Composter,,,"I / Ufarm, U(2880, 4320) / O","Compost, 1, 3",
 ,,,,,,,
 ,,,,,,,
-Smelter Building,20 <Stone> / 20 Brick,,Y,,"I / Sbuild, 300 / B",Smelter,
+Smelter Building,20 <Stone> Block / 20 Brick,,Y,,"I / Sbuild, 300 / B",Smelter,
 Basic Smelting,1 <RawOre>,Smelter,,,"I / Ssmelt, 30 / O",refine(<RawOre>),5
 Anvil,4 Iron Bar,Smelter,,,"I / Ssmelt, 180 / O",Anvil,
 ,,,,,,,

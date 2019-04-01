@@ -21,6 +21,7 @@ import io.github.dantetam.world.dataparse.Process.ProcessStep;
 import io.github.dantetam.world.dataparse.ProcessData;
 import io.github.dantetam.world.grid.LocalGrid;
 import io.github.dantetam.world.grid.LocalTile;
+import io.github.dantetam.world.items.InventoryItem;
 
 public class Society {
 
@@ -36,6 +37,9 @@ public class Society {
 		inhabitants.add(person);
 	}
 	
+	/**
+	 * Directly count the physical rarity and presence of all items available on the map
+	 */
 	private Map<Integer, Double> findRawResourcesRarity() {
 		Map<Integer, Double> itemRarity = new HashMap<>();
 		for (int r = 0; r < grid.rows; r++) {
@@ -47,22 +51,31 @@ public class Society {
 						ItemTotalDrops drops = ItemData.getOnBlockItemDrops(tile.tileBlockId);
 						Map<Integer, Double> itemExpectations = drops.itemExpectation();
 						for (Entry<Integer, Double> entry: itemExpectations.entrySet()) {
-							double prevEntry = itemRarity.containsKey(entry.getKey()) ? itemRarity.get(entry.getKey()) : 0;
-							itemRarity.put(entry.getKey(), prevEntry + entry.getValue());
+							MathUti.addNumMap(itemRarity, entry.getKey(), entry.getValue());
 						}
 					}
 					if (tile.itemOnFloor != null) {
 						int id = tile.itemOnFloor.itemId;
 						int num = tile.itemOnFloor.quantity;
-						double prevEntry = itemRarity.containsKey(id) ? itemRarity.get(id) : 0;
-						itemRarity.put(id, prevEntry + num);
+						MathUti.addNumMap(itemRarity, id, (double) num);
 					}
 				}
+			}
+		}
+		for (Human human: inhabitants) {
+			List<InventoryItem> items = human.inventory.getItems();
+			for (InventoryItem item: items) {
+				MathUti.addNumMap(itemRarity, item.itemId, (double) item.quantity);
 			}
 		}
 		return itemRarity;
 	}
 	
+	/**
+	 * Using raw resources, figure out every possible item that could be generated from destroying,
+	 * crafting, or otherwise processing the available items. Return all possible items that this
+	 * society could create, and their associated rareness.
+	 */
 	private Map<Integer, Double> findAllAvailableResourceRarity() {
 		Set<Integer> visitedItemIds = new HashSet<>();
 		Set<Integer> fringe = new HashSet<>();
@@ -77,22 +90,31 @@ public class Society {
 		while (fringe.size() > 0) {
 			Set<Integer> newFringe = new HashSet<>();
 			for (Integer itemId: fringe) {
-				List<Integer> processIds = ProcessData.recipesByInput.get(itemId);
-				if (processIds != null) {
-					for (Integer processId: processIds) {
-						Process process = ProcessData.processes.get(processId);
-						Map<Integer, Double> itemExpectations = process.outputItems.itemExpectation();
-						for (Entry<Integer, Double> entry: itemExpectations.entrySet()) {
-							int nextItemId = entry.getKey();
-							//Expand the item's process chain if necessary, otherwise just add to a running count
-							if (!visitedItemIds.contains(nextItemId)) {
-								newFringe.add(nextItemId);
-							}
-							double prevEntry = itemRarity.containsKey(nextItemId) ? itemRarity.get(nextItemId) : 0;
-							itemRarity.put(nextItemId, prevEntry + entry.getValue());
+				List<Process> inputProcessses = ProcessData.getProcessesByInput(itemId);
+				
+				//Collect all possible items that can come from breaking or crafting with itemId
+				List<ItemTotalDrops> allItemDrops = new ArrayList<>();
+				ItemTotalDrops onBlockDropExp = ItemData.getOnBlockItemDrops(itemId);
+				if (onBlockDropExp != null && ItemData.isPlaceable(itemId)) {
+					allItemDrops.add(onBlockDropExp);
+				}
+				for (Process process: inputProcessses) {
+					allItemDrops.add(process.outputItems);
+				}
+				
+				for (ItemTotalDrops itemDrop: allItemDrops) {
+					Map<Integer, Double> itemExpectations = itemDrop.itemExpectation();
+					for (Entry<Integer, Double> entry: itemExpectations.entrySet()) {
+						int nextItemId = entry.getKey();
+						//Expand the item's process chain if necessary, otherwise just add to a running count
+						if (!visitedItemIds.contains(nextItemId)) {
+							newFringe.add(nextItemId);
 						}
+						//System.out.println(ItemData.getNameFromId(itemId) + " ---expand---> " + ItemData.getNameFromId(nextItemId));
+						MathUti.addNumMap(itemRarity, nextItemId, entry.getValue());
 					}
 				}
+				
 				visitedItemIds.add(itemId);
 			}
 			fringe = newFringe;
@@ -113,15 +135,15 @@ public class Society {
 		//Used to normalize the values and determine 
 		Map<String, Double> totalNeedsUtility = new HashMap<>(); 
 		
-		Map<Integer, Double> finalUtility = new HashMap<>();
+		Map<Integer, Double> finalOutputUtility = new HashMap<>();
 		
 		for (int itemId : availableItemIds) {
-			double itemRarity = allRarity.get(itemId);
+			double itemRarity = new Double(Math.log10(allRarity.get(itemId)));
 			
 			Function<Entry<String, Double>, Double> utilCalcBalance = e -> {
 				Double intensity = needsIntensity.get(e.getKey());
 				if (intensity == null) {
-					intensity = new Double(1.0);
+					intensity = new Double(0.5);
 				}
 				return e.getValue() * intensity / itemRarity;
 			};
@@ -139,7 +161,7 @@ public class Society {
 				sumWeightsUtility += entry.getValue();
 			}
 			
-			finalUtility.put(itemId, sumWeightsUtility);
+			finalOutputUtility.put(itemId, sumWeightsUtility);
 			
 			/*
 			Map<String, Double> needsUtilityFromItems = findUtilityByNeed(itemId);
@@ -149,15 +171,70 @@ public class Society {
 			*/
 		}
 		
+		Map<Integer, Double> propogatedFinalUtil = backpropUtilToComponents(finalOutputUtility, availableItemIds);
+		
+		
 		Map<String, Double> sortedNeedUtility = MathUti.sortMapByValue(totalNeedsUtility);
 		
 		Map<String, Double> needWeights = new HashMap<>();
 		
 		//for 
 		
-		return finalUtility;
+		return propogatedFinalUtil;
 	}
 	
+	private Map<Integer, Double> backpropUtilToComponents(Map<Integer, Double> finalOutputUtility, 
+			Set<Integer> availableItemIds) {
+		Map<Integer, Double> newFinalUtility = new HashMap<>(finalOutputUtility);
+
+		Set<Integer> expandedItemIds = new HashSet<>();
+		Set<Integer> fringe = finalOutputUtility.keySet();
+		while (fringe.size() > 0) {
+			Set<Integer> newFringe = new HashSet<>();
+			for (int outputItemId: fringe) {
+				double outputUtil = new Double((double) newFinalUtility.get(outputItemId));
+				
+				System.out.println("Starting item: " + ItemData.getNameFromId(outputItemId) + ", "
+						+ outputUtil);
+				
+				List<Process> processes = ProcessData.getProcessesByOutput(outputItemId);
+				for (Process process: processes) {
+					List<InventoryItem> inputs = process.inputItems;
+					
+					double totalItems = 0;
+					for (InventoryItem item: inputs) {
+						totalItems += item.quantity;
+					}
+					for (int itemIndex = 0; itemIndex < inputs.size(); itemIndex++) {
+						InventoryItem item = inputs.get(itemIndex);
+						double provisionalUtil = 0;
+						if (finalOutputUtility.containsKey(item.itemId)) {
+							provisionalUtil = finalOutputUtility.get(item.itemId);
+						}
+						double percentage = item.quantity / totalItems * provisionalUtil;
+						
+						System.out.println("Sub-item: " + ItemData.getNameFromId(item.itemId));
+						System.out.println(percentage + " " + provisionalUtil + " " + percentage * outputUtil);
+						
+						MathUti.insertKeepMaxMap(newFinalUtility, item.itemId, percentage * outputUtil);
+						
+						if (!expandedItemIds.contains(item.itemId)) {
+							expandedItemIds.add(item.itemId);
+							newFringe.add(item.itemId);
+						}
+					}
+				}
+				
+				System.out.println("");
+			}
+			fringe = newFringe;
+		}
+		return newFinalUtility;
+	}
+	
+	/**
+	 * @return A map of needs mapping to intensity values, based on this society's total needs for certain parts of the Maslow hierachy
+	 */
 	private Map<String, Double> findAllNeedsIntensity() {
 		Map<String, Double> societalNeed = new HashMap<>();
 		for (Human human : inhabitants) {
@@ -181,11 +258,15 @@ public class Society {
 			}
 			
 			int minShelter = 20;
-			MathUti.addNumMap(societalNeed, "Shelter", (double) Math.max(minShelter - shelterScore, 0));
+			double normShelterScore = (double) Math.max(minShelter - shelterScore, 0) / minShelter;
+			MathUti.addNumMap(societalNeed, "Shelter", normShelterScore);
 		}
 		return societalNeed;
 	}
 	
+	/**
+	 * @return Find a map of the direct utility generated by item 
+	 */
 	private Map<String, Double> findUtilityByNeed(Integer itemId) {
 		Map<String, Double> rawUtilByNeed = new HashMap<>();
 		
@@ -208,6 +289,10 @@ public class Society {
 		
 		double baseValue = ItemData.getBaseItemValue(itemId);
 		MathUti.addNumMap(rawUtilByNeed, "Wealth", baseValue);
+		
+		System.out.println(ItemData.getNameFromId(itemId) + " stats: ");
+		System.out.println(rawUtilByNeed);
+		System.out.println("---------------------");
 		
 		return rawUtilByNeed;
 	}

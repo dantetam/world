@@ -45,7 +45,17 @@ public class MathUti {
 			map.put(key, value);
 		}
 		else {
-			map.put(key, (U) new Float(map.get(key).floatValue() + value.floatValue()));
+			map.put(key, (U) new Double(map.get(key).doubleValue() + value.doubleValue()));
+		}
+	}
+	
+	public static <T, U extends Number> void 
+		insertKeepMaxMap(Map<T, U> map, T key, U value) {
+		if (!map.containsKey(key)) {
+			map.put(key, value);
+		}
+		else {
+			map.put(key, (U) new Double(Math.max(map.get(key).doubleValue(), value.doubleValue())));
 		}
 	}
 

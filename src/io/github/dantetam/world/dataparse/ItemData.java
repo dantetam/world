@@ -65,7 +65,7 @@ public class ItemData {
 		return allItemsById.get(id).name;
 	}
 	
-	public static InventoryItem createItemByName(String name, int quantity) {
+	public static InventoryItem item(String name, int quantity) {
 		if (itemNamesToIds.containsKey(name)) {
 			int id = itemNamesToIds.get(name);
 			return createItem(id, quantity);
@@ -149,6 +149,13 @@ public class ItemData {
 			throw new IllegalArgumentException("Could not find item id: " + id);
 		}
 		return pickupTime.get(id);
+	}
+	
+	public static int getMaxStackSize(Integer id) {
+		if (!stackableMap.containsKey(id)) {
+			throw new IllegalArgumentException("Could not find item id: " + id);
+		}
+		return stackableMap.get(id);
 	}
 	
 	public static List<ProcessStep> getItemActions(Integer id) {

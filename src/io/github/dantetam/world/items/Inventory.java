@@ -15,6 +15,33 @@ public class Inventory {
 		items = new ArrayList<>();
 	}
 	
+	public void addItem(InventoryItem addItem) {
+		int inventoryIndex = 0;
+		int amountToAdd = addItem.quantity;
+		int maxStack = ItemData.getMaxStackSize(addItem.itemId);
+		while (true) {
+			if (amountToAdd <= 0) {
+				break;
+			}
+			if (inventoryIndex < items.size()) {
+				InventoryItem invItem = items.get(inventoryIndex);
+				if (invItem.itemId == addItem.itemId) {
+					int currentAdded = Math.min(maxStack - invItem.quantity, amountToAdd);
+					amountToAdd -= currentAdded;
+					invItem.quantity += currentAdded;
+				}
+				inventoryIndex++;
+			}
+			else
+				break;
+		}
+		while (amountToAdd > 0) {
+			int currentAdded = Math.min(maxStack, amountToAdd);
+			amountToAdd -= currentAdded;
+			items.add(new InventoryItem(addItem.itemId, currentAdded, addItem.name));
+		}
+	}
+	
 	/**
 	 * @param requiredItems A list of items with id and quantity.
 	 * @return Two maps containing the items needed to complete the request that are not in this inventory
@@ -85,6 +112,10 @@ public class Inventory {
 		if (regularItemNeeds.size() == 0 && groupItemNeeds.size() == 0) {
 			this.items = cloneInv;
 		}
+	}
+	
+	public List<InventoryItem> getItems() {
+		return items;
 	}
 	
 }
