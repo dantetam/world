@@ -8,6 +8,7 @@ import io.github.dantetam.world.civilization.Human;
 import io.github.dantetam.world.civilization.Society;
 import io.github.dantetam.world.dataparse.ItemData;
 import io.github.dantetam.world.worldgen.LocalGridTerrainInstantiate;
+import io.github.dantetam.world.dataparse.Process;
 
 public class WorldGrid {
 
@@ -31,6 +32,9 @@ public class WorldGrid {
 		for (Entry<Integer, Double> entry: calcUtility.entrySet()) {
 			System.out.println(ItemData.getNameFromId(entry.getKey()) + ": " + entry.getValue());
 		}
+	
+		Process process = testSociety.findBestProcess(calcUtility, ItemData.getIdFromName("Bread"));
+		System.out.println(process.toString());
 	}
 	
 }

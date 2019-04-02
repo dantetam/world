@@ -42,22 +42,37 @@ public class Society {
 		Set<Integer> fringe = new HashSet<>();
 		fringe.add(outputItemId);
 		
+		Map<Integer, Double> rawResRarity = findRawResourcesRarity();
+		
 		while (fringe.size() > 0) {
 			Map<Process, Double> currentUtilCandidates = new HashMap<>();
 			
 			Set<Integer> newFringe = new HashSet<>();
 			for (Integer fringeId: fringe) {
+				
+				System.out.println("Process for base item: " + ItemData.getNameFromId(fringeId));
+				
 				List<Process> processes = ProcessData.getProcessesByOutput(fringeId);
 				for (Process process: processes) {
 					List<InventoryItem> inputs = process.inputItems;
+					if (inputs == null) inputs = new ArrayList<>();
 					
-					for (String buildingName: process.requiredBuildNameOrGroups)
-						inputs.add(ItemData.item(buildingName, 1));
+					if (process.requiredBuildNameOrGroups != null) {
+						for (String buildingName: process.requiredBuildNameOrGroups) {
+							inputs.add(ItemData.item(buildingName, 1));
+						}
+					}
+					
+					System.out.println("Looking at process: " + process.toString());
 					
 					for (InventoryItem input: inputs) {
-						double util = allItemsUtility.get(input.itemId);
+						double util = allItemsUtility.containsKey(input.itemId) ? 
+								allItemsUtility.get(input.itemId) : 0;
 						MathUti.insertKeepMaxMap(currentUtilCandidates, process, util);
+						System.out.println("Found utility for base item: " + util);
 						if (!visitedItemIds.contains(input.itemId)) {
+							System.out.println("Expanding from " + ItemData.getNameFromId(fringeId)
+									+ " -----> " + ItemData.getNameFromId(input.itemId));
 							newFringe.add(input.itemId);
 						}
 					}
@@ -71,7 +86,8 @@ public class Society {
 			Object[] orderedProcesses = currentUtilCandidates.keySet().toArray();
 			for (Object obj: orderedProcesses) {
 				Process process = (Process) obj;
-				if (canCompleteProcess(process, visitedItemIds)) {
+				System.out.println(canCompleteProcess(process, rawResRarity) + "<<<<32");
+				if (canCompleteProcess(process, rawResRarity)) {
 					return process;
 				}
 			}
@@ -83,20 +99,22 @@ public class Society {
 	}
 	
 	//Return the necessary items that are needed for a process
-	public boolean canCompleteProcess(Process process, Set<Integer> availableItemIds) {
+	public boolean canCompleteProcess(Process process, Map<Integer, Double> rawResRarity) {
 		//Check for resources
 		List<InventoryItem> inputs = process.inputItems;
 		for (InventoryItem input: inputs) {
-			if (!availableItemIds.contains(input.itemId)) {
+			if (!rawResRarity.containsKey(input.itemId) || rawResRarity.get(input.itemId) == 0) {
 				return false;
 			}
 		}
 		
 		//Check for buildings
-		for (String buildingName: process.requiredBuildNameOrGroups) {
-			int buildingId = ItemData.getIdFromName(buildingName);
-			if (!availableItemIds.contains(buildingId)) {
-				return false;
+		if (process.requiredBuildNameOrGroups != null) {
+			for (String buildingName: process.requiredBuildNameOrGroups) {
+				int buildingId = ItemData.getIdFromName(buildingName);
+				if (!rawResRarity.containsKey(buildingId) || rawResRarity.get(buildingId) == 0) {
+					return false;
+				}
 			}
 		}
 			

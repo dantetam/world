@@ -33,6 +33,22 @@ public class Process {
 		this.processSteps = steps;
 	}
 	
+	public String toString() {
+		String result = name + "/ Input: ";
+		for (InventoryItem item: inputItems) {
+			result += item.toString() + "; ";
+		}
+		result += "/ Output: ";
+		for (int id: outputItems.getAllItems()) {
+			result += ItemData.getNameFromId(id) + "; ";
+		}
+		result += "/ Process: ";
+		for (ProcessStep step: processSteps) {
+			result += step.toString() + "; ";
+		}
+		return result;
+	}
+	
 	public static class ProcessStep {
 		public String stepType;
 		public int timeTicks;
@@ -47,6 +63,10 @@ public class Process {
 			this.stepType = type;
 			this.timeTicks = time;
 			this.modifier = modifier;
+		}
+		
+		public String toString() {
+			return stepType + ", " + timeTicks + ", " + modifier;
 		}
 	}
 	

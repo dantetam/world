@@ -1,5 +1,7 @@
 package io.github.dantetam.world.items;
 
+import io.github.dantetam.world.dataparse.ItemData;
+
 /**
  * Represents an item that has been 'compressed' e.g. is not a building,
  * but can still take space on the floor or someone's inventory.
@@ -23,6 +25,10 @@ public class InventoryItem {
 	
 	public InventoryItem clone() {
 		return new InventoryItem(this.itemId, this.quantity, this.name);
+	}
+	
+	public String toString() {
+		return "Item: [" + ItemData.getNameFromId(itemId) + ", " + quantity + "]"; 
 	}
 	
 }
