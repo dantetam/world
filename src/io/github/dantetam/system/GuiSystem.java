@@ -17,6 +17,7 @@ import io.github.dantetam.render.TextBox;
 import io.github.dantetam.toolbox.MousePicker;
 import io.github.dantetam.vector.Vector3i;
 import io.github.dantetam.world.dataparse.ItemData;
+import io.github.dantetam.world.grid.LocalBuilding;
 import io.github.dantetam.world.grid.LocalGrid;
 import io.github.dantetam.world.grid.LocalTile;
 
@@ -57,7 +58,7 @@ public class GuiSystem extends BaseSystem {
 		
 		float guiWidth = DisplayManager.width / (camera.numTilesX * 2 + 1);
 		float guiHeight = DisplayManager.height / (camera.numTilesZ * 2 + 1);
-		Vector2f guiDim = new Vector2f(guiWidth, guiHeight);
+		Vector2f guiDim = new Vector2f(guiWidth,  guiHeight);
 		
 		for (int x = minX; x <= maxX; x++) {
 			for (int z = minZ; z <= maxZ; z++) {
@@ -84,10 +85,6 @@ public class GuiSystem extends BaseSystem {
 								int tileTexture = ItemData.getTextureFromItemId(tile.tileFloorId);
 								listGuis.add(new GuiQuad(tileTexture, guiPos, guiDim));
 							}
-							if (tile.building != null) {
-								TextBox buildingTextBox = getDefaultTextBoxGui(guiDefaultTexture, "B", "", guiPos.x, guiPos.y, guiWidth, guiHeight);								
-								listTexts.add(buildingTextBox);
-							}
 							if (tile.itemOnFloor != null) {
 								TextBox buildingTextBox = getDefaultTextBoxGui(guiDefaultTexture, "I", "", guiPos.x, guiPos.y, guiWidth, guiHeight);
 								listTexts.add(buildingTextBox);
@@ -99,6 +96,21 @@ public class GuiSystem extends BaseSystem {
 				}
 			}
 		} 
+		
+		for (LocalBuilding building: activeGrid.getAllBuildings()) {
+			for (int i = 0; i < building.calculatedLocations.size(); i++) {
+				Vector3i coords = building.calculatedLocations.get(i);
+				
+				if (coords.z == height && coords.x >= minX && coords.x <= maxX && coords.y >= minZ && coords.y <= maxZ) {
+					int blockId = building.buildingBlockIds.get(i);
+					Vector2f guiPos = new Vector2f(guiWidth * (coords.x - minX), guiHeight * (coords.y - minZ)); 
+					
+					int tileTexture = ItemData.getTextureFromItemId(blockId);
+					listGuis.add(new GuiQuad(tileTexture, guiPos, guiDim));
+				}
+			}
+			
+		}
 		
 		allGuiQuad = listGuis;
 		allGuiText = listTexts;

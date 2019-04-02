@@ -87,7 +87,7 @@ public class VBOLoader {
 			} catch (IOException e2) {
 				System.out.println("Could not load " + fileName + ", loading from default texture instead");
 				try {
-					File file = new File("res/colorTexture1.png");
+					File file = new File("res/tiles/Error.png");
 					image = ImageIO.read(file);
 				} catch (IOException e3) {
 					e3.printStackTrace();

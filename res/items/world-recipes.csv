@@ -26,8 +26,8 @@ Basic Smelting,1 <RawOre>,Smelter,,,"I / Ssmelt, 30 / O",refine(<RawOre>),5
 Anvil,4 Iron Bar,Smelter,,,"I / Ssmelt, 180 / O",Anvil,
 ,,,,,,,
 Kiln,"12 <Stone>, 5 Clay / 12 Brick, 5 Clay",,Y,,"I / Sbuild, 300 / B",Kiln,
-,15x <OrganicMaterial> / 5 Wood,Kiln,,,"I / Uprocess, 180 / O","Charcoal, 1, 5 / Tar, 1, 3",
-,,,,,,,
+,15 <OrganicMaterial> / 5 Wood,Kiln,,,"I / Uprocess, 180 / O","Charcoal, 1, 5 / Tar, 1, 3",
+Oven,"12 <Stone>, 5 Clay / 12 Brick, 5 Clay",,Y,,"I / Sbuild, 300 / B",Oven,
 ,,,,,,,
 ,,,,,,,
 ,,,,,,,
@@ -67,15 +67,15 @@ Wooden Bed,10 <ProcessedWood>,Carpenter,,,"I / Sbuild, 120 / O",Wooden Bed,
 ,,,,,,,
 ,,,,,,,
 ,,,,,,,
-Baking Bread,5 Wheat Flour / 5 Barley Grain,<Cooking Tool>,,,"I / Scook, 30 / O",Bread,
+Baking Bread,5 Wheat Flour / 5 Barley Grain,Kiln,,,"I / Scook, 30 / O",Bread,
 Basic Wine,"1 <Bucket>, 5 Grapes",Brewery,,,"I / Scook, 30 / Ucook, U(1440, 2880) / O",<Bucket> of Wine,5
 Basic Ale,"1 <Bucket>, 5 Barley",Brewery,,,"I / Scook, 30 / Ucook, U(1440, 2880) / O",<Bucket> of Ale,5
 ,,,,,,,
-Basic Food Canning,"1 <Bucket>, 5 <Food>, 1 Salt",<Cooking Tool>,,,"I / Scook, 60 / O",Preserved Food (<Bucket>),5
-Basic Meat Preservation,"1 <Bucket>, 5 <RawMeat>, 2 Salt",<Cooking Tool>,,,"I / Scook, 60 / O",Preserved Meat (<Bucket>),5
+Basic Food Canning,"1 <Bucket>, 5 <Food>, 1 Salt",Kiln,,,"I / Scook, 60 / O",Preserved Food (<Bucket>),5
+Basic Meat Preservation,"1 <Bucket>, 5 <RawMeat>, 2 Salt",Kiln,,,"I / Scook, 60 / O",Preserved Meat (<Bucket>),5
 ,,,,,,,
-Basic Cooking,6 <RawFood>,<Cooking Tool>,,,"I / Scook, 60 / O",Cooked Veggies,3
-Basic Meat Cooking,"3 <RawMeat>, 4 <RawFood>",<Cooking Tool>,,,"I / Scook, 60 / O",Cooked Meat Dish,3
+Basic Cooking,6 <RawFood>,Kiln,,,"I / Scook, 60 / O",Cooked Veggies,3
+Basic Meat Cooking,"3 <RawMeat>, 4 <RawFood>",Kiln,,,"I / Scook, 60 / O",Cooked Meat Dish,3
 ,,,,,,,
 ,,,,,,,
 ,,,,,,,

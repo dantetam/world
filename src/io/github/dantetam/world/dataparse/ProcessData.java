@@ -24,11 +24,13 @@ public class ProcessData {
 			}
 			recipesByInput.get(inputItem.itemId).add(index);
 		}
-		for (int itemId: output.getAllItems()) {
-			if (!recipesByOutput.containsKey(itemId)) {
-				recipesByOutput.put(itemId, new ArrayList<>());
+		if (output != null) {
+			for (int itemId: output.getAllItems()) {
+				if (!recipesByOutput.containsKey(itemId)) {
+					recipesByOutput.put(itemId, new ArrayList<>());
+				}
+				recipesByOutput.get(itemId).add(index);
 			}
-			recipesByOutput.get(itemId).add(index);
 		}
 	}
 	

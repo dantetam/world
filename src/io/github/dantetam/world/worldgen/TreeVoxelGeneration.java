@@ -23,16 +23,16 @@ public class TreeVoxelGeneration {
 		int woodId = ItemData.getIdFromName("Pine Log");
 		int leavesId = ItemData.getIdFromName("Pine Needles");
 		
-		int treeHeight = Math.max((int) proceduralTree.size / 4, 5);
+		int treeHeight = Math.max((int) proceduralTree.size / 4, 10);
 		for (int h = 0; h < treeHeight; h++) {
-			treeLocations.add(new Vector3i(0,0,startingHeight + h));
+			treeLocations.add(new Vector3i(0,0,h));
 			blockIds.add(woodId);
 		}
 		
-		for (int h = 0; h <= treeHeight / 4.0; h++) {
+		for (int h = 3; h <= treeHeight; h++) {
 			for (int r = -2; r <= 2; r++) {
 				for (int c = -2; c <= 2; c++) {
-					if (r == 0 && c == 0 && h == 0) continue;
+					if (r == 0 && c == 0 && h < treeHeight / 2) continue;
 					treeLocations.add(new Vector3i(r,c,h));
 					blockIds.add(leavesId);
 				}

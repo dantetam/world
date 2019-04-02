@@ -50,6 +50,10 @@ public class Society {
 				List<Process> processes = ProcessData.getProcessesByOutput(fringeId);
 				for (Process process: processes) {
 					List<InventoryItem> inputs = process.inputItems;
+					
+					for (String buildingName: process.requiredBuildNameOrGroups)
+						inputs.add(ItemData.item(buildingName, 1));
+					
 					for (InventoryItem input: inputs) {
 						double util = allItemsUtility.get(input.itemId);
 						MathUti.insertKeepMaxMap(currentUtilCandidates, process, util);
@@ -57,6 +61,7 @@ public class Society {
 							newFringe.add(input.itemId);
 						}
 					}
+					
 				}
 				visitedItemIds.add(fringeId);
 			}
@@ -66,7 +71,7 @@ public class Society {
 			Object[] orderedProcesses = currentUtilCandidates.keySet().toArray();
 			for (Object obj: orderedProcesses) {
 				Process process = (Process) obj;
-				if (canCompleteProcess(process)) {
+				if (canCompleteProcess(process, visitedItemIds)) {
 					return process;
 				}
 			}
@@ -77,12 +82,26 @@ public class Society {
 		return null;
 	}
 	
+	//Return the necessary items that are needed for a process
 	public boolean canCompleteProcess(Process process, Set<Integer> availableItemIds) {
 		//Check for resources
+		List<InventoryItem> inputs = process.inputItems;
+		for (InventoryItem input: inputs) {
+			if (!availableItemIds.contains(input.itemId)) {
+				return false;
+			}
+		}
 		
 		//Check for buildings
-		
-		//Check for required location and/or site
+		for (String buildingName: process.requiredBuildNameOrGroups) {
+			int buildingId = ItemData.getIdFromName(buildingName);
+			if (!availableItemIds.contains(buildingId)) {
+				return false;
+			}
+		}
+			
+		//TODO: Check for required location and/or site
+		return true;
 	}
 	
 	/**
@@ -134,7 +153,7 @@ public class Society {
 		}
 		
 		Map<Integer, Double> propogatedFinalUtil = backpropUtilToComponents(finalOutputUtility, availableItemIds);
-		
+		propogatedFinalUtil = MathUti.getSortedMapByValue(propogatedFinalUtil);
 		
 		Map<String, Double> sortedNeedUtility = MathUti.getSortedMapByValue(totalNeedsUtility);
 		
@@ -155,6 +174,7 @@ public class Society {
 				int startHeight = grid.findLowestEmptyHeight(r, c) - 1;
 				for (int h = startHeight; h >= 0; h--) {
 					LocalTile tile = grid.getTile(new Vector3i(r, c, h));
+					if (tile == null) continue;
 					if (tile.tileBlockId != ItemData.ITEM_EMPTY_ID) {
 						ItemTotalDrops drops = ItemData.getOnBlockItemDrops(tile.tileBlockId);
 						Map<Integer, Double> itemExpectations = drops.itemExpectation();

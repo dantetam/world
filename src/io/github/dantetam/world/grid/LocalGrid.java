@@ -1,8 +1,9 @@
 package io.github.dantetam.world.grid;
 
 import java.util.Arrays;
-import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import io.github.dantetam.vector.Vector3i;
 import io.github.dantetam.world.civilization.Human;
@@ -20,10 +21,12 @@ public class LocalGrid {
 
 	public int rows, cols, heights; //Sizes of the three dimensions of this local grid
 	private LocalTile[][][] grid; //A 3D grid, with the third dimension representing height, such that [][][50] is one level higher than [][][49].
+	private Set<LocalBuilding> allBuildings; //Contains all buildings within this grid, updated when necessary
 	
 	public LocalGrid(Vector3i size) {
 		rows = size.x; cols = size.y; heights = size.z;
 		grid = new LocalTile[rows][cols][heights];
+		allBuildings = new HashSet<>();
 	}
 	
 	/**
@@ -31,9 +34,14 @@ public class LocalGrid {
 	 */
 	public LocalTile getTile(Vector3i coords) {
 		int r = coords.x, c = coords.y, h = coords.z;
-		if (r < 0 || c < 0 || h < 0 || r >= rows || c >= cols || h >= heights)
+		if (!inBounds(coords))
 			return null;
 		return grid[r][c][h];
+	}
+	
+	private boolean inBounds(Vector3i coords) {
+		int r = coords.x, c = coords.y, h = coords.z;
+		return !(r < 0 || c < 0 || h < 0 || r >= rows || c >= cols || h >= heights);
 	}
 	
 	/**
@@ -48,13 +56,13 @@ public class LocalGrid {
 		grid[r][c][h] = tile;
 	}
 	
-	public boolean buildingCanFitAt(LocalBuilding building, Vector3i newPrimaryCoords) {
+	public boolean buildingCanFitAt(LocalBuilding building, Vector3i newPrimaryCoords, boolean overrideGrid) {
 		//Check to see if the building fits
 		List<Vector3i> offsets = building.getLocationOffsets();
 		for (Vector3i offset: offsets) {
 			Vector3i candidate = newPrimaryCoords.getSum(offset);
 			LocalTile candidateTile = this.getTile(candidate);
-			if (candidateTile == null || candidateTile.building != null) {
+			if (candidateTile == null || (candidateTile.building != null && !overrideGrid)) {
 				return false;
 			}
 		}
@@ -62,7 +70,7 @@ public class LocalGrid {
 	}
 	
 	public void addBuilding(LocalBuilding building, Vector3i newPrimaryCoords, boolean overrideGrid) {
-		if (buildingCanFitAt(building, newPrimaryCoords) || overrideGrid) {
+		if (buildingCanFitAt(building, newPrimaryCoords, overrideGrid)) {
 			removeBuilding(building);
 			building.setPrimaryLocation(newPrimaryCoords);
 			List<Vector3i> newAbsLocations = building.calculatedLocations;
@@ -71,12 +79,15 @@ public class LocalGrid {
 				LocalTile absTile = getTile(newAbsLocation);
 				if (absTile == null) {
 					LocalTile newTile = new LocalTile(newAbsLocation);
-					grid[newAbsLocation.x][newAbsLocation.y][newAbsLocation.z] = newTile;
+					if (inBounds(newAbsLocation)) {
+						grid[newAbsLocation.x][newAbsLocation.y][newAbsLocation.z] = newTile;
+					}
 					absTile = newTile;
 				}
 				absTile.building = building;
-				absTile.tileBlockId = building.buildingBlockIds.get(buildingTileIndex);
+				//absTile.tileBlockId = building.buildingBlockIds.get(buildingTileIndex);
 			}
+			allBuildings.add(building);
 		}
 	}
 	
@@ -85,11 +96,16 @@ public class LocalGrid {
 		for (Vector3i oldAbsLocation: oldAbsLocations) {
 			LocalTile oldTile = getTile(oldAbsLocation);
 			if (oldTile != null) {
-				getTile(oldAbsLocation).building = null;
-				getTile(oldAbsLocation).tileBlockId = ItemData.ITEM_EMPTY_ID;
+				oldTile.building = null;
+				oldTile.tileBlockId = ItemData.ITEM_EMPTY_ID;
 			}
 		}
 		building.setPrimaryLocation(null);
+		allBuildings.remove(building);
+	}
+	
+	public Set<LocalBuilding> getAllBuildings() {
+		return allBuildings;
 	}
 	
 	public void addHuman(Human human, Vector3i coords) {
