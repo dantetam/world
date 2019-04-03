@@ -71,16 +71,7 @@ public class GuiSystem extends BaseSystem {
 				while (candidateHeight > 0) {
 					tile = activeGrid.getTile(new Vector3i(x,z,candidateHeight));
 					if (tile != null) {
-						if (tile.isOccupied()) {
-							if (candidateHeight != height) {
-								int tileTexture = ItemData.getTextureFromItemId(tile.tileBlockId);
-								listGuis.add(new GuiQuad(tileTexture, guiPos, guiDim));
-								
-								listGuis.add(new GuiQuad(airTileTexture, guiPos, guiDim));
-								
-								break;
-							}
-							
+						if (activeGrid.tileIsOccupied(tile.coords)) {
 							if (tile.tileBlockId != ItemData.ITEM_EMPTY_ID) {
 								int tileTexture = ItemData.getTextureFromItemId(tile.tileBlockId);
 								listGuis.add(new GuiQuad(tileTexture, guiPos, guiDim));
@@ -93,15 +84,21 @@ public class GuiSystem extends BaseSystem {
 								TextBox buildingTextBox = getDefaultTextBoxGui(guiDefaultTexture, "I", "", guiPos.x, guiPos.y, guiWidth, guiHeight);
 								listTexts.add(buildingTextBox);
 							}
+							if (tile.getPeople() != null && tile.getPeople().size() > 0) {
+								TextBox buildingTextBox = getDefaultTextBoxGui(guiDefaultTexture, "H!", "", guiPos.x, guiPos.y, guiWidth, guiHeight);
+								listTexts.add(buildingTextBox);
+							}
+							
+							if (candidateHeight != height) { //Air overlay for looking at lower heights with air on top
+								listGuis.add(new GuiQuad(airTileTexture, guiPos, guiDim));
+							}
 							break;
 						}
 					}
 					candidateHeight--;
 				}
 			}
-		} 
-		
-		System.out.println(activeGrid.getAllBuildings().size());
+		}
 		
 		for (LocalBuilding building: activeGrid.getAllBuildings()) {
 			for (int i = 0; i < building.calculatedLocations.size(); i++) {

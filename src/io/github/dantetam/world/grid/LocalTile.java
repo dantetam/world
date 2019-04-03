@@ -47,8 +47,10 @@ public class LocalTile {
 		return people;
 	}
 	
+	/*
 	public boolean isOccupied() {
-		return tileBlockId != ItemData.ITEM_EMPTY_ID || tileFloorId != ItemData.ITEM_EMPTY_ID;
+		return tileBlockId != ItemData.ITEM_EMPTY_ID || tileFloorId != ItemData.ITEM_EMPTY_ID || people.size() > 0;
 	}
+	*/
 	
 }

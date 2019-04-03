@@ -79,7 +79,7 @@ public class ItemCSVParser extends WorldCsvParser {
 		boolean placeable = record.get("CanBeBlock").equals("Y");
 		String[] groups = record.get("Groups").split(";");
 		String stackable = record.get("Stackable");
-		Integer stackNum = null;
+		Integer stackNum = new Integer(1);
 		if (!stackable.isBlank()) {
 			try {
 				stackNum = Integer.parseInt(stackable);
@@ -94,7 +94,7 @@ public class ItemCSVParser extends WorldCsvParser {
 		int refinedId = ItemData.ITEM_EMPTY_ID;
 		
 		String pickupTimeStr = record.get("PickupTime");
-		int pickupTime = pickupTimeStr.isBlank() ? 100 : Integer.parseInt(pickupTimeStr);
+		int pickupTime = pickupTimeStr.isBlank() ? 30 : Integer.parseInt(pickupTimeStr);
 		
 		String baseValueStr = record.get("Base Value");
 		double baseValue = baseValueStr.isBlank() ? 0 : Double.parseDouble(baseValueStr);
@@ -117,7 +117,7 @@ public class ItemCSVParser extends WorldCsvParser {
 		//Create a new process for the item harvesting for resource utility purposes
 		if (placeable) {
 			List<ProcessStep> steps = new ArrayList<>();
-			steps.add(new ProcessStep("Sharvest", 10));
+			steps.add(new ProcessStep("Sharvest", pickupTime));
 			steps.add(new ProcessStep("O", 0));
 			ProcessData.addProcess("Harvest " + name, new ArrayList<>(), itemDrops, null, false, 
 					name, steps);

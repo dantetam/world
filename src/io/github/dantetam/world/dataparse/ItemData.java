@@ -2,8 +2,10 @@ package io.github.dantetam.world.dataparse;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import io.github.dantetam.lwjglEngine.render.VBOLoader;
 import io.github.dantetam.world.dataparse.Process.ProcessStep;
@@ -19,7 +21,7 @@ public class ItemData {
 	static Map<String, Integer> itemNamesToIds = new HashMap<>();
 	
 	//Map group name to list of item ids in group e.g. Stone -> Basalt, Quartz, ...
-	private static Map<String, List<Integer>> itemGroups = new HashMap<>();
+	private static Map<String, Set<Integer>> itemGroups = new HashMap<>();
 	private static Map<Integer, String> groupNameById = new HashMap<>();
 	
 	//Map item ids to the maximum amount allowed in one inventory space,
@@ -36,7 +38,7 @@ public class ItemData {
 	
 	private static Map<Integer, Integer> refinedFormsById = new HashMap<>();
 	
-	public static InventoryItem createItem(int id, int quantity) {
+	private static InventoryItem createItem(int id, int quantity) {
 		if (allItemsById.containsKey(id)) {
 			InventoryItem item = allItemsById.get(id);
 			return cloneItem(item, quantity);
@@ -73,6 +75,14 @@ public class ItemData {
 		return null;
 	}
 	
+	public static InventoryItem randomItem() {
+		Object[] names = itemNamesToIds.keySet().toArray();
+		String name = (String) names[(int) (Math.random() * names.length)];
+		int maxStack = stackableMap.get(itemNamesToIds.get(name)); 
+		int oneStackQuantity = (int) Math.ceil(Math.random() * maxStack * 0.75 + maxStack * 0.25);
+		return item(name, oneStackQuantity);
+	}
+	
 	public static void addItemToDatabase(int id, String name, boolean placeable, 
 			String[] groups, Integer stackable, int refinedForm, ItemTotalDrops itemTotalDrops,
 			int time, double baseValue, List<ProcessStep> itemActions) {
@@ -85,14 +95,14 @@ public class ItemData {
 				group = group.trim();
 				if (!group.isBlank()) {
 					if (!itemGroups.containsKey(group)) {
-						itemGroups.put(group, new ArrayList<>());
+						itemGroups.put(group, new HashSet<>());
 					}
 					itemGroups.get(group).add(id);
 					groupNameById.put(id, group);
 				}
 			}
 		}
-		if (stackable != null && stackable > 1) {
+		if (stackable != null) {
 			stackableMap.put(id, stackable);
 		}
 		if (refinedForm != ItemData.ITEM_EMPTY_ID) {
@@ -115,7 +125,7 @@ public class ItemData {
 		return GENERATED_BASE_ID - 1;
 	}
 	
-	public static List<Integer> getGroupIds(String name) {
+	public static Set<Integer> getGroupIds(String name) {
 		if (!isGroup(name)) {
 			throw new IllegalArgumentException("Could not find group name: " + name);
 		}

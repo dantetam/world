@@ -44,10 +44,11 @@ public class LocalGrid {
 		return !(r < 0 || c < 0 || h < 0 || r >= rows || c >= cols || h >= heights);
 	}
 	
-	private boolean isOccupied(Vector3i coords) {
+	public boolean tileIsOccupied(Vector3i coords) {
 		LocalTile tile = getTile(coords);
 		if (tile == null) return false;
 		if (tile.tileBlockId != ItemData.ITEM_EMPTY_ID) return true;
+		if (tile.getPeople() != null) return true;
 		if (tile.building != null) {
 			if (tile.building.calculatedLocations != null) {
 				return tile.building.calculatedLocations.contains(coords);
@@ -66,6 +67,15 @@ public class LocalGrid {
 		if (r < 0 || c < 0 || h < 0 || r >= rows || c >= cols || h >= heights)
 			throw new IllegalArgumentException("Invalid tile added to coords: " + coords.toString());
 		grid[r][c][h] = tile;
+	}
+	
+	public LocalTile createTile(Vector3i coords) {
+		if (inBounds(coords)) {
+			LocalTile tile = new LocalTile(coords);
+			grid[coords.x][coords.y][coords.z] = tile;
+			return tile;
+		}
+		return null;
 	}
 	
 	public boolean buildingCanFitAt(LocalBuilding building, Vector3i newPrimaryCoords, boolean overrideGrid) {
@@ -90,11 +100,7 @@ public class LocalGrid {
 				Vector3i newAbsLocation = newAbsLocations.get(buildingTileIndex);
 				LocalTile absTile = getTile(newAbsLocation);
 				if (absTile == null) {
-					LocalTile newTile = new LocalTile(newAbsLocation);
-					if (inBounds(newAbsLocation)) {
-						grid[newAbsLocation.x][newAbsLocation.y][newAbsLocation.z] = newTile;
-					}
-					absTile = newTile;
+					absTile = createTile(newAbsLocation);
 				}
 				absTile.building = building;
 				//absTile.tileBlockId = building.buildingBlockIds.get(buildingTileIndex);
@@ -122,8 +128,13 @@ public class LocalGrid {
 	
 	public void addHuman(Human human, Vector3i coords) {
 		LocalTile tile = getTile(coords);
+		
+		if (tile == null) {
+			tile = createTile(coords);
+		}
 		if (tile != null) {
 			human.location = tile;
+			tile.addPerson(human);
 		}
 	}
 	
@@ -151,6 +162,21 @@ public class LocalGrid {
 			}
 			else {
 				return h+1;
+			}
+		}
+		return 0;
+	}
+	
+	//Find an empty height at lowest possible level, i.e. an empty tile with ground right below it,
+	//so that a Human can be placed.
+	public int findLowestGroundHeight(int r, int c) {
+		Set<Integer> groundGroup = ItemData.getGroupIds("Ground");
+		for (int h = heights - 1; h >= 0; h--) {
+			LocalTile tile = getTile(new Vector3i(r, c, h));
+			if (tile != null) {
+				if (groundGroup.contains(tile.tileBlockId) || groundGroup.contains(tile.tileFloorId)) {
+					return h+1;
+				}
 			}
 		}
 		return 0;

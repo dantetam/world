@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -41,10 +42,9 @@ public class ProcessCSVParser extends WorldCsvParser {
 				String groupName = inputGroupMatcher.group(2);
 				groupName = groupName.substring(1, groupName.length() - 1); //Remove the carets
 				
-				List<Integer> groupIds = ItemData.getGroupIds(groupName);
+				Set<Integer> groupIds = ItemData.getGroupIds(groupName);
 				
-				for (int offset = 0; offset < groupIds.size(); offset++) {
-					int groupItemId = groupIds.get(offset);
+				for (Integer groupItemId : groupIds) {
 					String groupItemName = ItemData.getNameFromId(groupItemId);
 					String newItemName = templateNamePre + groupItemName + templateNamePost;
 					
@@ -135,6 +135,7 @@ public class ProcessCSVParser extends WorldCsvParser {
 		String[] originalSteps = processString.split("/");
 		for (String originalStep : originalSteps) {
 			String[] originalStepArgs = originalStep.split(",");
+			originalStepArgs[0] = originalStepArgs[0].strip();
 			String timeString = "1";
 			if (originalStepArgs.length >= 2) {
 				timeString = originalStepArgs[1].trim();

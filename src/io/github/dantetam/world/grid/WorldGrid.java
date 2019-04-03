@@ -21,11 +21,21 @@ public class WorldGrid {
 		activeLocalGrid = new LocalGridTerrainInstantiate(sizes, biome).setupGrid();
 		
 		testSociety = new Society(activeLocalGrid);
-		Human human = new Human("");
-		testSociety.addPerson(human);
-		activeLocalGrid.addHuman(human, new Vector3i(25,25,30));
-		human.inventory.addItem(ItemData.item("Wheat Seeds", 50));
-		human.inventory.addItem(ItemData.item("Pine Wood", 50));
+		
+		
+		for (int i = 0; i < 50; i++) {
+			int r = (int) (Math.random() * activeLocalGrid.rows);
+			int c = (int) (Math.random() * activeLocalGrid.cols);
+			int h = activeLocalGrid.findLowestGroundHeight(r,c);
+			
+			Human human = new Human("");
+			testSociety.addPerson(human);
+			activeLocalGrid.addHuman(human, new Vector3i(r,c,h));
+			
+			human.inventory.addItem(ItemData.randomItem());
+			human.inventory.addItem(ItemData.randomItem());
+			human.inventory.addItem(ItemData.randomItem());
+		}
 		
 		Map<Integer, Double> calcUtility = testSociety.findCompleteUtilityAllItems();
 		
