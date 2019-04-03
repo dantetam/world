@@ -33,8 +33,17 @@ public class WorldGrid {
 			System.out.println(ItemData.getNameFromId(entry.getKey()) + ": " + entry.getValue());
 		}
 	
-		Process process = testSociety.findBestProcess(calcUtility, ItemData.getIdFromName("Bread"));
-		System.out.println(process.toString());
+		//Process process = testSociety.findBestProcess(calcUtility, ItemData.getIdFromName("Wheat"));
+		//System.out.println(process.toString());
+		
+		
+		Map<Process, Double> bestProcesses = testSociety.prioritizeProcesses(calcUtility, 20);
+		
+		for (Entry<Process, Double> entry: bestProcesses.entrySet()) {
+			System.out.println("<########>");
+			System.out.println(entry.getKey());
+			System.out.println(entry.getValue());
+		}
 	}
 	
 }

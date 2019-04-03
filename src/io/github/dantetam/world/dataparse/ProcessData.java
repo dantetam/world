@@ -18,11 +18,13 @@ public class ProcessData {
 			String[] buildingNames, boolean site, String tileFloor, List<ProcessStep> steps) {
 		int index = processes.size();
 		processes.add(new Process(name, input, output, buildingNames, site, tileFloor, steps));
-		for (InventoryItem inputItem: input) {
-			if (!recipesByInput.containsKey(inputItem.itemId)) {
-				recipesByInput.put(inputItem.itemId, new ArrayList<>());
+		if (input != null) {
+			for (InventoryItem inputItem: input) {
+				if (!recipesByInput.containsKey(inputItem.itemId)) {
+					recipesByInput.put(inputItem.itemId, new ArrayList<>());
+				}
+				recipesByInput.get(inputItem.itemId).add(index);
 			}
-			recipesByInput.get(inputItem.itemId).add(index);
 		}
 		if (output != null) {
 			for (int itemId: output.getAllItems()) {

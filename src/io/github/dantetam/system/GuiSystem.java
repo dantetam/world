@@ -60,6 +60,9 @@ public class GuiSystem extends BaseSystem {
 		float guiHeight = DisplayManager.height / (camera.numTilesZ * 2 + 1);
 		Vector2f guiDim = new Vector2f(guiWidth,  guiHeight);
 		
+		int id = ItemData.getIdFromName("Air");
+		int airTileTexture = ItemData.getTextureFromItemId(id);
+		
 		for (int x = minX; x <= maxX; x++) {
 			for (int z = minZ; z <= maxZ; z++) {
 				Vector2f guiPos = new Vector2f(guiWidth * (x - minX), guiHeight * (z - minZ)); 
@@ -70,10 +73,11 @@ public class GuiSystem extends BaseSystem {
 					if (tile != null) {
 						if (tile.isOccupied()) {
 							if (candidateHeight != height) {
-								int id = ItemData.getIdFromName("Air");
-								int tileTexture = ItemData.getTextureFromItemId(id);
+								int tileTexture = ItemData.getTextureFromItemId(tile.tileBlockId);
 								listGuis.add(new GuiQuad(tileTexture, guiPos, guiDim));
-								//System.out.println("Render air");
+								
+								listGuis.add(new GuiQuad(airTileTexture, guiPos, guiDim));
+								
 								break;
 							}
 							
@@ -97,11 +101,15 @@ public class GuiSystem extends BaseSystem {
 			}
 		} 
 		
+		System.out.println(activeGrid.getAllBuildings().size());
+		
 		for (LocalBuilding building: activeGrid.getAllBuildings()) {
 			for (int i = 0; i < building.calculatedLocations.size(); i++) {
 				Vector3i coords = building.calculatedLocations.get(i);
 				
-				if (coords.z == height && coords.x >= minX && coords.x <= maxX && coords.y >= minZ && coords.y <= maxZ) {
+				int emptyHeight = activeGrid.findLowestEmptyHeight(coords.x, coords.y);
+				
+				if (coords.z <= height && coords.x >= minX && coords.x <= maxX && coords.y >= minZ && coords.y <= maxZ) {
 					int blockId = building.buildingBlockIds.get(i);
 					Vector2f guiPos = new Vector2f(guiWidth * (coords.x - minX), guiHeight * (coords.y - minZ)); 
 					

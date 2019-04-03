@@ -10,6 +10,9 @@ uniform vec4 colour;
 void main(void){
 
 	out_Color = texture(guiTexture,textureCoords);
+	if (out_Color.a < 0.1) {
+		discard;
+	}
 	out_Color.a = colour.a;
 
 }

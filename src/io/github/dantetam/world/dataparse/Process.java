@@ -34,7 +34,7 @@ public class Process {
 	}
 	
 	public String toString() {
-		String result = name + "/ Input: ";
+		String result = "Process: " + name + "/ Input: ";
 		for (InventoryItem item: inputItems) {
 			result += item.toString() + "; ";
 		}

@@ -60,6 +60,18 @@ public class MathUti {
 			map.put(key, (U) new Double(Math.max(map.get(key).doubleValue(), value.doubleValue())));
 		}
 	}
+	
+	public static <T, U extends Number> Map<T, Double> getNormalizedMap(Map<T, U> map) {
+		double sum = 0;
+		for (Entry<T, U> entry: map.entrySet()) {
+			sum += entry.getValue().doubleValue();
+		}
+		Map<T, Double> normalized = new HashMap<>();
+		for (Entry<T, U> entry: map.entrySet()) {
+			normalized.put(entry.getKey(), entry.getValue().doubleValue() / sum);
+		}
+		return normalized;
+	}
 
 	//Ascending sort on a generic mapping
 	public static <K, V extends Comparable<? super V>> Map<K, V> getSortedMapByValue(Map<K, V> map) {
@@ -74,12 +86,26 @@ public class MathUti {
         return result;
     }
 	
+	//Descending sort on a generic mapping
+	public static <K, V extends Comparable<? super V>> Map<K, V> getSortedMapByValueDesc(Map<K, V> map) {
+        List<Entry<K, V>> list = new ArrayList<>(map.entrySet());
+        list.sort(Entry.comparingByValue());
+
+        Map<K, V> result = new LinkedHashMap<>();
+        for (int i = list.size() - 1; i >= 0; i--) {
+        	Entry<K, V> entry = list.get(i);
+            result.put(entry.getKey(), entry.getValue());
+        }
+
+        return result;
+    }
+	
 	public static void main(String[] args) {
 		Map<Integer, Integer> data = new HashMap<>();
 		data.put(1, 2);
 		data.put(3, 9);
 		data.put(4, 7);
-		data = getSortedMapByValue(data);
+		data = getSortedMapByValueDesc(data);
 		System.out.println(data);
 		System.out.println(Arrays.toString(data.entrySet().toArray()));
 	}

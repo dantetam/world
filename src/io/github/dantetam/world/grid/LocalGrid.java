@@ -44,6 +44,18 @@ public class LocalGrid {
 		return !(r < 0 || c < 0 || h < 0 || r >= rows || c >= cols || h >= heights);
 	}
 	
+	private boolean isOccupied(Vector3i coords) {
+		LocalTile tile = getTile(coords);
+		if (tile == null) return false;
+		if (tile.tileBlockId != ItemData.ITEM_EMPTY_ID) return true;
+		if (tile.building != null) {
+			if (tile.building.calculatedLocations != null) {
+				return tile.building.calculatedLocations.contains(coords);
+			}
+		}
+		return false;
+	}
+	
 	/**
 	 * Used only for world creation, to create individual tiles
 	 * @param coords
@@ -62,7 +74,7 @@ public class LocalGrid {
 		for (Vector3i offset: offsets) {
 			Vector3i candidate = newPrimaryCoords.getSum(offset);
 			LocalTile candidateTile = this.getTile(candidate);
-			if (candidateTile == null || (candidateTile.building != null && !overrideGrid)) {
+			if (!inBounds(candidate) || (candidateTile != null && candidateTile.building != null && !overrideGrid)) {
 				return false;
 			}
 		}
@@ -86,7 +98,7 @@ public class LocalGrid {
 				}
 				absTile.building = building;
 				//absTile.tileBlockId = building.buildingBlockIds.get(buildingTileIndex);
-			}
+			} 
 			allBuildings.add(building);
 		}
 	}
@@ -134,7 +146,7 @@ public class LocalGrid {
 	
 	public int findLowestEmptyHeight(int r, int c) {
 		for (int h = heights - 1; h >= 0; h--) {
-			if (getTile(new Vector3i(r, c, h)) == null) {
+			if (getTile(new Vector3i(r,c,h)) == null) {
 				continue;
 			}
 			else {

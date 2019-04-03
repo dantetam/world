@@ -37,6 +37,36 @@ public class Society {
 		inhabitants.add(person);
 	}
 	
+	public Map<Process, Double> prioritizeProcesses(Map<Integer, Double> allItemsUtility, int numberItems) {
+		Map<Integer, Double> sortedUtility = MathUti.getSortedMapByValueDesc(allItemsUtility);
+		Object[] sortedKeys = sortedUtility.keySet().toArray();
+		int numSort = Math.min(numberItems, sortedUtility.size());
+		
+		Map<Process, Double> processByUtil = new HashMap<>();
+		for (int i = 0; i < numSort; i++) {
+			Integer itemId = (Integer) sortedKeys[i];
+			
+			//System.out.println("_____" + ItemData.getNameFromId(itemId));
+			
+			Process bestProcess = findBestProcess(allItemsUtility, itemId);
+			
+			//System.out.println(bestProcess);
+			
+			if (bestProcess != null) {
+				processByUtil.put(bestProcess, sortedUtility.get(itemId));
+			}
+		}
+		
+		//System.out.println(processByUtil);
+		
+		Map<Process, Double> processByPercentage = MathUti.getNormalizedMap(processByUtil);
+		return processByPercentage;
+	}
+	
+	/**
+	 * Return the first process at the highest level (closest to final product),
+	 * which is possible to complete by just crafting and collecting raw resources.
+	 */
 	public Process findBestProcess(Map<Integer, Double> allItemsUtility, int outputItemId) {
 		Set<Integer> visitedItemIds = new HashSet<>();
 		Set<Integer> fringe = new HashSet<>();
@@ -50,7 +80,7 @@ public class Society {
 			Set<Integer> newFringe = new HashSet<>();
 			for (Integer fringeId: fringe) {
 				
-				System.out.println("Process for base item: " + ItemData.getNameFromId(fringeId));
+				//System.out.println("Process for base item >>>: " + ItemData.getNameFromId(fringeId));
 				
 				List<Process> processes = ProcessData.getProcessesByOutput(fringeId);
 				for (Process process: processes) {
@@ -63,16 +93,19 @@ public class Society {
 						}
 					}
 					
-					System.out.println("Looking at process: " + process.toString());
+					if (process.requiredTileNameOrGroup != null) {
+						inputs.add(ItemData.item(process.requiredTileNameOrGroup, 1));
+					}
+					
+					//System.out.println("Looking at process: " + process.toString());
 					
 					for (InventoryItem input: inputs) {
 						double util = allItemsUtility.containsKey(input.itemId) ? 
 								allItemsUtility.get(input.itemId) : 0;
 						MathUti.insertKeepMaxMap(currentUtilCandidates, process, util);
-						System.out.println("Found utility for base item: " + util);
+						//System.out.println("Found utility for base item: " + util);
 						if (!visitedItemIds.contains(input.itemId)) {
-							System.out.println("Expanding from " + ItemData.getNameFromId(fringeId)
-									+ " -----> " + ItemData.getNameFromId(input.itemId));
+							//System.out.println("Expanding from " + ItemData.getNameFromId(fringeId) + " -----> " + ItemData.getNameFromId(input.itemId));
 							newFringe.add(input.itemId);
 						}
 					}
@@ -86,7 +119,7 @@ public class Society {
 			Object[] orderedProcesses = currentUtilCandidates.keySet().toArray();
 			for (Object obj: orderedProcesses) {
 				Process process = (Process) obj;
-				System.out.println(canCompleteProcess(process, rawResRarity) + "<<<<32");
+				
 				if (canCompleteProcess(process, rawResRarity)) {
 					return process;
 				}
@@ -115,6 +148,13 @@ public class Society {
 				if (!rawResRarity.containsKey(buildingId) || rawResRarity.get(buildingId) == 0) {
 					return false;
 				}
+			}
+		}
+		
+		if (process.requiredTileNameOrGroup != null) {
+			int tileHarvestId = ItemData.getIdFromName(process.requiredTileNameOrGroup);
+			if (!rawResRarity.containsKey(tileHarvestId) || rawResRarity.get(tileHarvestId) == 0) {
+				return false;
 			}
 		}
 			
@@ -283,8 +323,7 @@ public class Society {
 			for (int outputItemId: fringe) {
 				double outputUtil = new Double((double) newFinalUtility.get(outputItemId));
 				
-				System.out.println("Starting item: " + ItemData.getNameFromId(outputItemId) + ", "
-						+ outputUtil);
+				//System.out.println("Starting item: " + ItemData.getNameFromId(outputItemId) + ", " + outputUtil);
 				
 				List<Process> processes = ProcessData.getProcessesByOutput(outputItemId);
 				for (Process process: processes) {
@@ -302,8 +341,8 @@ public class Society {
 						}
 						double percentage = item.quantity / totalItems * provisionalUtil;
 						
-						System.out.println("Sub-item: " + ItemData.getNameFromId(item.itemId));
-						System.out.println(percentage + " " + provisionalUtil + " " + percentage * outputUtil);
+						//System.out.println("Sub-item: " + ItemData.getNameFromId(item.itemId));
+						//System.out.println(percentage + " " + provisionalUtil + " " + percentage * outputUtil);
 						
 						MathUti.insertKeepMaxMap(newFinalUtility, item.itemId, percentage * outputUtil);
 						
@@ -314,7 +353,7 @@ public class Society {
 					}
 				}
 				
-				System.out.println("");
+				//System.out.println("");
 			}
 			fringe = newFringe;
 		}

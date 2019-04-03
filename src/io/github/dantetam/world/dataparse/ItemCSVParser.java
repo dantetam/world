@@ -12,6 +12,7 @@ import org.apache.commons.csv.CSVRecord;
 import io.github.dantetam.world.dataparse.ItemTotalDrops.ItemDrop;
 import io.github.dantetam.world.dataparse.ItemTotalDrops.ItemDropTrial;
 import io.github.dantetam.world.dataparse.Process.ProcessStep;
+import io.github.dantetam.world.items.InventoryItem;
 
 public class ItemCSVParser extends WorldCsvParser {
 
@@ -112,6 +113,15 @@ public class ItemCSVParser extends WorldCsvParser {
 		}
 		ItemData.addItemToDatabase(id, name, placeable, groups, stackNum, refinedId, itemDrops, 
 				pickupTime, baseValue, itemActions);
+		
+		//Create a new process for the item harvesting for resource utility purposes
+		if (placeable) {
+			List<ProcessStep> steps = new ArrayList<>();
+			steps.add(new ProcessStep("Sharvest", 10));
+			steps.add(new ProcessStep("O", 0));
+			ProcessData.addProcess("Harvest " + name, new ArrayList<>(), itemDrops, null, false, 
+					name, steps);
+		}
 	}
 	
 	/**
