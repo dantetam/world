@@ -76,11 +76,15 @@ public class ItemData {
 	}
 	
 	public static InventoryItem randomItem() {
-		Object[] names = itemNamesToIds.keySet().toArray();
-		String name = (String) names[(int) (Math.random() * names.length)];
-		int maxStack = stackableMap.get(itemNamesToIds.get(name)); 
+		int id;
+		do {
+			Object[] ids = allItemsById.keySet().toArray();
+			id = (Integer) ids[(int) (Math.random() * ids.length)];
+		} while (placeableBlock.get(id) && groupNameById.get(id) != "Building");
+		
+		int maxStack = stackableMap.get(id); 
 		int oneStackQuantity = (int) Math.ceil(Math.random() * maxStack * 0.75 + maxStack * 0.25);
-		return item(name, oneStackQuantity);
+		return createItem(id, oneStackQuantity);
 	}
 	
 	public static void addItemToDatabase(int id, String name, boolean placeable, 

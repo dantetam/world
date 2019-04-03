@@ -35,6 +35,9 @@ public class WorldGrid {
 			human.inventory.addItem(ItemData.randomItem());
 			human.inventory.addItem(ItemData.randomItem());
 			human.inventory.addItem(ItemData.randomItem());
+			human.inventory.addItem(ItemData.randomItem());
+			human.inventory.addItem(ItemData.item("Wheat Seeds", 50));
+			human.inventory.addItem(ItemData.item("Pine Wood", 50));
 		}
 		
 		Map<Integer, Double> calcUtility = testSociety.findCompleteUtilityAllItems();

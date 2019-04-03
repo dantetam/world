@@ -85,9 +85,10 @@ public class TextMaster {
 
 		for (Entry<FontType, List<TextBox>> en : texts.entrySet()) {
 			List<TextBox> guis = en.getValue();
-			for (int i = guis.size() - 1; i >= 0; i--) // Backwards for arraylist trap
-				if (!allGuis.contains(guis.get(i)))
-					removeText(guis.get(i));
+			if (guis != null)
+				for (int i = guis.size() - 1; i >= 0; i--) // Backwards for arraylist trap
+					if (!allGuis.contains(guis.get(i)))
+						removeText(guis.get(i));
 			// texts.put(en.getKey(), guis);
 		}
 	}

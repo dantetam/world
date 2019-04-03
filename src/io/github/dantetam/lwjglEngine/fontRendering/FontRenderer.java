@@ -26,8 +26,10 @@ public class FontRenderer {
 		for (FontType font : texts.keySet()) {
 			GL13.glActiveTexture(GL13.GL_TEXTURE0);
 			GL11.glBindTexture(GL11.GL_TEXTURE_2D, font.getTextureAtlas());
-			for (TextBox text : texts.get(font)) {
-				renderText(text);
+			if (texts != null && texts.get(font) != null) {
+				for (TextBox text : texts.get(font)) {
+					renderText(text);
+				}
 			}
 		}
 		endRendering();
