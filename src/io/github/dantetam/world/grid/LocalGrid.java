@@ -126,8 +126,13 @@ public class LocalGrid {
 		return allBuildings;
 	}
 	
-	public void addHuman(Human human, Vector3i coords) {
+	public void addHuman(LivingEntity human, Vector3i coords) {
 		LocalTile tile = getTile(coords);
+		
+		if (human.location != null) {
+			human.location.removePerson(human);
+			human.location = null;
+		}
 		
 		if (tile == null) {
 			tile = createTile(coords);

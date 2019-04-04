@@ -16,13 +16,13 @@ import io.github.dantetam.toolbox.MathUti;
 import io.github.dantetam.vector.Vector3i;
 import io.github.dantetam.world.dataparse.ItemData;
 import io.github.dantetam.world.dataparse.ItemTotalDrops;
-import io.github.dantetam.world.dataparse.Process;
-import io.github.dantetam.world.dataparse.Process.ProcessStep;
 import io.github.dantetam.world.dataparse.ProcessData;
 import io.github.dantetam.world.grid.LocalBuilding;
 import io.github.dantetam.world.grid.LocalGrid;
 import io.github.dantetam.world.grid.LocalTile;
 import io.github.dantetam.world.items.InventoryItem;
+import io.github.dantetam.world.process.Process;
+import io.github.dantetam.world.process.Process.ProcessStep;
 
 public class Society {
 
@@ -36,6 +36,10 @@ public class Society {
 	
 	public void addPerson(Human person) {
 		inhabitants.add(person);
+	}
+	
+	public List<Human> getAllPeople() {
+		return inhabitants;
 	}
 	
 	public Map<Process, Double> prioritizeProcesses(Map<Integer, Double> allItemsUtility, int numberItems) {

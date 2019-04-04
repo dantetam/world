@@ -8,8 +8,8 @@ import java.util.Map;
 import java.util.Set;
 
 import io.github.dantetam.lwjglEngine.render.VBOLoader;
-import io.github.dantetam.world.dataparse.Process.ProcessStep;
 import io.github.dantetam.world.items.InventoryItem;
+import io.github.dantetam.world.process.Process.ProcessStep;
 
 public class ItemData {
 

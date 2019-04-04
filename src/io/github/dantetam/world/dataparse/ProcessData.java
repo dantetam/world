@@ -5,8 +5,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import io.github.dantetam.world.dataparse.Process.ProcessStep;
 import io.github.dantetam.world.items.InventoryItem;
+import io.github.dantetam.world.process.Process;
+import io.github.dantetam.world.process.Process.ProcessStep;
 
 public class ProcessData {
 

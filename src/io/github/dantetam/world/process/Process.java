@@ -1,7 +1,10 @@
-package io.github.dantetam.world.dataparse;
+package io.github.dantetam.world.process;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import io.github.dantetam.world.dataparse.ItemData;
+import io.github.dantetam.world.dataparse.ItemTotalDrops;
 import io.github.dantetam.world.items.InventoryItem;
 
 /**
@@ -47,6 +50,17 @@ public class Process {
 			result += step.toString() + "; ";
 		}
 		return result;
+	}
+	
+	public Process clone() {
+		List<ProcessStep> steps = new ArrayList<>();
+		for (ProcessStep step: this.processSteps) {
+			steps.add(new ProcessStep(step.stepType, step.timeTicks, step.modifier));
+		}
+		Process clone = new Process(this.name, this.inputItems, this.outputItems, 
+				this.requiredBuildNameOrGroups, this.isCreatedAtSite, this.requiredTileNameOrGroup,
+				steps);
+		return clone;
 	}
 	
 	public static class ProcessStep {

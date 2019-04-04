@@ -1,7 +1,13 @@
 package io.github.dantetam.world.civilization;
 
+import java.util.List;
+
 import io.github.dantetam.world.grid.LocalTile;
 import io.github.dantetam.world.items.Inventory;
+import io.github.dantetam.world.process.Process;
+import io.github.dantetam.world.process.Process.ProcessStep;
+import io.github.dantetam.world.process.priority.Priority;
+import io.github.dantetam.world.process.prioritytask.Task;
 
 public class LivingEntity {
 
@@ -9,6 +15,11 @@ public class LivingEntity {
 	public LocalTile location;
 	public String name;
 
+	//A cloned Process object which keeps track of the remaining steps in the process cycle
+	public Process processProgress;
+	public Priority activePriority;
+	public List<Task> currentQueueTasks;
+	
 	// Maps item id to item objects, for finding out quickly if this person has item x
 	public Inventory inventory;
 
