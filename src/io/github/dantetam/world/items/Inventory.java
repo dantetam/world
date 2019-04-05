@@ -153,4 +153,8 @@ public class Inventory {
 		return items;
 	}
 	
+	public int size() {
+		return items.size();
+	}
+	
 }

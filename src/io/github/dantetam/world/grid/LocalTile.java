@@ -49,6 +49,11 @@ public class LocalTile {
 		return people;
 	}
 	
+	public boolean equals(Object other) {
+		if (!(other instanceof LocalTile)) return false;
+		return ((LocalTile) other).coords.equals(this.coords);
+	}
+	
 	/*
 	public boolean isOccupied() {
 		return tileBlockId != ItemData.ITEM_EMPTY_ID || tileFloorId != ItemData.ITEM_EMPTY_ID || people.size() > 0;

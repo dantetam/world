@@ -80,7 +80,7 @@ public class GuiSystem extends BaseSystem {
 								int tileTexture = ItemData.getTextureFromItemId(tile.tileFloorId);
 								listGuis.add(new GuiQuad(tileTexture, guiPos, guiDim));
 							}
-							if (tile.itemOnFloor != null) {
+							if (tile.itemsOnFloor.size() > 0) {
 								TextBox buildingTextBox = getDefaultTextBoxGui(guiDefaultTexture, "I", "", guiPos.x, guiPos.y, guiWidth, guiHeight);
 								listTexts.add(buildingTextBox);
 							}

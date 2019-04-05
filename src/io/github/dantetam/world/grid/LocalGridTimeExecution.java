@@ -1,5 +1,6 @@
 package io.github.dantetam.world.grid;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -8,6 +9,7 @@ import java.util.Map.Entry;
 
 import io.github.dantetam.toolbox.MathUti;
 import io.github.dantetam.vector.Vector3i;
+import io.github.dantetam.world.ai.Pathfinder;
 import io.github.dantetam.world.civilization.Human;
 import io.github.dantetam.world.civilization.LivingEntity;
 import io.github.dantetam.world.civilization.Society;
@@ -17,7 +19,9 @@ import io.github.dantetam.world.items.InventoryItem;
 import io.github.dantetam.world.process.Process;
 import io.github.dantetam.world.process.Process.ProcessStep;
 import io.github.dantetam.world.process.priority.DonePriority;
+import io.github.dantetam.world.process.priority.ItemDeliveryBuildingPriority;
 import io.github.dantetam.world.process.priority.ItemDeliveryPriority;
+import io.github.dantetam.world.process.priority.ItemPickupBuildingPriority;
 import io.github.dantetam.world.process.priority.ItemPickupPriority;
 import io.github.dantetam.world.process.priority.MovePriority;
 import io.github.dantetam.world.process.priority.Priority;
@@ -53,13 +57,73 @@ public class LocalGridTimeExecution {
 			else if (human.processProgress != null) {
 				ProcessStep step = human.processProgress.processSteps.get(0);
 				human.activePriority = getPriorityForStep(grid, human, human.processProgress, step);
+				if (human.activePriority instanceof DonePriority) {
+					
+				}
 			}
 		}
 		numDayTicks++;
 	}
 	
-	private static List<Task> getTasksFromPriority(LivingEntity being, Priority priority) {
-		
+	private static List<Task> getTasksFromPriority(LocalGrid grid, LivingEntity being, Priority priority) {
+		List<Task> tasks = new ArrayList<>();
+		if (priority instanceof ItemPickupPriority) {
+			ItemPickupPriority itemPriority = (ItemPickupPriority) priority;
+			if (itemPriority.coords.manhattanDist(being.location.coords) <= 1) {
+				grid.getTile(itemPriority.coords).itemsOnFloor.subtractItem(itemPriority.item);
+				being.inventory.addItem(itemPriority.item);
+				return tasks;
+			}
+			else {
+				return getTasksFromPriority(grid, being, new MovePriority(itemPriority.coords));
+			}
+		}
+		else if (priority instanceof ItemDeliveryPriority) {
+			ItemDeliveryPriority itemPriority = (ItemDeliveryPriority) priority;
+			if (itemPriority.coords.manhattanDist(being.location.coords) <= 1) {
+				being.inventory.subtractItems(itemPriority.inventory.getItems());
+				grid.getTile(itemPriority.coords).itemsOnFloor.addItems(itemPriority.inventory.getItems());
+				return tasks;
+			}
+			else {
+				return getTasksFromPriority(grid, being, new MovePriority(itemPriority.coords));
+			}
+		}
+		else if (priority instanceof ItemPickupBuildingPriority) {
+			ItemPickupBuildingPriority itemPriority = (ItemPickupBuildingPriority) priority;
+			if (itemPriority.coords.manhattanDist(being.location.coords) <= 1) {
+				grid.getTile(itemPriority.coords).building.inventory.subtractItem(itemPriority.item);
+				being.inventory.addItem(itemPriority.item);
+				return tasks;
+			}
+			else {
+				return getTasksFromPriority(grid, being, new MovePriority(itemPriority.coords));
+			}
+		}
+		else if (priority instanceof ItemDeliveryBuildingPriority) {
+			ItemDeliveryBuildingPriority itemPriority = (ItemDeliveryBuildingPriority) priority;
+			if (itemPriority.coords.manhattanDist(being.location.coords) <= 1) {
+				being.inventory.subtractItems(itemPriority.inventory.getItems());
+				grid.getTile(itemPriority.coords).building.inventory.addItems(itemPriority.inventory.getItems());
+				return tasks;
+			}
+			else {
+				return getTasksFromPriority(grid, being, new MovePriority(itemPriority.coords));
+			}
+		}
+		else if (priority instanceof MovePriority) {
+			MovePriority movePriority = (MovePriority) priority;
+			List<LocalTile> path = Pathfinder.findPath(grid, being, being.location, grid.getTile(movePriority.coords));
+			for (int i = 0; i < path.size() - 1; i++) {
+				Vector3i coordsFrom = path.get(i).coords;
+				Vector3i coordsTo = path.get(i+1).coords;
+				tasks.add(new MoveTask(1, coordsFrom, coordsTo));
+			}
+		}
+		else if (priority instanceof DonePriority) {
+			return null;
+		}
+		return tasks;
 	}
 	
 	private static Priority getPriorityForStep(LocalGrid grid, LivingEntity being, Process process, ProcessStep step) {

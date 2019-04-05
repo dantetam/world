@@ -1,5 +1,6 @@
 package io.github.dantetam.world.grid;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -55,13 +56,38 @@ public class LocalGrid {
 		LocalTile tile = getTile(coords);
 		if (tile == null) return false;
 		if (tile.tileBlockId != ItemData.ITEM_EMPTY_ID) return true;
-		if (tile.getPeople() != null) return true;
+		//if (tile.getPeople() != null) return true;
 		if (tile.building != null) {
 			if (tile.building.calculatedLocations != null) {
 				return tile.building.calculatedLocations.contains(coords);
 			}
 		}
 		return false;
+	}
+	
+	private static final Set<Vector3i> directAdjOffsets = new HashSet<Vector3i>() {
+		{add(new Vector3i(1,0,0)); add(new Vector3i(-1,0,0)); add(new Vector3i(0,1,0));
+			add(new Vector3i(0,-1,0)); add(new Vector3i(0,0,1)); add(new Vector3i(0,0,-1));}};
+	public Set<LocalTile> getAccessibleNeighbors(LocalTile tile, LivingEntity being) {
+		Set<Vector3i> neighbors = getAllNeighbors(tile.coords);
+		Set<LocalTile> candidateTiles = new HashSet<>();
+		for (Vector3i neighbor: neighbors) {
+			LocalTile neighborTile = getTile(neighbor);
+			if (neighborTile != null) {
+				if (!tileIsOccupied(neighbor)) {
+					candidateTiles.add(neighborTile);
+				}
+			}
+		}
+		return candidateTiles;
+	}
+	
+	public Set<Vector3i> getAllNeighbors(Vector3i coords) {
+		Set<Vector3i> candidates = new HashSet<>();
+		for (Vector3i adjOffset: directAdjOffsets) {
+			candidates.add(coords.getSum(adjOffset));
+		}
+		return candidates;
 	}
 	
 	/**
