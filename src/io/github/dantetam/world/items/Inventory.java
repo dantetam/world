@@ -12,10 +12,20 @@ public class Inventory {
 	private List<InventoryItem> items;
 	
 	public Inventory() {
-		items = new ArrayList<>();
+	
 	}
 	
+	public Inventory(List<InventoryItem> listItems) {
+		items = listItems;
+	}
+	
+	public void addItems(List<InventoryItem> items) {
+		for (InventoryItem item: items) {
+			addItem(item);
+		}
+	}
 	public void addItem(InventoryItem addItem) {
+		if (items == null) items = new ArrayList<>();
 		int inventoryIndex = 0;
 		int amountToAdd = addItem.quantity;
 		int maxStack = ItemData.getMaxStackSize(addItem.itemId);
@@ -40,6 +50,17 @@ public class Inventory {
 			amountToAdd -= currentAdded;
 			items.add(new InventoryItem(addItem.itemId, currentAdded, addItem.name));
 		}
+	}
+	
+	public int findItemCount(int itemId) {
+		if (items == null) return 0;
+		int sum = 0;
+		for (InventoryItem item: items) {
+			if (item.itemId == itemId) {
+				sum += item.quantity;
+			}
+		}
+		return sum;
 	}
 	
 	/**
@@ -69,41 +90,54 @@ public class Inventory {
 		
 		List<InventoryItem> cloneInv = new ArrayList<>();
 		//Clone the inventory and use items as necessary to reduce the demand count
-		for (InventoryItem invItem : items) {
-			InventoryItem cloneInvItem = invItem.clone();
-			cloneInv.add(cloneInvItem);
-			int itemId = cloneInvItem.itemId;
-			String candidateGroup = ItemData.getGroupNameById(itemId);
-			if (candidateGroup != null && groupItemNeeds.containsKey(candidateGroup)) {
-				int requiredQuantity = groupItemNeeds.get(candidateGroup);
-				int subtract = Math.min(requiredQuantity, Math.max(0, cloneInvItem.quantity));
-				cloneInvItem.quantity -= subtract;
-				if (requiredQuantity - subtract > 0)
-					groupItemNeeds.put(candidateGroup, requiredQuantity - subtract);
-				else 
-					groupItemNeeds.remove(candidateGroup);
-			}
-			if (regularItemNeeds.containsKey(itemId)) {
-				int requiredQuantity = regularItemNeeds.get(itemId);
-				int subtract = Math.min(requiredQuantity, Math.max(0, cloneInvItem.quantity));
-				cloneInvItem.quantity -= subtract;
-				if (requiredQuantity - subtract > 0)
-					regularItemNeeds.put(itemId, requiredQuantity - subtract);
-				else 
-					regularItemNeeds.remove(itemId);
+		if (items != null) {
+			for (InventoryItem invItem : items) {
+				InventoryItem cloneInvItem = invItem.clone();
+				cloneInv.add(cloneInvItem);
+				int itemId = cloneInvItem.itemId;
+				String candidateGroup = ItemData.getGroupNameById(itemId);
+				if (candidateGroup != null && groupItemNeeds.containsKey(candidateGroup)) {
+					int requiredQuantity = groupItemNeeds.get(candidateGroup);
+					int subtract = Math.min(requiredQuantity, Math.max(0, cloneInvItem.quantity));
+					cloneInvItem.quantity -= subtract;
+					if (requiredQuantity - subtract > 0)
+						groupItemNeeds.put(candidateGroup, requiredQuantity - subtract);
+					else 
+						groupItemNeeds.remove(candidateGroup);
+				}
+				if (regularItemNeeds.containsKey(itemId)) {
+					int requiredQuantity = regularItemNeeds.get(itemId);
+					int subtract = Math.min(requiredQuantity, Math.max(0, cloneInvItem.quantity));
+					cloneInvItem.quantity -= subtract;
+					if (requiredQuantity - subtract > 0)
+						regularItemNeeds.put(itemId, requiredQuantity - subtract);
+					else 
+						regularItemNeeds.remove(itemId);
+				}
 			}
 		}
 		
 		return new Object[] {regularItemNeeds, groupItemNeeds, cloneInv};
 	}
 	
+	public boolean hasItem(InventoryItem item) {
+		List<InventoryItem> items = new ArrayList<>();
+		items.add(item);
+		return hasItems(items);
+	}
 	public boolean hasItems(List<InventoryItem> requiredItems) {
+		if (items == null || requiredItems.size() > items.size()) return false;
 		Object[] itemNeedData = findRemainingItemsNeeded(requiredItems);
 		Map<Integer, Integer> regularItemNeeds = (Map) itemNeedData[0]; 
 		Map<String, Integer> groupItemNeeds = (Map) itemNeedData[1];
 		return regularItemNeeds.size() == 0 && groupItemNeeds.size() == 0;
 	}
 	
+	public void subtractItem(InventoryItem item) {
+		List<InventoryItem> items = new ArrayList<>();
+		items.add(item);
+		subtractItems(items);
+	}
 	public void subtractItems(List<InventoryItem> requiredItems) {
 		Object[] itemNeedData = findRemainingItemsNeeded(requiredItems);
 		Map<Integer, Integer> regularItemNeeds = (Map) itemNeedData[0]; 
@@ -111,6 +145,7 @@ public class Inventory {
 		List<InventoryItem> cloneInv = (List) itemNeedData[2];
 		if (regularItemNeeds.size() == 0 && groupItemNeeds.size() == 0) {
 			this.items = cloneInv;
+			if (cloneInv.size() == 0) this.items = null;
 		}
 	}
 	

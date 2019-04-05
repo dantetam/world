@@ -1,8 +1,10 @@
 package io.github.dantetam.world.grid;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import io.github.dantetam.vector.Vector3i;
@@ -10,6 +12,8 @@ import io.github.dantetam.world.civilization.Human;
 import io.github.dantetam.world.civilization.LivingEntity;
 import io.github.dantetam.world.dataparse.ItemData;
 import io.github.dantetam.world.dataparse.WorldCsvParser;
+import io.github.dantetam.world.items.InventoryItem;
+import kdtreegeo.KdTree;
 
 /**
  * A grid representing one section of the whole world, i.e. a self contained world with its own people, tiles, and so on.
@@ -22,11 +26,14 @@ public class LocalGrid {
 	public int rows, cols, heights; //Sizes of the three dimensions of this local grid
 	private LocalTile[][][] grid; //A 3D grid, with the third dimension representing height, such that [][][50] is one level higher than [][][49].
 	private Set<LocalBuilding> allBuildings; //Contains all buildings within this grid, updated when necessary
+	private Map<Integer, KdTree<Vector3i>> itemIdQuickTileLookup; //Search for item ids quickly in 3d space
+	private KdTree<Vector3i> globalItemsLookup;
 	
 	public LocalGrid(Vector3i size) {
 		rows = size.x; cols = size.y; heights = size.z;
 		grid = new LocalTile[rows][cols][heights];
 		allBuildings = new HashSet<>();
+		itemIdQuickTileLookup = new HashMap<>();
 	}
 	
 	/**
@@ -76,6 +83,42 @@ public class LocalGrid {
 			return tile;
 		}
 		return null;
+	}
+	
+	public void dropItemAtTile(Vector3i coords, InventoryItem item) {
+		LocalTile tile = getTile(coords);
+		if (tile == null) {
+			tile = createTile(coords);
+		}
+		if (tile != null) {
+			tile.itemsOnFloor.addItem(item);
+			if (!(itemIdQuickTileLookup.containsKey(item.itemId))) {
+				itemIdQuickTileLookup.put(item.itemId, new KdTree<Vector3i>());
+			}
+			itemIdQuickTileLookup.get(item.itemId).add(coords);
+		}
+	}
+	
+	public boolean pickupItemAtTile(Vector3i coords, InventoryItem item) {
+		LocalTile tile = getTile(coords);
+		if (tile != null) {
+			if (tile.itemsOnFloor.hasItem(item)) {
+				tile.itemsOnFloor.subtractItem(item);
+				if (itemIdQuickTileLookup.containsKey(item.itemId)) {
+					KdTree<Vector3i> coordRecords = itemIdQuickTileLookup.get(item.itemId);
+					coordRecords.remove(coords);
+					if (coordRecords.size() == 0) {
+						itemIdQuickTileLookup.remove(item.itemId);
+					}
+				}
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public KdTree<Vector3i> getKdTreeForItemId(Integer itemId) {
+		return this.itemIdQuickTileLookup.get(itemId);
 	}
 	
 	public boolean buildingCanFitAt(LocalBuilding building, Vector3i newPrimaryCoords, boolean overrideGrid) {

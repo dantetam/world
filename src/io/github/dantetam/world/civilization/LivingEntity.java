@@ -2,6 +2,7 @@ package io.github.dantetam.world.civilization;
 
 import java.util.List;
 
+import io.github.dantetam.world.grid.LocalBuilding;
 import io.github.dantetam.world.grid.LocalTile;
 import io.github.dantetam.world.items.Inventory;
 import io.github.dantetam.world.process.Process;
@@ -19,6 +20,8 @@ public class LivingEntity {
 	public Process processProgress;
 	public Priority activePriority;
 	public List<Task> currentQueueTasks;
+	
+	public LocalBuilding processBuilding;
 	
 	// Maps item id to item objects, for finding out quickly if this person has item x
 	public Inventory inventory;

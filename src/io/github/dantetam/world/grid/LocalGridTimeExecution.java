@@ -1,20 +1,31 @@
 package io.github.dantetam.world.grid;
 
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import io.github.dantetam.toolbox.MathUti;
 import io.github.dantetam.vector.Vector3i;
 import io.github.dantetam.world.civilization.Human;
 import io.github.dantetam.world.civilization.LivingEntity;
 import io.github.dantetam.world.civilization.Society;
+import io.github.dantetam.world.dataparse.ItemData;
+import io.github.dantetam.world.items.Inventory;
+import io.github.dantetam.world.items.InventoryItem;
 import io.github.dantetam.world.process.Process;
 import io.github.dantetam.world.process.Process.ProcessStep;
+import io.github.dantetam.world.process.priority.DonePriority;
+import io.github.dantetam.world.process.priority.ItemDeliveryPriority;
+import io.github.dantetam.world.process.priority.ItemPickupPriority;
+import io.github.dantetam.world.process.priority.MovePriority;
 import io.github.dantetam.world.process.priority.Priority;
 import io.github.dantetam.world.process.prioritytask.DropoffInvTask;
 import io.github.dantetam.world.process.prioritytask.MoveTask;
 import io.github.dantetam.world.process.prioritytask.PickupTask;
 import io.github.dantetam.world.process.prioritytask.Task;
+import kdtreegeo.KdTree;
 
 public class LocalGridTimeExecution {
 	
@@ -41,7 +52,7 @@ public class LocalGridTimeExecution {
 			}
 			else if (human.processProgress != null) {
 				ProcessStep step = human.processProgress.processSteps.get(0);
-				human.activePriority = getPriorityForStep(human, step);
+				human.activePriority = getPriorityForStep(grid, human, human.processProgress, step);
 			}
 		}
 		numDayTicks++;
@@ -51,8 +62,66 @@ public class LocalGridTimeExecution {
 		
 	}
 	
-	private static Priority getPriorityForStep(LivingEntity being, ProcessStep step) {
-		
+	private static Priority getPriorityForStep(LocalGrid grid, LivingEntity being, Process process, ProcessStep step) {
+		Priority priority = null;
+		if (step.stepType.equals("I")) {
+			if (being.processBuilding.inventory.hasItems(process.inputItems)) {
+				being.processBuilding.inventory.subtractItems(process.inputItems);
+				return new DonePriority(null);
+			}
+			else if (being.inventory.hasItems(process.inputItems)) {
+				Vector3i coords = being.processBuilding.calculatedLocations.get(0);
+				priority = new ItemDeliveryPriority(coords, new Inventory(process.inputItems));
+			}
+			else {
+				Object[] invData = being.inventory.findRemainingItemsNeeded(process.inputItems);
+				Map<Integer, Integer> regularItemNeeds = (Map) invData[0];
+				
+				int firstItemNeeded = (Integer) regularItemNeeds.keySet().toArray()[0];
+				int amountNeeded = regularItemNeeds.get(firstItemNeeded);
+				KdTree<Vector3i> nearestItemsTree = grid.getKdTreeForItemId(firstItemNeeded);
+				
+				int numCandidates = Math.min(nearestItemsTree.size(), 10);
+				Collection<Vector3i> nearestCoords = nearestItemsTree.nearestNeighbourListSearch(
+						numCandidates, being.location.coords);
+			
+				Map<Vector3i, Double> score = new HashMap<>();
+				for (Vector3i itemCoords: nearestCoords) {
+					int numItemsAtTile = grid.getTile(itemCoords).itemsOnFloor.findItemCount(firstItemNeeded);
+					numItemsAtTile += grid.getTile(itemCoords).building.inventory.findItemCount(firstItemNeeded);
+					int distUtil = being.location.coords.manhattanDist(itemCoords);
+					score.put(itemCoords, Math.min(numItemsAtTile, amountNeeded) / Math.pow(distUtil, 2));
+				}
+				score = MathUti.getSortedMapByValueDesc(score);
+				
+				Vector3i location = (Vector3i) score.keySet().toArray()[0];
+				InventoryItem itemClone = new InventoryItem(firstItemNeeded, amountNeeded, ItemData.getNameFromId(firstItemNeeded));
+				priority = new ItemPickupPriority(location, itemClone);
+			}
+		}
+		else if (step.stepType.startsWith("S")) {
+			Vector3i primaryLocation = being.processBuilding.calculatedLocations.get(0);
+			if (being.location.coords.manhattanDist(primaryLocation) <= 1) {
+				step.timeTicks--;
+				if (step.timeTicks <= 0) {
+					return new DonePriority(null);
+				}
+			}
+			else {
+				priority = new MovePriority(primaryLocation);
+			}
+		}
+		else if (step.stepType.startsWith("U")) {
+			step.timeTicks--;
+			if (step.timeTicks <= 0) {
+				return new DonePriority(null);
+			}
+		}
+		else if (step.stepType.equals("O")) {
+			being.processBuilding.inventory.addItems(process.outputItems.getOneItemDrop());
+			return new DonePriority(null);
+		}
+		return priority;
 	}
 	
 	private static void executeTask(LocalGrid grid, LivingEntity being, Task task) {

@@ -38,7 +38,7 @@ public class ItemData {
 	
 	private static Map<Integer, Integer> refinedFormsById = new HashMap<>();
 	
-	private static InventoryItem createItem(int id, int quantity) {
+	public static InventoryItem createItem(int id, int quantity) {
 		if (allItemsById.containsKey(id)) {
 			InventoryItem item = allItemsById.get(id);
 			return cloneItem(item, quantity);

@@ -250,10 +250,13 @@ public class Society {
 							MathUti.addNumMap(itemRarity, entry.getKey(), entry.getValue());
 						}
 					}
-					if (tile.itemOnFloor != null) {
-						int id = tile.itemOnFloor.itemId;
-						int num = tile.itemOnFloor.quantity;
-						MathUti.addNumMap(itemRarity, id, (double) num);
+					if (tile.itemsOnFloor != null) {
+						List<InventoryItem> items = tile.itemsOnFloor.getItems();
+						for (InventoryItem item: items) {
+							int id = item.itemId;
+							int num = item.quantity;
+							MathUti.addNumMap(itemRarity, id, (double) num);
+						}
 					}
 				}
 			}

@@ -7,6 +7,7 @@ import io.github.dantetam.vector.Vector3i;
 import io.github.dantetam.world.civilization.Human;
 import io.github.dantetam.world.civilization.LivingEntity;
 import io.github.dantetam.world.dataparse.ItemData;
+import io.github.dantetam.world.items.Inventory;
 import io.github.dantetam.world.items.InventoryItem;
 
 public class LocalTile {
@@ -21,12 +22,13 @@ public class LocalTile {
 		//Note if filled is false, this holds the previous tile data 
 		//(e.g. recording that a hole was dug into this dirt).
 	public int tileFloorId; //Representing the floor below the block (the block may or may not exist)
-	public InventoryItem itemOnFloor;
+	public Inventory itemsOnFloor;
 	
 	public LocalTile(Vector3i coords) {
 		this.coords = coords;
 		tileBlockId = ItemData.ITEM_EMPTY_ID;
 		tileFloorId = ItemData.ITEM_EMPTY_ID;
+		itemsOnFloor = new Inventory();
 	}
 	
 	public void addPerson(LivingEntity person) {

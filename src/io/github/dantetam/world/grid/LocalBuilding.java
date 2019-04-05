@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.List;
 
 import io.github.dantetam.vector.Vector3i;
+import io.github.dantetam.world.items.Inventory;
 
 public class LocalBuilding {
 
@@ -15,6 +16,8 @@ public class LocalBuilding {
 	public List<Vector3i> calculatedLocations; //Contains the absolute location of every part of this building
 	public List<Integer> buildingBlockIds;
 	
+	public Inventory inventory;
+	
 	public LocalBuilding(String name, Vector3i primaryLoc, List<Vector3i> offsets, List<Integer> blockIds) {
 		this.name = name;
 		primaryLocation = primaryLoc;
@@ -23,6 +26,7 @@ public class LocalBuilding {
 					+ "must have same size");
 		}
 		buildingBlockIds = blockIds;
+		inventory = new Inventory();
 		setLocationOffsets(offsets);
 	}
 	

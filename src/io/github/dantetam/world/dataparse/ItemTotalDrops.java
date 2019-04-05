@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Set;
 
 import io.github.dantetam.toolbox.MathUti;
+import io.github.dantetam.world.items.InventoryItem;
 
 /**
  * Represent a propabilistic item dropping. The format for one 'trial':
@@ -28,11 +29,10 @@ public class ItemTotalDrops {
 		independentDrops = new ArrayList<>();
 	}
 	
-	public List<int[]> getItemDrops() {
-		List<int[]> trialDrops = new ArrayList<>();
+	public List<InventoryItem> getOneItemDrop() {
+		List<InventoryItem> trialDrops = new ArrayList<>();
 		for (ItemDropTrial trial : independentDrops) {
-			int[] drop = trial.getItemDrop();
-			trialDrops.add(drop);
+			trialDrops.add(trial.getItemDrop());
 		}
 		return trialDrops;
 	}
@@ -79,14 +79,14 @@ public class ItemTotalDrops {
 		 * TODO: Implement custom probability distributions
 		 * @return The item id and item quantity, respectively
 		 */
-		public int[] getItemDrop() {
+		public InventoryItem getItemDrop() {
 			double rollingSum = 0.0;
 			double chosenRandom = Math.random();
 			for (ItemDrop itemDrop : itemDrops) {
 				rollingSum += itemDrop.probability;
 				if (chosenRandom < rollingSum) {
 					int quantity = MathUti.discreteUniform(itemDrop.min, itemDrop.max);
-					return new int[] {itemDrop.itemId, quantity};
+					return ItemData.createItem(itemDrop.itemId, quantity);
 				}
 			}
 			return null;

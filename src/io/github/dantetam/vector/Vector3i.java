@@ -2,18 +2,22 @@ package io.github.dantetam.vector;
 
 import org.lwjgl.util.vector.Vector3f;
 
+import kdtreegeo.KdPoint;
+
 /**
  * Conveniently wrap two three integers
  */
-public class Vector3i {
+public class Vector3i extends KdPoint {
 
 	public int x,y,z;
 	
 	public Vector3i(int a) {
+		super(a,a,a);
 		x = a; y = a; z = a;
 	}
 
 	public Vector3i(int a, int b, int c) {
+		super(a,b,c);
 		x = a; y = b; z = c;
 	}
 
@@ -38,6 +42,10 @@ public class Vector3i {
 
 	public float dist(Vector3i v) {
 		return (float) Math.sqrt(Math.pow(x - v.x, 2) + Math.pow(y - v.y, 2) + Math.pow(z - v.z, 2));
+	}
+	
+	public int manhattanDist(Vector3i v) {
+		return Math.abs(x - v.x) + Math.abs(y - v.y) + Math.abs(z - v.z);
 	}
 
 	public Vector3f getScaled(float f) {
