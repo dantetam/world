@@ -35,6 +35,7 @@ public class LocalGrid {
 		grid = new LocalTile[rows][cols][heights];
 		allBuildings = new HashSet<>();
 		itemIdQuickTileLookup = new HashMap<>();
+		globalItemsLookup = new KdTree<>();
 	}
 	
 	/**
@@ -122,6 +123,7 @@ public class LocalGrid {
 				itemIdQuickTileLookup.put(item.itemId, new KdTree<Vector3i>());
 			}
 			itemIdQuickTileLookup.get(item.itemId).add(coords);
+			globalItemsLookup.add(coords);
 		}
 	}
 	
@@ -130,6 +132,7 @@ public class LocalGrid {
 		if (tile != null) {
 			if (tile.itemsOnFloor.hasItem(item)) {
 				tile.itemsOnFloor.subtractItem(item);
+				globalItemsLookup.remove(coords);
 				if (itemIdQuickTileLookup.containsKey(item.itemId)) {
 					KdTree<Vector3i> coordRecords = itemIdQuickTileLookup.get(item.itemId);
 					coordRecords.remove(coords);
@@ -141,6 +144,16 @@ public class LocalGrid {
 			}
 		}
 		return false;
+	}
+	
+	public void addOwnershipItem(LivingEntity being, InventoryItem item) {
+		being.ownedItems.add(item);
+		item.owner = being;
+	}
+	
+	public void addOwnershipBuilding(LivingEntity being, LocalBuilding building) {
+		being.ownedBuildings.add(building);
+		building.owner = being;
 	}
 	
 	public KdTree<Vector3i> getKdTreeForItemId(Integer itemId) {

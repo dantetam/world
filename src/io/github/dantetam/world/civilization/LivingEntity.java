@@ -5,6 +5,7 @@ import java.util.List;
 import io.github.dantetam.world.grid.LocalBuilding;
 import io.github.dantetam.world.grid.LocalTile;
 import io.github.dantetam.world.items.Inventory;
+import io.github.dantetam.world.items.InventoryItem;
 import io.github.dantetam.world.process.Process;
 import io.github.dantetam.world.process.Process.ProcessStep;
 import io.github.dantetam.world.process.priority.Priority;
@@ -22,6 +23,11 @@ public class LivingEntity {
 	public List<Task> currentQueueTasks;
 	
 	public LocalBuilding processBuilding;
+	
+	//Link to all items owned by this person, that can be stored in and out of the inventory,
+	//or in the game world.
+	public List<LocalBuilding> ownedBuildings;
+	public List<InventoryItem> ownedItems; //Note, this is different from the inventory	
 	
 	// Maps item id to item objects, for finding out quickly if this person has item x
 	public Inventory inventory;

@@ -22,7 +22,6 @@ public class WorldGrid {
 		
 		testSociety = new Society(activeLocalGrid);
 		
-		
 		for (int i = 0; i < 50; i++) {
 			int r = (int) (Math.random() * activeLocalGrid.rows);
 			int c = (int) (Math.random() * activeLocalGrid.cols);
@@ -42,14 +41,14 @@ public class WorldGrid {
 		
 		Map<Integer, Double> calcUtility = testSociety.findCompleteUtilityAllItems();
 		
+		/*
 		for (Entry<Integer, Double> entry: calcUtility.entrySet()) {
 			System.out.println(ItemData.getNameFromId(entry.getKey()) + ": " + entry.getValue());
 		}
 	
 		//Process process = testSociety.findBestProcess(calcUtility, ItemData.getIdFromName("Wheat"));
 		//System.out.println(process.toString());
-		
-		
+	
 		Map<Process, Double> bestProcesses = testSociety.prioritizeProcesses(calcUtility, 20);
 		
 		for (Entry<Process, Double> entry: bestProcesses.entrySet()) {
@@ -57,6 +56,9 @@ public class WorldGrid {
 			System.out.println(entry.getKey());
 			System.out.println(entry.getValue());
 		}
+		*/
+		
+		tick();
 	}
 	
 	public void tick() {

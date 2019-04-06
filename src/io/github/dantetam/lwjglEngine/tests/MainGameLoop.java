@@ -64,7 +64,10 @@ public class MainGameLoop {
 			}
 			if (stopGameLoop)
 				break;
-
+			
+			//if (frameCount % 20 == 0)
+				//main.worldGrid.tick();
+			
 			for (int i = 0; i < main.systems.size(); i++) {
 				main.systems.get(i).tick();
 			}

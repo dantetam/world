@@ -41,6 +41,26 @@ public class LocalGridTimeExecution {
 			assignAllHumansJobs(society);
 		}
 		for (Human human: society.getAllPeople()) {
+			if (human.processProgress != null) {
+				if (human.processProgress.requiredBuildNameOrGroup != null && human.processBuilding == null) {
+					assignBuilding(grid, human, human.processProgress.requiredBuildNameOrGroup);
+				}
+				if (human.processProgress.processSteps.size() == 0) {
+					human.processProgress = null;
+				}
+				else {
+					ProcessStep step = human.processProgress.processSteps.get(0);
+					human.activePriority = getPriorityForStep(grid, human, human.processProgress, step);
+					if (human.activePriority instanceof DonePriority) {
+						human.processProgress.processSteps.remove(0);
+						human.processProgress = null;
+						human.activePriority = null;
+					}
+				}
+			}
+			if (human.activePriority != null) {
+				human.currentQueueTasks = getTasksFromPriority(grid, human, human.activePriority);
+			}
 			if (human.currentQueueTasks != null && human.currentQueueTasks.size() > 0) {
 				Task task = human.currentQueueTasks.get(0);
 				if (task.taskTime == 0) {
@@ -51,18 +71,24 @@ public class LocalGridTimeExecution {
 					task.taskTime--;
 				}
 			}
-			else if (human.activePriority != null) {
-				human.currentQueueTasks = getTasksFromPriority(human, human.activePriority);
-			}
-			else if (human.processProgress != null) {
-				ProcessStep step = human.processProgress.processSteps.get(0);
-				human.activePriority = getPriorityForStep(grid, human, human.processProgress, step);
-				if (human.activePriority instanceof DonePriority) {
-					
-				}
-			}
 		}
 		numDayTicks++;
+	}
+	
+	private static LocalBuilding assignBuilding(LocalGrid grid, LivingEntity being, String buildingName) {
+		int id = ItemData.getIdFromName(buildingName);
+		KdTree<Vector3i> nearestItemsTree = grid.getKdTreeForItemId(id);
+		int numCandidates = Math.min(nearestItemsTree.size(), 10);
+		Collection<Vector3i> nearestCoords = nearestItemsTree.nearestNeighbourListSearch(
+				numCandidates, being.location.coords);
+		for (Vector3i nearestCoord: nearestCoords) {
+			LocalBuilding building = grid.getTile(nearestCoord).building;
+			if (building.currentUser == null) {
+				building.currentUser = being;
+				being.processBuilding = building;
+			}
+		}
+		return being.processBuilding;
 	}
 	
 	private static List<Task> getTasksFromPriority(LocalGrid grid, LivingEntity being, Priority priority) {
@@ -164,15 +190,26 @@ public class LocalGridTimeExecution {
 			}
 		}
 		else if (step.stepType.startsWith("S")) {
-			Vector3i primaryLocation = being.processBuilding.calculatedLocations.get(0);
-			if (being.location.coords.manhattanDist(primaryLocation) <= 1) {
-				step.timeTicks--;
-				if (step.timeTicks <= 0) {
-					return new DonePriority(null);
+			Vector3i primaryLocation = null;
+			if (being.processProgress.requiredBuildNameOrGroup == null) {
+				primaryLocation = being.location.coords;
+			}
+			else if (being.processBuilding != null) {
+				primaryLocation = being.processBuilding.calculatedLocations.get(0);
+			}
+			if (primaryLocation == null) {
+				if (being.location.coords.manhattanDist(primaryLocation) <= 1) {
+					step.timeTicks--;
+					if (step.timeTicks <= 0) {
+						return new DonePriority(null);
+					}
+				}
+				else {
+					priority = new MovePriority(primaryLocation);
 				}
 			}
 			else {
-				priority = new MovePriority(primaryLocation);
+				//priority = new BuildingPlacePriority(primaryLocation);
 			}
 		}
 		else if (step.stepType.startsWith("U")) {

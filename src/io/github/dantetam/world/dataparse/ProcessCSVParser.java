@@ -107,11 +107,8 @@ public class ProcessCSVParser extends WorldCsvParser {
 		String outputString = record.get("Output");
 		ItemTotalDrops processOutput = ItemCSVParser.processItemDropsString(outputString);
 		
-		String[] buildingNames = null;
 		String buildingNamesString = record.get("Required Buildings");
-		if (!buildingNamesString.isBlank()) {
-			buildingNames = buildingNamesString.split("/");
-		}
+		if (buildingNamesString.isBlank()) buildingNamesString = null;
 		
 		boolean site = record.get("Is Site").equals("Y");
 		
@@ -127,7 +124,7 @@ public class ProcessCSVParser extends WorldCsvParser {
 		}
 		
 		ProcessData.addProcess(processName, inputItems, processOutput, 
-				buildingNames, site, tileFloorId, steps);
+				buildingNamesString, site, tileFloorId, steps);
 	}
 	
 	static List<ProcessStep> getProcessingSteps(String processString) {

@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.List;
 
 import io.github.dantetam.vector.Vector3i;
+import io.github.dantetam.world.civilization.LivingEntity;
 import io.github.dantetam.world.items.Inventory;
 
 public class LocalBuilding {
@@ -15,6 +16,9 @@ public class LocalBuilding {
 	private List<Vector3i> locationOffsets; //Contains every location, including primary
 	public List<Vector3i> calculatedLocations; //Contains the absolute location of every part of this building
 	public List<Integer> buildingBlockIds;
+	
+	public LivingEntity owner;
+	public LivingEntity currentUser;
 	
 	public Inventory inventory;
 	

@@ -92,10 +92,8 @@ public class Society {
 					List<InventoryItem> inputs = process.inputItems;
 					if (inputs == null) inputs = new ArrayList<>();
 					
-					if (process.requiredBuildNameOrGroups != null) {
-						for (String buildingName: process.requiredBuildNameOrGroups) {
-							inputs.add(ItemData.item(buildingName, 1));
-						}
+					if (process.requiredBuildNameOrGroup != null) {
+						inputs.add(ItemData.item(process.requiredBuildNameOrGroup, 1));
 					}
 					
 					if (process.requiredTileNameOrGroup != null) {
@@ -147,12 +145,10 @@ public class Society {
 		}
 		
 		//Check for buildings
-		if (process.requiredBuildNameOrGroups != null) {
-			for (String buildingName: process.requiredBuildNameOrGroups) {
-				int buildingId = ItemData.getIdFromName(buildingName);
-				if (!rawResRarity.containsKey(buildingId) || rawResRarity.get(buildingId) == 0) {
-					return false;
-				}
+		if (process.requiredBuildNameOrGroup != null) {
+			int buildingId = ItemData.getIdFromName(process.requiredBuildNameOrGroup);
+			if (!rawResRarity.containsKey(buildingId) || rawResRarity.get(buildingId) == 0) {
+				return false;
 			}
 		}
 		
@@ -250,7 +246,7 @@ public class Society {
 							MathUti.addNumMap(itemRarity, entry.getKey(), entry.getValue());
 						}
 					}
-					if (tile.itemsOnFloor != null) {
+					if (tile.itemsOnFloor.getItems() != null) {
 						List<InventoryItem> items = tile.itemsOnFloor.getItems();
 						for (InventoryItem item: items) {
 							int id = item.itemId;
@@ -440,9 +436,11 @@ public class Society {
 		double baseValue = ItemData.getBaseItemValue(itemId);
 		MathUti.addNumMap(rawUtilByNeed, "Wealth", baseValue);
 		
+		/*
 		System.out.println(ItemData.getNameFromId(itemId) + " stats: ");
 		System.out.println(rawUtilByNeed);
 		System.out.println("---------------------");
+		*/
 		
 		return rawUtilByNeed;
 	}

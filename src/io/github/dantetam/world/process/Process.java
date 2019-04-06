@@ -20,17 +20,17 @@ public class Process {
 	public String name;
 	public List<InventoryItem> inputItems;
 	public ItemTotalDrops outputItems;
-	public String[] requiredBuildNameOrGroups;
+	public String requiredBuildNameOrGroup;
 	public boolean isCreatedAtSite;
 	public String requiredTileNameOrGroup;
 	public List<ProcessStep> processSteps;
 	
 	public Process(String name, List<InventoryItem> input, ItemTotalDrops output, 
-			String[] buildingNames, boolean site, String tileFloorId, List<ProcessStep> steps) {
+			String buildingName, boolean site, String tileFloorId, List<ProcessStep> steps) {
 		this.name = name;
 		this.inputItems = input;
 		this.outputItems = output;
-		this.requiredBuildNameOrGroups = buildingNames;
+		this.requiredBuildNameOrGroup = buildingName;
 		this.isCreatedAtSite = site;
 		this.requiredTileNameOrGroup = tileFloorId;
 		this.processSteps = steps;
@@ -52,13 +52,22 @@ public class Process {
 		return result;
 	}
 	
+	public boolean equals(Object other) {
+		if (!(other instanceof Process)) return false;
+		return ((Process) other).name.equals(this.name);
+	}
+	
+	public int hashCode() {
+		return name.hashCode();
+	}
+	
 	public Process clone() {
 		List<ProcessStep> steps = new ArrayList<>();
 		for (ProcessStep step: this.processSteps) {
 			steps.add(new ProcessStep(step.stepType, step.timeTicks, step.modifier));
 		}
 		Process clone = new Process(this.name, this.inputItems, this.outputItems, 
-				this.requiredBuildNameOrGroups, this.isCreatedAtSite, this.requiredTileNameOrGroup,
+				this.requiredBuildNameOrGroup, this.isCreatedAtSite, this.requiredTileNameOrGroup,
 				steps);
 		return clone;
 	}

@@ -154,7 +154,18 @@ public class Inventory {
 	}
 	
 	public int size() {
+		if (items == null) return 0;
 		return items.size();
+	}
+	
+	public String toString() {
+		String itemsList = "Inventory: [";
+		if (items != null) {
+			for (InventoryItem item: items) {
+				itemsList += item.toString() + "; ";
+			}
+		}
+		return itemsList + "]";
 	}
 	
 }

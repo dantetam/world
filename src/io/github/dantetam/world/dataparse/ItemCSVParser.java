@@ -90,7 +90,6 @@ public class ItemCSVParser extends WorldCsvParser {
 		}
 		ItemTotalDrops itemDrops = processItemDropsString(record.get("OnBlockHarvest"), namesToIdsMap);
 		String refinedFormName = record.get("Refined Form").strip();
-		System.out.println(namesToIdsMap.get(refinedFormName) + " " + refinedFormName);
 		int refinedId = ItemData.ITEM_EMPTY_ID;
 		
 		String pickupTimeStr = record.get("PickupTime");

@@ -1,5 +1,6 @@
 package io.github.dantetam.world.items;
 
+import io.github.dantetam.world.civilization.LivingEntity;
 import io.github.dantetam.world.dataparse.ItemData;
 
 /**
@@ -16,6 +17,9 @@ public class InventoryItem {
 	public int itemId;
 	public int quantity;
 	public String name;
+	
+	public LivingEntity owner;
+	public LivingEntity currentUser;
 	
 	public InventoryItem(int id, int quantity, String name) {
 		this.itemId = id;
