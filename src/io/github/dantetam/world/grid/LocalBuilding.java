@@ -2,7 +2,9 @@ package io.github.dantetam.world.grid;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import io.github.dantetam.vector.Vector3i;
 import io.github.dantetam.world.civilization.LivingEntity;
@@ -14,7 +16,7 @@ public class LocalBuilding {
 	
 	private Vector3i primaryLocation;
 	private List<Vector3i> locationOffsets; //Contains every location, including primary
-	public List<Vector3i> calculatedLocations; //Contains the absolute location of every part of this building
+	public Set<Vector3i> calculatedLocations; //Contains the absolute location of every part of this building
 	public List<Integer> buildingBlockIds;
 	
 	public LivingEntity owner;
@@ -39,6 +41,10 @@ public class LocalBuilding {
 		setLocationOffsets(locationOffsets);
 	}
 	
+	public Vector3i getPrimaryLocation() {
+		return primaryLocation;
+	}
+	
 	public void setLocationOffsets(List<Vector3i> offsets) {
 		if (offsets == null) {
 			offsets = Collections.singletonList(new Vector3i(0));
@@ -49,7 +55,7 @@ public class LocalBuilding {
 			calculatedLocations = null;
 		}
 		else {
-			calculatedLocations = new ArrayList<>();
+			calculatedLocations = new HashSet<>();
 			for (Vector3i offset: offsets) {
 				calculatedLocations.add(primaryLocation.getSum(offset));
 			}

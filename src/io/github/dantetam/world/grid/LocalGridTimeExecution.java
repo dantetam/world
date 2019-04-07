@@ -46,6 +46,10 @@ public class LocalGridTimeExecution {
 				if (human.processProgress.requiredBuildNameOrGroup != null && human.processBuilding == null) {
 					assignBuilding(grid, human, human.processProgress.requiredBuildNameOrGroup);
 				}
+				else if (human.processProgress.requiredTileNameOrGroup != null) {
+					assignTile(grid, human, human.processProgress.requiredTileNameOrGroup);
+				}
+				
 				if (human.processProgress.processSteps.size() == 0) {
 					System.out.println("################");
 					System.out.println(human.name + " completed process: " + human.processProgress);
@@ -98,6 +102,11 @@ public class LocalGridTimeExecution {
 			}
 		}
 		return being.processBuilding;
+	}
+	
+	private static LocalTile assignTile(LocalGrid grid, LivingEntity being, String tileName) {
+		int tileId = ItemData.getIdFromName(tileName);
+		KdTree<Vector3i> items = grid.getKdTreeForTile(tileId);
 	}
 	
 	private static List<Task> getTasksFromPriority(LocalGrid grid, LivingEntity being, Priority priority) {
@@ -179,12 +188,14 @@ public class LocalGridTimeExecution {
 	private static Priority getPriorityForStep(Society society, LocalGrid grid, LivingEntity being, Process process, ProcessStep step) {
 		Priority priority = null;
 		
+		System.out.println("Figuring out for process: " + process);
+		
 		Vector3i primaryLocation = null;
 		if (being.processProgress.requiredBuildNameOrGroup == null) {
 			primaryLocation = being.location.coords;
 		}
 		else if (being.processBuilding != null) {
-			primaryLocation = being.processBuilding.calculatedLocations.get(0);
+			primaryLocation = being.processBuilding.getPrimaryLocation();
 		}
 		
 		if (primaryLocation == null) {

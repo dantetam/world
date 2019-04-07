@@ -14,7 +14,8 @@ public class ProcessData {
 	private static List<Process> processes = new ArrayList<>();
 	private static Map<Integer, List<Integer>> recipesByInput = new HashMap<>();
 	private static Map<Integer, List<Integer>> recipesByOutput = new HashMap<>();
-
+	private static Map<String, Integer> recipesByName = new HashMap<>();
+	
 	public static void addProcess(String name, List<InventoryItem> input, ItemTotalDrops output, 
 			String buildingName, boolean site, String tileFloor, List<ProcessStep> steps) {
 		int index = processes.size();
@@ -35,6 +36,7 @@ public class ProcessData {
 				recipesByOutput.get(itemId).add(index);
 			}
 		}
+		recipesByName.put(name, index);
 	}
 	
 	/**
@@ -63,6 +65,13 @@ public class ProcessData {
 			}
 		}
 		return subsetProcesses;
+	}
+	
+	public static Process getProcessByName(String name) {
+		if (recipesByName.containsKey(name)) {
+			return processes.get(recipesByName.get(name));
+		}
+		return null;
 	}
 	
 }

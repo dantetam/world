@@ -100,10 +100,9 @@ public class GuiSystem extends BaseSystem {
 		}
 		
 		for (LocalBuilding building: activeGrid.getAllBuildings()) {
-			for (int i = 0; i < building.calculatedLocations.size(); i++) {
-				Vector3i coords = building.calculatedLocations.get(i);
-				
-				int emptyHeight = activeGrid.findLowestEmptyHeight(coords.x, coords.y);
+			int i = 0;
+			for (Vector3i coords: building.calculatedLocations) {
+				//int emptyHeight = activeGrid.findLowestEmptyHeight(coords.x, coords.y);
 				
 				if (coords.z <= height && coords.x >= minX && coords.x <= maxX && coords.y >= minZ && coords.y <= maxZ) {
 					int blockId = building.buildingBlockIds.get(i);
@@ -112,8 +111,8 @@ public class GuiSystem extends BaseSystem {
 					int tileTexture = ItemData.getTextureFromItemId(blockId);
 					listGuis.add(new GuiQuad(tileTexture, guiPos, guiDim));
 				}
+				i++;
 			}
-			
 		}
 		
 		allGuiQuad = listGuis;

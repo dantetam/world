@@ -90,13 +90,14 @@ public class Society {
 				
 				List<Process> processes = ProcessData.getProcessesByOutput(fringeId);
 				for (Process process: processes) {
-					List<InventoryItem> inputs = process.inputItems;
-					if (inputs == null) inputs = new ArrayList<>();
+					List<InventoryItem> inputs = new ArrayList<>();
 					
+					for (InventoryItem input: process.inputItems) {
+						inputs.add(input);
+					}
 					if (process.requiredBuildNameOrGroup != null) {
 						inputs.add(ItemData.item(process.requiredBuildNameOrGroup, 1));
 					}
-					
 					if (process.requiredTileNameOrGroup != null) {
 						inputs.add(ItemData.item(process.requiredTileNameOrGroup, 1));
 					}
@@ -127,7 +128,7 @@ public class Society {
 				Process process = (Process) obj;
 				
 				if (canCompleteProcess(process, rawResRarity)) {
-					return process;
+					return process.clone();
 				}
 			}
 			

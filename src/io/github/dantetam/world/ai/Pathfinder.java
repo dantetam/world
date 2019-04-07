@@ -10,6 +10,8 @@ import java.util.PriorityQueue;
 import java.util.Set;
 
 import io.github.dantetam.world.civilization.LivingEntity;
+import io.github.dantetam.world.dataparse.ItemData;
+import io.github.dantetam.world.dataparse.ProcessData;
 import io.github.dantetam.world.grid.LocalGrid;
 import io.github.dantetam.world.grid.LocalTile;
 
@@ -40,6 +42,25 @@ public class Pathfinder {
 		return a.coords.dist(b.coords);
 	}
 	
+	private static int getTileAccessibilityPenalty(LocalTile tile) {
+		if (tile == null) return 0;
+
+		if (tile.tileBlockId != ItemData.ITEM_EMPTY_ID) {
+			String blockName = ItemData.getNameFromId(tile.tileBlockId);
+			int harvestTime = ProcessData.getProcessByName("Harvest " + blockName).totalTime();
+			return harvestTime;
+		}
+
+		if (tile.building != null) {
+			if (tile.building.calculatedLocations != null) {
+				if (tile.building.calculatedLocations.contains(tile.coords)) {
+					return 1000;
+				}
+			}
+		}
+		return 0;
+	}
+	
     public static List<LocalTile> findPath(LocalGrid grid, LivingEntity being, LocalTile start, LocalTile end) {
         List<LocalTile> results = new ArrayList<>();
         if (start.equals(end)) {
@@ -58,7 +79,10 @@ public class Pathfinder {
             	LocalTile n2 = (LocalTile) o2;
                 if (n1.equals(n2)) return 0;
                 //return (int)((dist.get(n1) - dist.get(n2) + end.dist(n1) - end.dist(n2)*16.0d));
-                return (dist.get(n1) - dist.get(n2) + getTileDist(end, n1) - getTileDist(end, n2)) > 0 ? 1 : -1;
+                int accessScore1 = getTileAccessibilityPenalty(n1);
+                int accessScore2 = getTileAccessibilityPenalty(n2);
+                return (dist.get(n1) - dist.get(n2) + getTileDist(end, n1) - getTileDist(end, n2)
+                		+ accessScore1 - accessScore2) > 0 ? 1 : -1;
             }
         });
 

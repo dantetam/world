@@ -23,6 +23,7 @@ public class LivingEntity {
 	public List<Task> currentQueueTasks;
 	
 	public LocalBuilding processBuilding;
+	public LocalTile processTile;
 	
 	//Link to all items owned by this person, that can be stored in and out of the inventory,
 	//or in the game world.

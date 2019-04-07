@@ -28,7 +28,8 @@ public class LocalGrid {
 	private LocalTile[][][] grid; //A 3D grid, with the third dimension representing height, such that [][][50] is one level higher than [][][49].
 	private Set<LocalBuilding> allBuildings; //Contains all buildings within this grid, updated when necessary
 	private Map<Integer, KdTree<Vector3i>> itemIdQuickTileLookup; //Search for item ids quickly in 3d space
-	private KdTree<Vector3i> globalItemsLookup;
+	private KdTree<Vector3i> globalItemsLookup; //Search for all items left on the floor, for quicker kdtree search over a smaller space
+	private Map<Integer, KdTree<Vector3i>> globalTileBlockLookup;
 	
 	public LocalGrid(Vector3i size) {
 		rows = size.x; cols = size.y; heights = size.z;
@@ -36,6 +37,7 @@ public class LocalGrid {
 		allBuildings = new HashSet<>();
 		itemIdQuickTileLookup = new HashMap<>();
 		globalItemsLookup = new KdTree<>();
+		globalTileBlockLookup = new HashMap<>();
 	}
 	
 	/**
@@ -75,9 +77,7 @@ public class LocalGrid {
 		for (Vector3i neighbor: neighbors) {
 			LocalTile neighborTile = getTile(neighbor);
 			if (neighborTile != null) {
-				if (!tileIsOccupied(neighbor)) {
-					candidateTiles.add(neighborTile);
-				}
+				candidateTiles.add(neighborTile);
 			}
 		}
 		return candidateTiles;
@@ -101,6 +101,11 @@ public class LocalGrid {
 		if (r < 0 || c < 0 || h < 0 || r >= rows || c >= cols || h >= heights)
 			throw new IllegalArgumentException("Invalid tile added to coords: " + coords.toString());
 		grid[r][c][h] = tile;
+		
+		if (globalTileBlockLookup.containsKey(tile.tileBlockId)) {
+			globalTileBlockLookup.put(tile.tileBlockId, new KdTree<>());
+		}
+		globalTileBlockLookup.get(tile.tileBlockId).add(new Vector3i(r,c,h));
 	}
 	
 	public LocalTile createTile(Vector3i coords) {
@@ -160,6 +165,10 @@ public class LocalGrid {
 		return this.itemIdQuickTileLookup.get(itemId);
 	}
 	
+	public KdTree<Vector3i> getKdTreeForTile(Integer itemId) {
+		return this.globalTileBlockLookup.get(itemId);
+	}
+	
 	public boolean buildingCanFitAt(LocalBuilding building, Vector3i newPrimaryCoords, boolean overrideGrid) {
 		//Check to see if the building fits
 		List<Vector3i> offsets = building.getLocationOffsets();
@@ -177,22 +186,23 @@ public class LocalGrid {
 		if (buildingCanFitAt(building, newPrimaryCoords, overrideGrid)) {
 			removeBuilding(building);
 			building.setPrimaryLocation(newPrimaryCoords);
-			List<Vector3i> newAbsLocations = building.calculatedLocations;
-			for (int buildingTileIndex = 0; buildingTileIndex < newAbsLocations.size(); buildingTileIndex++) {
-				Vector3i newAbsLocation = newAbsLocations.get(buildingTileIndex);
+			Set<Vector3i> newAbsLocations = building.calculatedLocations;
+			int buildingTileIndex = 0;
+			for (Vector3i newAbsLocation: newAbsLocations) {
 				LocalTile absTile = getTile(newAbsLocation);
 				if (absTile == null) {
 					absTile = createTile(newAbsLocation);
 				}
 				absTile.building = building;
 				//absTile.tileBlockId = building.buildingBlockIds.get(buildingTileIndex);
+				buildingTileIndex++;
 			} 
 			allBuildings.add(building);
 		}
 	}
 	
 	public void removeBuilding(LocalBuilding building) {
-		List<Vector3i> oldAbsLocations = building.calculatedLocations;
+		Set<Vector3i> oldAbsLocations = building.calculatedLocations;
 		for (Vector3i oldAbsLocation: oldAbsLocations) {
 			LocalTile oldTile = getTile(oldAbsLocation);
 			if (oldTile != null) {

@@ -66,7 +66,7 @@ public class ItemCSVParser extends WorldCsvParser {
 			else {
 				processItemDataMap(record.toMap(), namesToIdsMap);
 			}
-		}
+		} 
 	}
 	
 	private static void processItemDataMap(Map<String, String> record, Map<String, Integer> namesToIdsMap) {

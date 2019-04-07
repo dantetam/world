@@ -36,6 +36,23 @@ public class Process {
 		this.processSteps = steps;
 	}
 	
+	public ProcessStep findStepName(String stepType) {
+		for (ProcessStep step: processSteps) {
+			if (step.stepType.equals(stepType)) {
+				return step;
+			}
+		}
+		return null;
+	}
+	
+	public int totalTime() {
+		int sum = 0;
+		for (ProcessStep step: processSteps) {
+			sum += step.timeTicks;
+		}
+		return sum;
+	}
+	
 	public String toString() {
 		String result = "Process: " + name + "/ Input: ";
 		for (InventoryItem item: inputItems) {
