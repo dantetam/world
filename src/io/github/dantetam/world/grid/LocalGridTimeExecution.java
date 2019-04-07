@@ -18,6 +18,7 @@ import io.github.dantetam.world.items.Inventory;
 import io.github.dantetam.world.items.InventoryItem;
 import io.github.dantetam.world.process.Process;
 import io.github.dantetam.world.process.Process.ProcessStep;
+import io.github.dantetam.world.process.priority.BuildingPlacePriority;
 import io.github.dantetam.world.process.priority.DonePriority;
 import io.github.dantetam.world.process.priority.ItemDeliveryBuildingPriority;
 import io.github.dantetam.world.process.priority.ItemDeliveryPriority;
@@ -38,7 +39,7 @@ public class LocalGridTimeExecution {
 	public static void tick(LocalGrid grid, Society society) {
 		if (numDayTicks % 1440 == 0) {
 			numDayTicks = 0;
-			assignAllHumansJobs(society);
+			assignHumanJobsSingly(society);
 		}
 		for (Human human: society.getAllPeople()) {
 			if (human.processProgress != null) {
@@ -46,11 +47,18 @@ public class LocalGridTimeExecution {
 					assignBuilding(grid, human, human.processProgress.requiredBuildNameOrGroup);
 				}
 				if (human.processProgress.processSteps.size() == 0) {
+					System.out.println("################");
+					System.out.println(human.name + " completed process: " + human.processProgress);
 					human.processProgress = null;
 				}
 				else {
 					ProcessStep step = human.processProgress.processSteps.get(0);
-					human.activePriority = getPriorityForStep(grid, human, human.processProgress, step);
+					human.activePriority = getPriorityForStep(society, grid, human, human.processProgress, step);
+					
+					String priorityName = human.activePriority == null ? "null" : human.activePriority.getClass().getName();
+					System.out.println("################");
+					System.out.println(human.name + ", for its process: " + human.processProgress + ", ");
+							System.out.println("was given the priority: " + priorityName);
 					if (human.activePriority instanceof DonePriority) {
 						human.processProgress.processSteps.remove(0);
 						human.processProgress = null;
@@ -86,6 +94,7 @@ public class LocalGridTimeExecution {
 			if (building.currentUser == null) {
 				building.currentUser = being;
 				being.processBuilding = building;
+				break;
 			}
 		}
 		return being.processBuilding;
@@ -137,6 +146,21 @@ public class LocalGridTimeExecution {
 				return getTasksFromPriority(grid, being, new MovePriority(itemPriority.coords));
 			}
 		}
+		else if (priority instanceof BuildingPlacePriority) {
+			BuildingPlacePriority buildPriority = (BuildingPlacePriority) priority;
+			if (buildPriority.coords.manhattanDist(being.location.coords) <= 1) {
+				LocalTile tile = grid.getTile(buildPriority.coords);
+				if (being.inventory.hasItem(buildPriority.buildingItem) &&
+						tile.building == null) {
+					being.inventory.subtractItem(buildPriority.buildingItem);
+					LocalBuilding newBuilding = ItemData.building(buildPriority.buildingItem.itemId);
+					grid.addBuilding(newBuilding, buildPriority.coords, false);
+				}
+			}
+			else {
+				return getTasksFromPriority(grid, being, new MovePriority(buildPriority.coords));
+			}
+		}
 		else if (priority instanceof MovePriority) {
 			MovePriority movePriority = (MovePriority) priority;
 			List<LocalTile> path = Pathfinder.findPath(grid, being, being.location, grid.getTile(movePriority.coords));
@@ -152,24 +176,45 @@ public class LocalGridTimeExecution {
 		return tasks;
 	}
 	
-	private static Priority getPriorityForStep(LocalGrid grid, LivingEntity being, Process process, ProcessStep step) {
+	private static Priority getPriorityForStep(Society society, LocalGrid grid, LivingEntity being, Process process, ProcessStep step) {
 		Priority priority = null;
+		
+		Vector3i primaryLocation = null;
+		if (being.processProgress.requiredBuildNameOrGroup == null) {
+			primaryLocation = being.location.coords;
+		}
+		else if (being.processBuilding != null) {
+			primaryLocation = being.processBuilding.calculatedLocations.get(0);
+		}
+		
+		if (primaryLocation == null) {
+			int buildingId = ItemData.getIdFromName(being.processProgress.requiredBuildNameOrGroup);
+			Vector3i nearOpenSpace = grid.getNearOpenSpace(society.societyCenter);
+			priority = new BuildingPlacePriority(nearOpenSpace, ItemData.createItem(buildingId, 1));
+			return priority;
+		}
+		
 		if (step.stepType.equals("I")) {
-			if (being.processBuilding.inventory.hasItems(process.inputItems)) {
+			if (being.processBuilding != null && being.processBuilding.inventory.hasItems(process.inputItems)) {
 				being.processBuilding.inventory.subtractItems(process.inputItems);
 				return new DonePriority(null);
 			}
 			else if (being.inventory.hasItems(process.inputItems)) {
-				Vector3i coords = being.processBuilding.calculatedLocations.get(0);
-				priority = new ItemDeliveryPriority(coords, new Inventory(process.inputItems));
+				priority = new ItemDeliveryPriority(primaryLocation, new Inventory(process.inputItems));
 			}
 			else {
 				Object[] invData = being.inventory.findRemainingItemsNeeded(process.inputItems);
 				Map<Integer, Integer> regularItemNeeds = (Map) invData[0];
 				
+				System.out.println(regularItemNeeds);
+				
 				int firstItemNeeded = (Integer) regularItemNeeds.keySet().toArray()[0];
 				int amountNeeded = regularItemNeeds.get(firstItemNeeded);
 				KdTree<Vector3i> nearestItemsTree = grid.getKdTreeForItemId(firstItemNeeded);
+				
+				if (nearestItemsTree == null) {
+					System.out.println(ItemData.getNameFromId(firstItemNeeded));
+				}
 				
 				int numCandidates = Math.min(nearestItemsTree.size(), 10);
 				Collection<Vector3i> nearestCoords = nearestItemsTree.nearestNeighbourListSearch(
@@ -190,26 +235,14 @@ public class LocalGridTimeExecution {
 			}
 		}
 		else if (step.stepType.startsWith("S")) {
-			Vector3i primaryLocation = null;
-			if (being.processProgress.requiredBuildNameOrGroup == null) {
-				primaryLocation = being.location.coords;
-			}
-			else if (being.processBuilding != null) {
-				primaryLocation = being.processBuilding.calculatedLocations.get(0);
-			}
-			if (primaryLocation == null) {
-				if (being.location.coords.manhattanDist(primaryLocation) <= 1) {
-					step.timeTicks--;
-					if (step.timeTicks <= 0) {
-						return new DonePriority(null);
-					}
-				}
-				else {
-					priority = new MovePriority(primaryLocation);
+			if (being.location.coords.manhattanDist(primaryLocation) <= 1) {
+				step.timeTicks--;
+				if (step.timeTicks <= 0) {
+					return new DonePriority(null);
 				}
 			}
 			else {
-				//priority = new BuildingPlacePriority(primaryLocation);
+				priority = new MovePriority(primaryLocation);
 			}
 		}
 		else if (step.stepType.startsWith("U")) {
@@ -238,9 +271,19 @@ public class LocalGridTimeExecution {
 		}
 	}
 	
+	private static void assignHumanJobsSingly(Society society) {
+		List<Human> humans = society.getAllPeople();
+		for (Human human: humans) {
+			Map<Integer, Double> calcUtility = society.findCompleteUtilityAllItems(human);
+			Map<Process, Double> bestProcesses = society.prioritizeProcesses(calcUtility, human, 10);
+			Process bestProcess = (Process) bestProcesses.keySet().toArray()[0];
+			human.processProgress = bestProcess;
+		}
+	}
+	
 	private static void assignAllHumansJobs(Society society) {
-		Map<Integer, Double> calcUtility = society.findCompleteUtilityAllItems();
-		Map<Process, Double> bestProcesses = society.prioritizeProcesses(calcUtility, 20);
+		Map<Integer, Double> calcUtility = society.findCompleteUtilityAllItems(null);
+		Map<Process, Double> bestProcesses = society.prioritizeProcesses(calcUtility, null, 20);
 		List<Human> humans = society.getAllPeople();
 		
 		int humanIndex = 0;

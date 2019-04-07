@@ -269,6 +269,35 @@ public class LocalGrid {
 		return 0;
 	}
 	
+	public Vector3i getNearOpenSpace(Vector3i coords) {
+		int dist = 5;
+		
+		/*
+		boolean[][] occupiedNear = new boolean[dist*2 + 3][dist*2 + 3];
+		int[][] heights = new int[dist*2 + 3][dist*2 + 3];
+		
+		for (int r = -dist*2 - 1; r <= dist*2 + 1; r++) {
+			for (int c = -dist*2 - 1; c <= dist*2 + 1; c++) {
+				if (inBounds(new Vector3i(r,c,coords.z))) {
+					occupiedNear[r][c] = this.tileIsOccupied(new Vector3i(r,c,coords.z));
+				}
+			}
+		}
+		*/
+		
+		for (int r = -dist*2; r <= dist*2; r++) {
+			for (int c = -dist*2; c <= dist*2; c++) {
+				if (inBounds(new Vector3i(r,c,0))) {
+					int h = findLowestGroundHeight(r,c);
+					if (this.tileIsOccupied(new Vector3i(r,c,h))) {
+						return new Vector3i(r,c,h);
+					}
+				}
+			}
+		}
+		return null;
+	}
+	
 	public void claimTile(Human human, Vector3i coords, boolean override) {
 		LocalTile tile = getTile(coords);
 		if (tile != null) {

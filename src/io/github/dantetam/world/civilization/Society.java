@@ -28,6 +28,7 @@ public class Society {
 
 	public LocalGrid grid;
 	private List<Human> inhabitants;
+	public Vector3i societyCenter;
 	
 	public Society(LocalGrid grid) {
 		this.grid = grid;
@@ -42,7 +43,7 @@ public class Society {
 		return inhabitants;
 	}
 	
-	public Map<Process, Double> prioritizeProcesses(Map<Integer, Double> allItemsUtility, int numberItems) {
+	public Map<Process, Double> prioritizeProcesses(Map<Integer, Double> allItemsUtility, Human human, int numberItems) {
 		Map<Integer, Double> sortedUtility = MathUti.getSortedMapByValueDesc(allItemsUtility);
 		Object[] sortedKeys = sortedUtility.keySet().toArray();
 		int numSort = Math.min(numberItems, sortedUtility.size());
@@ -53,7 +54,7 @@ public class Society {
 			
 			//System.out.println("_____" + ItemData.getNameFromId(itemId));
 			
-			Process bestProcess = findBestProcess(allItemsUtility, itemId);
+			Process bestProcess = findBestProcess(allItemsUtility, human, itemId);
 			
 			//System.out.println(bestProcess);
 			
@@ -72,12 +73,12 @@ public class Society {
 	 * Return the first process at the highest level (closest to final product),
 	 * which is possible to complete by just crafting and collecting raw resources.
 	 */
-	public Process findBestProcess(Map<Integer, Double> allItemsUtility, int outputItemId) {
+	public Process findBestProcess(Map<Integer, Double> allItemsUtility, Human human, int outputItemId) {
 		Set<Integer> visitedItemIds = new HashSet<>();
 		Set<Integer> fringe = new HashSet<>();
 		fringe.add(outputItemId);
 		
-		Map<Integer, Double> rawResRarity = findRawResourcesRarity();
+		Map<Integer, Double> rawResRarity = findRawResourcesRarity(human);
 		
 		while (fringe.size() > 0) {
 			Map<Process, Double> currentUtilCandidates = new HashMap<>();
@@ -106,9 +107,11 @@ public class Society {
 						double util = allItemsUtility.containsKey(input.itemId) ? 
 								allItemsUtility.get(input.itemId) : 0;
 						MathUti.insertKeepMaxMap(currentUtilCandidates, process, util);
-						//System.out.println("Found utility for base item: " + util);
+						//if (util > 0)
+							//System.out.println("Found utility for base item: " + util);
 						if (!visitedItemIds.contains(input.itemId)) {
-							//System.out.println("Expanding from " + ItemData.getNameFromId(fringeId) + " -----> " + ItemData.getNameFromId(input.itemId));
+							//if (util > 0)
+								//System.out.println("Expanding from " + ItemData.getNameFromId(fringeId) + " -----> " + ItemData.getNameFromId(input.itemId));
 							newFringe.add(input.itemId);
 						}
 					}
@@ -166,8 +169,8 @@ public class Society {
 	/**
 	 * @return A mapping of every item in the world available to its calcuated utility.
 	 */
-	public Map<Integer, Double> findCompleteUtilityAllItems() {
-		Map<Integer, Double> allRarity = findAllAvailableResourceRarity();
+	public Map<Integer, Double> findCompleteUtilityAllItems(Human human) {
+		Map<Integer, Double> allRarity = findAllAvailableResourceRarity(human);
 		Set<Integer> availableItemIds = allRarity.keySet();
 		
 		Map<String, Double> needsIntensity = findAllNeedsIntensity();
@@ -231,7 +234,7 @@ public class Society {
 	/**
 	 * Directly count the physical rarity and presence of all items available on the map
 	 */
-	private Map<Integer, Double> findRawResourcesRarity() {
+	private Map<Integer, Double> findRawResourcesRarity(Human human) {
 		Map<Integer, Double> itemRarity = new HashMap<>();
 		for (int r = 0; r < grid.rows; r++) {
 			for (int c = 0; c < grid.cols; c++) {
@@ -249,24 +252,36 @@ public class Society {
 					if (tile.itemsOnFloor.getItems() != null) {
 						List<InventoryItem> items = tile.itemsOnFloor.getItems();
 						for (InventoryItem item: items) {
-							int id = item.itemId;
-							int num = item.quantity;
-							MathUti.addNumMap(itemRarity, id, (double) num);
+							if (item.currentUser == null || human == null || item.currentUser.equals(human)) {
+								int id = item.itemId;
+								int num = item.quantity;
+								MathUti.addNumMap(itemRarity, id, (double) num);
+							}
 						}
 					}
 				}
 			}
 		}
 		for (LocalBuilding building: grid.getAllBuildings()) {
-			for (int itemId: building.buildingBlockIds) {
-				ItemTotalDrops drops = ItemData.getOnBlockItemDrops(itemId);
-				Map<Integer, Double> itemExpectations = drops.itemExpectation();
-				for (Entry<Integer, Double> entry: itemExpectations.entrySet()) {
-					MathUti.addNumMap(itemRarity, entry.getKey(), entry.getValue());
+			if (human == null || building.owner == null || building.owner.equals(human)) {
+				for (int itemId: building.buildingBlockIds) {
+					ItemTotalDrops drops = ItemData.getOnBlockItemDrops(itemId);
+					Map<Integer, Double> itemExpectations = drops.itemExpectation();
+					for (Entry<Integer, Double> entry: itemExpectations.entrySet()) {
+						MathUti.addNumMap(itemRarity, entry.getKey(), entry.getValue());
+					}
 				}
 			}
 		}
-		for (Human human: inhabitants) {
+		if (human == null) {
+			for (Human everyHuman: inhabitants) {
+				List<InventoryItem> items = everyHuman.inventory.getItems();
+				for (InventoryItem item: items) {
+					MathUti.addNumMap(itemRarity, item.itemId, (double) item.quantity);
+				}
+			}
+		}
+		else {
 			List<InventoryItem> items = human.inventory.getItems();
 			for (InventoryItem item: items) {
 				MathUti.addNumMap(itemRarity, item.itemId, (double) item.quantity);
@@ -280,10 +295,10 @@ public class Society {
 	 * crafting, or otherwise processing the available items. Return all possible items that this
 	 * society could create, and their associated rareness.
 	 */
-	private Map<Integer, Double> findAllAvailableResourceRarity() {
+	private Map<Integer, Double> findAllAvailableResourceRarity(Human human) {
 		Set<Integer> visitedItemIds = new HashSet<>();
 		Set<Integer> fringe = new HashSet<>();
-		Map<Integer, Double> rawResources = findRawResourcesRarity();
+		Map<Integer, Double> rawResources = findRawResourcesRarity(human);
 		for (Integer itemId: rawResources.keySet()) {
 			fringe.add(itemId);
 		}

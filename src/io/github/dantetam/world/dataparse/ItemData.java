@@ -1,6 +1,7 @@
 package io.github.dantetam.world.dataparse;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -8,6 +9,8 @@ import java.util.Map;
 import java.util.Set;
 
 import io.github.dantetam.lwjglEngine.render.VBOLoader;
+import io.github.dantetam.vector.Vector3i;
+import io.github.dantetam.world.grid.LocalBuilding;
 import io.github.dantetam.world.items.InventoryItem;
 import io.github.dantetam.world.process.Process.ProcessStep;
 
@@ -37,6 +40,9 @@ public class ItemData {
 	private static Map<Integer, ItemTotalDrops> allItemDropsById = new HashMap<>();
 	
 	private static Map<Integer, Integer> refinedFormsById = new HashMap<>();
+	
+	private static Map<Integer, List<Vector3i>> specialBuildingOffsets = new HashMap<>();
+	private static Map<Integer, List<Integer>> specialBuildingBlockIds = new HashMap<>();
 	
 	public static InventoryItem createItem(int id, int quantity) {
 		if (allItemsById.containsKey(id)) {
@@ -190,6 +196,24 @@ public class ItemData {
 	public static int getTextureFromItemId(int id) {
 		String itemName = getNameFromId(id);
 		return VBOLoader.loadTexture("res/tiles/" + itemName + ".png");
+	}
+	
+	public static LocalBuilding building(int id) {
+		if (!allItemsById.containsKey(id)) {
+			throw new IllegalArgumentException("Could not find item id: " + id);
+		}
+		String name = getNameFromId(id);
+		LocalBuilding building;
+		if (specialBuildingOffsets.containsKey(id)) {
+			List<Vector3i> offsets = specialBuildingOffsets.get(id);
+			List<Integer> blockIds = specialBuildingBlockIds.get(id);
+			building = new LocalBuilding(name, null, offsets, blockIds);
+		}
+		else {
+			List<Integer> singleIdList = Collections.singletonList(id);
+			building = new LocalBuilding(name, null, null, singleIdList);
+		}
+		return building;
 	}
 	
 }

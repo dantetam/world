@@ -21,13 +21,14 @@ public class WorldGrid {
 		activeLocalGrid = new LocalGridTerrainInstantiate(sizes, biome).setupGrid();
 		
 		testSociety = new Society(activeLocalGrid);
+		testSociety.societyCenter = new Vector3i(50,50,30);
 		
-		for (int i = 0; i < 50; i++) {
+		for (int i = 0; i < 3; i++) {
 			int r = (int) (Math.random() * activeLocalGrid.rows);
 			int c = (int) (Math.random() * activeLocalGrid.cols);
 			int h = activeLocalGrid.findLowestGroundHeight(r,c);
 			
-			Human human = new Human("");
+			Human human = new Human("Human" + i);
 			testSociety.addPerson(human);
 			activeLocalGrid.addHuman(human, new Vector3i(r,c,h));
 			
@@ -39,9 +40,9 @@ public class WorldGrid {
 			human.inventory.addItem(ItemData.item("Pine Wood", 50));
 		}
 		
+		/*
 		Map<Integer, Double> calcUtility = testSociety.findCompleteUtilityAllItems();
 		
-		/*
 		for (Entry<Integer, Double> entry: calcUtility.entrySet()) {
 			System.out.println(ItemData.getNameFromId(entry.getKey()) + ": " + entry.getValue());
 		}
@@ -49,7 +50,7 @@ public class WorldGrid {
 		//Process process = testSociety.findBestProcess(calcUtility, ItemData.getIdFromName("Wheat"));
 		//System.out.println(process.toString());
 	
-		Map<Process, Double> bestProcesses = testSociety.prioritizeProcesses(calcUtility, 20);
+		Map<Process, Double> bestProcesses = testSociety.prioritizeProcesses(calcUtility, null, 20);
 		
 		for (Entry<Process, Double> entry: bestProcesses.entrySet()) {
 			System.out.println("<########>");
