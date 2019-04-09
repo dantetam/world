@@ -10,6 +10,7 @@ import java.util.Map.Entry;
 import io.github.dantetam.toolbox.MathUti;
 import io.github.dantetam.vector.Vector3i;
 import io.github.dantetam.world.ai.Pathfinder;
+import io.github.dantetam.world.ai.Pathfinder.ScoredPath;
 import io.github.dantetam.world.civilization.Human;
 import io.github.dantetam.world.civilization.LivingEntity;
 import io.github.dantetam.world.civilization.Society;
@@ -54,6 +55,15 @@ public class LocalGridTimeExecution {
 					System.out.println("################");
 					System.out.println(human.name + " completed process: " + human.processProgress);
 					human.processProgress = null;
+					
+					if (human.processBuilding != null) {
+						human.processBuilding.currentUser = null;
+						human.processBuilding = null;
+					}
+					if (human.processTile != null) {
+						human.processTile.harvestInUse = false;
+						human.processTile = null;
+					}
 				}
 				else {
 					ProcessStep step = human.processProgress.processSteps.get(0);
@@ -72,6 +82,8 @@ public class LocalGridTimeExecution {
 			}
 			if (human.activePriority != null) {
 				human.currentQueueTasks = getTasksFromPriority(grid, human, human.activePriority);
+				if (human.currentQueueTasks.size() > 0)
+					System.out.println(human.currentQueueTasks.get(0).getClass());
 			}
 			if (human.currentQueueTasks != null && human.currentQueueTasks.size() > 0) {
 				Task task = human.currentQueueTasks.get(0);
@@ -107,6 +119,23 @@ public class LocalGridTimeExecution {
 	private static LocalTile assignTile(LocalGrid grid, LivingEntity being, String tileName) {
 		int tileId = ItemData.getIdFromName(tileName);
 		KdTree<Vector3i> items = grid.getKdTreeForTile(tileId);
+		Collection<Vector3i> candidates = items.nearestNeighbourListSearch(10, being.location.coords);
+		Map<LocalTile, Integer> tileByPathScore = new HashMap<>();
+		for (Vector3i candidate: candidates) {
+			LocalTile tile = grid.getTile(candidate);
+			if (!tile.harvestInUse) {
+				ScoredPath scoredPath = Pathfinder.findPath(grid, being, being.location, grid.getTile(candidate));
+				tileByPathScore.put(tile, scoredPath.score);
+			}
+		}
+		tileByPathScore = MathUti.getSortedMapByValueDesc(tileByPathScore);
+		for (Object obj: tileByPathScore.keySet().toArray()) {
+			LocalTile bestTile = (LocalTile) obj;
+			being.processTile = bestTile;
+			bestTile.harvestInUse = true;
+			return bestTile;
+		}
+		return null;
 	}
 	
 	private static List<Task> getTasksFromPriority(LocalGrid grid, LivingEntity being, Priority priority) {
@@ -172,7 +201,8 @@ public class LocalGridTimeExecution {
 		}
 		else if (priority instanceof MovePriority) {
 			MovePriority movePriority = (MovePriority) priority;
-			List<LocalTile> path = Pathfinder.findPath(grid, being, being.location, grid.getTile(movePriority.coords));
+			ScoredPath scoredPath = Pathfinder.findPath(grid, being, being.location, grid.getTile(movePriority.coords));
+			List<LocalTile> path = scoredPath.path;
 			for (int i = 0; i < path.size() - 1; i++) {
 				Vector3i coordsFrom = path.get(i).coords;
 				Vector3i coordsTo = path.get(i+1).coords;
@@ -191,11 +221,14 @@ public class LocalGridTimeExecution {
 		System.out.println("Figuring out for process: " + process);
 		
 		Vector3i primaryLocation = null;
-		if (being.processProgress.requiredBuildNameOrGroup == null) {
-			primaryLocation = being.location.coords;
-		}
-		else if (being.processBuilding != null) {
+		if (being.processBuilding != null) {
 			primaryLocation = being.processBuilding.getPrimaryLocation();
+		}
+		else if (being.processTile != null) {
+			primaryLocation = being.processTile.coords;
+		}
+		else if (being.processProgress.requiredBuildNameOrGroup == null) {
+			primaryLocation = being.location.coords;
 		}
 		
 		if (primaryLocation == null) {

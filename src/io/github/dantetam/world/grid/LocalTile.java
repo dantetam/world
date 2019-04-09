@@ -24,6 +24,8 @@ public class LocalTile {
 	public int tileFloorId; //Representing the floor below the block (the block may or may not exist)
 	public Inventory itemsOnFloor;
 	
+	public boolean harvestInUse = false;
+	
 	public LocalTile(Vector3i coords) {
 		this.coords = coords;
 		tileBlockId = ItemData.ITEM_EMPTY_ID;

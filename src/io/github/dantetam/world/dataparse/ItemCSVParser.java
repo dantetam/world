@@ -16,6 +16,8 @@ import io.github.dantetam.world.process.Process.ProcessStep;
 
 public class ItemCSVParser extends WorldCsvParser {
 
+	public static Map<String, List<String>> groupSyntaxShortcuts;
+	
 	public static void init() {
 		List<CSVRecord> csvRecords = parseCsvFile("res/items/world-itemideas.csv");
 		
@@ -23,12 +25,12 @@ public class ItemCSVParser extends WorldCsvParser {
 		Map<Integer, String> itemIdsMap = (Map<Integer, String>) stringIdData[0];
 		Map<String, Integer> namesToIdsMap = (Map<String, Integer>) stringIdData[1];
 		
-		Map<String, List<Integer>> groupToItemsMap = getGroupsFromCSV(csvRecords);
+		groupSyntaxShortcuts = getGroupsFromCSV(csvRecords);
 		
 		//Parse all the items line by line, keeping in mind that generic item groups may exist
 		for (CSVRecord record: csvRecords) {
 			String name = record.get("Item Name");
-			String pattern = "(.*)(<.*>)(.*)";
+			String pattern = "\\<(.*?)\\>";
 		    Matcher matcher = Pattern.compile(pattern).matcher(name);
 		    
 		    //Save the 'base' group id as x to create id x, x+1, x+2, ...
@@ -39,17 +41,14 @@ public class ItemCSVParser extends WorldCsvParser {
 			int id = Integer.parseInt(idString);
 		    
 			//Duplicate a whole group into its item rows if the group <caret> notation is present
-			if (matcher.matches()) {
-				String templateNamePre = matcher.group(1);
-				String templateNamePost = matcher.group(3);
-				String groupName = matcher.group(2);
-				groupName = groupName.substring(1, groupName.length() - 1); //Remove the carets
-				if (groupToItemsMap.containsKey(groupName)) {
-					List<Integer> groupIds = groupToItemsMap.get(groupName);
-					for (int offset = 0; offset < groupIds.size(); offset++) {
-						int groupItemId = groupIds.get(offset);
-						String groupItemName = itemIdsMap.get(groupItemId);
-						String newItemName = templateNamePre + groupItemName + templateNamePost;
+			if (matcher.find()) {
+				String groupName = matcher.group(1);
+				//groupName = groupName.substring(1, groupName.length() - 1); //Remove the carets
+				if (groupSyntaxShortcuts.containsKey(groupName)) {
+					List<String> groupItemNames = groupSyntaxShortcuts.get(groupName);
+					for (int offset = 0; offset < groupItemNames.size(); offset++) {
+						String groupItemName = groupItemNames.get(offset);
+						String newItemName = name.replaceFirst("\\<(.*?)\\>", groupItemName);
 						Map<String, String> copyRecord = record.toMap();
 						copyRecord.put("Item Name", newItemName);
 						
@@ -60,6 +59,7 @@ public class ItemCSVParser extends WorldCsvParser {
 					}
  				}
 				else {
+					System.err.println(record.toMap());
 					throw new IllegalArgumentException("While parsing item csv, could not find group name: " + groupName);
 				}
 			}
@@ -173,7 +173,7 @@ public class ItemCSVParser extends WorldCsvParser {
 			String name = record.get("Item Name");
 			String pattern = "(.*)(<.*>)(.*)";
 		    Matcher matcher = Pattern.compile(pattern).matcher(name);
-			if (matcher.matches()) { //No groups that contain groups, for now
+			if (matcher.find()) { //No groups that contain groups, for now
 				continue;
 			}
 			String idString = record.get("Item Id");
@@ -190,22 +190,18 @@ public class ItemCSVParser extends WorldCsvParser {
 	/**
 	 * <x> represents the group "x", which is a set of items that share any recipe containing the phrase <x>
 	 */
-	private static Map<String, List<Integer>> getGroupsFromCSV(List<CSVRecord> records) {
-		Map<String, List<Integer>> groupLists = new HashMap<>();
+	private static Map<String, List<String>> getGroupsFromCSV(List<CSVRecord> records) {
+		Map<String, List<String>> groupLists = new HashMap<>();
 		for (CSVRecord record: records) {
-			String idString = record.get("Item Id");
-			if (idString.isBlank()) {
-				continue;
-			}
+			String itemName = record.get("Item Name");
 			String groupsLine = record.get("Groups");
 			if (!groupsLine.isBlank()) {
 				String[] groups = groupsLine.split(";");
-				int itemId = Integer.parseInt(idString);
 				for (String group: groups) {
 					if (!groupLists.containsKey(group)) {
 						groupLists.put(group, new ArrayList<>());
 					}
-					groupLists.get(group).add(itemId);
+					groupLists.get(group).add(itemName);
 				}
 			}
 		}

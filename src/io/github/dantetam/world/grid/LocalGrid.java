@@ -102,7 +102,7 @@ public class LocalGrid {
 			throw new IllegalArgumentException("Invalid tile added to coords: " + coords.toString());
 		grid[r][c][h] = tile;
 		
-		if (globalTileBlockLookup.containsKey(tile.tileBlockId)) {
+		if (!globalTileBlockLookup.containsKey(tile.tileBlockId)) {
 			globalTileBlockLookup.put(tile.tileBlockId, new KdTree<>());
 		}
 		globalTileBlockLookup.get(tile.tileBlockId).add(new Vector3i(r,c,h));

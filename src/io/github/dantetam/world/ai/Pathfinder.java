@@ -61,11 +61,11 @@ public class Pathfinder {
 		return 0;
 	}
 	
-    public static List<LocalTile> findPath(LocalGrid grid, LivingEntity being, LocalTile start, LocalTile end) {
+    public static ScoredPath findPath(LocalGrid grid, LivingEntity being, LocalTile start, LocalTile end) {
         List<LocalTile> results = new ArrayList<>();
         if (start.equals(end)) {
             results.add(end);
-            return results;
+            return new ScoredPath(results, 0);
         }
         Set<LocalTile> visited = new HashSet<>();
         final HashMap<LocalTile, Double> dist = new HashMap<>();
@@ -99,11 +99,11 @@ public class Pathfinder {
                     results.add(0, v);
                     v = prev.get(v);
                 } while (v != null);
-                return results;
+                return new ScoredPath(results, dist.get(end).intValue());
             }
             for (LocalTile c : validNeighbors(grid, being, v)) {
                 if ((!dist.containsKey(c)) || (dist.containsKey(c) && dist.get(c) > dist.get(v) + getTileDist(v, c))) {
-                    dist.put(c, dist.get(v) + getTileDist(v, c));
+                    dist.put(c, dist.get(v) + getTileDist(v, c) + getTileAccessibilityPenalty(c));
                     //c.queue = dist.get(v) + v.dist(c) + c.dist(end);
                     fringe.add(c);
                     prev.put(c, v);
@@ -111,6 +111,15 @@ public class Pathfinder {
             }
         }
         return null;
+    }
+    
+    public static class ScoredPath {
+    	public List<LocalTile> path;
+    	public int score;
+    	public ScoredPath(List<LocalTile> path, int score) {
+    		this.path = path;
+    		this.score = score;
+    	}
     }
 
 }

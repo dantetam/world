@@ -191,6 +191,11 @@ public class InputSystem extends BaseSystem {
 	public void executeAction(String action) {
 		System.out.println("InputSystem executed " + action);
 
+		if (action.equals("ADVANCE_TURN")) {
+			System.out.println("##### End turn #####");
+			super.gameLauncher.worldGrid.tick();
+		}
+		
 		gameLauncher.menuSystem.forceFullUIUpdate();
 	}
 

@@ -27,59 +27,76 @@ public class ProcessCSVParser extends WorldCsvParser {
 	
 	private static void preprocessExpandingRecipe(Map<String, String> record) {
 		String allInput = record.get("Required Input");
-		
+		String pattern = "\\<(.*?)\\>";
 		String[] multipleInput = allInput.split("/");
 		
+		String requiredBuilding = record.get("Required Buildings");
+	    Matcher buildingMatcher = Pattern.compile(pattern).matcher(requiredBuilding);
+		
 		for (String singleInput : multipleInput) {
-			String pattern = "(.*)(<.*>)(.*)";
 		    Matcher inputGroupMatcher = Pattern.compile(pattern).matcher(singleInput);
+		    
+		    //System.out.println(singleInput + " o " + inputGroupMatcher.find());
 		    
 			//Duplicate a whole group into its item rows if the group <caret> notation is present
 		    //Continue the recursion because of more data to process
-			if (inputGroupMatcher.matches()) {
-				String templateNamePre = inputGroupMatcher.group(1);
-				String templateNamePost = inputGroupMatcher.group(3);
-				String groupName = inputGroupMatcher.group(2);
-				groupName = groupName.substring(1, groupName.length() - 1); //Remove the carets
+			if (inputGroupMatcher.find()) {
+				String groupName = inputGroupMatcher.group(1);
+				//groupName = groupName.substring(1, groupName.length() - 1); //Remove the carets
 				
-				Set<Integer> groupIds = ItemData.getGroupIds(groupName);
-				
-				for (Integer groupItemId : groupIds) {
-					String groupItemName = ItemData.getNameFromId(groupItemId);
-					String newItemName = templateNamePre + groupItemName + templateNamePost;
-					
-					Map<String, String> copyRecord = new HashMap<>(record);
-					
-					copyRecord.put("Required Input", newItemName);
-					
-					String outputData = copyRecord.get("Output");
-					Matcher outputGroupMatcher = Pattern.compile(pattern).matcher(outputData);
-					if (outputGroupMatcher.matches()) {
-						String outputNamePre = outputGroupMatcher.group(1);
-						String outputNamePost = outputGroupMatcher.group(3);
-						String newOutputString = outputNamePre + groupItemName + outputNamePost;
-						copyRecord.put("Output", newOutputString);
-					}
-					
-					outputData = copyRecord.get("Output");
-					//TODO: Generalize for all functions
-					String functionPattern = "(.*)(refine\\((.*)\\))(.*)";
-				    Matcher outputFuncMatcher = Pattern.compile(functionPattern).matcher(outputData);
-					if (outputFuncMatcher.matches()) {
-						String rawForm = outputFuncMatcher.group(3);
-						int refinedForm = ItemData.getRefinedFormId(ItemData.getIdFromName(rawForm));
-						String refinedFormName = ItemData.getNameFromId(refinedForm);
-						
-						String outputNamePre = outputFuncMatcher.group(1),
-								outputNamePost = outputFuncMatcher.group(4);
-						
-						String newOutputString = outputNamePre + refinedFormName + outputNamePost;
-						copyRecord.put("Output", newOutputString);
-					}
-					
-					preprocessExpandingRecipe(copyRecord);
+				List<String> groupNames = ItemCSVParser.groupSyntaxShortcuts.get(groupName);
+				if (groupNames == null) {
+					System.err.println("Could not find group name: " + groupName);
 				}
-				
+				else {
+					for (String groupItemName: groupNames) {
+						String newItemName = singleInput.replaceFirst("\\<(.*?)\\>", groupItemName);
+						
+						Map<String, String> copyRecord = new HashMap<>(record);
+						
+						copyRecord.put("Required Input", newItemName);
+						
+						String outputData = copyRecord.get("Output");
+						Matcher outputGroupMatcher = Pattern.compile(pattern).matcher(outputData);
+						if (outputGroupMatcher.find()) {
+							String newOutputString = outputData.replaceFirst("\\<(.*?)\\>", groupItemName);
+							copyRecord.put("Output", newOutputString);
+						}
+						
+						outputData = copyRecord.get("Output");
+						//TODO: Generalize for all functions
+						String functionPattern = "(.*)(refine\\((.*)\\))(.*)";
+					    Matcher outputFuncMatcher = Pattern.compile(functionPattern).matcher(outputData);
+						if (outputFuncMatcher.find()) {
+							String rawForm = outputFuncMatcher.group(3);
+							int refinedForm = ItemData.getRefinedFormId(ItemData.getIdFromName(rawForm));
+							String refinedFormName = ItemData.getNameFromId(refinedForm);
+							
+							String outputNamePre = outputFuncMatcher.group(1),
+									outputNamePost = outputFuncMatcher.group(4);
+							
+							String newOutputString = outputNamePre + refinedFormName + outputNamePost;
+							copyRecord.put("Output", newOutputString);
+						}
+						
+						preprocessExpandingRecipe(copyRecord);
+					}
+				}
+			}
+			else if (buildingMatcher.find()) {
+				String groupName = buildingMatcher.group(1);
+				List<String> groupNames = ItemCSVParser.groupSyntaxShortcuts.get(groupName);
+				if (groupNames == null) {
+					System.err.println("Could not find group name: " + groupName);
+				}
+				else {
+					for (String groupItemName: groupNames) {
+						Map<String, String> copyRecord = new HashMap<>(record);
+						String newBuildingName = singleInput.replaceFirst("\\<(.*?)\\>", groupItemName);
+						copyRecord.put("Required Buildings", newBuildingName);
+						preprocessExpandingRecipe(copyRecord);
+					}
+				}
 			}
 			else { //No more groups to expand within this recipe, actually begin to process a 'pure' recipe
 				Map<String, String> copyRecord = new HashMap<>(record);
@@ -90,6 +107,8 @@ public class ProcessCSVParser extends WorldCsvParser {
 	}
 	
 	private static void processRecipeDataMap(Map<String, String> record) {
+		System.out.println(record);
+		
 		List<InventoryItem> inputItems = new ArrayList<>();
 		String inputString = record.get("Required Input");
 		if (!inputString.isBlank()) {
