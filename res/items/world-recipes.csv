@@ -128,3 +128,7 @@ Architect,"25 <ProcessedWood>, 3 Iron Bar, 10 <Stone> Block ",,,,"I / Sbuild, 14
 Sawmill Parts,"20 <ProcessedWood>, 2 <Metal> Machine Parts",Architect,,,"I / Sbuild, 360 / O","Sawmill Parts, 5",
 Watermill Parts,"20 <ProcessedWood>, 2 <Metal> Machine Parts",Architect,,,"I / Sbuild, 360 / O","Watermill Parts, 5",
 Windmill Parts,"20 <ProcessedWood>, 2 <Metal> Machine Parts",Architect,,,"I / Sbuild, 360 / O","Windmill Parts, 5",
+,,,,,,,
+Assemble Sawmill,5 Sawmill Parts,,Y,,"I / Sbuild, 360 / O",Sawmill,
+Assemble Watermill,5 Watermill Parts,,Y,,"I / Sbuild, 360 / O",Watermill,
+Assemble Windmill,5 Windmill Parts,,Y,,"I / Sbuild, 360 / O",Windmill,

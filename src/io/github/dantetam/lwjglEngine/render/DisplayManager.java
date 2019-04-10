@@ -84,6 +84,7 @@ public class DisplayManager {
 			public void invoke(long window, double xpos, double ypos) {
 				Mouse.setMouse((float) xpos, (float) ypos);
 				// main.menuSystem.queueMousePass(Mouse.getX(), Mouse.getY());
+				main.menuSystem.forceFullUIUpdate();
 			}
 		}));
 	}

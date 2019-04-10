@@ -1,20 +1,29 @@
 package io.github.dantetam.system;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import io.github.dantetam.localdata.ConstantData;
 import io.github.dantetam.lwjglEngine.fontRendering.TextMaster;
+import io.github.dantetam.lwjglEngine.render.DisplayManager;
 import io.github.dantetam.lwjglEngine.render.VBOLoader;
 import io.github.dantetam.render.Button;
 import io.github.dantetam.render.GameLauncher;
 import io.github.dantetam.render.Menu;
 import io.github.dantetam.render.TextBox;
+import io.github.dantetam.toolbox.MathUti;
+import io.github.dantetam.toolbox.MousePicker;
+import io.github.dantetam.vector.Vector3i;
+import io.github.dantetam.world.civilization.LivingEntity;
+import io.github.dantetam.world.dataparse.ItemData;
+import io.github.dantetam.world.grid.LocalTile;
 
 public class MenuSystem extends BaseSystem {
 
 	public List<Menu> menus;
-	public List<TextBox> textboxes;
+	public Map<String, TextBox> textboxes;
 
 	private List<Click> clicks;
 
@@ -26,7 +35,11 @@ public class MenuSystem extends BaseSystem {
 	private int guiDefaultTexture;
 
 	public Button[] shortcuts = new Button[10];
+	
+	public Vector3i mouseHighlighted;
 
+	public MousePicker mousePicker;
+	
 	// Done in this function ideally after GL context has been set up
 	public void setupLoader() {
 		guiDefaultTexture = VBOLoader.loadTexture("guiDefaultTexture");
@@ -35,12 +48,80 @@ public class MenuSystem extends BaseSystem {
 	public MenuSystem(GameLauncher civGame) {
 		super(civGame);
 		menus = new ArrayList<Menu>();
-		textboxes = new ArrayList<TextBox>();
+		textboxes = new HashMap<>();
 		clicks = new ArrayList<Click>();
+		setupMenus();
 	}
 
 	public void setupMenus() {
-
+		float posX, posY, sizeX, sizeY;
+		float w = DisplayManager.width, h = DisplayManager.height;
+		
+		sizeX = w * 1 / 5; sizeY = 200;
+		posX = w * 4 / 5; posY = h - sizeY;
+		textboxes.put("TileHint", GuiSystem.getDefaultTextButton(guiDefaultTexture, "", "", "", 
+				posX, posY, sizeX, sizeY));
+	}
+	
+	public void updateMenus() {
+		Vector3i highlightCoords = mousePicker.calculateWorldCoordsFromMouse();
+		this.mouseHighlighted = highlightCoords;
+		
+		List<String> texts;
+		
+		texts = new ArrayList<>();
+		if (this.mouseHighlighted != null) {
+			texts.add(this.mouseHighlighted.toString());
+			LocalTile tile = gameLauncher.worldGrid.activeLocalGrid.getTile(this.mouseHighlighted);
+			
+			if (tile != null) {
+				texts.add("Block: " + ItemData.getNameFromId(tile.tileBlockId));
+				texts.add("Floor: " + ItemData.getNameFromId(tile.tileFloorId));
+				
+				if (tile.itemsOnFloor.size() > 0) {
+					texts.add("Items on Floor: " + tile.itemsOnFloor.toString());
+				}
+				else {
+					texts.add("No items on floor");
+				}
+				
+				if (tile.building == null) {
+					texts.add("Building: null");
+				} else {
+					texts.add("Building: " + tile.building.name);
+					String buildingBlocks = "Building Parts: ";
+					for (int id: tile.building.buildingBlockIds) {
+						buildingBlocks += ItemData.getNameFromId(id) + " /";
+					}
+					texts.add(buildingBlocks);
+					
+					if (tile.building.inventory.size() > 0) {
+						String allItems = "Building Items: " + tile.building.inventory.toUniqueItemsMap();
+						List<String> itemsWordWrapped = MathUti.wrapString(allItems, 40);
+						for (String line: itemsWordWrapped)
+							texts.add(line);
+					} else {
+						texts.add("No building items");
+					}
+				}
+				
+				if (tile.getPeople() == null || tile.getPeople().size() == 0) {
+					texts.add("No people");
+				} else {
+					for (LivingEntity being: tile.getPeople()) {
+						if (being.inventory.size() > 0) {
+							texts.add(being.name);
+							List<String> humanInvWrapped = MathUti.wrapString(being.inventory.toString(), 40);
+							for (String text: humanInvWrapped) 
+								texts.add(text);
+						} else {
+							texts.add(being.name + ", no inventory / ");
+						}
+					}
+				}
+			}
+		}
+		textboxes.get("TileHint").setDisplayText(texts);
 	}
 
 	public void tick() {
@@ -91,9 +172,10 @@ public class MenuSystem extends BaseSystem {
 	public void displayMenu(int menu) {
 
 	}
-
+	
 	public void forceFullUIUpdate() {
 		//System.out.println("force update");
+		updateMenus();
 		gameLauncher.guiSystem.updateUI();
 		TextMaster.update(this, gameLauncher.guiSystem);
 		gameLauncher.lwjglSystem.renderer.guiRenderer.update(this, gameLauncher.guiSystem);

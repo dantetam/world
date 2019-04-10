@@ -5,6 +5,7 @@ import java.util.List;
 
 import io.github.dantetam.world.dataparse.ItemData;
 import io.github.dantetam.world.dataparse.ItemTotalDrops;
+import io.github.dantetam.world.items.Inventory;
 import io.github.dantetam.world.items.InventoryItem;
 
 /**
@@ -55,9 +56,9 @@ public class Process {
 	
 	public String toString() {
 		String result = "Process: " + name + "/ Input: ";
-		for (InventoryItem item: inputItems) {
-			result += item.toString() + "; ";
-		}
+		
+		result += new Inventory(inputItems).toUniqueItemsMap();
+		
 		result += "/ Output: ";
 		for (int id: outputItems.getAllItems()) {
 			result += ItemData.getNameFromId(id) + "; ";

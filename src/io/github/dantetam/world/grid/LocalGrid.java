@@ -13,6 +13,7 @@ import io.github.dantetam.world.civilization.Human;
 import io.github.dantetam.world.civilization.LivingEntity;
 import io.github.dantetam.world.dataparse.ItemData;
 import io.github.dantetam.world.dataparse.WorldCsvParser;
+import io.github.dantetam.world.items.Inventory;
 import io.github.dantetam.world.items.InventoryItem;
 import kdtreegeo.KdTree;
 
@@ -117,6 +118,15 @@ public class LocalGrid {
 		return null;
 	}
 	
+	public void addItemRecordToWorld(Vector3i coords, InventoryItem item) {
+		if (!(itemIdQuickTileLookup.containsKey(item.itemId))) {
+			itemIdQuickTileLookup.put(item.itemId, new KdTree<Vector3i>());
+		}
+		itemIdQuickTileLookup.get(item.itemId).add(coords);
+		globalItemsLookup.add(coords);
+	}
+	
+	/*
 	public void dropItemAtTile(Vector3i coords, InventoryItem item) {
 		LocalTile tile = getTile(coords);
 		if (tile == null) {
@@ -131,6 +141,7 @@ public class LocalGrid {
 			globalItemsLookup.add(coords);
 		}
 	}
+	*/
 	
 	public boolean pickupItemAtTile(Vector3i coords, InventoryItem item) {
 		LocalTile tile = getTile(coords);

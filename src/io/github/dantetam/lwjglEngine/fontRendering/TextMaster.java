@@ -56,7 +56,7 @@ public class TextMaster {
 				}
 			}
 		}
-		for (TextBox text : menuSystem.textboxes) {
+		for (TextBox text : menuSystem.textboxes.values()) {
 			if (text.active && text.textMeshVao <= 0) {
 				loadText(text);
 			} else if (!text.active && text.textMeshVao > 0) {
@@ -78,7 +78,7 @@ public class TextMaster {
 			if (menu.active())
 				for (TextBox textBox : menu.buttons)
 					allGuis.add(textBox);
-		for (TextBox textBox : menuSystem.textboxes)
+		for (TextBox textBox : menuSystem.textboxes.values())
 			allGuis.add(textBox);
 		for (TextBox textBox : guiSystem.getAllTextUI())
 			allGuis.add(textBox);
@@ -128,6 +128,7 @@ public class TextMaster {
 
 	public static void removeText(TextBox text) {
 		List<TextBox> textBatch = texts.get(text.font);
+		if (textBatch == null) return;
 		textBatch.remove(text);
 		if (textBatch.isEmpty()) {
 			texts.put(text.font, null);

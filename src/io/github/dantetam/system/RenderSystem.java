@@ -5,7 +5,7 @@ import io.github.dantetam.toolbox.MousePicker;
 
 public class RenderSystem extends BaseSystem {
 
-	public MousePicker mousePicker;
+	//public MousePicker mousePicker;
 
 	public RenderSystem(GameLauncher civGame) {
 		super(civGame);

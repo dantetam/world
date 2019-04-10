@@ -83,18 +83,19 @@ public class GuiRenderer {
 				}
 			}
 		}
-		for (GuiQuad gui : menuSystem.textboxes) {
-			if (gui.active) {
-				guisActive.add(gui);
-			}
-		}
 		for (GuiQuad gui : guiSystem.getAllNonTextUI()) {
 			if (gui.active) {
 				guisActive.add(gui);
 			}
 		}
-		for (GuiQuad gui : guiSystem.getAllTextUI()) { // Text elements must be processed too for the VAO texture id in
-														// the background
+		
+		//Text elements must be processed too for the VAO texture id in the background
+		for (GuiQuad gui : guiSystem.getAllTextUI()) {		
+			if (gui.active) {
+				guisActive.add(gui);
+			}
+		}
+		for (GuiQuad gui : menuSystem.textboxes.values()) {
 			if (gui.active) {
 				guisActive.add(gui);
 			}

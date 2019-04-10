@@ -67,6 +67,9 @@ public class ItemData {
 	}
 	
 	public static String getNameFromId(int id) {
+		if (id == ItemData.ITEM_EMPTY_ID) {
+			return "EMPTY";
+		}
 		if (!allItemsById.containsKey(id)) {
 			throw new IllegalArgumentException("Could not find item id: " + id);
 		}

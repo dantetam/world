@@ -75,7 +75,7 @@ public class GuiSystem extends BaseSystem {
 						if (tile.tileBlockId != ItemData.ITEM_EMPTY_ID) {
 							int tileTexture = ItemData.getTextureFromItemId(tile.tileBlockId);
 							listGuis.add(new GuiQuad(tileTexture, guiPos, guiDim));
-						}
+			 			}
 						else if (tile.tileFloorId != ItemData.ITEM_EMPTY_ID) {
 							int tileTexture = ItemData.getTextureFromItemId(tile.tileFloorId);
 							listGuis.add(new GuiQuad(tileTexture, guiPos, guiDim));
@@ -133,13 +133,13 @@ public class GuiSystem extends BaseSystem {
 		return allGuiText;
 	}
 
-	public TextBox getDefaultTextButton(int texture, String command, String display, String tooltip, float a, float b,
+	public static TextBox getDefaultTextButton(int texture, String command, String display, String tooltip, float a, float b,
 			float c, float d) {
 		Button temp = new Button(12, null, display.length(), true, texture, command, display, tooltip, a, b, c, d);
 		return temp;
 	}
 
-	public TextBox getDefaultTextBoxGui(int texture, String display, String tooltip, float a, float b, float c,
+	public static TextBox getDefaultTextBoxGui(int texture, String display, String tooltip, float a, float b, float c,
 			float d) {
 		TextBox temp = new TextBox(12, null, display.length(), true, texture, display, tooltip, a, b, c, d);
 		return temp;

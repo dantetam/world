@@ -59,7 +59,7 @@ public class WorldGrid {
 		}
 		*/
 		
-		tick();
+		//tick();
 	}
 	
 	public void tick() {

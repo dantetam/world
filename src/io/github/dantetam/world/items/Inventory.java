@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import io.github.dantetam.toolbox.MathUti;
 import io.github.dantetam.world.dataparse.ItemData;
 
 public class Inventory {
@@ -166,6 +167,14 @@ public class Inventory {
 			}
 		}
 		return itemsList + "]";
+	}
+	
+	public Map<String, Integer> toUniqueItemsMap() {
+		Map<String, Integer> uniqueCounts = new HashMap<>();
+		for (InventoryItem item: items) {
+			MathUti.addNumMap(uniqueCounts, ItemData.getNameFromId(item.itemId), item.quantity);
+		}
+		return uniqueCounts;
 	}
 	
 }

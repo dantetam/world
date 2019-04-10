@@ -32,7 +32,7 @@ public class MainGameLoop {
 			// Keep updating the display until the user exits
 			renderer = new MasterRenderer();
 			mousePicker = new MousePicker(main.camera);
-			main.renderSystem.mousePicker = mousePicker;
+			main.menuSystem.mousePicker = mousePicker;
 			main.guiSystem.mousePicker = mousePicker;
 
 			main.menuSystem.forceFullUIUpdate(); // Set everything up correctly initially

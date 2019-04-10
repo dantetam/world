@@ -10,6 +10,7 @@ import io.github.dantetam.lwjglEngine.entities.Gui2DCamera;
 import io.github.dantetam.lwjglEngine.render.DisplayManager;
 import io.github.dantetam.lwjglEngine.tests.MainGameLoop;
 import io.github.dantetam.system.*;
+import io.github.dantetam.toolbox.MousePicker;
 import io.github.dantetam.world.dataparse.WorldCsvParser;
 import io.github.dantetam.world.grid.WorldGrid;
 
@@ -51,6 +52,8 @@ public class GameLauncher {
 
 	public void setup() {
 		try {
+			cycleScreenResolution(0);
+			
 			System.setProperty("org.lwjgl.librarypath", "lib/natives");
 
 			DisplayManager.createDisplay(this);
@@ -67,6 +70,7 @@ public class GameLauncher {
 			guiSystem.setupLoader();
 
 			camera = new Gui2DCamera();
+
 			lwjglSystem = new MainGameLoop(this);
 
 			inputSystem.on = false;

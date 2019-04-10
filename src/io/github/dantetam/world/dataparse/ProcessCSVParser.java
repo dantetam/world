@@ -107,8 +107,6 @@ public class ProcessCSVParser extends WorldCsvParser {
 	}
 	
 	private static void processRecipeDataMap(Map<String, String> record) {
-		System.out.println(record);
-		
 		List<InventoryItem> inputItems = new ArrayList<>();
 		String inputString = record.get("Required Input");
 		if (!inputString.isBlank()) {

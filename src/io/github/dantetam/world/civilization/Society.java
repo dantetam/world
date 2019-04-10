@@ -110,7 +110,7 @@ public class Society {
 						MathUti.insertKeepMaxMap(currentUtilCandidates, process, util);
 						//if (util > 0)
 							//System.out.println("Found utility for base item: " + util);
-						if (!visitedItemIds.contains(input.itemId)) {
+						if (!visitedItemIds.contains(input.itemId) && util > 0) {
 							//if (util > 0)
 								//System.out.println("Expanding from " + ItemData.getNameFromId(fringeId) + " -----> " + ItemData.getNameFromId(input.itemId));
 							newFringe.add(input.itemId);

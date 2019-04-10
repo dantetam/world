@@ -100,6 +100,20 @@ public class MathUti {
         return result;
     }
 	
+	public static List<String> wrapString(String longString, int wrapWidth) {
+		List<String> strings = new ArrayList<>();
+		while (true) {
+			if (longString.length() <= wrapWidth) {
+				strings.add(longString);
+				return strings;
+			}
+			else {
+				strings.add(longString.substring(0, wrapWidth));
+				longString = longString.substring(wrapWidth);
+			}
+		}
+	}
+	
 	public static void main(String[] args) {
 		Map<Integer, Integer> data = new HashMap<>();
 		data.put(1, 2);
