@@ -11,6 +11,8 @@ public class Human extends LivingEntity {
 	
 	public Set<Vector3i> allClaims;
 
+	public SkillBook skillBook;
+	
 	public Human(String name) {
 		super(name);
 		allClaims = new HashSet<>();
@@ -20,6 +22,7 @@ public class Human extends LivingEntity {
 		hydration = 50;
 		nutrition = 20;
 		rest = 0;
+		skillBook = SkillBookData.newSkillBook();
 	}
 
 }

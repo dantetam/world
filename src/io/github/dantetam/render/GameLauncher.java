@@ -11,6 +11,7 @@ import io.github.dantetam.lwjglEngine.render.DisplayManager;
 import io.github.dantetam.lwjglEngine.tests.MainGameLoop;
 import io.github.dantetam.system.*;
 import io.github.dantetam.toolbox.MousePicker;
+import io.github.dantetam.world.civilization.SkillBook;
 import io.github.dantetam.world.dataparse.WorldCsvParser;
 import io.github.dantetam.world.grid.WorldGrid;
 
@@ -63,6 +64,7 @@ public class GameLauncher {
 			GLFW.glfwShowWindow(DisplayManager.window);
 
 			WorldCsvParser.init();
+			SkillBook.init();
 			
 			worldGrid = new WorldGrid();
 			

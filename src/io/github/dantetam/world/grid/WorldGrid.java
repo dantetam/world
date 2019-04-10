@@ -59,6 +59,13 @@ public class WorldGrid {
 		}
 		*/
 		
+		Map<Integer, Double> calcUtility = testSociety.findCompleteUtilityAllItems(null);
+		
+		for (Entry<Integer, Double> entry: calcUtility.entrySet()) {
+			if (entry.getValue() > 0)
+				System.out.println(ItemData.getNameFromId(entry.getKey()) + ": " + entry.getValue());
+		}
+		
 		//tick();
 	}
 	
