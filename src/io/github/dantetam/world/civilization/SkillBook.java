@@ -4,13 +4,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class SkillBook {
-
-	private Map<String, Skill> skillMapping;
 	
 	private static final int MAX_LEVEL = 30;
 	private static int[] experienceNeeded = new int[MAX_LEVEL+2]; 
 	private static String[] allSkills = {"build", "cook", "cloth", "craft", "farm", 
 			"fight", "process", "smelt", "stone", "woodcut"};
+	
+	private Map<String, Skill> skillMapping;
 	
 	public static void init() {
 		double startingExperience = 100;
@@ -21,6 +21,8 @@ public class SkillBook {
 		}
 		experienceNeeded[MAX_LEVEL + 1] = Integer.MAX_VALUE / 2;
 	}
+	
+	TODO: Use
 	
 	public void addExperienceToSkill(String skillName, int experience) {
 		Skill skill = skillMapping.get(skillName);

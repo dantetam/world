@@ -20,6 +20,7 @@ import io.github.dantetam.world.items.InventoryItem;
 import io.github.dantetam.world.process.Process;
 import io.github.dantetam.world.process.Process.ProcessStep;
 import io.github.dantetam.world.process.priority.BuildingPlacePriority;
+import io.github.dantetam.world.process.priority.ConstructRoomPriority;
 import io.github.dantetam.world.process.priority.DonePriority;
 import io.github.dantetam.world.process.priority.ImpossiblePriority;
 import io.github.dantetam.world.process.priority.ItemDeliveryBuildingPriority;
@@ -117,7 +118,9 @@ public class LocalGridTimeExecution {
 					}
 				}
 			}
-			
+			if (human.processProgress == null && human.activePriority == null) {
+				assignSingleHumanJob(society, human);
+			}
 		}
 		numDayTicks++;
 	}
@@ -209,6 +212,11 @@ public class LocalGridTimeExecution {
 		}
 		else if (priority instanceof BuildingPlacePriority) {
 			BuildingPlacePriority buildPriority = (BuildingPlacePriority) priority;
+			
+			TODO
+			//If available building, use it, otherwise
+			//Find space needed for building, allocate it, and start building task
+			
 			if (buildPriority.coords.manhattanDist(being.location.coords) <= 1) {
 				LocalTile tile = grid.getTile(buildPriority.coords);
 				if (being.inventory.hasItem(buildPriority.buildingItem) &&
@@ -221,6 +229,9 @@ public class LocalGridTimeExecution {
 			else {
 				return getTasksFromPriority(grid, being, new MovePriority(buildPriority.coords));
 			}
+		}
+		else if (priority instanceof ConstructRoomPriority) {
+			TODO
 		}
 		else if (priority instanceof MovePriority) {
 			MovePriority movePriority = (MovePriority) priority;

@@ -98,7 +98,8 @@ public class ItemData {
 	
 	public static void addItemToDatabase(int id, String name, boolean placeable, 
 			String[] groups, Integer stackable, int refinedForm, ItemTotalDrops itemTotalDrops,
-			int time, double baseValue, List<ProcessStep> itemActions) {
+			int time, double baseValue, List<ProcessStep> itemActions, 
+			List<Vector3i> specBuildOffsets) {
 		InventoryItem newItem = new InventoryItem(id, 0, name);
 		allItemsById.put(id, newItem);
 		itemNamesToIds.put(name, id);
@@ -129,11 +130,17 @@ public class ItemData {
 		if (itemActions != null) {
 			itemActionsById.put(id, itemActions);
 		}
-		GENERATED_BASE_ID = Math.max(GENERATED_BASE_ID, id + 1);
+		if (specBuildOffsets != null && specBuildOffsets.size() > 0) {
+			specialBuildingOffsets.put(id, specBuildOffsets);
+		}
+		
+		//Adjust this id so that new ids will always never conflict with the current items
+		GENERATED_BASE_ID = Math.max(GENERATED_BASE_ID, id + 1); 
 	}
 	
 	public static int generateItem(String name) {
-		addItemToDatabase(GENERATED_BASE_ID, name, false, null, 15, ItemData.ITEM_EMPTY_ID, null, 100, 0.0, null);
+		addItemToDatabase(GENERATED_BASE_ID, name, false, null, 15, ItemData.ITEM_EMPTY_ID, 
+				null, 100, 0.0, null, null);
 		GENERATED_BASE_ID++;
 		return GENERATED_BASE_ID - 1;
 	}

@@ -22,7 +22,7 @@ public class Human extends LivingEntity {
 		hydration = 50;
 		nutrition = 20;
 		rest = 0;
-		skillBook = SkillBookData.newSkillBook();
+		skillBook = new SkillBook();
 	}
 
 }

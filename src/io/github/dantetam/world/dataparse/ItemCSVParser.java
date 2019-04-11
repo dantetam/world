@@ -9,6 +9,7 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.csv.CSVRecord;
 
+import io.github.dantetam.vector.Vector3i;
 import io.github.dantetam.world.dataparse.ItemTotalDrops.ItemDrop;
 import io.github.dantetam.world.dataparse.ItemTotalDrops.ItemDropTrial;
 import io.github.dantetam.world.items.InventoryItem;
@@ -110,8 +111,26 @@ public class ItemCSVParser extends WorldCsvParser {
 			else
 				throw new IllegalArgumentException("Could not find refined form of name: " + refinedFormName);
 		}
+		
+		List<Vector3i> specBuildOffsets = new ArrayList<>();
+		String offsetsString = record.get("Building Bounds");
+		if (!offsetsString.isBlank()) {
+			String[] vecStrings = offsetsString.split("/");
+			for (String vecString: vecStrings) {
+				String[] vecData = vecString.split(",");
+				if (vecData.length != 3) throw new IllegalArgumentException("Could not parse Vector3i: " + vecString);
+				try {
+					int x = Integer.parseInt(vecData[0]), y = Integer.parseInt(vecData[1]), z = Integer.parseInt(vecData[2]);
+					specBuildOffsets.add(new Vector3i(x,y,z));
+				} catch (NumberFormatException e) {
+					e.printStackTrace();
+					throw new IllegalArgumentException("Could not parse Vector3i: " + vecString);
+				}
+			}
+		}
+		
 		ItemData.addItemToDatabase(id, name, placeable, groups, stackNum, refinedId, itemDrops, 
-				pickupTime, baseValue, itemActions);
+				pickupTime, baseValue, itemActions, specBuildOffsets);
 		
 		//Create a new process for the item harvesting for resource utility purposes
 		if (placeable) {
