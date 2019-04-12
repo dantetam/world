@@ -56,6 +56,10 @@ public class Vector3i extends KdPoint {
 		return new Vector3i(x + other.x, y + other.y, z + other.z);
 	}
 	
+	public Vector3i getSubtractedBy(Vector3i other) {
+		return new Vector3i(x - other.x, y - other.y, z - other.z);
+	}
+	
 	public float magnitude() {
 		return (float) Math.sqrt(x * x + y * y + z * z);
 	}

@@ -17,10 +17,11 @@ public class SpaceFillingAlgorithm {
 
 	/**
 	 * 
-	 * @return
+	 * @return The maximum rectangle closest to center, with minimum dimensions (desiredR, desiredC),
+	 * if one exists within maxDistFlat * trials distance (square dist) away from center.
 	 */
 	public static Set<Vector3i> findAvailableSpace(LocalGrid grid, Vector3i center, 
-			int desiredNumTiles, boolean sameLevel) {
+			int desiredR, int desiredC, boolean sameLevel) {
 		//int minDistFlat = 0;
 		int maxDistFlat = 10;
 		int trials = 0;
@@ -39,6 +40,9 @@ public class SpaceFillingAlgorithm {
 			int componentIndex = 0;
 			for (Set<Vector3i> component: components) {
 				int[] maxSubRect = AlgUtil.findMaxRect(component);
+				
+				if (maxSubRect[2] < desiredR || maxSubRect[3] < desiredC) continue; 
+				
 				componentMaxSubRect.add(maxSubRect);
 				
 				Vector3i centerRectSpace = new Vector3i(

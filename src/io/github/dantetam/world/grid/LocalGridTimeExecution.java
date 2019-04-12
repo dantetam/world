@@ -6,8 +6,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
+import io.github.dantetam.toolbox.AlgUtil;
 import io.github.dantetam.toolbox.MathUti;
+import io.github.dantetam.vector.Vector2i;
 import io.github.dantetam.vector.Vector3i;
 import io.github.dantetam.world.ai.Pathfinder;
 import io.github.dantetam.world.ai.Pathfinder.ScoredPath;
@@ -213,10 +216,6 @@ public class LocalGridTimeExecution {
 		else if (priority instanceof BuildingPlacePriority) {
 			BuildingPlacePriority buildPriority = (BuildingPlacePriority) priority;
 			
-			TODO
-			//If available building, use it, otherwise
-			//Find space needed for building, allocate it, and start building task
-			
 			if (buildPriority.coords.manhattanDist(being.location.coords) <= 1) {
 				LocalTile tile = grid.getTile(buildPriority.coords);
 				if (being.inventory.hasItem(buildPriority.buildingItem) &&
@@ -275,8 +274,37 @@ public class LocalGridTimeExecution {
 		
 		if (primaryLocation == null) {
 			int buildingId = ItemData.getIdFromName(being.processProgress.requiredBuildNameOrGroup);
-			Vector3i nearOpenSpace = grid.getNearOpenSpace(society.societyCenter);
-			priority = new BuildingPlacePriority(nearOpenSpace, ItemData.createItem(buildingId, 1));
+			Vector2i requiredSpace = ItemData.buildingSize(buildingId);
+			
+			Vector3i nearOpenSpace = null; // = grid.getNearOpenSpace(society.societyCenter);
+			
+			//If available building, use it, 
+			//otherwise find space needed for building, allocate it, and start allocating a room
+			Collection<Vector3i> nearestBuildingCoords = grid.getNearestBuildings(being.location.coords);
+			for (Vector3i nearestBuildingCoord: nearestBuildingCoords) {
+				LocalBuilding building = grid.getTile(nearestBuildingCoord).building;
+				if (building != null) {
+					Set<Vector3i> emptySpace = grid.getFreeSpace(building);
+					if (emptySpace.size() > requiredSpace.x * requiredSpace.y) {
+						int height = emptySpace.iterator().next().z;
+						int[] bestBounds = AlgUtil.findMaxRect(emptySpace);
+						nearOpenSpace = new Vector3i(bestBounds[0], bestBounds[1], height);
+					}
+				}
+			}
+			if (nearOpenSpace == null) { //No available rooms to use
+				Set<Vector3i> openSpace = SpaceFillingAlgorithm.findAvailableSpace(grid, being.location.coords, 
+						requiredSpace.x, requiredSpace.y, true);
+				if (openSpace != null) {
+					priority = new ConstructRoomPriority(openSpace, buildingMaterials);
+				}
+				else {
+					priority = new ImpossiblePriority();
+				}
+			}
+			else {
+				priority = new BuildingPlacePriority(nearOpenSpace, ItemData.createItem(buildingId, 1));
+			}
 			return priority;
 		}
 		

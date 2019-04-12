@@ -2,6 +2,7 @@ package io.github.dantetam.world.grid;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -31,6 +32,7 @@ public class LocalGrid {
 	private Map<Integer, KdTree<Vector3i>> itemIdQuickTileLookup; //Search for item ids quickly in 3d space
 	private KdTree<Vector3i> globalItemsLookup; //Search for all items left on the floor, for quicker kdtree search over a smaller space
 	private Map<Integer, KdTree<Vector3i>> globalTileBlockLookup;
+	private KdTree<Vector3i> buildingLookup;
 	
 	public LocalGrid(Vector3i size) {
 		rows = size.x; cols = size.y; heights = size.z;
@@ -39,6 +41,7 @@ public class LocalGrid {
 		itemIdQuickTileLookup = new HashMap<>();
 		globalItemsLookup = new KdTree<>();
 		globalTileBlockLookup = new HashMap<>();
+		buildingLookup = new KdTree<>();
 	}
 	
 	/**
@@ -232,6 +235,7 @@ public class LocalGrid {
 				buildingTileIndex++;
 			} 
 			allBuildings.add(building);
+			buildingLookup.add(newPrimaryCoords);
 		}
 	}
 	
@@ -244,12 +248,28 @@ public class LocalGrid {
 				oldTile.tileBlockId = ItemData.ITEM_EMPTY_ID;
 			}
 		}
+		buildingLookup.remove(building.getPrimaryLocation());
 		building.setPrimaryLocation(null);
 		allBuildings.remove(building);
 	}
 	
 	public Set<LocalBuilding> getAllBuildings() {
 		return allBuildings;
+	}
+	
+	public Collection<Vector3i> getNearestBuildings(Vector3i coords) {
+		return this.buildingLookup.nearestNeighbourListSearch(10, coords);
+	}
+	
+	public Set<Vector3i> getFreeSpace(LocalBuilding building) {
+		Set<Vector3i> emptySpaces = new HashSet<>();
+		for (Vector3i location: building.calculatedLocations) {
+			LocalTile buildingTile = getTile(location);
+			if (buildingTile.tileBlockId == ItemData.ITEM_EMPTY_ID) {
+				emptySpaces.add(buildingTile.coords);
+			}
+		}
+		return emptySpaces;
 	}
 	
 	public void addHuman(LivingEntity human, Vector3i coords) {

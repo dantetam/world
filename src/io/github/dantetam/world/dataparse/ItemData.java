@@ -9,6 +9,8 @@ import java.util.Map;
 import java.util.Set;
 
 import io.github.dantetam.lwjglEngine.render.VBOLoader;
+import io.github.dantetam.toolbox.AlgUtil;
+import io.github.dantetam.vector.Vector2i;
 import io.github.dantetam.vector.Vector3i;
 import io.github.dantetam.world.grid.LocalBuilding;
 import io.github.dantetam.world.items.InventoryItem;
@@ -42,6 +44,7 @@ public class ItemData {
 	private static Map<Integer, Integer> refinedFormsById = new HashMap<>();
 	
 	private static Map<Integer, List<Vector3i>> specialBuildingOffsets = new HashMap<>();
+	private static Map<Integer, Vector2i> buildingSizes = new HashMap<>();
 	private static Map<Integer, List<Integer>> specialBuildingBlockIds = new HashMap<>();
 	
 	public static InventoryItem createItem(int id, int quantity) {
@@ -130,8 +133,17 @@ public class ItemData {
 		if (itemActions != null) {
 			itemActionsById.put(id, itemActions);
 		}
-		if (specBuildOffsets != null && specBuildOffsets.size() > 0) {
-			specialBuildingOffsets.put(id, specBuildOffsets);
+		
+		if (itemGroups.get("Building").contains(id)) {
+			if (specBuildOffsets != null && specBuildOffsets.size() > 0) {
+				specialBuildingOffsets.put(id, specBuildOffsets);
+				Vector3i[] pointBounds = AlgUtil.findCoordBounds(specBuildOffsets);
+				Vector3i bounds = pointBounds[1].getSubtractedBy(pointBounds[0]);
+				buildingSizes.put(id, new Vector2i(bounds.x, bounds.y));
+			}
+			else {
+				buildingSizes.put(id, new Vector2i(1, 1));
+			}
 		}
 		
 		//Adjust this id so that new ids will always never conflict with the current items
@@ -224,6 +236,16 @@ public class ItemData {
 			building = new LocalBuilding(name, null, null, singleIdList);
 		}
 		return building;
+	}
+	
+	public static Vector2i buildingSize(int id) {
+		if (!allItemsById.containsKey(id)) {
+			throw new IllegalArgumentException("Could not find item id: " + id);
+		}
+		if (!(buildingSizes.containsKey(id))) {
+			throw new IllegalArgumentException("Could not find building (as an item) id: " + id);
+		}
+		return buildingSizes.get(id);
 	}
 	
 }

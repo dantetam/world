@@ -1,6 +1,7 @@
 package io.github.dantetam.toolbox;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Set;
 import java.util.Stack;
 
@@ -12,7 +13,7 @@ public class AlgUtil {
 	 * @return The minimum and maximum bounds of the set of coords in three dimensions,
 	 * formatted as two Vector3i objects.
 	 */
-	public static Vector3i[] findCoordBounds(Set<Vector3i> coords) {
+	public static Vector3i[] findCoordBounds(Collection<Vector3i> coords) {
 		Vector3i minBounds = null, maxBounds = null;
 		for (Vector3i coord: coords) {
 			if (minBounds == null) {
