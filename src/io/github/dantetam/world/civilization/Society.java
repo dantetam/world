@@ -60,22 +60,18 @@ public class Society {
 		int i = 0;
 		while (processByUtil.size() < desiredNumProcess && i < sortedKeys.length) {
 			Integer itemId = (Integer) sortedKeys[i];
-			
-			//System.out.println("_____" + ItemData.getNameFromId(itemId));
-			
 			Process bestProcess = findBestProcess(allItemsUtility, human, itemId);
 			
-			//System.out.println(bestProcess);
-			
 			if (bestProcess != null) {
-				if (desiredItems != null && desiredItems.contains(itemId)) {
+				if (desiredItems == null || desiredItems.contains(itemId)) {
 					processByUtil.put(bestProcess, sortedUtility.get(itemId));
 				}
 			}
 			i++;
 		}
-		
-		//System.out.println(processByUtil);
+
+		processByUtil = MathUti.getSortedMapByValueDesc(processByUtil);
+		System.out.println(processByUtil);
 		
 		Map<Process, Double> processByPercentage = MathUti.getNormalizedMap(processByUtil);
 		return processByPercentage;
@@ -92,6 +88,8 @@ public class Society {
 		fringe.add(outputItemId);
 		
 		Map<Integer, Double> rawResRarity = findRawResourcesRarity(human);
+		//System.out.println("raw resource rarity: ");
+		//System.out.println(rawResRarity);
 		
 		while (fringe.size() > 0) {
 			Map<Process, Double> currentUtilCandidates = new HashMap<>();
@@ -186,11 +184,12 @@ public class Society {
 	public Map<Integer, Double> findCompleteUtilityAllItems(Human human) {
 		Map<Integer, Double> allRarity = findAllAvailableResourceRarity(human);
 		Set<Integer> availableItemIds = allRarity.keySet();
+		Map<Integer, Double> economicRarityMap = findAdjEconomicRarity();
 		
 		Map<String, Double> needsIntensity = findAllNeedsIntensity();
 		
 		Map<String, Double> needWeights = new HashMap<>();
-		needWeights.put("Eat", 4.0);
+		needWeights.put("Eat", 8.0);
 		needWeights.put("Rest", 2.0);
 		
 		//Used to normalize the values and determine 
@@ -200,6 +199,7 @@ public class Society {
 		
 		for (int itemId : availableItemIds) {
 			double itemRarity = new Double(Math.log10(allRarity.get(itemId)));
+			double economicRarity = new Double(economicRarityMap.get(itemId));
 			
 			Function<Entry<String, Double>, Double> utilCalcBalance = e -> {
 				Double intensity = needsIntensity.get(e.getKey());
@@ -209,7 +209,7 @@ public class Society {
 				
 				double needWeight = needWeights.containsKey(e.getKey()) ? needWeights.get(e.getKey()) : 1.0;
 				
-				return e.getValue() * intensity * needWeight / itemRarity;
+				return (e.getValue() * intensity * needWeight) / (itemRarity * economicRarity);
 			};
 			
 			//Develop a basic utility value: item use * need for item use / rareness
@@ -253,16 +253,9 @@ public class Society {
 		for (int r = 0; r < grid.rows; r++) {
 			for (int c = 0; c < grid.cols; c++) {
 				int startHeight = grid.findLowestEmptyHeight(r, c) - 1;
-				for (int h = startHeight; h >= 0; h--) {
+				for (int h = startHeight; h >= startHeight - 5; h--) {
 					LocalTile tile = grid.getTile(new Vector3i(r, c, h));
 					if (tile == null) continue;
-					if (tile.tileBlockId != ItemData.ITEM_EMPTY_ID) {
-						ItemTotalDrops drops = ItemData.getOnBlockItemDrops(tile.tileBlockId);
-						Map<Integer, Double> itemExpectations = drops.itemExpectation();
-						for (Entry<Integer, Double> entry: itemExpectations.entrySet()) {
-							MathUti.addNumMap(itemRarity, entry.getKey(), entry.getValue());
-						}
-					}
 					if (tile.itemsOnFloor.getItems() != null) {
 						List<InventoryItem> items = tile.itemsOnFloor.getItems();
 						for (InventoryItem item: items) {
@@ -297,6 +290,48 @@ public class Society {
 		}
 		else {
 			List<InventoryItem> items = human.inventory.getItems();
+			for (InventoryItem item: items) {
+				MathUti.addNumMap(itemRarity, item.itemId, (double) item.quantity);
+			}
+		}
+		return itemRarity;
+	}
+	
+	/**
+	 * Directly count the adjusted economic rarity of all items on the map i.e.
+	 * the inherent value of items on a 'free market'. This is useful for not having
+	 * too many people produce the same resource, i.e. if wooden walls are the most
+	 * profitable good when there are none, but 
+	 */
+	private Map<Integer, Double> findAdjEconomicRarity() {
+		Map<Integer, Double> itemRarity = this.findAllAvailableResourceRarity(null);
+		for (int r = 0; r < grid.rows; r++) {
+			for (int c = 0; c < grid.cols; c++) {
+				int startHeight = grid.findLowestEmptyHeight(r, c) - 1;
+				for (int h = startHeight; h >= startHeight - 5; h--) {
+					LocalTile tile = grid.getTile(new Vector3i(r, c, h));
+					if (tile == null) continue;
+					if (tile.tileBlockId != ItemData.ITEM_EMPTY_ID) {
+						ItemTotalDrops drops = ItemData.getOnBlockItemDrops(tile.tileBlockId);
+						Map<Integer, Double> itemExpectations = drops.itemExpectation();
+						for (Entry<Integer, Double> entry: itemExpectations.entrySet()) {
+							MathUti.addNumMap(itemRarity, entry.getKey(), entry.getValue());
+						}
+					}
+				}
+			}
+		}
+		for (LocalBuilding building: grid.getAllBuildings()) {
+			for (int itemId: building.buildingBlockIds) {
+				ItemTotalDrops drops = ItemData.getOnBlockItemDrops(itemId);
+				Map<Integer, Double> itemExpectations = drops.itemExpectation();
+				for (Entry<Integer, Double> entry: itemExpectations.entrySet()) {
+					MathUti.addNumMap(itemRarity, entry.getKey(), entry.getValue());
+				}
+			}
+		}
+		for (Human everyHuman: inhabitants) {
+			List<InventoryItem> items = everyHuman.inventory.getItems();
 			for (InventoryItem item: items) {
 				MathUti.addNumMap(itemRarity, item.itemId, (double) item.quantity);
 			}
@@ -480,7 +515,7 @@ public class Society {
 		
 		for (Entry<Integer, Double> entry: rawResRarity.entrySet()) {
 			int itemId = entry.getKey();
-			if (ItemData.isPlaceable(itemId)) {
+			if (ItemData.isPlaceable(itemId) && ItemData.isValidBuildingMaterial(itemId)) {
 				int pickupTime = ItemData.getPickupTime(itemId);
 				double strength = Math.pow(pickupTime / 100.0, 1.5);
 				bestBuildingMaterials.put(itemId, rawResRarity.get(itemId) * strength);

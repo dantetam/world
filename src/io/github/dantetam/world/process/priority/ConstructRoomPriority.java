@@ -8,10 +8,10 @@ import io.github.dantetam.vector.Vector3i;
 
 public class ConstructRoomPriority extends Priority {
 
-	public Set<Vector3i> allBuildingCoords;
+	public List<Vector3i> allBuildingCoords;
 	public Collection<Integer> rankedBuildMaterials;
 	
-	public ConstructRoomPriority(Set<Vector3i> buildingCoords, Collection<Integer> rankedMaterials) {
+	public ConstructRoomPriority(List<Vector3i> buildingCoords, Collection<Integer> rankedMaterials) {
 		super(null);
 		allBuildingCoords = buildingCoords;
 		rankedBuildMaterials = rankedMaterials;

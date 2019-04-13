@@ -2,6 +2,8 @@ package io.github.dantetam.world.grid;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,6 +34,8 @@ import io.github.dantetam.world.process.priority.ItemPickupBuildingPriority;
 import io.github.dantetam.world.process.priority.ItemPickupPriority;
 import io.github.dantetam.world.process.priority.MovePriority;
 import io.github.dantetam.world.process.priority.Priority;
+import io.github.dantetam.world.process.priority.TileHarvestPriority;
+import io.github.dantetam.world.process.priority.TilePlacePriority;
 import io.github.dantetam.world.process.prioritytask.DropoffInvTask;
 import io.github.dantetam.world.process.prioritytask.MoveTask;
 import io.github.dantetam.world.process.prioritytask.PickupTask;
@@ -56,6 +60,7 @@ public class LocalGridTimeExecution {
 			String processName = human.processProgress == null ? "null" : human.processProgress.name;
 			System.out.println(human.name + " is at location " + human.location.coords + 
 					", with process: " + processName); 
+			System.out.println("Inventory (counts): " + human.inventory.toUniqueItemsMap());
 					// + human.processProgress == null ? "null" : human.processProgress.name);
 			System.out.println("Priority: " + human.activePriority);
 			
@@ -216,6 +221,16 @@ public class LocalGridTimeExecution {
 				return getTasksFromPriority(grid, being, new MovePriority(itemPriority.coords));
 			}
 		}
+		else if (priority instanceof TileHarvestPriority) {
+			TileHarvestPriority tilePriority = (TileHarvestPriority) priority;
+			if (tilePriority.coords.manhattanDist(being.location.coords) <= 1) {
+				grid.putBlockIntoTile(tilePriority.coords, ItemData.ITEM_EMPTY_ID);
+				return tasks;
+			}
+			else {
+				return getTasksFromPriority(grid, being, new MovePriority(tilePriority.coords));
+			}
+		}
 		else if (priority instanceof BuildingPlacePriority) {
 			BuildingPlacePriority buildPriority = (BuildingPlacePriority) priority;
 			
@@ -235,14 +250,17 @@ public class LocalGridTimeExecution {
 		else if (priority instanceof ConstructRoomPriority) {
 			ConstructRoomPriority consPriority = (ConstructRoomPriority) priority;
 			
-			Collection<Integer> rankedMaterials = consPriority.rankedBuildMaterials;
+			if (consPriority.allBuildingCoords.size() == 0) return null;
 			
+			Vector3i bestLocation = consPriority.allBuildingCoords.get(0);
+			Collection<Integer> rankedMaterials = consPriority.rankedBuildMaterials;
+						
 			for (int materialId: rankedMaterials) {
-				if (being.inventory.hasItems(materialId)) {
-					priority = new ItemDeliveryPriority(primaryLocation, new Inventory(process.inputItems));
+				if (being.inventory.findItemCount(materialId) > 0) {
+					return getTasksFromPriority(grid, being, new TilePlacePriority(bestLocation, materialId));
 				}
 			}
-			
+			return null;
 		}
 		else if (priority instanceof MovePriority) {
 			MovePriority movePriority = (MovePriority) priority;
@@ -302,6 +320,7 @@ public class LocalGridTimeExecution {
 						int height = emptySpace.iterator().next().z;
 						int[] bestBounds = AlgUtil.findMaxRect(emptySpace);
 						nearOpenSpace = new Vector3i(bestBounds[0], bestBounds[1], height);
+						break;
 					}
 				}
 			}
@@ -314,14 +333,20 @@ public class LocalGridTimeExecution {
 				int bestR = maxSubRect[0], bestC = maxSubRect[1],
 						rectR = maxSubRect[2], rectC = maxSubRect[3];
 				
-				Set<Integer> bestBuildingMaterial = society.getBestBuildingMaterials(calcUtility, 
+				Set<Integer> bestBuildingMaterials = society.getBestBuildingMaterials(calcUtility, 
 						being, (requiredSpace.x + requiredSpace.y) * 2);
-				
-				Set<Vector3i> bestRectangle = Vector3i.getRange(
+					
+				List<Vector3i> bestRectangle = Vector3i.getRange(
 						new Vector3i(bestR, bestC, height), new Vector3i(bestR + rectR - 1, bestC + rectC - 1, height));
+				Collections.sort(bestRectangle, new Comparator<Vector3i>() {
+					@Override
+					public int compare(Vector3i o1, Vector3i o2) {
+						return o2.manhattanDist(being.location.coords) - o1.manhattanDist(being.location.coords);
+					}
+				});
 				
 				if (openSpace != null) {
-					priority = new ConstructRoomPriority(bestRectangle, bestBuildingMaterial);
+					priority = new ConstructRoomPriority(bestRectangle, bestBuildingMaterials);
 				}
 				else {
 					priority = new ImpossiblePriority();
@@ -349,29 +374,8 @@ public class LocalGridTimeExecution {
 				
 				int firstItemNeeded = (Integer) regularItemNeeds.keySet().toArray()[0];
 				int amountNeeded = regularItemNeeds.get(firstItemNeeded);
-				KdTree<Vector3i> nearestItemsTree = grid.getKdTreeForItemId(firstItemNeeded);
 				
-				if (nearestItemsTree == null) {
-					System.out.println(ItemData.getNameFromId(firstItemNeeded));
-					return new ImpossiblePriority();
-				}
-				
-				int numCandidates = Math.min(nearestItemsTree.size(), 10);
-				Collection<Vector3i> nearestCoords = nearestItemsTree.nearestNeighbourListSearch(
-						numCandidates, being.location.coords);
-			
-				Map<Vector3i, Double> score = new HashMap<>();
-				for (Vector3i itemCoords: nearestCoords) {
-					int numItemsAtTile = grid.getTile(itemCoords).itemsOnFloor.findItemCount(firstItemNeeded);
-					numItemsAtTile += grid.getTile(itemCoords).building.inventory.findItemCount(firstItemNeeded);
-					int distUtil = being.location.coords.manhattanDist(itemCoords);
-					score.put(itemCoords, Math.min(numItemsAtTile, amountNeeded) / Math.pow(distUtil, 2));
-				}
-				score = MathUti.getSortedMapByValueDesc(score);
-				
-				Vector3i location = (Vector3i) score.keySet().toArray()[0];
-				InventoryItem itemClone = new InventoryItem(firstItemNeeded, amountNeeded, ItemData.getNameFromId(firstItemNeeded));
-				priority = new ItemPickupPriority(location, itemClone);
+				return progressToFindItem(grid, being.location.coords, firstItemNeeded, amountNeeded);
 			}
 		}
 		else if (step.stepType.startsWith("S")) {
@@ -451,6 +455,34 @@ public class LocalGridTimeExecution {
 		}
 	}
 	
+	private static Priority progressToFindItem(LocalGrid grid, Vector3i centerCoords, int firstItemNeeded, int amountNeeded) {
+		KdTree<Vector3i> nearestItemsTree = grid.getKdTreeForItemId(firstItemNeeded);
+		
+		if (nearestItemsTree == null) {
+			System.out.println(ItemData.getNameFromId(firstItemNeeded));
+			return new ImpossiblePriority();
+		}
+		
+		int numCandidates = Math.min(nearestItemsTree.size(), 10);
+		Collection<Vector3i> nearestCoords = nearestItemsTree.nearestNeighbourListSearch(
+				numCandidates, centerCoords);
+	
+		Map<Vector3i, Double> score = new HashMap<>();
+		for (Vector3i itemCoords: nearestCoords) {
+			int numItemsAtTile = grid.getTile(itemCoords).itemsOnFloor.findItemCount(firstItemNeeded);
+			numItemsAtTile += grid.getTile(itemCoords).building.inventory.findItemCount(firstItemNeeded);
+			int distUtil = centerCoords.manhattanDist(itemCoords);
+			score.put(itemCoords, Math.min(numItemsAtTile, amountNeeded) / Math.pow(distUtil, 2));
+		}
+		score = MathUti.getSortedMapByValueDesc(score);
+		
+		Vector3i location = (Vector3i) score.keySet().toArray()[0];
+		InventoryItem itemClone = new InventoryItem(firstItemNeeded, amountNeeded, ItemData.getNameFromId(firstItemNeeded));
+		
+		return new ItemPickupPriority(location, itemClone);
+	}
+	
+	/*
 	private static Set<InventoryItem> lookForOwnedItems(Human human, Set<Integer> itemIds) {
 		
 	}
@@ -458,5 +490,6 @@ public class LocalGridTimeExecution {
 	private static Set<InventoryItem> findItemIdsToUse(Human human, Set<Integer> itemIds) {
 		
 	}
+	*/
 	
 }

@@ -25,7 +25,7 @@ public class ItemData {
 	private static Map<Integer, InventoryItem> allItemsById = new HashMap<>();
 	static Map<String, Integer> itemNamesToIds = new HashMap<>();
 	
-	//Map group name to list of item ids in group e.g. Stone -> Basalt, Quartz, ...
+	//Map group name to list of item ids in group e.g. Stone -> Basalt_id, Quartz_id, ...
 	private static Map<String, Set<Integer>> itemGroups = new HashMap<>();
 	private static Map<Integer, String> groupNameById = new HashMap<>();
 	
@@ -107,10 +107,15 @@ public class ItemData {
 		allItemsById.put(id, newItem);
 		itemNamesToIds.put(name, id);
 		placeableBlock.put(id, placeable);
+		
+		boolean isBuilding = false;
 		if (groups != null) {
 			for (String group: groups) {
 				group = group.trim();
 				if (!group.isBlank()) {
+					if (group.equals("Building")) {
+						isBuilding = true;
+					}
 					if (!itemGroups.containsKey(group)) {
 						itemGroups.put(group, new HashSet<>());
 					}
@@ -134,7 +139,7 @@ public class ItemData {
 			itemActionsById.put(id, itemActions);
 		}
 		
-		if (itemGroups.get("Building").contains(id)) {
+		if (isBuilding) {
 			if (specBuildOffsets != null && specBuildOffsets.size() > 0) {
 				specialBuildingOffsets.put(id, specBuildOffsets);
 				Vector3i[] pointBounds = AlgUtil.findCoordBounds(specBuildOffsets);
@@ -250,6 +255,10 @@ public class ItemData {
 			throw new IllegalArgumentException("Could not find building (as an item) id: " + id);
 		}
 		return buildingSizes.get(id);
+	}
+	
+	public static boolean isValidBuildingMaterial(int id) {
+		return itemGroups.get("BuildingMaterial").contains(id);
 	}
 	
 }

@@ -118,6 +118,13 @@ public class Inventory {
 			}
 		}
 		
+		for (int itemIndex = items.size() - 1; itemIndex >= 0; itemIndex--) {
+			InventoryItem item = items.get(itemIndex);
+			if (item.quantity <= 0) {
+				items.remove(itemIndex);
+			}
+		}
+		
 		return new Object[] {regularItemNeeds, groupItemNeeds, cloneInv};
 	}
 	

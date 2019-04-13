@@ -22,7 +22,7 @@ public class SkillBook {
 		experienceNeeded[MAX_LEVEL + 1] = Integer.MAX_VALUE / 2;
 	}
 	
-	TODO: Use
+	//TODO: Use
 	
 	public void addExperienceToSkill(String skillName, int experience) {
 		Skill skill = skillMapping.get(skillName);

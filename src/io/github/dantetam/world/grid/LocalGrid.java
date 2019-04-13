@@ -160,11 +160,13 @@ public class LocalGrid {
 	public void putBlockIntoTile(Vector3i coords, int blockId) {
 		//globalTileBlockLookup
 		LocalTile tile = getTile(coords);
-		if (tile != null && tile.tileBlockId == ItemData.ITEM_EMPTY_ID) {
-			if (!(globalTileBlockLookup.containsKey(blockId))) {
-				globalTileBlockLookup.put(blockId, new KdTree<Vector3i>());
+		if (tile != null) {
+			if (tile.tileBlockId != ItemData.ITEM_EMPTY_ID) {
+				if (!(globalTileBlockLookup.containsKey(blockId))) {
+					globalTileBlockLookup.put(blockId, new KdTree<Vector3i>());
+				}
+				globalTileBlockLookup.get(blockId).add(coords);
 			}
-			globalTileBlockLookup.get(blockId).add(coords);
 			tile.tileBlockId = blockId;
 		}
 	}
