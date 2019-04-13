@@ -57,7 +57,10 @@ public class AlgUtil {
 				}
 			}
 		}
-		return findMaxSubRect(convertedOffsetVec);
+		int[] zeroCenteredRect = findMaxSubRect(convertedOffsetVec);
+		zeroCenteredRect[0] += topLeftBound.x;
+		zeroCenteredRect[1] += topLeftBound.y;
+		return zeroCenteredRect;
 	}
 	
     /**

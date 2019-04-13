@@ -41,8 +41,11 @@ import kdtreegeo.KdTree;
 public class LocalGridTimeExecution {
 	
 	public static double numDayTicks = 0;
+	public static Map<Integer, Double> calcUtility;
 	
 	public static void tick(LocalGrid grid, Society society) {
+		calcUtility = society.findCompleteUtilityAllItems(null);
+		
 		System.out.println("<<<<<########>>>>> NUMBER DAY TICKS: " + numDayTicks);
 		if (numDayTicks % 1440 == 0) {
 			numDayTicks = 0;
@@ -230,7 +233,16 @@ public class LocalGridTimeExecution {
 			}
 		}
 		else if (priority instanceof ConstructRoomPriority) {
-			TODO
+			ConstructRoomPriority consPriority = (ConstructRoomPriority) priority;
+			
+			Collection<Integer> rankedMaterials = consPriority.rankedBuildMaterials;
+			
+			for (int materialId: rankedMaterials) {
+				if (being.inventory.hasItems(materialId)) {
+					priority = new ItemDeliveryPriority(primaryLocation, new Inventory(process.inputItems));
+				}
+			}
+			
 		}
 		else if (priority instanceof MovePriority) {
 			MovePriority movePriority = (MovePriority) priority;
@@ -248,7 +260,8 @@ public class LocalGridTimeExecution {
 		return tasks;
 	}
 	
-	private static Priority getPriorityForStep(Society society, LocalGrid grid, LivingEntity being, Process process, ProcessStep step) {
+	private static Priority getPriorityForStep(Society society, LocalGrid grid, Human being, 
+			Process process, ProcessStep step) {
 		Priority priority = null;
 		
 		System.out.println("Figuring out priority, for process: " + process);
@@ -294,9 +307,21 @@ public class LocalGridTimeExecution {
 			}
 			if (nearOpenSpace == null) { //No available rooms to use
 				Set<Vector3i> openSpace = SpaceFillingAlgorithm.findAvailableSpace(grid, being.location.coords, 
-						requiredSpace.x, requiredSpace.y, true);
+						requiredSpace.x * 3, requiredSpace.y * 3, true);
+				int height = openSpace.iterator().next().z;
+				
+				int[] maxSubRect = AlgUtil.findMaxRect(openSpace);
+				int bestR = maxSubRect[0], bestC = maxSubRect[1],
+						rectR = maxSubRect[2], rectC = maxSubRect[3];
+				
+				Set<Integer> bestBuildingMaterial = society.getBestBuildingMaterials(calcUtility, 
+						being, (requiredSpace.x + requiredSpace.y) * 2);
+				
+				Set<Vector3i> bestRectangle = Vector3i.getRange(
+						new Vector3i(bestR, bestC, height), new Vector3i(bestR + rectR - 1, bestC + rectC - 1, height));
+				
 				if (openSpace != null) {
-					priority = new ConstructRoomPriority(openSpace, buildingMaterials);
+					priority = new ConstructRoomPriority(bestRectangle, bestBuildingMaterial);
 				}
 				else {
 					priority = new ImpossiblePriority();
@@ -400,14 +425,14 @@ public class LocalGridTimeExecution {
 	}
 	private static void assignSingleHumanJob(Society society, Human human) {
 		Map<Integer, Double> calcUtility = society.findCompleteUtilityAllItems(human);
-		Map<Process, Double> bestProcesses = society.prioritizeProcesses(calcUtility, human, 10);
+		Map<Process, Double> bestProcesses = society.prioritizeProcesses(calcUtility, human, 10, null);
 		Process bestProcess = (Process) bestProcesses.keySet().toArray()[0];
 		human.processProgress = bestProcess;
 	}
 	
 	private static void collectivelyAssignJobsSociety(Society society) {
 		Map<Integer, Double> calcUtility = society.findCompleteUtilityAllItems(null);
-		Map<Process, Double> bestProcesses = society.prioritizeProcesses(calcUtility, null, 20);
+		Map<Process, Double> bestProcesses = society.prioritizeProcesses(calcUtility, null, 20, null);
 		List<Human> humans = society.getAllPeople();
 		
 		int humanIndex = 0;
@@ -424,6 +449,14 @@ public class LocalGridTimeExecution {
 				humanIndex++;
 			}
 		}
+	}
+	
+	private static Set<InventoryItem> lookForOwnedItems(Human human, Set<Integer> itemIds) {
+		
+	}
+	
+	private static Set<InventoryItem> findItemIdsToUse(Human human, Set<Integer> itemIds) {
+		
 	}
 	
 }

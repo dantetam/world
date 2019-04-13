@@ -1,5 +1,8 @@
 package io.github.dantetam.vector;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import org.lwjgl.util.vector.Vector3f;
 
 import kdtreegeo.KdPoint;
@@ -72,5 +75,19 @@ public class Vector3i extends KdPoint {
 	public static Vector3i sum(Vector3i v1, Vector3i v2) {
 		return new Vector3i(v1.x + v2.x, v1.y + v2.y, v1.z + v2.z);
 	}
+	
+	public static Set<Vector3i> getRange(Vector3i v1, Vector3i v2) {
+		Set<Vector3i> data = new HashSet<>();
+		Vector3i minVec = new Vector3i(Math.min(v1.x, v2.x), Math.min(v1.y, v2.y), Math.min(v1.z, v2.z));
+		Vector3i maxVec = new Vector3i(Math.max(v1.x, v2.x), Math.max(v1.y, v2.y), Math.max(v1.z, v2.z));
+		for (int r = minVec.x; r <= maxVec.x; r++) {
+			for (int c = minVec.y; c <= maxVec.y; c++) {
+				for (int h = minVec.z; h <= maxVec.z; h++) {
+					data.add(new Vector3i(r,c,h));
+				}
+			}
+		}
+		return data;
+	} 
 
 }

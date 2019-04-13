@@ -238,11 +238,15 @@ public class ItemData {
 		return building;
 	}
 	
+	public static boolean isBuildingId(int id) {
+		return buildingSizes.containsKey(id);
+	}
+	
 	public static Vector2i buildingSize(int id) {
 		if (!allItemsById.containsKey(id)) {
 			throw new IllegalArgumentException("Could not find item id: " + id);
 		}
-		if (!(buildingSizes.containsKey(id))) {
+		if (!isBuildingId(id)) {
 			throw new IllegalArgumentException("Could not find building (as an item) id: " + id);
 		}
 		return buildingSizes.get(id);
