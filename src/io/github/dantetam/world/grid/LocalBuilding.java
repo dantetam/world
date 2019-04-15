@@ -12,6 +12,7 @@ import io.github.dantetam.world.items.Inventory;
 
 public class LocalBuilding {
 
+	public int buildingId;
 	public String name;
 	
 	private Vector3i primaryLocation;
@@ -24,7 +25,8 @@ public class LocalBuilding {
 	
 	public Inventory inventory;
 	
-	public LocalBuilding(String name, Vector3i primaryLoc, List<Vector3i> offsets, List<Integer> blockIds) {
+	public LocalBuilding(int buildingId, String name, Vector3i primaryLoc, List<Vector3i> offsets, List<Integer> blockIds) {
+		this.buildingId = buildingId;
 		this.name = name;
 		primaryLocation = primaryLoc;
 		if (offsets.size() != blockIds.size()) {

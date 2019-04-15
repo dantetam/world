@@ -20,6 +20,7 @@ import io.github.dantetam.world.civilization.Human;
 import io.github.dantetam.world.civilization.LivingEntity;
 import io.github.dantetam.world.civilization.Society;
 import io.github.dantetam.world.dataparse.ItemData;
+import io.github.dantetam.world.dataparse.ProcessData;
 import io.github.dantetam.world.items.Inventory;
 import io.github.dantetam.world.items.InventoryItem;
 import io.github.dantetam.world.process.Process;
@@ -429,9 +430,9 @@ public class LocalGridTimeExecution {
 	}
 	private static void assignSingleHumanJob(Society society, Human human) {
 		Map<Integer, Double> calcUtility = society.findCompleteUtilityAllItems(human);
-		Map<Process, Double> bestProcesses = society.prioritizeProcesses(calcUtility, human, 10, null);
-		Process bestProcess = (Process) bestProcesses.keySet().toArray()[0];
-		human.processProgress = bestProcess;
+		Map<Process, Double> bestProcesses = society.prioritizeProcesses(calcUtility, human, 20, null);
+		Process randBiasedChosenProcess = MathUti.randChoiceFromWeightMap(bestProcesses);
+		human.processProgress = randBiasedChosenProcess;
 	}
 	
 	private static void collectivelyAssignJobsSociety(Society society) {
@@ -460,6 +461,8 @@ public class LocalGridTimeExecution {
 		
 		if (nearestItemsTree == null) {
 			System.out.println(ItemData.getNameFromId(firstItemNeeded));
+			
+			//Process harvestNeededProcess = ProcessData.getProcessByName("Harvest " + );
 			return new ImpossiblePriority();
 		}
 		

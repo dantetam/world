@@ -23,7 +23,7 @@ public class WorldGrid {
 		testSociety = new Society(activeLocalGrid);
 		testSociety.societyCenter = new Vector3i(50,50,30);
 		
-		for (int i = 0; i < 10; i++) {
+		for (int i = 0; i < 1; i++) {
 			int r = (int) (Math.random() * activeLocalGrid.rows);
 			int c = (int) (Math.random() * activeLocalGrid.cols);
 			int h = activeLocalGrid.findLowestGroundHeight(r,c);

@@ -56,22 +56,34 @@ public class Society {
 		Map<Integer, Double> sortedUtility = MathUti.getSortedMapByValueDesc(allItemsUtility);
 		Object[] sortedKeys = sortedUtility.keySet().toArray();
 		
+		//System.out.println("Ranked items: ###############");
+		//for (Entry<Integer, Double> entry: sortedUtility.entrySet()) {
+			//System.out.println(ItemData.getNameFromId(entry.getKey()) + "; ranking: " + entry.getValue());
+		//}
+		
 		Map<Process, Double> processByUtil = new HashMap<>();
 		int i = 0;
-		while (processByUtil.size() < desiredNumProcess && i < sortedKeys.length) {
+		while (i < sortedKeys.length) { //processByUtil.size() < desiredNumProcess
 			Integer itemId = (Integer) sortedKeys[i];
-			Process bestProcess = findBestProcess(allItemsUtility, human, itemId);
+			Map<Process, Double> bestProcesses = findBestProcess(allItemsUtility, human, itemId);
 			
-			if (bestProcess != null) {
+			if (bestProcesses != null) {
 				if (desiredItems == null || desiredItems.contains(itemId)) {
-					processByUtil.put(bestProcess, sortedUtility.get(itemId));
+					//processByUtil.put(bestProcess, sortedUtility.get(itemId));
+					for (Entry<Process, Double> entry: bestProcesses.entrySet()) {
+						MathUti.addNumMap(processByUtil, entry.getKey(), entry.getValue());
+					}
 				}
 			}
 			i++;
 		}
 
 		processByUtil = MathUti.getSortedMapByValueDesc(processByUtil);
-		System.out.println(processByUtil);
+		
+		System.out.println("Ranked processes: #####");
+		for (Entry<Process, Double> entry: processByUtil.entrySet()) {
+			System.out.println(entry.getKey().name + "; ranking: " + entry.getValue());
+		}
 		
 		Map<Process, Double> processByPercentage = MathUti.getNormalizedMap(processByUtil);
 		return processByPercentage;
@@ -82,18 +94,20 @@ public class Society {
 	 * which is possible to complete by this human, by just crafting and collecting raw resources.
 	 * @param human The human in question who has access to resources, buildings, etc.
 	 */
-	public Process findBestProcess(Map<Integer, Double> allItemsUtility, Human human, int outputItemId) {
+	public Map<Process, Double> findBestProcess(Map<Integer, Double> allItemsUtility, Human human, int outputItemId) {
 		Set<Integer> visitedItemIds = new HashSet<>();
 		Set<Integer> fringe = new HashSet<>();
 		fringe.add(outputItemId);
+		
+		Map<Process, Double> bestProcesses = new HashMap<>();
 		
 		Map<Integer, Double> rawResRarity = findRawResourcesRarity(human);
 		//System.out.println("raw resource rarity: ");
 		//System.out.println(rawResRarity);
 		
+		System.out.println("_______________________________________" + ItemData.getNameFromId(outputItemId));
+		
 		while (fringe.size() > 0) {
-			Map<Process, Double> currentUtilCandidates = new HashMap<>();
-			
 			Set<Integer> newFringe = new HashSet<>();
 			for (Integer fringeId: fringe) {
 				
@@ -103,14 +117,15 @@ public class Society {
 				for (Process process: processes) {
 					List<InventoryItem> inputs = new ArrayList<>();
 					
-					for (InventoryItem input: process.inputItems) {
-						inputs.add(input);
-					}
 					if (process.requiredBuildNameOrGroup != null) {
 						inputs.add(ItemData.item(process.requiredBuildNameOrGroup, 1));
 					}
 					if (process.requiredTileNameOrGroup != null) {
+						//System.out.println(ItemData.item(process.requiredTileNameOrGroup, 1) + ":processed->" + process.requiredTileNameOrGroup + "<<<<");
 						inputs.add(ItemData.item(process.requiredTileNameOrGroup, 1));
+					}
+					for (InventoryItem input: process.inputItems) {
+						inputs.add(input);
 					}
 					
 					//System.out.println("Looking at process: " + process.toString());
@@ -118,35 +133,31 @@ public class Society {
 					for (InventoryItem input: inputs) {
 						double util = allItemsUtility.containsKey(input.itemId) ? 
 								allItemsUtility.get(input.itemId) : 0;
-						MathUti.insertKeepMaxMap(currentUtilCandidates, process, util);
+						if (canCompleteProcess(process, rawResRarity)) {
+							MathUti.insertKeepMaxMap(bestProcesses, process, util);
+							System.out.println("COMPLETE process: " + process);
+						}
+						else {
+							System.out.println("Could not complete process: " + process);
+						}
 						//if (util > 0)
 							//System.out.println("Found utility for base item: " + util);
-						if (!visitedItemIds.contains(input.itemId) && util > 0) {
-							//if (util > 0)
+						//else 
+							//System.out.println("terminal");
+						if (!visitedItemIds.contains(input.itemId)) {
+							if (util > 0)
+								newFringe.add(input.itemId);
 								//System.out.println("Expanding from " + ItemData.getNameFromId(fringeId) + " -----> " + ItemData.getNameFromId(input.itemId));
-							newFringe.add(input.itemId);
 						}
 					}
-					
 				}
 				visitedItemIds.add(fringeId);
-			}
-			
-			currentUtilCandidates = MathUti.getSortedMapByValue(currentUtilCandidates);
-			
-			Object[] orderedProcesses = currentUtilCandidates.keySet().toArray();
-			for (Object obj: orderedProcesses) {
-				Process process = (Process) obj;
-				
-				if (canCompleteProcess(process, rawResRarity)) {
-					return process.clone();
-				}
-			}
-			
+			}	
 			fringe = newFringe;
 		}
 		
-		return null;
+		bestProcesses = MathUti.getSortedMapByValue(bestProcesses);
+		return bestProcesses;
 	}
 	
 	//Return the necessary items that are needed for a process
@@ -155,6 +166,7 @@ public class Society {
 		List<InventoryItem> inputs = process.inputItems;
 		for (InventoryItem input: inputs) {
 			if (!rawResRarity.containsKey(input.itemId) || rawResRarity.get(input.itemId) == 0) {
+				System.out.println("No input");
 				return false;
 			}
 		}
@@ -163,6 +175,7 @@ public class Society {
 		if (process.requiredBuildNameOrGroup != null) {
 			int buildingId = ItemData.getIdFromName(process.requiredBuildNameOrGroup);
 			if (!rawResRarity.containsKey(buildingId) || rawResRarity.get(buildingId) == 0) {
+				System.out.println("No req building");
 				return false;
 			}
 		}
@@ -170,6 +183,7 @@ public class Society {
 		if (process.requiredTileNameOrGroup != null) {
 			int tileHarvestId = ItemData.getIdFromName(process.requiredTileNameOrGroup);
 			if (!rawResRarity.containsKey(tileHarvestId) || rawResRarity.get(tileHarvestId) == 0) {
+				System.out.println("No required tile");
 				return false;
 			}
 		}
@@ -183,8 +197,8 @@ public class Society {
 	 */
 	public Map<Integer, Double> findCompleteUtilityAllItems(Human human) {
 		Map<Integer, Double> allRarity = findAllAvailableResourceRarity(human);
-		Set<Integer> availableItemIds = allRarity.keySet();
 		Map<Integer, Double> economicRarityMap = findAdjEconomicRarity();
+		Set<Integer> availableItemIds = economicRarityMap.keySet();
 		
 		Map<String, Double> needsIntensity = findAllNeedsIntensity();
 		
@@ -198,8 +212,8 @@ public class Society {
 		Map<Integer, Double> finalOutputUtility = new HashMap<>();
 		
 		for (int itemId : availableItemIds) {
-			double itemRarity = new Double(Math.log10(allRarity.get(itemId)));
-			double economicRarity = new Double(economicRarityMap.get(itemId));
+			double itemRarity = allRarity.containsKey(itemId) ? new Double(Math.log10(allRarity.get(itemId))) : 0;
+			double economicRarity = new Double(Math.log10(economicRarityMap.get(itemId)));
 			
 			Function<Entry<String, Double>, Double> utilCalcBalance = e -> {
 				Double intensity = needsIntensity.get(e.getKey());
@@ -209,7 +223,10 @@ public class Society {
 				
 				double needWeight = needWeights.containsKey(e.getKey()) ? needWeights.get(e.getKey()) : 1.0;
 				
-				return (e.getValue() * intensity * needWeight) / (itemRarity * economicRarity);
+				double tempMultiplier = needWeights.containsKey("Wealth") ? needWeights.get("Wealth") : 0.5;
+				
+				//return (e.getValue() * intensity * needWeight) - (itemRarity * economicRarity);
+				return tempMultiplier * e.getValue() * needWeight;
 			};
 			
 			//Develop a basic utility value: item use * need for item use / rareness
@@ -238,9 +255,7 @@ public class Society {
 		Map<Integer, Double> propogatedFinalUtil = backpropUtilToComponents(finalOutputUtility, availableItemIds);
 		propogatedFinalUtil = MathUti.getSortedMapByValue(propogatedFinalUtil);
 		
-		Map<String, Double> sortedNeedUtility = MathUti.getSortedMapByValue(totalNeedsUtility);
-		
-		//for 
+		//Map<String, Double> sortedNeedUtility = MathUti.getSortedMapByValue(totalNeedsUtility); 
 		
 		return propogatedFinalUtil;
 	}
@@ -266,11 +281,24 @@ public class Society {
 							}
 						}
 					}
+					if (tile.tileBlockId != ItemData.ITEM_EMPTY_ID) {
+						MathUti.addNumMap(itemRarity, tile.tileBlockId, 1.0);
+					}
+					/*
+					if (tile.tileBlockId != ItemData.ITEM_EMPTY_ID) {
+						ItemTotalDrops drops = ItemData.getOnBlockItemDrops(tile.tileBlockId);
+						Map<Integer, Double> itemExpectations = drops.itemExpectation();
+						for (Entry<Integer, Double> entry: itemExpectations.entrySet()) {
+							MathUti.addNumMap(itemRarity, entry.getKey(), entry.getValue());
+						}
+					}
+					*/
 				}
 			}
 		}
 		for (LocalBuilding building: grid.getAllBuildings()) {
 			if (human == null || building.owner == null || building.owner.equals(human)) {
+				MathUti.addNumMap(itemRarity, building.buildingId, 1.0);
 				for (int itemId: building.buildingBlockIds) {
 					ItemTotalDrops drops = ItemData.getOnBlockItemDrops(itemId);
 					Map<Integer, Double> itemExpectations = drops.itemExpectation();
@@ -305,22 +333,18 @@ public class Society {
 	 */
 	private Map<Integer, Double> findAdjEconomicRarity() {
 		Map<Integer, Double> itemRarity = this.findAllAvailableResourceRarity(null);
+		/*
 		for (int r = 0; r < grid.rows; r++) {
 			for (int c = 0; c < grid.cols; c++) {
 				int startHeight = grid.findLowestEmptyHeight(r, c) - 1;
 				for (int h = startHeight; h >= startHeight - 5; h--) {
 					LocalTile tile = grid.getTile(new Vector3i(r, c, h));
 					if (tile == null) continue;
-					if (tile.tileBlockId != ItemData.ITEM_EMPTY_ID) {
-						ItemTotalDrops drops = ItemData.getOnBlockItemDrops(tile.tileBlockId);
-						Map<Integer, Double> itemExpectations = drops.itemExpectation();
-						for (Entry<Integer, Double> entry: itemExpectations.entrySet()) {
-							MathUti.addNumMap(itemRarity, entry.getKey(), entry.getValue());
-						}
-					}
+					//
 				}
 			}
 		}
+		*/
 		for (LocalBuilding building: grid.getAllBuildings()) {
 			for (int itemId: building.buildingBlockIds) {
 				ItemTotalDrops drops = ItemData.getOnBlockItemDrops(itemId);
@@ -334,6 +358,15 @@ public class Society {
 			List<InventoryItem> items = everyHuman.inventory.getItems();
 			for (InventoryItem item: items) {
 				MathUti.addNumMap(itemRarity, item.itemId, (double) item.quantity);
+			}
+			if (everyHuman.processProgress != null) {
+				ItemTotalDrops drops = everyHuman.processProgress.outputItems;
+				if (drops != null) {
+					Map<Integer, Double> itemExpectations = drops.itemExpectation();
+					for (Entry<Integer, Double> entry: itemExpectations.entrySet()) {
+						MathUti.addNumMap(itemRarity, entry.getKey(), entry.getValue() * 5);
+					}
+				}
 			}
 		}
 		return itemRarity;

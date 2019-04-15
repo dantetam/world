@@ -84,7 +84,7 @@ public class ItemData {
 			int id = itemNamesToIds.get(name);
 			return createItem(id, quantity);
 		}
-		return null;
+		throw new IllegalArgumentException("Could not find item name: " + name);
 	}
 	
 	public static InventoryItem randomItem() {
@@ -234,11 +234,11 @@ public class ItemData {
 		if (specialBuildingOffsets.containsKey(id)) {
 			List<Vector3i> offsets = specialBuildingOffsets.get(id);
 			List<Integer> blockIds = specialBuildingBlockIds.get(id);
-			building = new LocalBuilding(name, null, offsets, blockIds);
+			building = new LocalBuilding(id, name, null, offsets, blockIds);
 		}
 		else {
 			List<Integer> singleIdList = Collections.singletonList(id);
-			building = new LocalBuilding(name, null, null, singleIdList);
+			building = new LocalBuilding(id, name, null, null, singleIdList);
 		}
 		return building;
 	}

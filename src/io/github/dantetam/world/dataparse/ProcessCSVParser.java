@@ -33,6 +33,9 @@ public class ProcessCSVParser extends WorldCsvParser {
 		String requiredBuilding = record.get("Required Buildings");
 	    Matcher buildingMatcher = Pattern.compile(pattern).matcher(requiredBuilding);
 		
+	    String requiredLocation = record.get("Required Location");
+	    Matcher tileMatcher = Pattern.compile(pattern).matcher(requiredLocation);
+	    
 		for (String singleInput : multipleInput) {
 		    Matcher inputGroupMatcher = Pattern.compile(pattern).matcher(singleInput);
 		    
@@ -92,8 +95,23 @@ public class ProcessCSVParser extends WorldCsvParser {
 				else {
 					for (String groupItemName: groupNames) {
 						Map<String, String> copyRecord = new HashMap<>(record);
-						String newBuildingName = singleInput.replaceFirst("\\<(.*?)\\>", groupItemName);
+						String newBuildingName = requiredBuilding.replaceFirst("\\<(.*?)\\>", groupItemName);
 						copyRecord.put("Required Buildings", newBuildingName);
+						preprocessExpandingRecipe(copyRecord);
+					}
+				}
+			}
+			else if (tileMatcher.find()) {
+				String groupName = tileMatcher.group(1);
+				List<String> groupNames = ItemCSVParser.groupSyntaxShortcuts.get(groupName);
+				if (groupNames == null) {
+					System.err.println("Could not find group name: " + groupName);
+				}
+				else {
+					for (String groupItemName: groupNames) {
+						Map<String, String> copyRecord = new HashMap<>(record);
+						String newBuildingName = requiredLocation.replaceFirst("\\<(.*?)\\>", groupItemName);
+						copyRecord.put("Required Location", newBuildingName);
 						preprocessExpandingRecipe(copyRecord);
 					}
 				}
@@ -131,7 +149,7 @@ public class ProcessCSVParser extends WorldCsvParser {
 		
 		String tileStr = record.get("Required Location");
 		String tileFloorId = !tileStr.isBlank() ? 
-				tileStr.strip().substring(1, tileStr.length() - 1) : null;
+				tileStr.strip() : null;
 				
 		List<ProcessStep> steps = getProcessingSteps(record.get("Process Steps"));
 		

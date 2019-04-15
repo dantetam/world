@@ -7,6 +7,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 public class MathUti {
 
@@ -71,6 +72,18 @@ public class MathUti {
 			normalized.put(entry.getKey(), entry.getValue().doubleValue() / sum);
 		}
 		return normalized;
+	}
+	
+	public static <T, U extends Number> T randChoiceFromWeightMap(Map<T, U> map) {
+		Map<T, Double> normalized = getNormalizedMap(map);
+		double random = Math.random();
+		double counter = 0;
+		Set<T> keySet = normalized.keySet();
+		for (T key: keySet) {
+			counter += normalized.get(key);
+			if (random <= counter) return key; 
+		}
+		return null;
 	}
 
 	//Ascending sort on a generic mapping

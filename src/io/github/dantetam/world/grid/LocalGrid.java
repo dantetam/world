@@ -399,7 +399,7 @@ public class LocalGrid {
 				ItemData.getIdFromName("Brick Wall"),
 				ItemData.getIdFromName("Anvil")
 				});
-		LocalBuilding building = new LocalBuilding("Test1", new Vector3i(25, 25, 35), listOffsets, listBlockIds);
+		LocalBuilding building = new LocalBuilding(10, "Test1", new Vector3i(25, 25, 35), listOffsets, listBlockIds);
 		
 		grid.addBuilding(building, new Vector3i(25,25,35), true);
 		
