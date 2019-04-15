@@ -132,12 +132,28 @@ public class LocalGrid {
 		return null;
 	}
 	
+	public void addItemRecordsToWorld(Vector3i coords, List<InventoryItem> items) {
+		for (InventoryItem item: items) {
+			addItemRecordToWorld(coords, item);
+		}
+	}
+	
 	public void addItemRecordToWorld(Vector3i coords, InventoryItem item) {
 		if (!(itemIdQuickTileLookup.containsKey(item.itemId))) {
 			itemIdQuickTileLookup.put(item.itemId, new KdTree<Vector3i>());
 		}
 		itemIdQuickTileLookup.get(item.itemId).add(coords);
 		globalItemsLookup.add(coords);
+	}
+	
+	public void removeItemRecordToWorld(Vector3i coords, InventoryItem item) {
+		if (itemIdQuickTileLookup.containsKey(item.itemId)) {
+			itemIdQuickTileLookup.get(item.itemId).remove(coords);
+			LocalTile tile = getTile(coords);
+			if (tile.itemsOnFloor.size() == 0 && tile.building == null && tile.building.inventory.hasItem(item)) {
+				globalItemsLookup.remove(coords);
+			}
+		}
 	}
 	
 	/*

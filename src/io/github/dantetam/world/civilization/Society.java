@@ -105,7 +105,7 @@ public class Society {
 		//System.out.println("raw resource rarity: ");
 		//System.out.println(rawResRarity);
 		
-		System.out.println("_______________________________________" + ItemData.getNameFromId(outputItemId));
+		//System.out.println("_______________________________________" + ItemData.getNameFromId(outputItemId));
 		
 		while (fringe.size() > 0) {
 			Set<Integer> newFringe = new HashSet<>();
@@ -135,10 +135,10 @@ public class Society {
 								allItemsUtility.get(input.itemId) : 0;
 						if (canCompleteProcess(process, rawResRarity)) {
 							MathUti.insertKeepMaxMap(bestProcesses, process, util);
-							System.out.println("COMPLETE process: " + process);
+							//System.out.println("COMPLETE process: " + process);
 						}
 						else {
-							System.out.println("Could not complete process: " + process);
+							//System.out.println("Could not complete process: " + process);
 						}
 						//if (util > 0)
 							//System.out.println("Found utility for base item: " + util);
@@ -166,7 +166,7 @@ public class Society {
 		List<InventoryItem> inputs = process.inputItems;
 		for (InventoryItem input: inputs) {
 			if (!rawResRarity.containsKey(input.itemId) || rawResRarity.get(input.itemId) == 0) {
-				System.out.println("No input");
+				//System.out.println("No input");
 				return false;
 			}
 		}
@@ -175,7 +175,7 @@ public class Society {
 		if (process.requiredBuildNameOrGroup != null) {
 			int buildingId = ItemData.getIdFromName(process.requiredBuildNameOrGroup);
 			if (!rawResRarity.containsKey(buildingId) || rawResRarity.get(buildingId) == 0) {
-				System.out.println("No req building");
+				//System.out.println("No req building");
 				return false;
 			}
 		}
@@ -183,7 +183,7 @@ public class Society {
 		if (process.requiredTileNameOrGroup != null) {
 			int tileHarvestId = ItemData.getIdFromName(process.requiredTileNameOrGroup);
 			if (!rawResRarity.containsKey(tileHarvestId) || rawResRarity.get(tileHarvestId) == 0) {
-				System.out.println("No required tile");
+				//System.out.println("No required tile");
 				return false;
 			}
 		}

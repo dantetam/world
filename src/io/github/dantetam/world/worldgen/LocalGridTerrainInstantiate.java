@@ -7,6 +7,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.apache.commons.math3.distribution.NormalDistribution;
+
+import io.github.dantetam.localdata.ConstantData;
 import io.github.dantetam.lwjglEngine.terrain.ForestGeneration;
 import io.github.dantetam.lwjglEngine.terrain.ForestGeneration.BiomeData;
 import io.github.dantetam.lwjglEngine.terrain.ForestGeneration.ProceduralTree;
@@ -47,6 +50,11 @@ public class LocalGridTerrainInstantiate {
 		
 		int quartzId = ItemData.getIdFromName("Quartz");
 		
+	    int[][] surfaceClusters = generateSurfaceClusters(
+	    		ConstantData.clusterUbiquityMap, 
+	    		ConstantData.clusterSizesMap, 
+	    		terrain);
+		
 		double[][] soilLevels = generateSoilLevels();
 		int[][] soilCompositions = generateSoilCompositions();		
 		for (int r = 0; r < localGrid.rows; r++) {
@@ -70,6 +78,11 @@ public class LocalGridTerrainInstantiate {
 					topTile.tileBlockId = grassId;
 				}
 				localGrid.setTileInstantiate(grassCoord, topTile);
+				
+				int surfaceClusterItemId = surfaceClusters[r][c];
+				if (surfaceClusterItemId != ItemData.ITEM_EMPTY_ID) {
+					topTile.tileBlockId = surfaceClusterItemId;
+				}
 				
 				for (double h = terrain[r][c] - soilLevels[r][c]; h >= 0; h--) {
 					if (h < 0 || h >= localGrid.heights) break;
@@ -218,6 +231,59 @@ public class LocalGridTerrainInstantiate {
 		double[][] rasterizedGrass = RasterizeVoronoi.getPixelRasterGridFromVoronoi(voronoi, voronoiBounds, 
 				biomes, 1, 1);
 		return rasterizedGrass;
+	}
+	
+	public int[][] generateSurfaceClusters(Map<Integer, Double> clusterUbiquityMap, 
+			Map<Integer, Double> clusterSizesMap, double[][] terrain) {
+		int[][] surfaceClusters = new int[terrain.length][terrain[0].length];
+		for (int r = 0; r < terrain.length; r++) {
+			for (int c = 0; c < terrain[0].length; c++) {
+				surfaceClusters[r][c] = ItemData.ITEM_EMPTY_ID;
+			}
+		}
+		
+		for (Entry<Integer, Double> entry: clusterUbiquityMap.entrySet()) {
+			int itemId = entry.getKey();
+			double clusterUbiquity = entry.getValue();
+			int actualNumClusters = (int) (new NormalDistribution(clusterUbiquity, clusterUbiquity * 0.3).sample());
+			
+			double clusterSize = 5;
+			if (clusterSizesMap.containsKey(itemId)) {
+				clusterSize = clusterSizesMap.get(itemId);
+			}
+			else {
+				//throw new IllegalArgumentException("Cluster data request does not match: " + itemId);
+			}
+			double meanWithinCluster = clusterSize / 1.85;
+			
+			for (int clusterNum = 0; clusterNum < actualNumClusters; clusterNum++) {
+				double meanR = meanWithinCluster * (Math.random()*0.8 + 0.6),
+						meanC = meanWithinCluster * (Math.random()*0.8 + 0.6);
+				NormalDistribution gaussianResExist = new NormalDistribution(0, 
+						(meanR + meanC) / 2 * 0.6);
+				
+				NormalDistribution gaussianR = new NormalDistribution(meanR, meanR * 0.4);
+				NormalDistribution gaussianC = new NormalDistribution(meanC, meanC * 0.4);
+				int rows = (int) Math.round(gaussianR.sample());
+				int cols = (int) Math.round(gaussianC.sample());
+				
+				int randomR = (int) (terrain.length * Math.random());
+				int randomC = (int) (terrain[0].length * Math.random());
+				for (int r = -rows; r <= rows; r++) {
+					for (int c = -cols; c <= cols; c++) {
+						int distCenter = Math.abs(r) + Math.abs(c);
+						double probability = 1.25 - gaussianResExist.cumulativeProbability(distCenter);
+						if (Math.random() < probability) {
+							int trueR = randomR + r, trueC = randomC + c;
+							if (trueR >= 0 && trueC >= 0 && trueR < terrain.length && trueC < terrain[0].length) {
+								surfaceClusters[trueR][trueC] = itemId;
+							}
+						}
+					}
+				}
+			}
+		}
+		return surfaceClusters;
 	}
 	
 	public double[][] generateFlatTableDouble(int rows, int cols, double level) {

@@ -183,6 +183,7 @@ public class LocalGridTimeExecution {
 			if (itemPriority.coords.manhattanDist(being.location.coords) <= 1) {
 				grid.getTile(itemPriority.coords).itemsOnFloor.subtractItem(itemPriority.item);
 				being.inventory.addItem(itemPriority.item);
+				grid.removeItemRecordToWorld(itemPriority.coords, itemPriority.item);
 				return tasks;
 			}
 			else {
@@ -192,8 +193,9 @@ public class LocalGridTimeExecution {
 		else if (priority instanceof ItemDeliveryPriority) {
 			ItemDeliveryPriority itemPriority = (ItemDeliveryPriority) priority;
 			if (itemPriority.coords.manhattanDist(being.location.coords) <= 1) {
-				being.inventory.subtractItems(itemPriority.inventory.getItems());
-				grid.getTile(itemPriority.coords).itemsOnFloor.addItems(itemPriority.inventory.getItems());
+				List<InventoryItem> desiredItems = itemPriority.inventory.getItems();
+				being.inventory.subtractItems(desiredItems);
+				grid.getTile(itemPriority.coords).building.inventory.addItems(desiredItems);
 				return tasks;
 			}
 			else {
@@ -205,6 +207,8 @@ public class LocalGridTimeExecution {
 			if (itemPriority.coords.manhattanDist(being.location.coords) <= 1) {
 				grid.getTile(itemPriority.coords).building.inventory.subtractItem(itemPriority.item);
 				being.inventory.addItem(itemPriority.item);
+				
+				grid.removeItemRecordToWorld(itemPriority.coords, itemPriority.item);
 				return tasks;
 			}
 			else {
@@ -214,8 +218,11 @@ public class LocalGridTimeExecution {
 		else if (priority instanceof ItemDeliveryBuildingPriority) {
 			ItemDeliveryBuildingPriority itemPriority = (ItemDeliveryBuildingPriority) priority;
 			if (itemPriority.coords.manhattanDist(being.location.coords) <= 1) {
-				being.inventory.subtractItems(itemPriority.inventory.getItems());
-				grid.getTile(itemPriority.coords).building.inventory.addItems(itemPriority.inventory.getItems());
+				List<InventoryItem> desiredItems = itemPriority.inventory.getItems();
+				being.inventory.subtractItems(desiredItems);
+				grid.getTile(itemPriority.coords).building.inventory.addItems(desiredItems);
+				
+				grid.addItemRecordsToWorld(itemPriority.coords, desiredItems);
 				return tasks;
 			}
 			else {
@@ -371,7 +378,7 @@ public class LocalGridTimeExecution {
 				Object[] invData = being.inventory.findRemainingItemsNeeded(process.inputItems);
 				Map<Integer, Integer> regularItemNeeds = (Map) invData[0];
 				
-				System.out.println(regularItemNeeds);
+				System.out.println("Searching for: " + regularItemNeeds);
 				
 				int firstItemNeeded = (Integer) regularItemNeeds.keySet().toArray()[0];
 				int amountNeeded = regularItemNeeds.get(firstItemNeeded);
