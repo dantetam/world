@@ -106,6 +106,23 @@ public class LocalGrid {
 		return candidates;
 	}
 	
+	private static final Set<Vector3i> allVertAdjOffsets = new HashSet<Vector3i>() {{
+		add(new Vector3i(1,0,0)); add(new Vector3i(-1,0,0)); add(new Vector3i(0,1,0)); add(new Vector3i(0,-1,0)); 
+		add(new Vector3i(1,1,0)); add(new Vector3i(1,-1,0)); add(new Vector3i(-1,-1,0)); add(new Vector3i(-1,1,0));
+		add(new Vector3i(1,0,1)); add(new Vector3i(-1,0,1)); add(new Vector3i(0,1,1)); add(new Vector3i(0,-1,1)); 
+		add(new Vector3i(1,1,1)); add(new Vector3i(1,-1,1)); add(new Vector3i(-1,-1,1)); add(new Vector3i(-1,1,1));
+		add(new Vector3i(1,0,-1)); add(new Vector3i(-1,0,-1)); add(new Vector3i(0,1,-1)); add(new Vector3i(0,-1,-1)); 
+		add(new Vector3i(1,1,-1)); add(new Vector3i(1,-1,-1)); add(new Vector3i(-1,-1,-1)); add(new Vector3i(-1,1,-1));
+		add(new Vector3i(0,0,1)); add(new Vector3i(0,0,-1));
+		}};
+	public Set<Vector3i> getEveryNeighborUpDown(Vector3i coords) {
+		Set<Vector3i> candidates = new HashSet<>();
+		for (Vector3i adjOffset: allAdjOffsets) {
+			candidates.add(coords.getSum(adjOffset));
+		}
+		return candidates;
+	}
+	
 	/**
 	 * Used only for world creation, to create individual tiles
 	 * @param coords
@@ -177,13 +194,22 @@ public class LocalGrid {
 		//globalTileBlockLookup
 		LocalTile tile = getTile(coords);
 		if (tile != null) {
+			tile.tileBlockId = blockId;
 			if (tile.tileBlockId != ItemData.ITEM_EMPTY_ID) {
 				if (!(globalTileBlockLookup.containsKey(blockId))) {
 					globalTileBlockLookup.put(blockId, new KdTree<Vector3i>());
 				}
 				globalTileBlockLookup.get(blockId).add(coords);
 			}
-			tile.tileBlockId = blockId;
+			else {
+				Set<Vector3i> allVertNeighbors = getEveryNeighborUpDown(coords);
+				for (Vector3i neighbor: allVertNeighbors) {
+					LocalTile neighborTile = getTile(neighbor);
+					if (neighborTile != null) {
+						neighborTile.exposedToAir = true;
+					}
+				}
+			}
 		}
 	}
 	

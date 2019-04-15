@@ -436,7 +436,7 @@ public class Society {
 		while (fringe.size() > 0) {
 			Set<Integer> newFringe = new HashSet<>();
 			for (int outputItemId: fringe) {
-				double outputUtil = new Double((double) newFinalUtility.get(outputItemId));
+				//double outputUtil = new Double((double) newFinalUtility.get(outputItemId));
 				
 				//System.out.println("Starting item: " + ItemData.getNameFromId(outputItemId) + ", " + outputUtil);
 				
@@ -454,12 +454,12 @@ public class Society {
 						if (finalOutputUtility.containsKey(item.itemId)) {
 							provisionalUtil = finalOutputUtility.get(item.itemId);
 						}
-						double percentage = item.quantity / totalItems * provisionalUtil;
+						double percentage = item.quantity / totalItems; // * provisionalUtil;
 						
 						//System.out.println("Sub-item: " + ItemData.getNameFromId(item.itemId));
 						//System.out.println(percentage + " " + provisionalUtil + " " + percentage * outputUtil);
 						
-						MathUti.insertKeepMaxMap(newFinalUtility, item.itemId, percentage * outputUtil);
+						MathUti.insertKeepMaxMap(newFinalUtility, item.itemId, percentage * provisionalUtil);
 						
 						if (!expandedItemIds.contains(item.itemId)) {
 							expandedItemIds.add(item.itemId);

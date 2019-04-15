@@ -22,6 +22,7 @@ public class LocalTile {
 		//Note if filled is false, this holds the previous tile data 
 		//(e.g. recording that a hole was dug into this dirt).
 	public int tileFloorId; //Representing the floor below the block (the block may or may not exist)
+	public boolean exposedToAir = false;
 	public Inventory itemsOnFloor;
 	
 	public boolean harvestInUse = false;

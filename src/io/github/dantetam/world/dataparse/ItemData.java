@@ -225,6 +225,10 @@ public class ItemData {
 		return VBOLoader.loadTexture("res/tiles/" + itemName + ".png");
 	}
 	
+	public static int getTextureFromItemId(String itemName) {
+		return VBOLoader.loadTexture("res/tiles/" + itemName + ".png");
+	}
+	
 	public static LocalBuilding building(int id) {
 		if (!allItemsById.containsKey(id)) {
 			throw new IllegalArgumentException("Could not find item id: " + id);

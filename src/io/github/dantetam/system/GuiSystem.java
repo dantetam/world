@@ -50,7 +50,7 @@ public class GuiSystem extends BaseSystem {
 		List<GuiQuad> listGuis = new ArrayList<>();
 		List<TextBox> listTexts = new ArrayList<>();
 		
-		int height = (int) Math.floor(camera.tileLocationPosition.y);
+		int originalHeight = (int) Math.floor(camera.tileLocationPosition.y);
 		int minX = (int) Math.floor(camera.tileLocationPosition.x - camera.numTilesX);
 		int minZ = (int) Math.floor(camera.tileLocationPosition.z - camera.numTilesZ);
 		int maxX = (int) Math.ceil(camera.tileLocationPosition.x + camera.numTilesX);
@@ -60,40 +60,46 @@ public class GuiSystem extends BaseSystem {
 		float guiHeight = DisplayManager.height / (camera.numTilesZ * 2 + 1);
 		Vector2f guiDim = new Vector2f(guiWidth,  guiHeight);
 		
-		int id = ItemData.getIdFromName("Air");
-		int airTileTexture = ItemData.getTextureFromItemId(id);
+		int airTileTexture = ItemData.getTextureFromItemId(ItemData.getIdFromName("Air"));
+		
+		int darknessTexture = ItemData.getTextureFromItemId("Darkness");
 		
 		for (int x = minX; x <= maxX; x++) {
 			for (int z = minZ; z <= maxZ; z++) {
 				Vector2f guiPos = new Vector2f(guiWidth * (x - minX), guiHeight * (z - minZ)); 
-				int candidateHeight = height; //Find the highest height <= camera height, in the rendering style of DF
+				int candidateHeight = originalHeight; //Find the highest height <= camera height, in the rendering style of DF
 				LocalTile tile;
 				while (candidateHeight > 0) {
 					tile = activeGrid.getTile(new Vector3i(x,z,candidateHeight));
-					if (tile != null) {
-						//if (tile.isOccupied());
-						if (tile.tileBlockId != ItemData.ITEM_EMPTY_ID) {
-							int tileTexture = ItemData.getTextureFromItemId(tile.tileBlockId);
-							listGuis.add(new GuiQuad(tileTexture, guiPos, guiDim));
-			 			}
-						else if (tile.tileFloorId != ItemData.ITEM_EMPTY_ID) {
-							int tileTexture = ItemData.getTextureFromItemId(tile.tileFloorId);
-							listGuis.add(new GuiQuad(tileTexture, guiPos, guiDim));
+					if (tile != null) { //if (tile.isOccupied());
+						if (!tile.exposedToAir) {
+							listGuis.add(new GuiQuad(darknessTexture, guiPos, guiDim));
 						}
-						if (tile.itemsOnFloor.size() > 0) {
-							TextBox buildingTextBox = getDefaultTextBoxGui(guiDefaultTexture, "I", "", guiPos.x, guiPos.y, guiWidth, guiHeight);
-							listTexts.add(buildingTextBox);
-						}
-						if (tile.getPeople() != null && tile.getPeople().size() > 0) {
-							TextBox buildingTextBox = getDefaultTextBoxGui(guiDefaultTexture, "H!", "", guiPos.x, guiPos.y, guiWidth, guiHeight);
-							listTexts.add(buildingTextBox);
-						}
-						
-						if (candidateHeight != height) { //Air overlay for looking at lower heights with air on top
-							listGuis.add(new GuiQuad(airTileTexture, guiPos, guiDim));
+						else {
+							if (tile.tileBlockId != ItemData.ITEM_EMPTY_ID) {
+								int tileTexture = ItemData.getTextureFromItemId(tile.tileBlockId);
+								listGuis.add(new GuiQuad(tileTexture, guiPos, guiDim));
+				 			}
+							else if (tile.tileFloorId != ItemData.ITEM_EMPTY_ID) {
+								int tileTexture = ItemData.getTextureFromItemId(tile.tileFloorId);
+								listGuis.add(new GuiQuad(tileTexture, guiPos, guiDim));
+							}
+							if (tile.itemsOnFloor.size() > 0) {
+								TextBox buildingTextBox = getDefaultTextBoxGui(guiDefaultTexture, "I", "", guiPos.x, guiPos.y, guiWidth, guiHeight);
+								listTexts.add(buildingTextBox);
+							}
+							if (tile.getPeople() != null && tile.getPeople().size() > 0) {
+								TextBox buildingTextBox = getDefaultTextBoxGui(guiDefaultTexture, "H!", "", guiPos.x, guiPos.y, guiWidth, guiHeight);
+								listTexts.add(buildingTextBox);
+							}
+							
+							if (candidateHeight != originalHeight) { //Air overlay for looking at lower heights with air on top
+								listGuis.add(new GuiQuad(airTileTexture, guiPos, guiDim));
+							}
 						}
 						break;
 					}
+					
 					candidateHeight--;
 				}
 			}
@@ -104,7 +110,7 @@ public class GuiSystem extends BaseSystem {
 			for (Vector3i coords: building.calculatedLocations) {
 				//int emptyHeight = activeGrid.findLowestEmptyHeight(coords.x, coords.y);
 				
-				if (coords.z <= height && coords.x >= minX && coords.x <= maxX && coords.y >= minZ && coords.y <= maxZ) {
+				if (coords.z <= originalHeight && coords.x >= minX && coords.x <= maxX && coords.y >= minZ && coords.y <= maxZ) {
 					int blockId = building.buildingBlockIds.get(i);
 					Vector2f guiPos = new Vector2f(guiWidth * (coords.x - minX), guiHeight * (coords.y - minZ)); 
 					

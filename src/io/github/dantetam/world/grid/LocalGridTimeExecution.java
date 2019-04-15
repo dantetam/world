@@ -157,6 +157,7 @@ public class LocalGridTimeExecution {
 	private static LocalTile assignTile(LocalGrid grid, LivingEntity being, String tileName) {
 		int tileId = ItemData.getIdFromName(tileName);
 		KdTree<Vector3i> items = grid.getKdTreeForTile(tileId);
+		if (items == null) return null;
 		Collection<Vector3i> candidates = items.nearestNeighbourListSearch(10, being.location.coords);
 		Map<LocalTile, Integer> tileByPathScore = new HashMap<>();
 		for (Vector3i candidate: candidates) {
