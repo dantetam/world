@@ -71,7 +71,7 @@ public class Society {
 				if (desiredItems == null || desiredItems.contains(itemId)) {
 					//processByUtil.put(bestProcess, sortedUtility.get(itemId));
 					for (Entry<Process, Double> entry: bestProcesses.entrySet()) {
-						MathUti.addNumMap(processByUtil, entry.getKey(), entry.getValue());
+						MathUti.insertKeepMaxMap(processByUtil, entry.getKey(), entry.getValue());
 					}
 				}
 			}
@@ -135,7 +135,7 @@ public class Society {
 								allItemsUtility.get(input.itemId) : 0;
 						if (canCompleteProcess(process, rawResRarity)) {
 							MathUti.insertKeepMaxMap(bestProcesses, process, util);
-							//System.out.println("COMPLETE process: " + process);
+							//System.out.println("COMPLETE process: " + process.name + " " + util);
 						}
 						else {
 							//System.out.println("Could not complete process: " + process);
@@ -203,8 +203,9 @@ public class Society {
 		Map<String, Double> needsIntensity = findAllNeedsIntensity();
 		
 		Map<String, Double> needWeights = new HashMap<>();
-		needWeights.put("Eat", 8.0);
-		needWeights.put("Rest", 2.0);
+		needWeights.put("Eat", 12.0);
+		needWeights.put("Rest", 3.0);
+		needWeights.put("Shelter", 1.0);
 		
 		//Used to normalize the values and determine 
 		Map<String, Double> totalNeedsUtility = new HashMap<>(); 
@@ -436,8 +437,9 @@ public class Society {
 		while (fringe.size() > 0) {
 			Set<Integer> newFringe = new HashSet<>();
 			for (int outputItemId: fringe) {
-				//double outputUtil = new Double((double) newFinalUtility.get(outputItemId));
+				double outputUtil = new Double((double) newFinalUtility.get(outputItemId));
 				
+				//System.out.println("-------------------------------------");
 				//System.out.println("Starting item: " + ItemData.getNameFromId(outputItemId) + ", " + outputUtil);
 				
 				List<Process> processes = ProcessData.getProcessesByOutput(outputItemId);
@@ -451,15 +453,16 @@ public class Society {
 					for (int itemIndex = 0; itemIndex < inputs.size(); itemIndex++) {
 						InventoryItem item = inputs.get(itemIndex);
 						double provisionalUtil = 0;
-						if (finalOutputUtility.containsKey(item.itemId)) {
-							provisionalUtil = finalOutputUtility.get(item.itemId);
+						if (newFinalUtility.containsKey(item.itemId)) {
+							provisionalUtil = newFinalUtility.get(item.itemId);
 						}
 						double percentage = item.quantity / totalItems; // * provisionalUtil;
 						
 						//System.out.println("Sub-item: " + ItemData.getNameFromId(item.itemId));
-						//System.out.println(percentage + " " + provisionalUtil + " " + percentage * outputUtil);
+						//System.out.println((int) (percentage * 100) + "%, " + (int) provisionalUtil + " util, " + (int) (percentage * (outputUtil + provisionalUtil) / 2.0) + " frac. util");
+						//System.out.println("");
 						
-						MathUti.insertKeepMaxMap(newFinalUtility, item.itemId, percentage * provisionalUtil);
+						MathUti.insertKeepMaxMap(newFinalUtility, item.itemId, percentage * (outputUtil + provisionalUtil) / 2.0);
 						
 						if (!expandedItemIds.contains(item.itemId)) {
 							expandedItemIds.add(item.itemId);

@@ -56,8 +56,9 @@ public class LocalGridTimeExecution {
 			numDayTicks = 0;
 			assignAllHumanJobs(society);
 		}
+		
+		System.out.println("################");
 		for (Human human: society.getAllPeople()) {
-			System.out.println("################");
 			String processName = human.processProgress == null ? "null" : human.processProgress.name;
 			System.out.println(human.name + " is at location " + human.location.coords + 
 					", with process: " + processName); 
@@ -133,6 +134,7 @@ public class LocalGridTimeExecution {
 			if (human.processProgress == null && human.activePriority == null) {
 				assignSingleHumanJob(society, human);
 			}
+			System.out.println();
 		}
 		numDayTicks++;
 	}
@@ -196,7 +198,7 @@ public class LocalGridTimeExecution {
 			if (itemPriority.coords.manhattanDist(being.location.coords) <= 1) {
 				List<InventoryItem> desiredItems = itemPriority.inventory.getItems();
 				being.inventory.subtractItems(desiredItems);
-				grid.getTile(itemPriority.coords).building.inventory.addItems(desiredItems);
+				grid.getTile(itemPriority.coords).itemsOnFloor.addItems(desiredItems);
 				return tasks;
 			}
 			else {
@@ -468,10 +470,34 @@ public class LocalGridTimeExecution {
 		KdTree<Vector3i> nearestItemsTree = grid.getKdTreeForItemId(firstItemNeeded);
 		
 		if (nearestItemsTree == null) {
-			System.out.println(ItemData.getNameFromId(firstItemNeeded));
-			
-			//Process harvestNeededProcess = ProcessData.getProcessByName("Harvest " + );
-			return new ImpossiblePriority();
+			List<Process> outputItemProcesses = ProcessData.getProcessesByOutput(firstItemNeeded);
+			Vector3i bestLocation = null;
+			double bestScore = 0;
+			for (Process process: outputItemProcesses) {
+				if (process.name.startsWith("Harvest ")) {
+					int inputTileId = ItemData.getIdFromName(process.requiredTileNameOrGroup);
+					double pickupTime = ItemData.getPickupTime(inputTileId);
+					double expectedNumItem = process.outputItems.itemExpectation().get(inputTileId);
+					
+					KdTree<Vector3i> itemTree = grid.getKdTreeForTile(inputTileId);
+					int numCandidates = Math.min(itemTree.size(), 10);
+					Collection<Vector3i> nearestCoords = itemTree.nearestNeighbourListSearch(
+							numCandidates, centerCoords);
+					for (Vector3i itemCoords: nearestCoords) {
+						int distUtil = centerCoords.manhattanDist(itemCoords);
+						if (bestLocation == null || distUtil < bestScore) {
+							bestLocation = itemCoords;
+							bestScore = distUtil * expectedNumItem / pickupTime;
+						}
+					}
+				}
+			}
+			if (bestLocation != null) {
+				return new TileHarvestPriority(bestLocation);
+			}
+			else {
+				return new ImpossiblePriority();
+			}
 		}
 		
 		int numCandidates = Math.min(nearestItemsTree.size(), 10);

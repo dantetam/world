@@ -18,6 +18,21 @@ Farming,1 <Seed>,,Y,<Soil>,"I / Ufarm, U(1440, 2880) / Grow, 0, 0.2 / repeat(4, 
 Straw Bale,20 Straw,,,,"I / Scraft, 30 / O",Straw Bale,
 Natural Silviculture,1 <Tree Seed>,,Y,<Soil>,"I / Ufarm, U(1440, 2880) / Grow, 0, 0.1 / repeat(9, 1, 2) / B",generateTree,
 ,,,,,,,
+,Wild Fruit,,,,"I / Sfarm, 15 / O",Wild Fruit Seeds,5
+,Wild Berries,,,,"I / Sfarm, 15 / O",Wild Berry Seeds,5
+,Apple,,,,"I / Sfarm, 15 / O",Apple Seeds,5
+,Fig,,,,"I / Sfarm, 15 / O",Fig Seeds,5
+,Pear,,,,"I / Sfarm, 15 / O",Pear Seeds,5
+,Grapes,,,,"I / Sfarm, 15 / O",Grape Seeds,5
+,Lentil,,,,"I / Sfarm, 15 / O",Lentil Seeds,5
+,Barley,,,,"I / Sfarm, 15 / O",Barley Seeds,5
+,Wheat,,,,"I / Sfarm, 15 / O",Wheat Seeds,5
+,Potato,,,,"I / Sfarm, 15 / O",Potato Stems,5
+,Cotton,,,,"I / Sfarm, 15 / O",Cotton Seeds,5
+,Flax,,,,"I / Sfarm, 15 / O",Flax Seeds,5
+,,,,,,,
+,,,,,,,
+,,,,,,,
 Composting,10 <OrganicMaterial>,Composter,,,"I / Ufarm, U(2880, 4320) / O","Compost, 1, 3",
 ,,,,,,,
 ,,,,,,,
