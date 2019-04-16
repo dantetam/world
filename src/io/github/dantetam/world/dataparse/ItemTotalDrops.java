@@ -32,7 +32,10 @@ public class ItemTotalDrops {
 	public List<InventoryItem> getOneItemDrop() {
 		List<InventoryItem> trialDrops = new ArrayList<>();
 		for (ItemDropTrial trial : independentDrops) {
-			trialDrops.add(trial.getItemDrop());
+			InventoryItem item = trial.getItemDrop();
+			if (item != null) {
+				trialDrops.add(trial.getItemDrop());
+			}
 		}
 		return trialDrops;
 	}

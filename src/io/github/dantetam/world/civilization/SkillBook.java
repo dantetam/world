@@ -7,7 +7,7 @@ public class SkillBook {
 	
 	private static final int MAX_LEVEL = 30;
 	private static int[] experienceNeeded = new int[MAX_LEVEL+2]; 
-	private static String[] allSkills = {"build", "cook", "cloth", "craft", "farm", 
+	public static String[] allSkills = {"build", "cook", "cloth", "craft", "farm", 
 			"fight", "process", "smelt", "stone", "woodcut"};
 	
 	private Map<String, Skill> skillMapping;
@@ -22,7 +22,20 @@ public class SkillBook {
 		experienceNeeded[MAX_LEVEL + 1] = Integer.MAX_VALUE / 2;
 	}
 	
-	//TODO: Use
+	public SkillBook() {
+		skillMapping = new HashMap<>();
+		for (String skillName: allSkills) {
+			Skill skill = new Skill(skillName, (int) (Math.random() * 8));
+			skillMapping.put(skillName, skill);
+		}
+	}
+	
+	public int getSkillLevel(String skillName) {
+		if (!skillMapping.containsKey(skillName)) {
+			throw new IllegalArgumentException("Could not find skill name: " + skillName);
+		}
+		return skillMapping.get(skillName).level;
+	}
 	
 	public void addExperienceToSkill(String skillName, int experience) {
 		Skill skill = skillMapping.get(skillName);
@@ -34,11 +47,7 @@ public class SkillBook {
 		}
 	}
 	
-	public SkillBook() {
-		skillMapping = new HashMap<>();
-	}
-	
-	private class Skill {
+	private static class Skill {
 		public String name;
 		public int level, allExp;
 		

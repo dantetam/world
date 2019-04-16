@@ -161,6 +161,10 @@ public class Inventory {
 		return items;
 	}
 	
+	public boolean canFitItems(List<InventoryItem> items) {
+		return true;
+	}
+	
 	public int size() {
 		if (items == null) return 0;
 		return items.size();

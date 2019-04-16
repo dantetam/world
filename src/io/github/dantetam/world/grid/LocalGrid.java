@@ -122,6 +122,16 @@ public class LocalGrid {
 		}
 		return candidates;
 	}
+	public void markAllAdjAsExposed(Vector3i coords) {
+		Set<Vector3i> neighbors = this.getEveryNeighborUpDown(coords);
+		neighbors.add(coords);
+		for (Vector3i neighbor: neighbors) {
+			LocalTile tile = getTile(neighbor);
+			if (tile != null) {
+				tile.exposedToAir = true;
+			}
+		}
+	}
 	
 	/**
 	 * Used only for world creation, to create individual tiles
@@ -193,6 +203,7 @@ public class LocalGrid {
 	public void putBlockIntoTile(Vector3i coords, int blockId) {
 		//globalTileBlockLookup
 		LocalTile tile = getTile(coords);
+		int oldItemId = tile.tileBlockId;
 		if (tile != null) {
 			tile.tileBlockId = blockId;
 			if (tile.tileBlockId != ItemData.ITEM_EMPTY_ID) {
@@ -202,13 +213,10 @@ public class LocalGrid {
 				globalTileBlockLookup.get(blockId).add(coords);
 			}
 			else {
-				Set<Vector3i> allVertNeighbors = getEveryNeighborUpDown(coords);
-				for (Vector3i neighbor: allVertNeighbors) {
-					LocalTile neighborTile = getTile(neighbor);
-					if (neighborTile != null) {
-						neighborTile.exposedToAir = true;
-					}
+				if (oldItemId != ItemData.ITEM_EMPTY_ID) {
+					globalTileBlockLookup.get(oldItemId).remove(coords);
 				}
+				markAllAdjAsExposed(coords);
 			}
 		}
 	}
@@ -280,6 +288,7 @@ public class LocalGrid {
 			} 
 			allBuildings.add(building);
 			buildingLookup.add(newPrimaryCoords);
+			markAllAdjAsExposed(newPrimaryCoords);
 		}
 	}
 	
@@ -330,6 +339,7 @@ public class LocalGrid {
 		if (tile != null) {
 			human.location = tile;
 			tile.addPerson(human);
+			markAllAdjAsExposed(coords);
 		}
 	}
 	

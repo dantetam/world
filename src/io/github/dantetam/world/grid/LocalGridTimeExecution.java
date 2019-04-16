@@ -38,6 +38,7 @@ import io.github.dantetam.world.process.priority.Priority;
 import io.github.dantetam.world.process.priority.TileHarvestPriority;
 import io.github.dantetam.world.process.priority.TilePlacePriority;
 import io.github.dantetam.world.process.prioritytask.DropoffInvTask;
+import io.github.dantetam.world.process.prioritytask.HarvestBlockTileTask;
 import io.github.dantetam.world.process.prioritytask.MoveTask;
 import io.github.dantetam.world.process.prioritytask.PickupTask;
 import io.github.dantetam.world.process.prioritytask.Task;
@@ -85,8 +86,11 @@ public class LocalGridTimeExecution {
 			if (human.activePriority != null && //Assign tasks if there are none (do not overwrite existing tasks)
 					(human.currentQueueTasks == null || human.currentQueueTasks.size() == 0)) {
 				human.currentQueueTasks = getTasksFromPriority(grid, human, human.activePriority);
-				if (human.currentQueueTasks.size() > 0)
+				if (human.currentQueueTasks != null && human.currentQueueTasks.size() > 0)
 					System.out.println(human.currentQueueTasks.get(0).getClass());
+				if (human.currentQueueTasks == null) {
+					human.currentQueueTasks = null;
+				}
 			}
 			if (human.processProgress != null) { 
 				//Assign the location of the process where the steps are undertaken
@@ -97,23 +101,7 @@ public class LocalGridTimeExecution {
 					assignTile(grid, human, human.processProgress.requiredTileNameOrGroup);
 				}
 				
-				//Process has been completed, remove it from person
-				if (human.processProgress.processSteps.size() == 0) { 
-					System.out.println(human.name + " COMPLETED process: " + human.processProgress);
-					human.processProgress = null;
-					
-					if (human.processBuilding != null) {
-						human.processBuilding.currentUser = null;
-						human.processBuilding = null;
-					}
-					if (human.processTile != null) {
-						human.processTile.harvestInUse = false;
-						human.processTile = null;
-					}
-					
-					assignSingleHumanJob(society, human);
-				}
-				else {
+				if (human.processProgress.processSteps.size() > 0) {
 					ProcessStep step = human.processProgress.processSteps.get(0);
 					
 					if (human.activePriority == null) {
@@ -129,6 +117,22 @@ public class LocalGridTimeExecution {
 						//human.processProgress = null;
 						human.activePriority = null;
 					}
+				}
+				//Process has been completed, remove it from person
+				if (human.processProgress.processSteps.size() == 0) { 
+					System.out.println(human.name + " COMPLETED process: " + human.processProgress);
+					human.processProgress = null;
+					
+					if (human.processBuilding != null) {
+						human.processBuilding.currentUser = null;
+						human.processBuilding = null;
+					}
+					if (human.processTile != null) {
+						human.processTile.harvestInUse = false;
+						human.processTile = null;
+					}
+					
+					assignSingleHumanJob(society, human);
 				}
 			}
 			if (human.processProgress == null && human.activePriority == null) {
@@ -187,7 +191,7 @@ public class LocalGridTimeExecution {
 				grid.getTile(itemPriority.coords).itemsOnFloor.subtractItem(itemPriority.item);
 				being.inventory.addItem(itemPriority.item);
 				grid.removeItemRecordToWorld(itemPriority.coords, itemPriority.item);
-				return tasks;
+				return null;
 			}
 			else {
 				return getTasksFromPriority(grid, being, new MovePriority(itemPriority.coords));
@@ -199,7 +203,7 @@ public class LocalGridTimeExecution {
 				List<InventoryItem> desiredItems = itemPriority.inventory.getItems();
 				being.inventory.subtractItems(desiredItems);
 				grid.getTile(itemPriority.coords).itemsOnFloor.addItems(desiredItems);
-				return tasks;
+				return null;
 			}
 			else {
 				return getTasksFromPriority(grid, being, new MovePriority(itemPriority.coords));
@@ -212,7 +216,7 @@ public class LocalGridTimeExecution {
 				being.inventory.addItem(itemPriority.item);
 				
 				grid.removeItemRecordToWorld(itemPriority.coords, itemPriority.item);
-				return tasks;
+				return null;
 			}
 			else {
 				return getTasksFromPriority(grid, being, new MovePriority(itemPriority.coords));
@@ -226,7 +230,7 @@ public class LocalGridTimeExecution {
 				grid.getTile(itemPriority.coords).building.inventory.addItems(desiredItems);
 				
 				grid.addItemRecordsToWorld(itemPriority.coords, desiredItems);
-				return tasks;
+				return null;
 			}
 			else {
 				return getTasksFromPriority(grid, being, new MovePriority(itemPriority.coords));
@@ -235,8 +239,9 @@ public class LocalGridTimeExecution {
 		else if (priority instanceof TileHarvestPriority) {
 			TileHarvestPriority tilePriority = (TileHarvestPriority) priority;
 			if (tilePriority.coords.manhattanDist(being.location.coords) <= 1) {
+				int pickupTime = ItemData.getPickupTime(grid.getTile(tilePriority.coords).tileBlockId);
+				tasks.add(new HarvestBlockTileTask(pickupTime, tilePriority.coords));
 				grid.putBlockIntoTile(tilePriority.coords, ItemData.ITEM_EMPTY_ID);
-				return tasks;
 			}
 			else {
 				return getTasksFromPriority(grid, being, new MovePriority(tilePriority.coords));
@@ -252,6 +257,7 @@ public class LocalGridTimeExecution {
 					being.inventory.subtractItem(buildPriority.buildingItem);
 					LocalBuilding newBuilding = ItemData.building(buildPriority.buildingItem.itemId);
 					grid.addBuilding(newBuilding, buildPriority.coords, false);
+					return null;
 				}
 			}
 			else {
@@ -374,7 +380,11 @@ public class LocalGridTimeExecution {
 				being.processBuilding.inventory.subtractItems(process.inputItems);
 				return new DonePriority(null);
 			}
-			else if (being.inventory.hasItems(process.inputItems)) {
+			else if (being.inventory.hasItems(process.inputItems) && itemMode.equals("Personal")) {
+				being.inventory.subtractItems(process.inputItems);
+				return new DonePriority(null);
+			}
+			else if (being.inventory.hasItems(process.inputItems) && !itemMode.equals("Personal")) {
 				priority = new ItemDeliveryPriority(primaryLocation, new Inventory(process.inputItems));
 			}
 			else {
@@ -429,6 +439,9 @@ public class LocalGridTimeExecution {
 		}
 		else if (task instanceof DropoffInvTask) {
 			DropoffInvTask dropTask = (DropoffInvTask) task;
+		}
+		else if (task instanceof HarvestBlockTileTask) {
+			HarvestBlockTileTask harvestTileTask = (HarvestBlockTileTask) task;
 		}
 	}
 	

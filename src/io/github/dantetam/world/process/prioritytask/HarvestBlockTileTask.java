@@ -5,12 +5,10 @@ import io.github.dantetam.world.items.Inventory;
 
 public class HarvestBlockTileTask extends Task {
 
-	public int tileBlockId;
 	public Vector3i pickupCoords;
 	
-	public HarvestBlockTileTask(int time, Vector3i coords, int tileId) {
+	public HarvestBlockTileTask(int time, Vector3i coords) {
 		super(time);
-		tileBlockId = tileId;
 		pickupCoords = coords;
 	}
 	
