@@ -25,6 +25,7 @@ import io.github.dantetam.world.items.Inventory;
 import io.github.dantetam.world.items.InventoryItem;
 import io.github.dantetam.world.process.Process;
 import io.github.dantetam.world.process.Process.ProcessStep;
+import io.github.dantetam.world.process.priority.BuildingHarvestPriority;
 import io.github.dantetam.world.process.priority.BuildingPlacePriority;
 import io.github.dantetam.world.process.priority.ConstructRoomPriority;
 import io.github.dantetam.world.process.priority.DonePriority;
@@ -241,7 +242,6 @@ public class LocalGridTimeExecution {
 			if (tilePriority.coords.manhattanDist(being.location.coords) <= 1) {
 				int pickupTime = ItemData.getPickupTime(grid.getTile(tilePriority.coords).tileBlockId);
 				tasks.add(new HarvestBlockTileTask(pickupTime, tilePriority.coords));
-				grid.putBlockIntoTile(tilePriority.coords, ItemData.ITEM_EMPTY_ID);
 			}
 			else {
 				return getTasksFromPriority(grid, being, new MovePriority(tilePriority.coords));
@@ -259,6 +259,18 @@ public class LocalGridTimeExecution {
 					grid.addBuilding(newBuilding, buildPriority.coords, false);
 					return null;
 				}
+			}
+			else {
+				return getTasksFromPriority(grid, being, new MovePriority(buildPriority.coords));
+			}
+		}
+		else if (priority instanceof BuildingHarvestPriority) {
+			BuildingHarvestPriority buildPriority = (BuildingHarvestPriority) priority;
+			
+			if (buildPriority.coords.manhattanDist(being.location.coords) <= 1) {
+				LocalTile tile = grid.getTile(buildPriority.coords);
+				int pickupTime = ItemData.getPickupTime(grid.getTile(buildPriority.coords).tileBlockId);
+				tasks.add(new HarvestBuildingTask(pickupTime, buildPriority.coords));
 			}
 			else {
 				return getTasksFromPriority(grid, being, new MovePriority(buildPriority.coords));
@@ -442,6 +454,10 @@ public class LocalGridTimeExecution {
 		}
 		else if (task instanceof HarvestBlockTileTask) {
 			HarvestBlockTileTask harvestTileTask = (HarvestBlockTileTask) task;
+			grid.putBlockIntoTile(harvestTileTask.pickupCoords, ItemData.ITEM_EMPTY_ID);
+		}
+		else if (task instanceof HarvestBuildingTask) {
+			todo
 		}
 	}
 	
