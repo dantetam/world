@@ -36,8 +36,10 @@ public class ItemData {
 	private static Map<Integer, Boolean> placeableBlock = new HashMap<>();
 	private static Map<Integer, Integer> pickupTime = new HashMap<>();
 	private static Map<Integer, Double> baseItemValue = new HashMap<>();
+	private static Map<Integer, Double> beautyItemValue = new HashMap<>();
 	
 	private static Map<Integer, List<ProcessStep>> itemActionsById = new HashMap<>();
+	private static Map<Integer, List<ProcessStep>> itemPropertiesById = new HashMap<>();
 	
 	private static Map<Integer, ItemTotalDrops> allItemDropsById = new HashMap<>();
 	
@@ -101,7 +103,8 @@ public class ItemData {
 	
 	public static void addItemToDatabase(int id, String name, boolean placeable, 
 			String[] groups, Integer stackable, int refinedForm, ItemTotalDrops itemTotalDrops,
-			int time, double baseValue, List<ProcessStep> itemActions, 
+			int time, double baseValue, double beautyValue, 
+			List<ProcessStep> itemActions, List<ProcessStep> properties,
 			List<Vector3i> specBuildOffsets) {
 		InventoryItem newItem = new InventoryItem(id, 0, name);
 		allItemsById.put(id, newItem);
@@ -135,8 +138,12 @@ public class ItemData {
 		}
 		pickupTime.put(id, time);
 		baseItemValue.put(id, baseValue);
+		beautyItemValue.put(id, beautyValue);
 		if (itemActions != null) {
 			itemActionsById.put(id, itemActions);
+		}
+		if (properties != null) {
+			itemPropertiesById.put(id, properties);
 		}
 		
 		if (isBuilding) {
@@ -157,7 +164,7 @@ public class ItemData {
 	
 	public static int generateItem(String name) {
 		addItemToDatabase(GENERATED_BASE_ID, name, false, null, 15, ItemData.ITEM_EMPTY_ID, 
-				null, 100, 0.0, null, null);
+				null, 100, 0.0, 1.0, null, null, null);
 		GENERATED_BASE_ID++;
 		return GENERATED_BASE_ID - 1;
 	}
@@ -210,6 +217,13 @@ public class ItemData {
 	}
 	
 	public static double getBaseItemValue(Integer id) {
+		if (!baseItemValue.containsKey(id)) {
+			throw new IllegalArgumentException("Could not find item id: " + id);
+		}
+		return baseItemValue.get(id);
+	}
+	
+	public static double getItemBeautyValue(Integer id) {
 		if (!baseItemValue.containsKey(id)) {
 			throw new IllegalArgumentException("Could not find item id: " + id);
 		}

@@ -99,10 +99,19 @@ public class ItemCSVParser extends WorldCsvParser {
 		String baseValueStr = record.get("Base Value");
 		double baseValue = baseValueStr.isBlank() ? 0 : Double.parseDouble(baseValueStr);
 		
+		String beautyValueStr = record.get("Beauty");
+		double beautyValue = beautyValueStr.isBlank() ? 1.0 : Double.parseDouble(beautyValueStr);
+		
 		String processString = record.get("Action");
 		List<ProcessStep> itemActions = null;
 		if (!processString.isBlank()) {
 			itemActions = ProcessCSVParser.getProcessingSteps(processString);
+		}
+		
+		String propertyString = record.get("Property");
+		List<ProcessStep> propertyProcessStep = null;
+		if (!propertyString.isBlank()) {
+			propertyProcessStep = ProcessCSVParser.getProcessingSteps(propertyString);
 		}
 		
 		if (!refinedFormName.isBlank()) {
@@ -130,7 +139,8 @@ public class ItemCSVParser extends WorldCsvParser {
 		}
 		
 		ItemData.addItemToDatabase(id, name, placeable, groups, stackNum, refinedId, itemDrops, 
-				pickupTime, baseValue, itemActions, specBuildOffsets);
+				pickupTime, baseValue, beautyValue, itemActions, propertyProcessStep, 
+				specBuildOffsets);
 		
 		//Create a new process for the item harvesting for resource utility purposes
 		if (placeable) {

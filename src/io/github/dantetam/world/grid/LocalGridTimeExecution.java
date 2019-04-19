@@ -342,7 +342,7 @@ public class LocalGridTimeExecution {
 		}
 		else if (being.processTile != null) {
 			primaryLocation = being.processTile.coords;
-			destinationInventory = being.processTile.itemsOnFloor;
+			destinationInventory = being.inventory;
 			itemMode = "Tile";
 		}
 		else if (being.processProgress.requiredBuildNameOrGroup == null) {
@@ -351,7 +351,8 @@ public class LocalGridTimeExecution {
 			itemMode = "Personal";
 		}
 		
-		if (primaryLocation == null) {
+		if ((primaryLocation == null && being.processProgress.requiredBuildNameOrGroup != null)
+				|| being.processProgress.isCreatedAtSite) {
 			int buildingId = ItemData.getIdFromName(being.processProgress.requiredBuildNameOrGroup);
 			Vector2i requiredSpace = ItemData.buildingSize(buildingId);
 			
@@ -373,8 +374,7 @@ public class LocalGridTimeExecution {
 				}
 			}
 			if (nearOpenSpace == null) { //No available rooms to use
-				List<Vector3i> bestRectangle = findBestOpenRectSpace(grid, being.location.coords, requiredSpace) ;
-				
+				List<Vector3i> bestRectangle = findBestOpenRectSpace(grid, being.location.coords, requiredSpace);
 				Set<Integer> bestBuildingMaterials = society.getBestBuildingMaterials(calcUtility, 
 						being, (requiredSpace.x + requiredSpace.y) * 2);
 				
@@ -386,9 +386,14 @@ public class LocalGridTimeExecution {
 				}
 			}
 			else {
-				priority = new BuildingPlacePriority(nearOpenSpace, ItemData.createItem(buildingId, 1));
+				if (being.processProgress.isCreatedAtSite) {
+					being.processTile = grid.getTile(nearOpenSpace);
+				}
+				else {
+					priority = new BuildingPlacePriority(nearOpenSpace, ItemData.createItem(buildingId, 1));
+				}
+				return priority;
 			}
-			return priority;
 		}
 		
 		if (step.stepType.equals("I")) {
@@ -396,12 +401,18 @@ public class LocalGridTimeExecution {
 				being.processBuilding.inventory.subtractItems(process.inputItems);
 				return new DonePriority(null);
 			}
-			else if (being.inventory.hasItems(process.inputItems) && itemMode.equals("Personal")) {
+			else if (destinationInventory.hasItems(process.inputItems) && itemMode.equals("Personal")) {
 				being.inventory.subtractItems(process.inputItems);
 				return new DonePriority(null);
 			}
-			else if (being.inventory.hasItems(process.inputItems) && !itemMode.equals("Personal")) {
-				priority = new ItemDeliveryPriority(primaryLocation, new Inventory(process.inputItems));
+			else if (destinationInventory.hasItems(process.inputItems) && being.processTile != null) {
+				//priority = new ItemDeliveryPriority(primaryLocation, new Inventory(process.inputItems));
+				if (being.location.coords.manhattanDist(primaryLocation) <= 1) {
+					return new DonePriority(null);
+				}
+				else {
+					priority = new MovePriority(primaryLocation);
+				}
 			}
 			else {
 				Object[] invData = being.inventory.findRemainingItemsNeeded(process.inputItems);
@@ -440,7 +451,7 @@ public class LocalGridTimeExecution {
 		}
 		else if (step.stepType.equals("HTile")) {
 			LocalTile tile = grid.getTile(being.location.coords);
-			if (tile.building == null) {
+			if (tile.tileBlockId == ItemData.ITEM_EMPTY_ID) {
 				return new DonePriority(null);
 			}
 			if (being.location.coords.manhattanDist(primaryLocation) <= 1) {
@@ -458,6 +469,7 @@ public class LocalGridTimeExecution {
 		}
 		else if (step.stepType.equals("O")) {
 			List<InventoryItem> outputItems = process.outputItems.getOneItemDrop();
+			System.out.println("Dropped items: " + new Inventory(outputItems) + " at place: " + itemMode);
 			destinationInventory.addItems(outputItems);
 			if (!itemMode.equals("Personal")) { //Keep a record of this item in the 3d space
 				for (InventoryItem item: outputItems) {

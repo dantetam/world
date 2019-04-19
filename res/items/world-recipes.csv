@@ -96,11 +96,11 @@ Baking Bread,5 Wheat Flour / 5 Barley Grain,Kiln,,,"I / Scook, 30 / O",Bread,
 Basic Wine,"1 <Bucket>, 5 Grapes",Brewery,,,"I / Scook, 30 / Ucook, U(1440, 2880) / O",<Bucket> of Wine,5
 Basic Ale,"1 <Bucket>, 5 Barley",Brewery,,,"I / Scook, 30 / Ucook, U(1440, 2880) / O",<Bucket> of Ale,5
 ,,,,,,,
-Basic Food Canning,"1 <Bucket>, 5 <Food>, 1 Salt",Kiln,,,"I / Scook, 60 / O",Preserved Food (<Bucket>),5
-Basic Meat Preservation,"1 <Bucket>, 5 <RawMeat>, 2 Salt",Kiln,,,"I / Scook, 60 / O",Preserved Meat (<Bucket>),5
+Basic Food Canning,"1 <Bucket>, 5 <Food>, 1 Salt",Oven,,,"I / Scook, 60 / O",Preserved Food (<Bucket>),5
+Basic Meat Preservation,"1 <Bucket>, 5 <RawMeat>, 2 Salt",Oven,,,"I / Scook, 60 / O",Preserved Meat (<Bucket>),5
 ,,,,,,,
-Basic Cooking,6 <RawFood>,Kiln,,,"I / Scook, 60 / O",Cooked Veggies,3
-Basic Meat Cooking,"3 <RawMeat>, 4 <RawFood>",Kiln,,,"I / Scook, 60 / O",Cooked Meat Dish,3
+Basic Cooking,6 <RawFood>,Oven,,,"I / Scook, 60 / O",Cooked Veggies,3
+Basic Meat Cooking,"3 <RawMeat>, 4 <RawFood>",Oven,,,"I / Scook, 60 / O",Cooked Meat Dish,3
 ,,,,,,,
 ,,,,,,,
 ,,,,,,,

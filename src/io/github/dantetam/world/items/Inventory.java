@@ -22,10 +22,13 @@ public class Inventory {
 	
 	public void addItems(List<InventoryItem> items) {
 		for (InventoryItem item: items) {
-			addItem(item);
+			if (item != null) {
+				addItem(item);
+			}
 		}
 	}
 	public void addItem(InventoryItem addItem) {
+		if (addItem == null) return; //For the case where an item drop returns nothing
 		if (items == null) items = new ArrayList<>();
 		int inventoryIndex = 0;
 		int amountToAdd = addItem.quantity;

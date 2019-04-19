@@ -1,5 +1,6 @@
 package io.github.dantetam.world.grid;
 
+import java.text.DecimalFormat;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -61,9 +62,11 @@ public class WorldGrid {
 		
 		Map<Integer, Double> calcUtility = testSociety.findCompleteUtilityAllItems(null);
 		
+		DecimalFormat df = new DecimalFormat("#.##");
+		
 		for (Entry<Integer, Double> entry: calcUtility.entrySet()) {
 			if (entry.getValue() > 0)
-				System.out.println(ItemData.getNameFromId(entry.getKey()) + ": " + entry.getValue());
+				System.out.println(ItemData.getNameFromId(entry.getKey()) + ": " + df.format(entry.getValue()));
 		}
 		
 		//tick();

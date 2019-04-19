@@ -162,7 +162,7 @@ public class ProcessCSVParser extends WorldCsvParser {
 				buildingNamesString, site, tileFloorId, steps);
 	}
 	
-	static List<ProcessStep> getProcessingSteps(String processString) {
+	static List<ProcessStep> getProcessingSteps(String processString) {		
 		List<ProcessStep> steps = new ArrayList<>();
 		String[] originalSteps = processString.split("/");
 		for (String originalStep : originalSteps) {

@@ -212,9 +212,13 @@ public class Society {
 		
 		Map<Integer, Double> finalOutputUtility = new HashMap<>();
 		
+		Map<Integer, Double> combinedRarityMap = new HashMap<>();
+		
 		for (int itemId : availableItemIds) {
 			double itemRarity = allRarity.containsKey(itemId) ? new Double(Math.log10(allRarity.get(itemId))) : 0;
 			double economicRarity = new Double(Math.log10(economicRarityMap.get(itemId)));
+			
+			combinedRarityMap.put(itemId, (itemRarity + economicRarity) / 2.0);
 			
 			Function<Entry<String, Double>, Double> utilCalcBalance = e -> {
 				Double intensity = needsIntensity.get(e.getKey());
@@ -535,6 +539,9 @@ public class Society {
 		
 		double baseValue = ItemData.getBaseItemValue(itemId);
 		MathUti.addNumMap(rawUtilByNeed, "Wealth", baseValue);
+		
+		double beautyValue = ItemData.getItemBeautyValue(itemId);
+		MathUti.addNumMap(rawUtilByNeed, "Beauty", beautyValue / 3.0);
 		
 		/*
 		System.out.println(ItemData.getNameFromId(itemId) + " stats: ");
