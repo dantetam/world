@@ -134,11 +134,20 @@ public class ItemCSVParser extends WorldCsvParser {
 		
 		//Create a new process for the item harvesting for resource utility purposes
 		if (placeable) {
-			List<ProcessStep> steps = new ArrayList<>();
-			steps.add(new ProcessStep("Sharvest", pickupTime));
-			steps.add(new ProcessStep("O", 0));
-			ProcessData.addProcess("Harvest " + name, new ArrayList<>(), itemDrops, null, false, 
-					name, steps);
+			if (record.get("Groups").contains("Building")) {
+				List<ProcessStep> steps = new ArrayList<>();
+				steps.add(new ProcessStep("HBuilding", pickupTime));
+				steps.add(new ProcessStep("O", 0));
+				ProcessData.addProcess("Harvest Building " + name, new ArrayList<>(), itemDrops, null, false, 
+						name, steps);
+			}
+			else {
+				List<ProcessStep> steps = new ArrayList<>();
+				steps.add(new ProcessStep("HTile", pickupTime));
+				steps.add(new ProcessStep("O", 0));
+				ProcessData.addProcess("Harvest Tile " + name, new ArrayList<>(), itemDrops, null, false, 
+						name, steps);
+			}
 		}
 	}
 	

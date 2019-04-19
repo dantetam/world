@@ -63,13 +63,31 @@ public class AlgUtil {
 		return zeroCenteredRect;
 	}
 	
+	public static int[] findBestRect(Set<Vector3i> coords, int desiredR, int desiredC) {
+		Vector3i[] bounds = findCoordBounds(coords);
+		Vector3i topLeftBound = bounds[0], bottomRightBound = bounds[1];
+		int rows = bottomRightBound.x - topLeftBound.x + 1;
+		int cols = bottomRightBound.z - topLeftBound.z + 1;
+		int[][] convertedOffsetVec = new int[rows][cols];
+		for (int r = 0; r < rows; r++) {
+			for (int c = 0; c < cols; c++) {
+				if (coords.contains(topLeftBound.getSum(new Vector3i(r,c,0)))) {
+					convertedOffsetVec[r][c] = 1;
+				}
+			}
+		}
+		int[] zeroCenteredRect = findClosestSubRect(convertedOffsetVec, desiredR, desiredC);
+		zeroCenteredRect[0] += topLeftBound.x;
+		zeroCenteredRect[1] += topLeftBound.y;
+		return zeroCenteredRect;
+	}
+	
     /**
 	 * @param M 2D boolean array
 	 * @return The maximum rectangle containing all true, 
 	 * at top-left starting location (r,c) and sizes (rows, cols)
 	 */
-	public static int[] findMaxSubRect(int M[][]) 
-    { 
+	public static int[] findMaxSubRect(int M[][]) { 
         int i,j; 
         int R = M.length;         //no of rows in M[][] 
         int C = M[0].length;     //no of columns in M[][] 
@@ -114,8 +132,66 @@ public class AlgUtil {
         			cols = S[r][c];
         		}
         	}
+        }  
+        return new int[] {maxR - rows + 1, maxC - cols + 1, rows, cols};
+    }  
+	
+	/**
+	 * @param M 2D boolean array
+	 * @return The smallest rectangle greater than dimensions (targetR, targetC) containing all true, 
+	 * at top-left starting location (r,c) and sizes (rows, cols)
+	 */
+	public static int[] findClosestSubRect(int M[][], int targetR, int targetC) 
+    { 
+        int i,j; 
+        int R = M.length;         //no of rows in M[][] 
+        int C = M[0].length;     //no of columns in M[][] 
+        int S[][] = new int[R][C];      
+        int T[][] = new int[R][C];
+      
+        /* Set first column of S[][]*/
+        for (i = 0; i < R; i++) {
+            S[i][0] = M[i][0]; 
+            T[i][0] = M[i][0];
+        }
+      
+        /* Set first row of S[][]*/
+        for (j = 0; j < C; j++) {
+        	S[0][j] = M[0][j]; 
+            T[0][j] = M[0][j]; 
+        }
+          
+        /* Construct other entries of S[][]*/
+        for (i = 1; i < R; i++) { 
+            for (j = 1; j < C; j++) { 
+                if (M[i][j] == 1) {
+                	S[i][j] = Math.min(S[i-1][j-1], S[i][j-1]) + 1;
+                	T[i][j] = Math.min(T[i-1][j-1], T[i-1][j]) + 1; 
+                }
+                else {
+                    S[i][j] = 0;
+                    T[i][j] = 0;
+                }
+            }  
+        }
+        
+        int maxR = -1, maxC = -1, curDist = 0, rows = 0, cols = 0;
+        for (int r = 0; r < R; r++) {
+        	for (int c = 0; c < C; c++) {
+        		int imprDist = (T[r][c] - targetR) + (S[r][c] - targetC);
+        		if (T[r][c] >= targetR && S[r][c] >= targetC) {
+	        		if (maxR == -1 || maxC == -1 || imprDist < curDist) {
+	        			maxR = r;
+	        			maxC = c;
+	        			curDist = imprDist;
+	        			rows = T[r][c];
+	        			cols = S[r][c];
+	        		}
+        		}
+        	}
         }
          
+        if (maxR == -1 || maxC == -1) return null;
         return new int[] {maxR - rows + 1, maxC - cols + 1, rows, cols};
     }  
 	

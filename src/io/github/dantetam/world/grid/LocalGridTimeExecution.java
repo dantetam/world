@@ -40,6 +40,7 @@ import io.github.dantetam.world.process.priority.TileHarvestPriority;
 import io.github.dantetam.world.process.priority.TilePlacePriority;
 import io.github.dantetam.world.process.prioritytask.DropoffInvTask;
 import io.github.dantetam.world.process.prioritytask.HarvestBlockTileTask;
+import io.github.dantetam.world.process.prioritytask.HarvestBuildingTask;
 import io.github.dantetam.world.process.prioritytask.MoveTask;
 import io.github.dantetam.world.process.prioritytask.PickupTask;
 import io.github.dantetam.world.process.prioritytask.Task;
@@ -269,8 +270,8 @@ public class LocalGridTimeExecution {
 			
 			if (buildPriority.coords.manhattanDist(being.location.coords) <= 1) {
 				LocalTile tile = grid.getTile(buildPriority.coords);
-				int pickupTime = ItemData.getPickupTime(grid.getTile(buildPriority.coords).tileBlockId);
-				tasks.add(new HarvestBuildingTask(pickupTime, buildPriority.coords));
+				int pickupTime = ItemData.getPickupTime(tile.tileBlockId);
+				tasks.add(new HarvestBuildingTask(pickupTime, buildPriority.coords, tile.building));
 			}
 			else {
 				return getTasksFromPriority(grid, being, new MovePriority(buildPriority.coords));
@@ -313,6 +314,24 @@ public class LocalGridTimeExecution {
 		
 		System.out.println("Figuring out priority, for process: " + process);
 		
+		if (process.name.equals("Build Basic Home")) {
+			int width = (int) Math.ceil(Math.sqrt(being.ownedBuildings.size() + being.inventory.size() + 8));
+			Vector2i requiredSpace = new Vector2i(width, width);
+			
+			List<Vector3i> bestRectangle = findBestOpenRectSpace(grid, being.location.coords, requiredSpace);
+			
+			Set<Integer> bestBuildingMaterials = society.getBestBuildingMaterials(calcUtility, 
+					being, (requiredSpace.x + requiredSpace.y) * 2);
+				
+			if (bestRectangle != null) {
+				priority = new ConstructRoomPriority(bestRectangle, bestBuildingMaterials);
+			}
+			else {
+				priority = new ImpossiblePriority();
+			}
+			return priority;
+		}
+		
 		Vector3i primaryLocation = null;
 		Inventory destinationInventory = null;
 		String itemMode = "";
@@ -354,27 +373,12 @@ public class LocalGridTimeExecution {
 				}
 			}
 			if (nearOpenSpace == null) { //No available rooms to use
-				Set<Vector3i> openSpace = SpaceFillingAlgorithm.findAvailableSpace(grid, being.location.coords, 
-						requiredSpace.x * 3, requiredSpace.y * 3, true);
-				int height = openSpace.iterator().next().z;
-				
-				int[] maxSubRect = AlgUtil.findMaxRect(openSpace);
-				int bestR = maxSubRect[0], bestC = maxSubRect[1],
-						rectR = maxSubRect[2], rectC = maxSubRect[3];
+				List<Vector3i> bestRectangle = findBestOpenRectSpace(grid, being.location.coords, requiredSpace) ;
 				
 				Set<Integer> bestBuildingMaterials = society.getBestBuildingMaterials(calcUtility, 
 						being, (requiredSpace.x + requiredSpace.y) * 2);
-					
-				List<Vector3i> bestRectangle = Vector3i.getRange(
-						new Vector3i(bestR, bestC, height), new Vector3i(bestR + rectR - 1, bestC + rectC - 1, height));
-				Collections.sort(bestRectangle, new Comparator<Vector3i>() {
-					@Override
-					public int compare(Vector3i o1, Vector3i o2) {
-						return o2.manhattanDist(being.location.coords) - o1.manhattanDist(being.location.coords);
-					}
-				});
 				
-				if (openSpace != null) {
+				if (bestRectangle != null) {
 					priority = new ConstructRoomPriority(bestRectangle, bestBuildingMaterials);
 				}
 				else {
@@ -422,6 +426,30 @@ public class LocalGridTimeExecution {
 				priority = new MovePriority(primaryLocation);
 			}
 		}
+		else if (step.stepType.equals("HBuilding")) {
+			LocalTile tile = grid.getTile(being.location.coords);
+			if (tile.building == null) {
+				return new DonePriority(null);
+			}
+			if (being.location.coords.manhattanDist(primaryLocation) <= 1) {
+				priority = new BuildingHarvestPriority(tile.coords, tile.building);
+			}
+			else {
+				priority = new MovePriority(primaryLocation);
+			}
+		}
+		else if (step.stepType.equals("HTile")) {
+			LocalTile tile = grid.getTile(being.location.coords);
+			if (tile.building == null) {
+				return new DonePriority(null);
+			}
+			if (being.location.coords.manhattanDist(primaryLocation) <= 1) {
+				priority = new TileHarvestPriority(tile.coords);
+			}
+			else {
+				priority = new MovePriority(primaryLocation);
+			}
+		}
 		else if (step.stepType.startsWith("U")) {
 			step.timeTicks--;
 			if (step.timeTicks <= 0) {
@@ -457,7 +485,8 @@ public class LocalGridTimeExecution {
 			grid.putBlockIntoTile(harvestTileTask.pickupCoords, ItemData.ITEM_EMPTY_ID);
 		}
 		else if (task instanceof HarvestBuildingTask) {
-			todo
+			HarvestBuildingTask harvestBuildTask = (HarvestBuildingTask) task;
+			grid.removeBuilding(harvestBuildTask.buildingTarget);
 		}
 	}
 	
@@ -546,6 +575,31 @@ public class LocalGridTimeExecution {
 		InventoryItem itemClone = new InventoryItem(firstItemNeeded, amountNeeded, ItemData.getNameFromId(firstItemNeeded));
 		
 		return new ItemPickupPriority(location, itemClone);
+	}
+	
+	private static List<Vector3i> findBestOpenRectSpace(LocalGrid grid, Vector3i coords, Vector2i requiredSpace) {
+		Set<Vector3i> openSpace = SpaceFillingAlgorithm.findAvailableSpace(grid, coords, 
+				requiredSpace.x * 3, requiredSpace.y * 3, true);
+		int height = openSpace.iterator().next().z;
+		
+		if (openSpace != null) {
+			int[] maxSubRect = AlgUtil.findMaxRect(openSpace);
+			int bestR = maxSubRect[0], bestC = maxSubRect[1],
+					rectR = maxSubRect[2], rectC = maxSubRect[3];
+				
+			List<Vector3i> bestRectangle = Vector3i.getRange(
+					new Vector3i(bestR, bestC, height), new Vector3i(bestR + rectR - 1, bestC + rectC - 1, height));
+			Collections.sort(bestRectangle, new Comparator<Vector3i>() {
+				@Override
+				public int compare(Vector3i o1, Vector3i o2) {
+					return o2.manhattanDist(coords) - o1.manhattanDist(coords);
+				}
+			});
+			return bestRectangle; 
+		}
+		else {
+			return null;
+		}
 	}
 	
 	/*

@@ -11,10 +11,16 @@ import java.util.Set;
 
 import io.github.dantetam.toolbox.AlgUtil;
 import io.github.dantetam.toolbox.MathUti;
+import io.github.dantetam.vector.Vector2i;
 import io.github.dantetam.vector.Vector3i;
 
 public class SpaceFillingAlgorithm {
 
+	public static Set<Vector3i> fillSpacesIntoGrid(LocalGrid grid, Vector3i center, 
+			List<Vector2i> sizes, boolean sameLevel) {
+		return null;
+	}
+	
 	/**
 	 * 
 	 * @return The maximum rectangle closest to center, with minimum dimensions (desiredR, desiredC),
@@ -33,13 +39,14 @@ public class SpaceFillingAlgorithm {
 					candidates.add(center.getSum(new Vector3i(r,c,0)));
 				}
 			}
-			List<Set<Vector3i>> components = findConnectedFreeTiles(grid, candidates);
+			List<Set<Vector3i>> components = findContFreeTiles(grid, candidates);
 			List<int[]> componentMaxSubRect = new ArrayList<>();
 			Map<Integer, Integer> componentScore = new HashMap<>();
 			
 			int componentIndex = 0;
 			for (Set<Vector3i> component: components) {
-				int[] maxSubRect = AlgUtil.findMaxRect(component);
+				//int[] maxSubRect = AlgUtil.findMaxRect(component);
+				int[] maxSubRect = AlgUtil.findBestRect(component, desiredR, desiredC);
 				
 				if (maxSubRect[2] < desiredR || maxSubRect[3] < desiredC) continue; 
 				
@@ -75,7 +82,7 @@ public class SpaceFillingAlgorithm {
 		}
 	}
 	
-	public static List<Set<Vector3i>> findConnectedFreeTiles(
+	public static List<Set<Vector3i>> findContFreeTiles(
 			LocalGrid grid, Set<Vector3i> candidates) {
 		List<Set<Vector3i>> connectedComponents = new ArrayList<>();
 		Set<Vector3i> visitedSet = new HashSet<>();
@@ -97,6 +104,22 @@ public class SpaceFillingAlgorithm {
 			connectedComponents.add(singleComponent);
 		}
 		return connectedComponents;
+	}
+	
+	public static List<Set<Vector3i>> allSurfaceContTiles(LocalGrid grid) {
+		Set<Vector3i> candidates = new HashSet<>();
+		for (int r = 0; r < grid.rows; r++) {
+			for (int c = 0; c < grid.cols; c++) {
+				int groundHeight = grid.findLowestEmptyHeight(r, c);
+				for (int h = grid.heights - 1; h >= 0; h--) {
+					LocalTile tile = grid.getTile(new Vector3i(r,c,h));
+					if (h == groundHeight || (h < groundHeight && tile.exposedToAir)) {
+						candidates.add(new Vector3i(r,c,h));
+					}
+				}
+			}
+		}
+		return findContFreeTiles(grid, candidates);
 	}
 	
 	private static int squareDistance(Vector3i a, Vector3i b) {
