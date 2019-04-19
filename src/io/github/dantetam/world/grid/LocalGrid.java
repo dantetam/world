@@ -357,6 +357,7 @@ public class LocalGrid {
 		person.location = tile;
 		if (person.location != null) {
 			person.location.addPerson(person);
+			markAllAdjAsExposed(tile.coords);
 		}
 	}
 	

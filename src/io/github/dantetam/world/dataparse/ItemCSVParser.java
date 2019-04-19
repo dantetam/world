@@ -148,8 +148,8 @@ public class ItemCSVParser extends WorldCsvParser {
 				List<ProcessStep> steps = new ArrayList<>();
 				steps.add(new ProcessStep("HBuilding", pickupTime));
 				steps.add(new ProcessStep("O", 0));
-				ProcessData.addProcess("Harvest Building " + name, new ArrayList<>(), itemDrops, null, false, 
-						name, steps);
+				ProcessData.addProcess("Harvest Building " + name, new ArrayList<>(), itemDrops, name, false, 
+						null, steps);
 			}
 			else {
 				List<ProcessStep> steps = new ArrayList<>();

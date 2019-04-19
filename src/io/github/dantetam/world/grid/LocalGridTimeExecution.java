@@ -38,6 +38,7 @@ import io.github.dantetam.world.process.priority.MovePriority;
 import io.github.dantetam.world.process.priority.Priority;
 import io.github.dantetam.world.process.priority.TileHarvestPriority;
 import io.github.dantetam.world.process.priority.TilePlacePriority;
+import io.github.dantetam.world.process.priority.WaitPriority;
 import io.github.dantetam.world.process.prioritytask.DropoffInvTask;
 import io.github.dantetam.world.process.prioritytask.HarvestBlockTileTask;
 import io.github.dantetam.world.process.prioritytask.HarvestBuildingTask;
@@ -54,7 +55,7 @@ public class LocalGridTimeExecution {
 	public static void tick(LocalGrid grid, Society society) {
 		calcUtility = society.findCompleteUtilityAllItems(null);
 		
-		System.out.println("<<<<<########>>>>> NUMBER DAY TICKS: " + numDayTicks);
+		System.out.println("<<<<>>>> NUMBER DAY TICKS: " + numDayTicks);
 		if (numDayTicks % 1440 == 0) {
 			numDayTicks = 0;
 			assignAllHumanJobs(society);
@@ -63,7 +64,7 @@ public class LocalGridTimeExecution {
 		System.out.println("################");
 		for (Human human: society.getAllPeople()) {
 			String processName = human.processProgress == null ? "null" : human.processProgress.name;
-			System.out.println(human.name + " is at location " + human.location.coords + 
+			System.out.println(human.name + " located at " + human.location.coords + 
 					", with process: " + processName); 
 			System.out.println("Inventory (counts): " + human.inventory.toUniqueItemsMap());
 					// + human.processProgress == null ? "null" : human.processProgress.name);
@@ -81,8 +82,8 @@ public class LocalGridTimeExecution {
 				}
 				else {
 					task.taskTime--;
-					System.out.println(human.name + " made progress on task: " 
-							+ task.getClass() + " (" + task.taskTime + ")");
+					System.out.println(human.name + " task in progress: " 
+							+ task.getClass().getSimpleName() + " (" + task.taskTime + ")");
 				}
 			}
 			if (human.activePriority != null && //Assign tasks if there are none (do not overwrite existing tasks)
@@ -108,15 +109,18 @@ public class LocalGridTimeExecution {
 					
 					if (human.activePriority == null) {
 						human.activePriority = getPriorityForStep(society, grid, human, human.processProgress, step);
+						String priorityName = human.activePriority == null ? "null" : human.activePriority.getClass().getSimpleName();
+						System.out.println(human.name + ", for its process: " + human.processProgress + ", ");
+								System.out.println("was given the PRIORITY: " + priorityName);
 					}
 					
-					String priorityName = human.activePriority == null ? "null" : human.activePriority.getClass().getName();
-					System.out.println(human.name + ", for its process: " + human.processProgress + ", ");
-							System.out.println("was given the PRIORITY: " + priorityName);
 					if (human.activePriority instanceof DonePriority || 
 							human.activePriority instanceof ImpossiblePriority) {
 						human.processProgress.processSteps.remove(0);
 						//human.processProgress = null;
+						human.activePriority = null;
+					}
+					if (human.activePriority instanceof WaitPriority) {
 						human.activePriority = null;
 					}
 				}
@@ -353,8 +357,16 @@ public class LocalGridTimeExecution {
 		
 		if ((primaryLocation == null && being.processProgress.requiredBuildNameOrGroup != null)
 				|| being.processProgress.isCreatedAtSite) {
-			int buildingId = ItemData.getIdFromName(being.processProgress.requiredBuildNameOrGroup);
-			Vector2i requiredSpace = ItemData.buildingSize(buildingId);
+			int buildingId; Vector2i requiredSpace;
+			
+			if (being.processProgress.requiredBuildNameOrGroup != null) {
+				buildingId = ItemData.getIdFromName(being.processProgress.requiredBuildNameOrGroup);
+				requiredSpace = ItemData.buildingSize(buildingId);
+			}
+			else {
+				buildingId = -1;
+				requiredSpace = new Vector2i(1, 1);
+			}
 			
 			Vector3i nearOpenSpace = null; // = grid.getNearOpenSpace(society.societyCenter);
 			
@@ -399,16 +411,16 @@ public class LocalGridTimeExecution {
 		if (step.stepType.equals("I")) {
 			if (being.processBuilding != null && being.processBuilding.inventory.hasItems(process.inputItems)) {
 				being.processBuilding.inventory.subtractItems(process.inputItems);
-				return new DonePriority(null);
+				return new DonePriority();
 			}
 			else if (destinationInventory.hasItems(process.inputItems) && itemMode.equals("Personal")) {
 				being.inventory.subtractItems(process.inputItems);
-				return new DonePriority(null);
+				return new DonePriority();
 			}
 			else if (destinationInventory.hasItems(process.inputItems) && being.processTile != null) {
 				//priority = new ItemDeliveryPriority(primaryLocation, new Inventory(process.inputItems));
 				if (being.location.coords.manhattanDist(primaryLocation) <= 1) {
-					return new DonePriority(null);
+					return new DonePriority();
 				}
 				else {
 					priority = new MovePriority(primaryLocation);
@@ -430,7 +442,10 @@ public class LocalGridTimeExecution {
 			if (being.location.coords.manhattanDist(primaryLocation) <= 1) {
 				step.timeTicks--;
 				if (step.timeTicks <= 0) {
-					return new DonePriority(null);
+					return new DonePriority();
+				}
+				else {
+					priority = new WaitPriority();
 				}
 			}
 			else {
@@ -438,9 +453,9 @@ public class LocalGridTimeExecution {
 			}
 		}
 		else if (step.stepType.equals("HBuilding")) {
-			LocalTile tile = grid.getTile(being.location.coords);
+			LocalTile tile = grid.getTile(primaryLocation);
 			if (tile.building == null) {
-				return new DonePriority(null);
+				return new DonePriority();
 			}
 			if (being.location.coords.manhattanDist(primaryLocation) <= 1) {
 				priority = new BuildingHarvestPriority(tile.coords, tile.building);
@@ -450,9 +465,9 @@ public class LocalGridTimeExecution {
 			}
 		}
 		else if (step.stepType.equals("HTile")) {
-			LocalTile tile = grid.getTile(being.location.coords);
+			LocalTile tile = grid.getTile(primaryLocation);
 			if (tile.tileBlockId == ItemData.ITEM_EMPTY_ID) {
-				return new DonePriority(null);
+				return new DonePriority();
 			}
 			if (being.location.coords.manhattanDist(primaryLocation) <= 1) {
 				priority = new TileHarvestPriority(tile.coords);
@@ -464,7 +479,10 @@ public class LocalGridTimeExecution {
 		else if (step.stepType.startsWith("U")) {
 			step.timeTicks--;
 			if (step.timeTicks <= 0) {
-				return new DonePriority(null);
+				return new DonePriority();
+			}
+			else {
+				
 			}
 		}
 		else if (step.stepType.equals("O")) {
@@ -476,8 +494,11 @@ public class LocalGridTimeExecution {
 					grid.addItemRecordToWorld(primaryLocation, item);
 				}
 			}
-			return new DonePriority(null);
+			return new DonePriority();
 		}
+		
+		if (!step.stepType.startsWith("U") && priority == null)
+			System.err.println("Warning, case not covered for priority from step, returning null priority");
 		return priority;
 	}
 	
