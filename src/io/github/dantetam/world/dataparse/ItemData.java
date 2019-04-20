@@ -212,10 +212,6 @@ public class ItemData {
 		return stackableMap.get(id);
 	}
 	
-	public static List<ProcessStep> getItemActions(Integer id) {
-		return itemActionsById.get(id);
-	}
-	
 	public static double getBaseItemValue(Integer id) {
 		if (!baseItemValue.containsKey(id)) {
 			throw new IllegalArgumentException("Could not find item id: " + id);
@@ -232,6 +228,14 @@ public class ItemData {
 	
 	public static int getRefinedFormId(Integer id) {
 		return refinedFormsById.containsKey(id) ? refinedFormsById.get(id) : ItemData.ITEM_EMPTY_ID;
+	}
+	
+	public static List<ProcessStep> getItemActions(Integer id) {
+		return itemActionsById.get(id);
+	}
+
+	public static List<ProcessStep> getItemProps(Integer id) {
+		return itemPropertiesById.get(id);
 	}
 	
 	public static int getTextureFromItemId(int id) {

@@ -134,7 +134,7 @@ public class Society {
 						double util = allItemsUtility.containsKey(input.itemId) ? 
 								allItemsUtility.get(input.itemId) : 0;
 						if (canCompleteProcess(process, rawResRarity)) {
-							MathUti.insertKeepMaxMap(bestProcesses, process, util);
+							MathUti.insertKeepMaxMap(bestProcesses, process.clone(), util);
 							//System.out.println("COMPLETE process: " + process.name + " " + util);
 						}
 						else {
@@ -510,6 +510,33 @@ public class Society {
 			int minShelter = 20;
 			double normShelterScore = (double) Math.max(minShelter - shelterScore, 0) / minShelter;
 			MathUti.addNumMap(societalNeed, "Shelter", normShelterScore);
+			
+			if (human.home == null) {
+				MathUti.addNumMap(societalNeed, "Personal Home", 1.0);
+				MathUti.addNumMap(societalNeed, "Furniture", 0.8);
+			}
+			else {
+				double normFurnitureScore = 0;
+				Set<Vector3i> buildingSpaces = human.home.calculatedLocations;
+				for (Vector3i buildingSpace: buildingSpaces) {
+					LocalTile tile = grid.getTile(buildingSpace);
+					if (tile.building != null) {
+						int id = tile.building.buildingId;
+						List<ProcessStep> itemProps = ItemData.getItemProps(id);
+						double beautyValue = ItemData.getItemBeautyValue(id);
+						if (itemProps != null) {
+							for (ProcessStep step: itemProps) {
+								if (step.stepType.equals("Furniture")) {
+									normFurnitureScore *= step.modifier * beautyValue;
+								}
+							}
+						}
+					}
+				}
+				normFurnitureScore = Math.min(normFurnitureScore, 1.0);
+				MathUti.addNumMap(societalNeed, "Furniture", normFurnitureScore);
+				MathUti.addNumMap(societalNeed, "Personal Home", normFurnitureScore / 3);
+			}	
 		}
 		return societalNeed;
 	}
@@ -528,12 +555,14 @@ public class Society {
 		List<ProcessStep> itemActions = ItemData.getItemActions(itemId);
 		if (itemActions != null) {
 			for (ProcessStep step: itemActions) {
-				if (step.stepType.equals("Eat")) {
-					MathUti.addNumMap(rawUtilByNeed, "Eat", step.modifier);
-				}
-				else if (step.stepType.equals("Rest")) {
-					MathUti.addNumMap(rawUtilByNeed, "Rest", step.modifier);
-				}
+				MathUti.addNumMap(rawUtilByNeed, step.stepType, step.modifier);
+			}
+		}
+		
+		List<ProcessStep> itemProps = ItemData.getItemProps(itemId);
+		if (itemProps != null) {
+			for (ProcessStep step: itemProps) {
+				MathUti.addNumMap(rawUtilByNeed, step.stepType, step.modifier);
 			}
 		}
 		

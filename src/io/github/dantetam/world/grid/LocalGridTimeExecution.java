@@ -1,6 +1,7 @@
 package io.github.dantetam.world.grid;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -283,12 +284,14 @@ public class LocalGridTimeExecution {
 		}
 		else if (priority instanceof ConstructRoomPriority) {
 			ConstructRoomPriority consPriority = (ConstructRoomPriority) priority;
-			
 			if (consPriority.allBuildingCoords.size() == 0) return null;
 			
-			Vector3i bestLocation = consPriority.allBuildingCoords.get(0);
+			Vector3i bestLocation = null;
+			while (bestLocation == null || grid.getTile(bestLocation).tileFloorId == ItemData.ITEM_EMPTY_ID) {
+				bestLocation = consPriority.allBuildingCoords.remove(0);
+			}
+			
 			Collection<Integer> rankedMaterials = consPriority.rankedBuildMaterials;
-						
 			for (int materialId: rankedMaterials) {
 				if (being.inventory.findItemCount(materialId) > 0) {
 					return getTasksFromPriority(grid, being, new TilePlacePriority(bestLocation, materialId));
@@ -379,7 +382,7 @@ public class LocalGridTimeExecution {
 					Set<Vector3i> emptySpace = grid.getFreeSpace(building);
 					if (emptySpace.size() > requiredSpace.x * requiredSpace.y) {
 						int height = emptySpace.iterator().next().z;
-						int[] bestBounds = AlgUtil.findMaxRect(emptySpace);
+						int[] bestBounds = AlgUtil.findBestRect(emptySpace, requiredSpace.x, requiredSpace.y);
 						nearOpenSpace = new Vector3i(bestBounds[0], bestBounds[1], height);
 						break;
 					}
@@ -390,6 +393,7 @@ public class LocalGridTimeExecution {
 				Set<Integer> bestBuildingMaterials = society.getBestBuildingMaterials(calcUtility, 
 						being, (requiredSpace.x + requiredSpace.y) * 2);
 				
+				System.out.println("Create building space: " + Arrays.toString(AlgUtil.findCoordBounds(bestRectangle)));
 				if (bestRectangle != null) {
 					priority = new ConstructRoomPriority(bestRectangle, bestBuildingMaterials);
 				}
@@ -398,13 +402,20 @@ public class LocalGridTimeExecution {
 				}
 			}
 			else {
+				System.out.println("Assigned building space: " + nearOpenSpace.toString());
 				if (being.processProgress.isCreatedAtSite) {
 					being.processTile = grid.getTile(nearOpenSpace);
+					if (being.location.coords.manhattanDist(primaryLocation) <= 1) {
+						//continue
+					}
+					else {
+						return new MovePriority(primaryLocation);
+					}
 				}
 				else {
 					priority = new BuildingPlacePriority(nearOpenSpace, ItemData.createItem(buildingId, 1));
+					return priority;
 				}
-				return priority;
 			}
 		}
 		
@@ -466,7 +477,7 @@ public class LocalGridTimeExecution {
 		}
 		else if (step.stepType.equals("HTile")) {
 			LocalTile tile = grid.getTile(primaryLocation);
-			if (tile.tileBlockId == ItemData.ITEM_EMPTY_ID) {
+			if (tile.tileBlockId == ItemData.ITEM_EMPTY_ID || step.timeTicks <= 0) {
 				return new DonePriority();
 			}
 			if (being.location.coords.manhattanDist(primaryLocation) <= 1) {
