@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import io.github.dantetam.toolbox.AlgUtil;
+import io.github.dantetam.vector.Vector2i;
 import io.github.dantetam.vector.Vector3i;
 import io.github.dantetam.world.civilization.Human;
 import io.github.dantetam.world.civilization.LivingEntity;
@@ -314,6 +316,61 @@ public class LocalGrid {
 		return this.buildingLookup.nearestNeighbourListSearch(10, coords);
 	}
 	
+	/**
+	 * 
+	 * @param coords The desired coordinates to look for nearest available rooms
+	 * @param requiredSpace
+	 * @return An array of two vectors, representing the 3d coords of the top left corner (min r and min c)
+	 * of the bounds, and then 2d rectangular dimensions of the bounds.
+	 */
+	public Object[] getNearestViableRoom(Vector3i coords, Vector2i requiredSpace) {
+		Collection<Vector3i> nearestBuildingCoords = this.buildingLookup.nearestNeighbourListSearch(50, coords);
+		for (Vector3i nearestBuildingCoord: nearestBuildingCoords) {
+			LocalBuilding building = getTile(nearestBuildingCoord).building;
+			if (building != null) {
+				Set<Vector3i> emptySpace = getFreeSpace(building);
+				if (emptySpace.size() > requiredSpace.x * requiredSpace.y) { //Preliminary check for minimum bounding box
+					int height = emptySpace.iterator().next().z;
+					int[] boundsData = AlgUtil.findBestRect(emptySpace, requiredSpace.x, requiredSpace.y);
+					Vector3i nearOpenSpace = new Vector3i(boundsData[0], boundsData[1], height);
+					Vector2i bounds2d = new Vector2i(boundsData[2], boundsData[3]);
+					if (checkIfUseRoomSpace(nearOpenSpace, bounds2d) && 
+							bounds2d.x >= requiredSpace.x && bounds2d.y >= requiredSpace.y) { 
+						//Actual check for space within
+						return new Object[] {nearOpenSpace, bounds2d};
+					}
+				}
+			}
+		}
+		return null;
+	}
+	
+	public boolean checkIfUseRoomSpace(Vector3i nearOpenSpace, Vector2i bounds2d) {
+		for (int r = nearOpenSpace.x; r < nearOpenSpace.x + bounds2d.x; r++) {
+			for (int c = nearOpenSpace.y; c < nearOpenSpace.y + bounds2d.y; c++) {
+				LocalTile tile = getTile(new Vector3i(r,c,nearOpenSpace.z));
+				if (tile.harvestInUse) return true;
+			}
+		}
+		return false;
+	}
+	
+	public void setInUseRoomSpace(Vector3i nearOpenSpace, Vector2i bounds2d, boolean inUse) {
+		for (int r = nearOpenSpace.x; r < nearOpenSpace.x + bounds2d.x; r++) {
+			for (int c = nearOpenSpace.y; c < nearOpenSpace.y + bounds2d.y; c++) {
+				LocalTile tile = getTile(new Vector3i(r,c,nearOpenSpace.z));
+				tile.harvestInUse = inUse;
+			}
+		}
+	}
+	
+	public void setInUseRoomSpace(Collection<Vector3i> coords, boolean inUse) {
+		for (Vector3i coord: coords) {
+			LocalTile tile = getTile(coord);
+			tile.harvestInUse = inUse;
+		}
+	}
+	
 	public Set<Vector3i> getFreeSpace(LocalBuilding building) {
 		Set<Vector3i> emptySpaces = new HashSet<>();
 		for (Vector3i location: building.calculatedLocations) {
@@ -417,6 +474,7 @@ public class LocalGrid {
 		return null;
 	}
 	
+	//Claim is equivalent to actual human ownership and full rights, as opposed to being in use
 	public void claimTile(Human human, Vector3i coords, boolean override) {
 		LocalTile tile = getTile(coords);
 		if (tile != null) {

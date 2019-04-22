@@ -73,8 +73,9 @@ public class LocalGridTimeExecution {
 			
 			if (human.currentQueueTasks != null && human.currentQueueTasks.size() > 0) {
 				Task task = human.currentQueueTasks.get(0);
+				System.out.println(human.name + " has " + human.currentQueueTasks.size() + " tasks."); 
 				if (task.taskTime <= 0) {
-					System.out.println(human.name + " FINISHED task: " + task.getClass());
+					System.out.println(human.name + " FINISHED task: " + task.getClass().getSimpleName());
 					human.currentQueueTasks.remove(0);
 					executeTask(grid, human, task);
 					if (human.currentQueueTasks.size() == 0) {
@@ -284,11 +285,14 @@ public class LocalGridTimeExecution {
 		}
 		else if (priority instanceof ConstructRoomPriority) {
 			ConstructRoomPriority consPriority = (ConstructRoomPriority) priority;
-			if (consPriority.allBuildingCoords.size() == 0) return null;
+			if (consPriority.remainingBuildCoords.size() == 0) {
+				grid.setInUseRoomSpace(consPriority.allBuildingCoords, true);
+				return null;
+			}
 			
 			Vector3i bestLocation = null;
 			while (bestLocation == null || grid.getTile(bestLocation).tileFloorId == ItemData.ITEM_EMPTY_ID) {
-				bestLocation = consPriority.allBuildingCoords.remove(0);
+				bestLocation = consPriority.remainingBuildCoords.remove(0);
 			}
 			
 			Collection<Integer> rankedMaterials = consPriority.rankedBuildMaterials;
@@ -371,27 +375,14 @@ public class LocalGridTimeExecution {
 				requiredSpace = new Vector2i(1, 1);
 			}
 			
-			Vector3i nearOpenSpace = null; // = grid.getNearOpenSpace(society.societyCenter);
-			
 			//If available building, use it, 
 			//otherwise find space needed for building, allocate it, and start allocating a room
-			Collection<Vector3i> nearestBuildingCoords = grid.getNearestBuildings(being.location.coords);
-			for (Vector3i nearestBuildingCoord: nearestBuildingCoords) {
-				LocalBuilding building = grid.getTile(nearestBuildingCoord).building;
-				if (building != null) {
-					Set<Vector3i> emptySpace = grid.getFreeSpace(building);
-					if (emptySpace.size() > requiredSpace.x * requiredSpace.y) {
-						int height = emptySpace.iterator().next().z;
-						int[] bestBounds = AlgUtil.findBestRect(emptySpace, requiredSpace.x, requiredSpace.y);
-						nearOpenSpace = new Vector3i(bestBounds[0], bestBounds[1], height);
-						break;
-					}
-				}
-			}
-			if (nearOpenSpace == null) { //No available rooms to use
+			Object[] boundsData = grid.getNearestViableRoom(being.location.coords, requiredSpace);
+			if (boundsData == null) { //No available rooms to use
 				List<Vector3i> bestRectangle = findBestOpenRectSpace(grid, being.location.coords, requiredSpace);
 				Set<Integer> bestBuildingMaterials = society.getBestBuildingMaterials(calcUtility, 
 						being, (requiredSpace.x + requiredSpace.y) * 2);
+				grid.setInUseRoomSpace(bestRectangle, true);
 				
 				System.out.println("Create building space: " + Arrays.toString(AlgUtil.findCoordBounds(bestRectangle)));
 				if (bestRectangle != null) {
@@ -402,7 +393,12 @@ public class LocalGridTimeExecution {
 				}
 			}
 			else {
+				Vector3i nearOpenSpace = (Vector3i) boundsData[0]; // = grid.getNearOpenSpace(society.societyCenter);
+				Vector2i bounds2d = (Vector2i) boundsData[1];
+				
 				System.out.println("Assigned building space: " + nearOpenSpace.toString());
+				grid.setInUseRoomSpace(nearOpenSpace, bounds2d, true);
+				
 				if (being.processProgress.isCreatedAtSite) {
 					being.processTile = grid.getTile(nearOpenSpace);
 					if (being.location.coords.manhattanDist(primaryLocation) <= 1) {
