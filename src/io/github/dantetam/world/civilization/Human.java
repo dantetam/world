@@ -8,7 +8,13 @@ import io.github.dantetam.world.grid.LocalBuilding;
 
 public class Human extends LivingEntity {
 
-	public int hydration, maxHydration, nutrition, maxNutrition, rest, maxRest;
+	private static final double NUTRITION_CONSTANT = 10;
+	private static final double REST_CONSTANT_TICK = 100 / (6 * 60);
+	
+	private static final double NUTRI_CONST_LOSS_TICK = 100 / (24 * 60);
+	private static final double LIVE_CONST_LOSS_TICK = 100 / (18 * 60);
+	
+	public double hydration, maxHydration, nutrition, maxNutrition, rest, maxRest;
 	
 	public LocalBuilding home;
 	
@@ -23,9 +29,26 @@ public class Human extends LivingEntity {
 		maxNutrition = 100;
 		maxRest = 100;
 		hydration = 50;
-		nutrition = 20;
-		rest = 0;
+		nutrition = 30;
+		rest = 80;
 		skillBook = new SkillBook();
+	}
+	
+	public void feed(double standardUnitNutrition) {
+		nutrition = Math.min(nutrition + standardUnitNutrition*NUTRITION_CONSTANT, 
+				maxNutrition);
+	}
+	
+	public void rest(double standardRestUnit) {
+		rest = Math.min(rest + standardRestUnit*REST_CONSTANT_TICK, maxRest);
+	}
+	
+	public void spendNutrition() {
+		nutrition = Math.max(nutrition - NUTRI_CONST_LOSS_TICK, 0);
+	}
+	
+	public void spendEnergy() {
+		rest = Math.max(rest - LIVE_CONST_LOSS_TICK, 0);
 	}
 
 }

@@ -537,6 +537,9 @@ public class Society {
 				MathUti.addNumMap(societalNeed, "Furniture", normFurnitureScore);
 				MathUti.addNumMap(societalNeed, "Personal Home", normFurnitureScore / 3);
 			}	
+			
+			double beautyScore = grid.averageBeauty(human.location.coords);
+			MathUti.addNumMap(societalNeed, "Beauty", 1.0 - beautyScore);
 		}
 		return societalNeed;
 	}

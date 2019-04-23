@@ -30,9 +30,11 @@ import io.github.dantetam.world.process.priority.BuildingHarvestPriority;
 import io.github.dantetam.world.process.priority.BuildingPlacePriority;
 import io.github.dantetam.world.process.priority.ConstructRoomPriority;
 import io.github.dantetam.world.process.priority.DonePriority;
+import io.github.dantetam.world.process.priority.EatPriority;
 import io.github.dantetam.world.process.priority.ImpossiblePriority;
 import io.github.dantetam.world.process.priority.ItemDeliveryBuildingPriority;
 import io.github.dantetam.world.process.priority.ItemDeliveryPriority;
+import io.github.dantetam.world.process.priority.ItemGroupPickupPriority;
 import io.github.dantetam.world.process.priority.ItemPickupBuildingPriority;
 import io.github.dantetam.world.process.priority.ItemPickupPriority;
 import io.github.dantetam.world.process.priority.MovePriority;
@@ -282,6 +284,14 @@ public class LocalGridTimeExecution {
 			else {
 				return getTasksFromPriority(grid, being, new MovePriority(buildPriority.coords));
 			}
+		}
+		else if (priority instanceof EatPriority) {
+			todo
+			
+			return progressToFindItemGroup(grid, being.location.coords, "Food", 10);
+		}
+		else if (priority instanceof RestPriority) {
+			todo
 		}
 		else if (priority instanceof ConstructRoomPriority) {
 			ConstructRoomPriority consPriority = (ConstructRoomPriority) priority;
@@ -564,7 +574,8 @@ public class LocalGridTimeExecution {
 		}
 	}
 	
-	private static Priority progressToFindItem(LocalGrid grid, Vector3i centerCoords, int firstItemNeeded, int amountNeeded) {
+	private static Priority progressToFindItem(LocalGrid grid, Vector3i centerCoords,
+			int firstItemNeeded, int amountNeeded) {
 		KdTree<Vector3i> nearestItemsTree = grid.getKdTreeForItemId(firstItemNeeded);
 		
 		if (nearestItemsTree == null) {
@@ -615,6 +626,62 @@ public class LocalGridTimeExecution {
 		InventoryItem itemClone = new InventoryItem(firstItemNeeded, amountNeeded, ItemData.getNameFromId(firstItemNeeded));
 		
 		return new ItemPickupPriority(location, itemClone);
+	}
+	
+	private static Priority progressToFindItemGroup(LocalGrid grid, Vector3i centerCoords,
+			String itemGroupName, int amountNeeded) { // Function<LocalTile, Double> scoringMetric
+		KdTree<Vector3i> nearestItemsTree = grid.getKdTreeForItemGroup(itemGroupName);
+		
+		if (nearestItemsTree == null) {
+			Set<Integer> groupIds = ItemData.getGroupIds(itemGroupName);
+			Vector3i bestLocation = null;
+			double bestScore = 0;
+			for (int groupId: groupIds) {
+				List<Process> outputItemProcesses = ProcessData.getProcessesByOutput(groupId);
+				for (Process process: outputItemProcesses) {
+					if (process.name.startsWith("Harvest ")) {
+						int inputTileId = ItemData.getIdFromName(process.requiredTileNameOrGroup);
+						double pickupTime = ItemData.getPickupTime(inputTileId);
+						double expectedNumItem = process.outputItems.itemExpectation().get(inputTileId);
+						
+						KdTree<Vector3i> itemTree = grid.getKdTreeForTile(inputTileId);
+						int numCandidates = Math.min(itemTree.size(), 10);
+						Collection<Vector3i> nearestCoords = itemTree.nearestNeighbourListSearch(
+								numCandidates, centerCoords);
+						for (Vector3i itemCoords: nearestCoords) {
+							int distUtil = centerCoords.manhattanDist(itemCoords);
+							if (bestLocation == null || distUtil < bestScore) {
+								bestLocation = itemCoords;
+								bestScore = distUtil * expectedNumItem / pickupTime;
+							}
+						}
+					}
+				}
+			}
+			if (bestLocation != null) {
+				return new TileHarvestPriority(bestLocation);
+			}
+			else {
+				return new ImpossiblePriority();
+			}
+		}
+		
+		int numCandidates = Math.min(nearestItemsTree.size(), 10);
+		Collection<Vector3i> nearestCoords = nearestItemsTree.nearestNeighbourListSearch(
+				numCandidates, centerCoords);
+	
+		Map<Vector3i, Double> score = new HashMap<>();
+		for (Vector3i itemCoords: nearestCoords) {
+			LocalTile tile = grid.getTile(itemCoords);
+			int numItemsAtTile = tile.itemsOnFloor.findItemCountGroup(itemGroupName);
+			numItemsAtTile += tile.building.inventory.findItemCountGroup(itemGroupName);
+			int distUtil = centerCoords.manhattanDist(itemCoords);
+			score.put(itemCoords, Math.min(numItemsAtTile, amountNeeded) / Math.pow(distUtil, 2));
+		}
+		score = MathUti.getSortedMapByValueDesc(score);		
+		Vector3i location = (Vector3i) score.keySet().toArray()[0];
+
+		return new ItemGroupPickupPriority(location, itemGroupName, amountNeeded);
 	}
 	
 	private static List<Vector3i> findBestOpenRectSpace(LocalGrid grid, Vector3i coords, Vector2i requiredSpace) {

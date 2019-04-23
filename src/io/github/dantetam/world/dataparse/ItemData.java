@@ -27,7 +27,7 @@ public class ItemData {
 	
 	//Map group name to list of item ids in group e.g. Stone -> Basalt_id, Quartz_id, ...
 	private static Map<String, Set<Integer>> itemGroups = new HashMap<>();
-	private static Map<Integer, String> groupNameById = new HashMap<>();
+	private static Map<Integer, Set<String>> groupNameById = new HashMap<>();
 	
 	//Map item ids to the maximum amount allowed in one inventory space,
 	//where negative numbers, 0, and 1 mean not stackable.
@@ -94,7 +94,7 @@ public class ItemData {
 		do {
 			Object[] ids = allItemsById.keySet().toArray();
 			id = (Integer) ids[(int) (Math.random() * ids.length)];
-		} while (placeableBlock.get(id) && groupNameById.get(id) != "Building");
+		} while (placeableBlock.get(id) && groupNameById.get(id).contains("Building"));
 		
 		int maxStack = stackableMap.get(id); 
 		int oneStackQuantity = (int) Math.ceil(Math.random() * maxStack * 0.75 + maxStack * 0.25);
@@ -123,7 +123,11 @@ public class ItemData {
 						itemGroups.put(group, new HashSet<>());
 					}
 					itemGroups.get(group).add(id);
-					groupNameById.put(id, group);
+					
+					if (!groupNameById.containsKey(group)) {
+						groupNameById.put(id, new HashSet<>());
+					}
+					groupNameById.get(id).add(group);
 				}
 			}
 		}
@@ -176,7 +180,7 @@ public class ItemData {
 		return itemGroups.get(name);
 	}
 	
-	public static String getGroupNameById(int id) {
+	public static Set<String> getGroupNameById(int id) {
 		return groupNameById.get(id);
 	}
 	 

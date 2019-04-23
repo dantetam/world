@@ -31,8 +31,11 @@ public class LocalGrid {
 	public int rows, cols, heights; //Sizes of the three dimensions of this local grid
 	private LocalTile[][][] grid; //A 3D grid, with the third dimension representing height, such that [][][50] is one level higher than [][][49].
 	private Set<LocalBuilding> allBuildings; //Contains all buildings within this grid, updated when necessary
+	
 	private Map<Integer, KdTree<Vector3i>> itemIdQuickTileLookup; //Search for item ids quickly in 3d space
 	private KdTree<Vector3i> globalItemsLookup; //Search for all items left on the floor, for quicker kdtree search over a smaller space
+	private Map<String, KdTree<Vector3i>> itemGroupTileLookup; //Search for items by group, in kdtree space 
+	
 	private Map<Integer, KdTree<Vector3i>> globalTileBlockLookup;
 	private KdTree<Vector3i> buildingLookup;
 	
@@ -40,8 +43,11 @@ public class LocalGrid {
 		rows = size.x; cols = size.y; heights = size.z;
 		grid = new LocalTile[rows][cols][heights];
 		allBuildings = new HashSet<>();
+		
 		itemIdQuickTileLookup = new HashMap<>();
 		globalItemsLookup = new KdTree<>();
+		itemGroupTileLookup = new HashMap<>();
+		
 		globalTileBlockLookup = new HashMap<>();
 		buildingLookup = new KdTree<>();
 	}
@@ -135,6 +141,33 @@ public class LocalGrid {
 		}
 	}
 	
+	public Set<Vector3i> squareSpiralTiles(Vector3i coords, int radius) {
+		Set<Vector3i> results = new HashSet<>();
+		for (int r = -radius; r <= +radius; r++) {
+			Vector3i offsetA = new Vector3i(r, -radius, 0);
+			Vector3i offsetB = new Vector3i(r, +radius, 0);
+			results.add(coords.getSum(offsetA));
+			results.add(coords.getSum(offsetB));
+		}
+		for (int c = -radius; c <= +radius; c++) {
+			Vector3i offsetA = new Vector3i(-radius, -c, 0);
+			Vector3i offsetB = new Vector3i(+radius, +c, 0);
+			results.add(coords.getSum(offsetA));
+			results.add(coords.getSum(offsetB));
+		}
+		return results;
+	}
+	
+	public Set<Vector3i> rangeLargeSquareTiles(Vector3i coords, 
+			int startRadiusInc, int endRadiusInc) {
+		Set<Vector3i> allRings = new HashSet<Vector3i>() {{
+			for (int i = startRadiusInc; i <= endRadiusInc; i++) {
+				addAll(squareSpiralTiles(coords, i));
+			}
+		}};
+		return allRings;
+	}
+	
 	/**
 	 * Used only for world creation, to create individual tiles
 	 * @param coords
@@ -172,15 +205,36 @@ public class LocalGrid {
 			itemIdQuickTileLookup.put(item.itemId, new KdTree<Vector3i>());
 		}
 		itemIdQuickTileLookup.get(item.itemId).add(coords);
+		
+		Set<String> itemGroups = ItemData.getGroupNameById(item.itemId);
+		for (String itemGroup: itemGroups) {
+			if (!(itemGroupTileLookup.containsKey(itemGroup))) {
+				itemGroupTileLookup.put(itemGroup, new KdTree<Vector3i>());
+			}
+			itemGroupTileLookup.get(itemGroup).add(coords);
+		}
+		
 		globalItemsLookup.add(coords);
 	}
 	
 	public void removeItemRecordToWorld(Vector3i coords, InventoryItem item) {
+		LocalTile tile = getTile(coords);
+		
 		if (itemIdQuickTileLookup.containsKey(item.itemId)) {
 			itemIdQuickTileLookup.get(item.itemId).remove(coords);
-			LocalTile tile = getTile(coords);
-			if (tile.itemsOnFloor.size() == 0 && tile.building == null && tile.building.inventory.hasItem(item)) {
+			if (tile.itemsOnFloor.size() == 0 && 
+					tile.building == null && tile.building.inventory.hasItem(item)) {
 				globalItemsLookup.remove(coords);
+			}
+		}
+	
+		Set<String> itemGroups = ItemData.getGroupNameById(item.itemId);
+		for (String itemGroup: itemGroups) {
+			if (itemGroupTileLookup.containsKey(itemGroup)) {
+				itemGroupTileLookup.get(itemGroup).remove(coords);
+				if (itemGroupTileLookup.get(itemGroup).size() == 0) {
+					itemGroupTileLookup.remove(itemGroup);
+				}
 			}
 		}
 	}
@@ -258,6 +312,10 @@ public class LocalGrid {
 	
 	public KdTree<Vector3i> getKdTreeForTile(Integer itemId) {
 		return this.globalTileBlockLookup.get(itemId);
+	}
+	
+	public KdTree<Vector3i> getKdTreeForItemGroup(String groupName) {
+		return this.itemGroupTileLookup.get(groupName);
 	}
 	
 	public boolean buildingCanFitAt(LocalBuilding building, Vector3i newPrimaryCoords, boolean overrideGrid) {
@@ -443,6 +501,39 @@ public class LocalGrid {
 			}
 		}
 		return 0;
+	}
+	
+	public double averageBeauty(Vector3i coords) {
+		Set<Vector3i> spiralCoords = rangeLargeSquareTiles(coords, 0, 8);
+		double sumBeauty = 0;
+		int numWeights = 0;
+		final double itemWeighting = 0.25;
+		
+		for (Vector3i spiralCoord: spiralCoords) {
+			int groundHeight = this.findLowestGroundHeight(spiralCoord.x, spiralCoord.y);
+			int emptyHeight = this.findLowestEmptyHeight(spiralCoord.x, spiralCoord.y);
+			if (emptyHeight != spiralCoord.z) {
+				spiralCoord.z = groundHeight;
+			}
+			LocalTile tile = getTile(spiralCoord);	
+			
+			if (tile.tileBlockId != ItemData.ITEM_EMPTY_ID) {
+				double beautyValue = ItemData.getItemBeautyValue(tile.tileBlockId);
+				sumBeauty += beautyValue;
+				numWeights++;
+			}
+			if (tile.itemsOnFloor.size() > 0) {
+				List<InventoryItem> items = tile.itemsOnFloor.getItems();
+				for (InventoryItem item: items) {
+					double beautyValue = ItemData.getItemBeautyValue(item.itemId);
+					sumBeauty += beautyValue * itemWeighting;
+					numWeights += itemWeighting;
+				}
+			}
+		}
+		
+		if (numWeights == 0) return 0;
+		return sumBeauty / numWeights;
 	}
 	
 	public Vector3i getNearOpenSpace(Vector3i coords) {

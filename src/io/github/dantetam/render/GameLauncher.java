@@ -24,7 +24,7 @@ public class GameLauncher {
 
 	public static float[] screenXValues = { 768, 960, 1280, 1366, 1600, 1920, 2304, 2560, 3200, 3840, 4096 };
 	public static float[] screenYValues = { 432, 540, 720, 768, 900, 1080, 1296, 1440, 1800, 2160, 2304 };
-	public static int screenResolutionIndex = 4;
+	public static int screenResolutionIndex = 3;
 	public static float WIDTH = screenXValues[screenResolutionIndex], HEIGHT = screenYValues[screenResolutionIndex];
 	public static float centerX = WIDTH / 2, centerY = HEIGHT / 2; // for rendering purposes, to determine how the
 																	// position of the mouse affects the camera

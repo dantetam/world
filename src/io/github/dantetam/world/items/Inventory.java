@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import io.github.dantetam.toolbox.MathUti;
 import io.github.dantetam.world.dataparse.ItemData;
@@ -67,6 +68,18 @@ public class Inventory {
 		return sum;
 	}
 	
+	public int findItemCountGroup(String groupName) {
+		if (items == null) return 0;
+		int sum = 0;
+		Set<Integer> groupIds = ItemData.getGroupIds(groupName);
+		for (InventoryItem item: items) {
+			if (groupIds.contains(item.itemId)) {
+				sum += item.quantity;
+			}
+		}
+		return sum;
+	}
+	
 	/**
 	 * @param requiredItems A list of items with id and quantity.
 	 * @return Two maps containing the items needed to complete the request that are not in this inventory
@@ -99,15 +112,17 @@ public class Inventory {
 				InventoryItem cloneInvItem = invItem.clone();
 				cloneInv.add(cloneInvItem);
 				int itemId = cloneInvItem.itemId;
-				String candidateGroup = ItemData.getGroupNameById(itemId);
-				if (candidateGroup != null && groupItemNeeds.containsKey(candidateGroup)) {
-					int requiredQuantity = groupItemNeeds.get(candidateGroup);
-					int subtract = Math.min(requiredQuantity, Math.max(0, cloneInvItem.quantity));
-					cloneInvItem.quantity -= subtract;
-					if (requiredQuantity - subtract > 0)
-						groupItemNeeds.put(candidateGroup, requiredQuantity - subtract);
-					else 
-						groupItemNeeds.remove(candidateGroup);
+				Set<String> candidateGroups = ItemData.getGroupNameById(itemId);
+				for (String candidateGroup: candidateGroups) {
+					if (candidateGroup != null && groupItemNeeds.containsKey(candidateGroup)) {
+						int requiredQuantity = groupItemNeeds.get(candidateGroup);
+						int subtract = Math.min(requiredQuantity, Math.max(0, cloneInvItem.quantity));
+						cloneInvItem.quantity -= subtract;
+						if (requiredQuantity - subtract > 0)
+							groupItemNeeds.put(candidateGroup, requiredQuantity - subtract);
+						else 
+							groupItemNeeds.remove(candidateGroup);
+					}
 				}
 				if (regularItemNeeds.containsKey(itemId)) {
 					int requiredQuantity = regularItemNeeds.get(itemId);
