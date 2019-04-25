@@ -39,6 +39,7 @@ import io.github.dantetam.world.process.priority.ItemPickupBuildingPriority;
 import io.github.dantetam.world.process.priority.ItemPickupPriority;
 import io.github.dantetam.world.process.priority.MovePriority;
 import io.github.dantetam.world.process.priority.Priority;
+import io.github.dantetam.world.process.priority.RestPriority;
 import io.github.dantetam.world.process.priority.TileHarvestPriority;
 import io.github.dantetam.world.process.priority.TilePlacePriority;
 import io.github.dantetam.world.process.priority.WaitPriority;
@@ -130,6 +131,8 @@ public class LocalGridTimeExecution {
 				}
 				//Process has been completed, remove it from person
 				if (human.processProgress.processSteps.size() == 0) { 
+					executeProcessResActions(grid, human, human.processProgress.processResActions);
+					
 					System.out.println(human.name + " COMPLETED process: " + human.processProgress);
 					human.processProgress = null;
 					
@@ -156,6 +159,7 @@ public class LocalGridTimeExecution {
 	private static LocalBuilding assignBuilding(LocalGrid grid, LivingEntity being, String buildingName) {
 		int id = ItemData.getIdFromName(buildingName);
 		KdTree<Vector3i> nearestItemsTree = grid.getKdTreeForItemId(id);
+		if (nearestItemsTree == null || nearestItemsTree.size() == 0) return null;
 		int numCandidates = Math.min(nearestItemsTree.size(), 10);
 		Collection<Vector3i> nearestCoords = nearestItemsTree.nearestNeighbourListSearch(
 				numCandidates, being.location.coords);
@@ -286,12 +290,12 @@ public class LocalGridTimeExecution {
 			}
 		}
 		else if (priority instanceof EatPriority) {
-			todo
-			
-			return progressToFindItemGroup(grid, being.location.coords, "Food", 10);
+			return getTasksFromPriority(grid, being, 
+					progressToFindItemGroup(grid, being.location.coords, "Food", 1));
 		}
 		else if (priority instanceof RestPriority) {
-			todo
+			return getTasksFromPriority(grid, being, 
+					progressToFindItemGroup(grid, being.location.coords, "Bed", 1));
 		}
 		else if (priority instanceof ConstructRoomPriority) {
 			ConstructRoomPriority consPriority = (ConstructRoomPriority) priority;
@@ -374,7 +378,12 @@ public class LocalGridTimeExecution {
 		
 		if ((primaryLocation == null && being.processProgress.requiredBuildNameOrGroup != null)
 				|| being.processProgress.isCreatedAtSite) {
-			int buildingId; Vector2i requiredSpace;
+			System.out.println("Find status building case");
+			System.out.println(being.processProgress.requiredBuildNameOrGroup);
+			System.out.println(being.processProgress);
+			
+			int buildingId; 
+			Vector2i requiredSpace;
 			
 			if (being.processProgress.requiredBuildNameOrGroup != null) {
 				buildingId = ItemData.getIdFromName(being.processProgress.requiredBuildNameOrGroup);
@@ -385,14 +394,21 @@ public class LocalGridTimeExecution {
 				requiredSpace = new Vector2i(1, 1);
 			}
 			
+			
+			System.out.println("Step 1");
+			
 			//If available building, use it, 
 			//otherwise find space needed for building, allocate it, and start allocating a room
 			Object[] boundsData = grid.getNearestViableRoom(being.location.coords, requiredSpace);
+			System.out.println("Step 1.5");
 			if (boundsData == null) { //No available rooms to use
+				System.out.println("Step 1.75");
 				List<Vector3i> bestRectangle = findBestOpenRectSpace(grid, being.location.coords, requiredSpace);
 				Set<Integer> bestBuildingMaterials = society.getBestBuildingMaterials(calcUtility, 
 						being, (requiredSpace.x + requiredSpace.y) * 2);
 				grid.setInUseRoomSpace(bestRectangle, true);
+				
+				System.out.println("Step 2");
 				
 				System.out.println("Create building space: " + Arrays.toString(AlgUtil.findCoordBounds(bestRectangle)));
 				if (bestRectangle != null) {
@@ -493,6 +509,15 @@ public class LocalGridTimeExecution {
 				priority = new MovePriority(primaryLocation);
 			}
 		}
+		else if (step.stepType.startsWith("Wait")) {
+			step.timeTicks--;
+			if (step.timeTicks <= 0) {
+				return new DonePriority();
+			}
+			else {
+				return new WaitPriority();
+			}
+		}
 		else if (step.stepType.startsWith("U")) {
 			step.timeTicks--;
 			if (step.timeTicks <= 0) {
@@ -517,6 +542,23 @@ public class LocalGridTimeExecution {
 		if (!step.stepType.startsWith("U") && priority == null)
 			System.err.println("Warning, case not covered for priority from step, returning null priority");
 		return priority;
+	}
+	
+	private static void executeProcessResActions(LocalGrid grid, LivingEntity being, List<ProcessStep> actions) {
+		for (ProcessStep action: actions) {
+			executeProcessResAction(grid, being, action);
+		}
+	}
+	private static void executeProcessResAction(LocalGrid grid, LivingEntity being, ProcessStep action) {
+		if (action.stepType.equals("Eat")) {
+			being.feed(action.modifier);
+		}
+		else if (action.stepType.equals("Rest")) {
+			being.rest(action.modifier);
+		}
+		else if (action.stepType.equals("Heal")) {
+			
+		}
 	}
 	
 	private static void executeTask(LocalGrid grid, LivingEntity being, Task task) {
@@ -687,9 +729,9 @@ public class LocalGridTimeExecution {
 	private static List<Vector3i> findBestOpenRectSpace(LocalGrid grid, Vector3i coords, Vector2i requiredSpace) {
 		Set<Vector3i> openSpace = SpaceFillingAlgorithm.findAvailableSpace(grid, coords, 
 				requiredSpace.x * 3, requiredSpace.y * 3, true);
-		int height = openSpace.iterator().next().z;
 		
 		if (openSpace != null) {
+			int height = openSpace.iterator().next().z;
 			int[] maxSubRect = AlgUtil.findMaxRect(openSpace);
 			int bestR = maxSubRect[0], bestC = maxSubRect[1],
 					rectR = maxSubRect[2], rectC = maxSubRect[3];

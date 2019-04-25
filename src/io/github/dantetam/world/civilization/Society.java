@@ -61,11 +61,15 @@ public class Society {
 			//System.out.println(ItemData.getNameFromId(entry.getKey()) + "; ranking: " + entry.getValue());
 		//}
 		
+		Map<Integer, Double> rawResRarity = findRawResourcesRarity(human);
+		
 		Map<Process, Double> processByUtil = new HashMap<>();
 		int i = 0;
 		while (i < sortedKeys.length) { //processByUtil.size() < desiredNumProcess
 			Integer itemId = (Integer) sortedKeys[i];
-			Map<Process, Double> bestProcesses = findBestProcess(allItemsUtility, human, itemId);
+			
+			Map<Process, Double> bestProcesses = findBestProcess(allItemsUtility, rawResRarity, 
+					human, itemId);
 			
 			if (bestProcesses != null) {
 				if (desiredItems == null || desiredItems.contains(itemId)) {
@@ -76,6 +80,24 @@ public class Society {
 				}
 			}
 			i++;
+		}
+		
+		Map<String, Double> needsIntensity = findAllNeedsIntensity();
+		for (Process process: ProcessData.getAllProcesses()) {
+			if (!processByUtil.containsKey(process)) {
+				double heuristicActionScore = 0;
+				List<ProcessStep> resActions = process.processResActions;
+				if (resActions != null) {
+					for (ProcessStep resAction: resActions) {
+						double needWeight = 0.5;
+						if (needsIntensity.containsKey(resAction.stepType)) {
+							needWeight = needsIntensity.get(resAction.stepType);
+						}
+						heuristicActionScore += needWeight * resAction.modifier;
+					}
+				}
+				processByUtil.put(process, heuristicActionScore);
+			}
 		}
 
 		processByUtil = MathUti.getSortedMapByValueDesc(processByUtil);
@@ -94,14 +116,14 @@ public class Society {
 	 * which is possible to complete by this human, by just crafting and collecting raw resources.
 	 * @param human The human in question who has access to resources, buildings, etc.
 	 */
-	public Map<Process, Double> findBestProcess(Map<Integer, Double> allItemsUtility, Human human, int outputItemId) {
+	public Map<Process, Double> findBestProcess(Map<Integer, Double> allItemsUtility, 
+			Map<Integer, Double> rawResRarity, Human human, int outputItemId) {
 		Set<Integer> visitedItemIds = new HashSet<>();
 		Set<Integer> fringe = new HashSet<>();
 		fringe.add(outputItemId);
 		
 		Map<Process, Double> bestProcesses = new HashMap<>();
 		
-		Map<Integer, Double> rawResRarity = findRawResourcesRarity(human);
 		//System.out.println("raw resource rarity: ");
 		//System.out.println(rawResRarity);
 		
@@ -136,6 +158,7 @@ public class Society {
 						if (canCompleteProcess(process, rawResRarity)) {
 							MathUti.insertKeepMaxMap(bestProcesses, process.clone(), util);
 							//System.out.println("COMPLETE process: " + process.name + " " + util);
+							continue;
 						}
 						else {
 							//System.out.println("Could not complete process: " + process);
@@ -405,7 +428,9 @@ public class Society {
 					allItemDrops.add(onBlockDropExp);
 				}
 				for (Process process: inputProcessses) {
-					allItemDrops.add(process.outputItems);
+					if (process.outputItems != null) {
+						allItemDrops.add(process.outputItems);
+					}
 				}
 				
 				for (ItemTotalDrops itemDrop: allItemDrops) {
@@ -491,8 +516,8 @@ public class Society {
 			double hungerScore = 1.0 - human.nutrition / human.maxNutrition;
 			MathUti.addNumMap(societalNeed, "Eat", hungerScore);
 		
-			double thirstScore = 1.0 - human.hydration / human.maxHydration;
-			MathUti.addNumMap(societalNeed, "Drink", thirstScore);
+			//double thirstScore = 1.0 - human.hydration / human.maxHydration;
+			//MathUti.addNumMap(societalNeed, "Drink", thirstScore);
 			
 			int shelterScore = 0;
 			for (Vector3i coords: human.allClaims) {

@@ -407,7 +407,9 @@ public class LocalGrid {
 		for (int r = nearOpenSpace.x; r < nearOpenSpace.x + bounds2d.x; r++) {
 			for (int c = nearOpenSpace.y; c < nearOpenSpace.y + bounds2d.y; c++) {
 				LocalTile tile = getTile(new Vector3i(r,c,nearOpenSpace.z));
-				if (tile.harvestInUse) return true;
+				if (tile != null) {
+					if (tile.harvestInUse) return true;
+				}
 			}
 		}
 		return false;
@@ -517,17 +519,19 @@ public class LocalGrid {
 			}
 			LocalTile tile = getTile(spiralCoord);	
 			
-			if (tile.tileBlockId != ItemData.ITEM_EMPTY_ID) {
-				double beautyValue = ItemData.getItemBeautyValue(tile.tileBlockId);
-				sumBeauty += beautyValue;
-				numWeights++;
-			}
-			if (tile.itemsOnFloor.size() > 0) {
-				List<InventoryItem> items = tile.itemsOnFloor.getItems();
-				for (InventoryItem item: items) {
-					double beautyValue = ItemData.getItemBeautyValue(item.itemId);
-					sumBeauty += beautyValue * itemWeighting;
-					numWeights += itemWeighting;
+			if (tile != null) {
+				if (tile.tileBlockId != ItemData.ITEM_EMPTY_ID) {
+					double beautyValue = ItemData.getItemBeautyValue(tile.tileBlockId);
+					sumBeauty += beautyValue;
+					numWeights++;
+				}
+				if (tile.itemsOnFloor.size() > 0) {
+					List<InventoryItem> items = tile.itemsOnFloor.getItems();
+					for (InventoryItem item: items) {
+						double beautyValue = ItemData.getItemBeautyValue(item.itemId);
+						sumBeauty += beautyValue * itemWeighting;
+						numWeights += itemWeighting;
+					}
 				}
 			}
 		}

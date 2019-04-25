@@ -106,6 +106,17 @@ public class ItemCSVParser extends WorldCsvParser {
 		List<ProcessStep> itemActions = null;
 		if (!processString.isBlank()) {
 			itemActions = ProcessCSVParser.getProcessingSteps(processString);
+				
+			if (itemActions.size() > 0) {
+				List<InventoryItem> singleItem = new ArrayList<InventoryItem>() {{
+					add(new InventoryItem(id, 1, name));
+				}};
+				
+				List<ProcessStep> steps = new ArrayList<>();
+				steps.add(new ProcessStep("Wait", pickupTime));
+				ProcessData.addProcess("Consume Item " + name, singleItem, itemDrops, name, false, 
+						null, steps, itemActions);
+			}
 		}
 		
 		String propertyString = record.get("Property");
@@ -149,14 +160,14 @@ public class ItemCSVParser extends WorldCsvParser {
 				steps.add(new ProcessStep("HBuilding", pickupTime));
 				steps.add(new ProcessStep("O", 0));
 				ProcessData.addProcess("Harvest Building " + name, new ArrayList<>(), itemDrops, name, false, 
-						null, steps);
+						null, steps, null);
 			}
 			else {
 				List<ProcessStep> steps = new ArrayList<>();
 				steps.add(new ProcessStep("HTile", pickupTime));
 				steps.add(new ProcessStep("O", 0));
 				ProcessData.addProcess("Harvest Tile " + name, new ArrayList<>(), itemDrops, null, false, 
-						name, steps);
+						name, steps, null);
 			}
 		}
 	}
@@ -184,7 +195,7 @@ public class ItemCSVParser extends WorldCsvParser {
 				} catch (NullPointerException e) {
 					//e.printStackTrace();
 					System.err.println("Could not find item name: " + itemName);
-					ItemData.generateItem(itemName);
+					id = ItemData.generateItem(itemName);
 				}
 				int min = args.length >= 2 ? Integer.parseInt(args[1].strip()) : 1;
 				int max = args.length >= 3 ? Integer.parseInt(args[2].strip()) : 1;

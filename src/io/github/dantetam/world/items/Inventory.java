@@ -113,15 +113,17 @@ public class Inventory {
 				cloneInv.add(cloneInvItem);
 				int itemId = cloneInvItem.itemId;
 				Set<String> candidateGroups = ItemData.getGroupNameById(itemId);
-				for (String candidateGroup: candidateGroups) {
-					if (candidateGroup != null && groupItemNeeds.containsKey(candidateGroup)) {
-						int requiredQuantity = groupItemNeeds.get(candidateGroup);
-						int subtract = Math.min(requiredQuantity, Math.max(0, cloneInvItem.quantity));
-						cloneInvItem.quantity -= subtract;
-						if (requiredQuantity - subtract > 0)
-							groupItemNeeds.put(candidateGroup, requiredQuantity - subtract);
-						else 
-							groupItemNeeds.remove(candidateGroup);
+				if (candidateGroups != null) {
+					for (String candidateGroup: candidateGroups) {
+						if (candidateGroup != null && groupItemNeeds.containsKey(candidateGroup)) {
+							int requiredQuantity = groupItemNeeds.get(candidateGroup);
+							int subtract = Math.min(requiredQuantity, Math.max(0, cloneInvItem.quantity));
+							cloneInvItem.quantity -= subtract;
+							if (requiredQuantity - subtract > 0)
+								groupItemNeeds.put(candidateGroup, requiredQuantity - subtract);
+							else 
+								groupItemNeeds.remove(candidateGroup);
+						}
 					}
 				}
 				if (regularItemNeeds.containsKey(itemId)) {
@@ -196,6 +198,14 @@ public class Inventory {
 			}
 		}
 		return itemsList + "]";
+	}
+	
+	public int hashCode() {
+		int h = 0;
+        for (InventoryItem item: items) {
+            h = 31 * h + item.name.hashCode() * item.quantity;
+        }
+	    return h;
 	}
 	
 	public Map<String, Integer> toUniqueItemsMap() {

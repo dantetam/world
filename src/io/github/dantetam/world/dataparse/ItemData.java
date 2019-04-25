@@ -41,6 +41,9 @@ public class ItemData {
 	private static Map<Integer, List<ProcessStep>> itemActionsById = new HashMap<>();
 	private static Map<Integer, List<ProcessStep>> itemPropertiesById = new HashMap<>();
 	
+	private static Map<String, Set<Integer>> itemActionsNamed = new HashMap<>();
+	private static Map<String, Set<Integer>> itemPropertiesNamed = new HashMap<>();
+	
 	private static Map<Integer, ItemTotalDrops> allItemDropsById = new HashMap<>();
 	
 	private static Map<Integer, Integer> refinedFormsById = new HashMap<>();
@@ -81,6 +84,10 @@ public class ItemData {
 		return allItemsById.get(id).name;
 	}
 	
+	public static boolean isValidId(int id) {
+		return allItemsById.containsKey(id);
+	}
+	
 	public static InventoryItem item(String name, int quantity) {
 		if (itemNamesToIds.containsKey(name)) {
 			int id = itemNamesToIds.get(name);
@@ -94,7 +101,7 @@ public class ItemData {
 		do {
 			Object[] ids = allItemsById.keySet().toArray();
 			id = (Integer) ids[(int) (Math.random() * ids.length)];
-		} while (placeableBlock.get(id) && groupNameById.get(id).contains("Building"));
+		} while (placeableBlock.get(id) && groupNameById.get(id) != null && groupNameById.get(id).contains("Building"));
 		
 		int maxStack = stackableMap.get(id); 
 		int oneStackQuantity = (int) Math.ceil(Math.random() * maxStack * 0.75 + maxStack * 0.25);
@@ -111,6 +118,8 @@ public class ItemData {
 		itemNamesToIds.put(name, id);
 		placeableBlock.put(id, placeable);
 		
+		System.out.println("Added item id: " + id);
+		
 		boolean isBuilding = false;
 		if (groups != null) {
 			for (String group: groups) {
@@ -124,7 +133,7 @@ public class ItemData {
 					}
 					itemGroups.get(group).add(id);
 					
-					if (!groupNameById.containsKey(group)) {
+					if (!groupNameById.containsKey(id)) {
 						groupNameById.put(id, new HashSet<>());
 					}
 					groupNameById.get(id).add(group);
@@ -145,9 +154,21 @@ public class ItemData {
 		beautyItemValue.put(id, beautyValue);
 		if (itemActions != null) {
 			itemActionsById.put(id, itemActions);
+			for (ProcessStep step: itemActions) {
+				if (itemActionsNamed.get(step.stepType) == null) {
+					itemActionsNamed.put(step.stepType, new HashSet<>());
+				}
+				itemActionsNamed.get(step.stepType).add(id);
+			}
 		}
 		if (properties != null) {
 			itemPropertiesById.put(id, properties);
+			for (ProcessStep step: properties) {
+				if (itemPropertiesNamed.get(step.stepType) == null) {
+					itemPropertiesNamed.put(step.stepType, new HashSet<>());
+				}
+				itemPropertiesNamed.get(step.stepType).add(id);
+			}
 		}
 		
 		if (isBuilding) {
@@ -163,14 +184,15 @@ public class ItemData {
 		}
 		
 		//Adjust this id so that new ids will always never conflict with the current items
-		GENERATED_BASE_ID = Math.max(GENERATED_BASE_ID, id + 1); 
+		GENERATED_BASE_ID = Math.max(GENERATED_BASE_ID, id); 
 	}
 	
 	public static int generateItem(String name) {
+		GENERATED_BASE_ID++;
+		System.out.println("Generated item: " + GENERATED_BASE_ID);
 		addItemToDatabase(GENERATED_BASE_ID, name, false, null, 15, ItemData.ITEM_EMPTY_ID, 
 				null, 100, 0.0, 1.0, null, null, null);
-		GENERATED_BASE_ID++;
-		return GENERATED_BASE_ID - 1;
+		return GENERATED_BASE_ID;
 	}
 	
 	public static Set<Integer> getGroupIds(String name) {
@@ -240,6 +262,14 @@ public class ItemData {
 
 	public static List<ProcessStep> getItemProps(Integer id) {
 		return itemPropertiesById.get(id);
+	}
+	
+	public static Set<Integer> getItemsWithItemAction(String name) {
+		return itemActionsNamed.get(name);
+	}
+	
+	public static Set<Integer> getItemsWithItemProp(String name) {
+		return itemPropertiesNamed.get(name);
 	}
 	
 	public static int getTextureFromItemId(int id) {

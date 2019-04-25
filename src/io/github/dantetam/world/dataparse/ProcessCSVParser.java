@@ -158,8 +158,14 @@ public class ProcessCSVParser extends WorldCsvParser {
 			processName = outputString;
 		}
 		
+		List<ProcessStep> processResActions = null;
+		String processResActionsStr = record.get("Result Action");
+		if (!processResActionsStr.isBlank()) {
+			processResActions = getProcessingSteps(record.get("Result Action"));
+		}
+		
 		ProcessData.addProcess(processName, inputItems, processOutput, 
-				buildingNamesString, site, tileFloorId, steps);
+				buildingNamesString, site, tileFloorId, steps, processResActions);
 	}
 	
 	static List<ProcessStep> getProcessingSteps(String processString) {		

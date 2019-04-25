@@ -17,9 +17,10 @@ public class ProcessData {
 	private static Map<String, Integer> recipesByName = new HashMap<>();
 	
 	public static void addProcess(String name, List<InventoryItem> input, ItemTotalDrops output, 
-			String buildingName, boolean site, String tileFloor, List<ProcessStep> steps) {
+			String buildingName, boolean site, String tileFloor, 
+			List<ProcessStep> steps, List<ProcessStep> processResActions) {
 		int index = processes.size();
-		processes.add(new Process(name, input, output, buildingName, site, tileFloor, steps));
+		processes.add(new Process(name, input, output, buildingName, site, tileFloor, steps, processResActions));
 		if (input != null) {
 			for (InventoryItem inputItem: input) {
 				if (!recipesByInput.containsKey(inputItem.itemId)) {
@@ -72,6 +73,10 @@ public class ProcessData {
 			return processes.get(recipesByName.get(name));
 		}
 		return null;
+	}
+	
+	public static List<Process> getAllProcesses() {
+		return processes;
 	}
 	
 }

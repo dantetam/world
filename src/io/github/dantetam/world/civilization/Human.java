@@ -7,14 +7,6 @@ import io.github.dantetam.vector.Vector3i;
 import io.github.dantetam.world.grid.LocalBuilding;
 
 public class Human extends LivingEntity {
-
-	private static final double NUTRITION_CONSTANT = 10;
-	private static final double REST_CONSTANT_TICK = 100 / (6 * 60);
-	
-	private static final double NUTRI_CONST_LOSS_TICK = 100 / (24 * 60);
-	private static final double LIVE_CONST_LOSS_TICK = 100 / (18 * 60);
-	
-	public double hydration, maxHydration, nutrition, maxNutrition, rest, maxRest;
 	
 	public LocalBuilding home;
 	
@@ -25,10 +17,8 @@ public class Human extends LivingEntity {
 	public Human(String name) {
 		super(name);
 		allClaims = new HashSet<>();
-		maxHydration = 100;
 		maxNutrition = 100;
 		maxRest = 100;
-		hydration = 50;
 		nutrition = 30;
 		rest = 80;
 		skillBook = new SkillBook();

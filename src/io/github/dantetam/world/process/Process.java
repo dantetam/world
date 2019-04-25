@@ -24,10 +24,12 @@ public class Process {
 	public String requiredBuildNameOrGroup;
 	public boolean isCreatedAtSite;
 	public String requiredTileNameOrGroup;
-	public List<ProcessStep> processSteps;
+	public List<ProcessStep> processSteps; //The linear set of actions done by humans to achieve this goal
+	public List<ProcessStep> processResActions; //The set of actions that occurs when this process is finished
 	
 	public Process(String name, List<InventoryItem> input, ItemTotalDrops output, 
-			String buildingName, boolean site, String tileFloorId, List<ProcessStep> steps) {
+			String buildingName, boolean site, String tileFloorId, 
+			List<ProcessStep> steps, List<ProcessStep> processResActions) {
 		this.name = name;
 		this.inputItems = input;
 		this.outputItems = output;
@@ -35,6 +37,7 @@ public class Process {
 		this.isCreatedAtSite = site;
 		this.requiredTileNameOrGroup = tileFloorId;
 		this.processSteps = steps;
+		this.processResActions = processResActions;
 	}
 	
 	public ProcessStep findStepName(String stepType) {
@@ -60,8 +63,10 @@ public class Process {
 		result += new Inventory(inputItems).toUniqueItemsMap();
 		
 		result += "/ Output: ";
-		for (int id: outputItems.getAllItems()) {
-			result += ItemData.getNameFromId(id) + "; ";
+		if (outputItems != null) {
+			for (int id: outputItems.getAllItems()) {
+				result += ItemData.getNameFromId(id) + "; ";
+			}
 		}
 		result += "/ Process: ";
 		for (ProcessStep step: processSteps) {
@@ -76,7 +81,7 @@ public class Process {
 	}
 	
 	public int hashCode() {
-		return name.hashCode();
+		return name.hashCode() + new Inventory(inputItems).hashCode();
 	}
 	
 	public Process clone() {
@@ -86,7 +91,7 @@ public class Process {
 		}
 		Process clone = new Process(this.name, this.inputItems, this.outputItems, 
 				this.requiredBuildNameOrGroup, this.isCreatedAtSite, this.requiredTileNameOrGroup,
-				steps);
+				new ArrayList<>(steps), processResActions);
 		return clone;
 	}
 	
