@@ -83,24 +83,26 @@ public class LocalGrid {
 	private static final Set<Vector3i> directAdjOffsets = new HashSet<Vector3i>() {
 		{add(new Vector3i(1,0,0)); add(new Vector3i(-1,0,0)); add(new Vector3i(0,1,0));
 			add(new Vector3i(0,-1,0)); add(new Vector3i(0,0,1)); add(new Vector3i(0,0,-1));}};
+	public Set<Vector3i> getAllNeighbors(Vector3i coords) {
+		Set<Vector3i> candidates = new HashSet<>();
+		for (Vector3i adjOffset: directAdjOffsets) {
+			Vector3i neighbor = coords.getSum(adjOffset);
+			if (inBounds(neighbor)) {
+				candidates.add(neighbor);
+			}
+		}
+		return candidates;
+	}
 	public Set<LocalTile> getAccessibleNeighbors(LocalTile tile, LivingEntity being) {
 		Set<Vector3i> neighbors = getAllNeighbors(tile.coords);
 		Set<LocalTile> candidateTiles = new HashSet<>();
 		for (Vector3i neighbor: neighbors) {
-			LocalTile neighborTile = getTile(neighbor);
-			if (neighborTile != null) {
+			if (inBounds(neighbor)) {
+				LocalTile neighborTile = getTile(neighbor);
 				candidateTiles.add(neighborTile);
 			}
 		}
 		return candidateTiles;
-	}
-	
-	public Set<Vector3i> getAllNeighbors(Vector3i coords) {
-		Set<Vector3i> candidates = new HashSet<>();
-		for (Vector3i adjOffset: directAdjOffsets) {
-			candidates.add(coords.getSum(adjOffset));
-		}
-		return candidates;
 	}
 	
 	private static final Set<Vector3i> allAdjOffsets = new HashSet<Vector3i>() {
@@ -109,7 +111,10 @@ public class LocalGrid {
 	public Set<Vector3i> getAllFlatAdjAndDiag(Vector3i coords) {
 		Set<Vector3i> candidates = new HashSet<>();
 		for (Vector3i adjOffset: allAdjOffsets) {
-			candidates.add(coords.getSum(adjOffset));
+			Vector3i neighbor = coords.getSum(adjOffset);
+			if (inBounds(neighbor)) {
+				candidates.add(neighbor);
+			}
 		}
 		return candidates;
 	}
@@ -126,7 +131,10 @@ public class LocalGrid {
 	public Set<Vector3i> getEveryNeighborUpDown(Vector3i coords) {
 		Set<Vector3i> candidates = new HashSet<>();
 		for (Vector3i adjOffset: allAdjOffsets) {
-			candidates.add(coords.getSum(adjOffset));
+			Vector3i neighbor = coords.getSum(adjOffset);
+			if (inBounds(neighbor)) {
+				candidates.add(neighbor);
+			}
 		}
 		return candidates;
 	}
@@ -427,6 +435,9 @@ public class LocalGrid {
 	public void setInUseRoomSpace(Collection<Vector3i> coords, boolean inUse) {
 		for (Vector3i coord: coords) {
 			LocalTile tile = getTile(coord);
+			if (tile == null) {
+				tile = createTile(coord);
+			}
 			tile.harvestInUse = inUse;
 		}
 	}
@@ -492,7 +503,7 @@ public class LocalGrid {
 	
 	//Find an empty height at lowest possible level, i.e. an empty tile with ground right below it,
 	//so that a Human can be placed.
-	public int findLowestGroundHeight(int r, int c) {
+	public int findHighestGroundHeight(int r, int c) {
 		Set<Integer> groundGroup = ItemData.getGroupIds("Ground");
 		for (int h = heights - 1; h >= 0; h--) {
 			LocalTile tile = getTile(new Vector3i(r, c, h));
@@ -512,7 +523,7 @@ public class LocalGrid {
 		final double itemWeighting = 0.25;
 		
 		for (Vector3i spiralCoord: spiralCoords) {
-			int groundHeight = this.findLowestGroundHeight(spiralCoord.x, spiralCoord.y);
+			int groundHeight = this.findHighestGroundHeight(spiralCoord.x, spiralCoord.y);
 			int emptyHeight = this.findLowestEmptyHeight(spiralCoord.x, spiralCoord.y);
 			if (emptyHeight != spiralCoord.z) {
 				spiralCoord.z = groundHeight;
@@ -559,7 +570,7 @@ public class LocalGrid {
 		for (int r = -dist*2; r <= dist*2; r++) {
 			for (int c = -dist*2; c <= dist*2; c++) {
 				if (inBounds(new Vector3i(r,c,0))) {
-					int h = findLowestGroundHeight(r,c);
+					int h = findHighestGroundHeight(r,c);
 					if (this.tileIsOccupied(new Vector3i(r,c,h))) {
 						return new Vector3i(r,c,h);
 					}

@@ -394,27 +394,22 @@ public class LocalGridTimeExecution {
 				requiredSpace = new Vector2i(1, 1);
 			}
 			
-			
-			System.out.println("Step 1");
-			
 			//If available building, use it, 
 			//otherwise find space needed for building, allocate it, and start allocating a room
 			Object[] boundsData = grid.getNearestViableRoom(being.location.coords, requiredSpace);
-			System.out.println("Step 1.5");
+
 			if (boundsData == null) { //No available rooms to use
-				System.out.println("Step 1.75");
 				List<Vector3i> bestRectangle = findBestOpenRectSpace(grid, being.location.coords, requiredSpace);
-				Set<Integer> bestBuildingMaterials = society.getBestBuildingMaterials(calcUtility, 
-						being, (requiredSpace.x + requiredSpace.y) * 2);
-				grid.setInUseRoomSpace(bestRectangle, true);
-				
-				System.out.println("Step 2");
-				
-				System.out.println("Create building space: " + Arrays.toString(AlgUtil.findCoordBounds(bestRectangle)));
+			
 				if (bestRectangle != null) {
+					System.out.println("Create building space: " + Arrays.toString(AlgUtil.findCoordBounds(bestRectangle)));
+					Set<Integer> bestBuildingMaterials = society.getBestBuildingMaterials(calcUtility, 
+							being, (requiredSpace.x + requiredSpace.y) * 2);
+					grid.setInUseRoomSpace(bestRectangle, true);
 					priority = new ConstructRoomPriority(bestRectangle, bestBuildingMaterials);
 				}
 				else {
+					System.out.println("Could not create building space of size: " + requiredSpace);
 					priority = new ImpossiblePriority();
 				}
 			}
@@ -728,7 +723,7 @@ public class LocalGridTimeExecution {
 	
 	private static List<Vector3i> findBestOpenRectSpace(LocalGrid grid, Vector3i coords, Vector2i requiredSpace) {
 		Set<Vector3i> openSpace = SpaceFillingAlgorithm.findAvailableSpace(grid, coords, 
-				requiredSpace.x * 3, requiredSpace.y * 3, true);
+				requiredSpace.x + 2, requiredSpace.y + 2, true);
 		
 		if (openSpace != null) {
 			int height = openSpace.iterator().next().z;

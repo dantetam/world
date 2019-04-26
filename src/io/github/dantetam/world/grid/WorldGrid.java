@@ -27,7 +27,7 @@ public class WorldGrid {
 		for (int i = 0; i < 15; i++) {
 			int r = (int) (Math.random() * activeLocalGrid.rows);
 			int c = (int) (Math.random() * activeLocalGrid.cols);
-			int h = activeLocalGrid.findLowestGroundHeight(r,c);
+			int h = activeLocalGrid.findHighestGroundHeight(r,c);
 			
 			Human human = new Human("Human" + i);
 			testSociety.addPerson(human);

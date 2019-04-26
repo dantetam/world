@@ -101,6 +101,7 @@ public class Pathfinder {
                 } while (v != null);
                 return new ScoredPath(results, dist.get(end).intValue());
             }
+            System.out.println(validNeighbors(grid, being, v) + " <<<<>>>>" + v);
             for (LocalTile c : validNeighbors(grid, being, v)) {
                 if ((!dist.containsKey(c)) || (dist.containsKey(c) && dist.get(c) > dist.get(v) + getTileDist(v, c))) {
                     dist.put(c, dist.get(v) + getTileDist(v, c) + getTileAccessibilityPenalty(c));

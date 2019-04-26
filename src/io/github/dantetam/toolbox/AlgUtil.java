@@ -1,7 +1,9 @@
 package io.github.dantetam.toolbox;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 import java.util.Stack;
 
@@ -14,11 +16,14 @@ public class AlgUtil {
 	 * formatted as two Vector3i objects.
 	 */
 	public static Vector3i[] findCoordBounds(Collection<Vector3i> coords) {
+		if (coords.size() == 0) {
+			throw new IllegalArgumentException("Attempted to find the bounds of an empty set of coords");
+		}
 		Vector3i minBounds = null, maxBounds = null;
 		for (Vector3i coord: coords) {
 			if (minBounds == null) {
-				minBounds = coord;
-				maxBounds = coord;
+				minBounds = coord.clone();
+				maxBounds = coord.clone();
 			}
 			else {
 				if (coord.x < minBounds.x) {
@@ -30,13 +35,13 @@ public class AlgUtil {
 				if (coord.z < minBounds.z) {
 					minBounds.z = coord.z;
 				}
-				if (coord.x > minBounds.x) {
+				if (coord.x > maxBounds.x) {
 					maxBounds.x = coord.x;
 				}
-				if (coord.y > minBounds.y) {
+				if (coord.y > maxBounds.y) {
 					maxBounds.y = coord.y;
 				}
-				if (coord.z > minBounds.z) {
+				if (coord.z > maxBounds.z) {
 					maxBounds.z = coord.z;
 				}
 			}
@@ -67,7 +72,7 @@ public class AlgUtil {
 		Vector3i[] bounds = findCoordBounds(coords);
 		Vector3i topLeftBound = bounds[0], bottomRightBound = bounds[1];
 		int rows = bottomRightBound.x - topLeftBound.x + 1;
-		int cols = bottomRightBound.z - topLeftBound.z + 1;
+		int cols = bottomRightBound.y - topLeftBound.y + 1;
 		int[][] convertedOffsetVec = new int[rows][cols];
 		for (int r = 0; r < rows; r++) {
 			for (int c = 0; c < cols; c++) {
@@ -76,9 +81,21 @@ public class AlgUtil {
 				}
 			}
 		}
+		
+		System.out.println("Bounds: " + Arrays.toString(bounds) + ", " + coords.size());
+		
 		int[] zeroCenteredRect = findClosestSubRect(convertedOffsetVec, desiredR, desiredC);
-		zeroCenteredRect[0] += topLeftBound.x;
-		zeroCenteredRect[1] += topLeftBound.y;
+		for (int r = 0; r < convertedOffsetVec.length; r++) {
+			for (int c = 0; c < convertedOffsetVec[0].length; c++) {
+				System.out.print(convertedOffsetVec[r][c] + " ");
+			}
+			System.out.println();
+		}
+		
+		if (zeroCenteredRect != null) {
+			zeroCenteredRect[0] += topLeftBound.x;
+			zeroCenteredRect[1] += topLeftBound.y;
+		}
 		return zeroCenteredRect;
 	}
 	
@@ -220,6 +237,14 @@ public class AlgUtil {
                 {0, 1, 0, 0}, 
               }; 
 		System.out.println(Arrays.toString(findMaxSubRect(A)));
+		
+		System.out.println(Arrays.toString(findClosestSubRect(A, 2, 2)));
+		
+		List<Vector3i> coords = new ArrayList<>();
+		coords.add(new Vector3i(1,1,1));
+		coords.add(new Vector3i(5,-1,1));
+		coords.add(new Vector3i(2,1,4));
+		System.out.println(Arrays.toString(AlgUtil.findCoordBounds(coords)));
 	}
 
 }

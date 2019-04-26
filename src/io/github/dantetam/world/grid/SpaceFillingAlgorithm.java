@@ -1,6 +1,7 @@
 package io.github.dantetam.world.grid;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -36,19 +37,24 @@ public class SpaceFillingAlgorithm {
 			Set<Vector3i> candidates = new HashSet<>();
 			for (int r = -maxDistFlat; r <= maxDistFlat; r++) {
 				for (int c = -maxDistFlat; c <= maxDistFlat; c++) {
-					candidates.add(center.getSum(new Vector3i(r,c,0)));
+					int h = grid.findLowestEmptyHeight(r, c);
+					candidates.add(center.getSum(new Vector3i(r,c,h)));
 				}
 			}
+
 			List<Set<Vector3i>> components = findContFreeTiles(grid, candidates);
 			List<int[]> componentMaxSubRect = new ArrayList<>();
 			Map<Integer, Integer> componentScore = new HashMap<>();
+			
+			System.out.println(components.toString());
 			
 			int componentIndex = 0;
 			for (Set<Vector3i> component: components) {
 				//int[] maxSubRect = AlgUtil.findMaxRect(component);
 				int[] maxSubRect = AlgUtil.findBestRect(component, desiredR, desiredC);
+				System.out.println(Arrays.toString(maxSubRect));
 				
-				if (maxSubRect[2] < desiredR || maxSubRect[3] < desiredC) continue; 
+				if (maxSubRect == null || maxSubRect[2] < desiredR || maxSubRect[3] < desiredC) continue; 
 				
 				componentMaxSubRect.add(maxSubRect);
 				
@@ -79,6 +85,8 @@ public class SpaceFillingAlgorithm {
 				}
 				trials++;
 			}
+			
+			System.out.println("space alg 4");
 		}
 	}
 	
@@ -87,12 +95,14 @@ public class SpaceFillingAlgorithm {
 		List<Set<Vector3i>> connectedComponents = new ArrayList<>();
 		Set<Vector3i> visitedSet = new HashSet<>();
 		for (Vector3i startVec : candidates) {
+			if (visitedSet.contains(startVec)) continue;
 			Set<Vector3i> singleComponent = new HashSet<>();
 			Set<Vector3i> fringe = new HashSet<Vector3i>() {{add(startVec);}};
 			while (fringe.size() > 0) {
 				Set<Vector3i> newFringe = new HashSet<>();
 				for (Vector3i fringeVec: fringe) {
 					if (visitedSet.contains(fringeVec) || !candidates.contains(fringeVec)) continue;
+					visitedSet.add(fringeVec);
 					singleComponent.add(fringeVec);
 					Set<Vector3i> neighbors = grid.getAllNeighbors(fringeVec);
 					for (Vector3i neighborVec: neighbors) {

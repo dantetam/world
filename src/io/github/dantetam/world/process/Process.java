@@ -68,10 +68,15 @@ public class Process {
 				result += ItemData.getNameFromId(id) + "; ";
 			}
 		}
-		result += "/ Process: ";
+		
+		result += "/ Steps: ";
 		for (ProcessStep step: processSteps) {
 			result += step.toString() + "; ";
 		}
+		
+		result += "/ ReqBuild: " + this.requiredBuildNameOrGroup;
+		result += "/ ReqTile: " + this.requiredTileNameOrGroup;
+		
 		return result;
 	}
 	

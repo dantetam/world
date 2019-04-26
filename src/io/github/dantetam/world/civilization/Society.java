@@ -96,7 +96,8 @@ public class Society {
 						heuristicActionScore += needWeight * resAction.modifier;
 					}
 				}
-				processByUtil.put(process, heuristicActionScore);
+				if (heuristicActionScore > 0)
+					processByUtil.put(process, heuristicActionScore);
 			}
 		}
 
