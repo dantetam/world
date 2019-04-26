@@ -552,7 +552,7 @@ public class LocalGridTimeExecution {
 			being.rest(action.modifier);
 		}
 		else if (action.stepType.equals("Heal")) {
-			
+			//TODO
 		}
 	}
 	

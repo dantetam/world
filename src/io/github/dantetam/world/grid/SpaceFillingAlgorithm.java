@@ -14,6 +14,7 @@ import io.github.dantetam.toolbox.AlgUtil;
 import io.github.dantetam.toolbox.MathUti;
 import io.github.dantetam.vector.Vector2i;
 import io.github.dantetam.vector.Vector3i;
+import io.github.dantetam.world.dataparse.ItemData;
 
 public class SpaceFillingAlgorithm {
 
@@ -37,8 +38,12 @@ public class SpaceFillingAlgorithm {
 			Set<Vector3i> candidates = new HashSet<>();
 			for (int r = -maxDistFlat; r <= maxDistFlat; r++) {
 				for (int c = -maxDistFlat; c <= maxDistFlat; c++) {
-					int h = grid.findLowestEmptyHeight(r, c);
-					candidates.add(center.getSum(new Vector3i(r,c,h)));
+					int h = grid.findHighestGroundHeight(r, c) + 1;
+					Vector3i candidate = center.getSum(new Vector3i(r,c,0));
+					candidate.z = h;
+					if (grid.inBounds(candidate)) {
+						candidates.add(candidate);
+					}
 				}
 			}
 
@@ -46,13 +51,11 @@ public class SpaceFillingAlgorithm {
 			List<int[]> componentMaxSubRect = new ArrayList<>();
 			Map<Integer, Integer> componentScore = new HashMap<>();
 			
-			System.out.println(components.toString());
-			
 			int componentIndex = 0;
 			for (Set<Vector3i> component: components) {
+				
 				//int[] maxSubRect = AlgUtil.findMaxRect(component);
 				int[] maxSubRect = AlgUtil.findBestRect(component, desiredR, desiredC);
-				System.out.println(Arrays.toString(maxSubRect));
 				
 				if (maxSubRect == null || maxSubRect[2] < desiredR || maxSubRect[3] < desiredC) continue; 
 				
@@ -85,8 +88,6 @@ public class SpaceFillingAlgorithm {
 				}
 				trials++;
 			}
-			
-			System.out.println("space alg 4");
 		}
 	}
 	
@@ -102,6 +103,9 @@ public class SpaceFillingAlgorithm {
 				Set<Vector3i> newFringe = new HashSet<>();
 				for (Vector3i fringeVec: fringe) {
 					if (visitedSet.contains(fringeVec) || !candidates.contains(fringeVec)) continue;
+					LocalTile tile = grid.getTile(fringeVec);
+					if (tile != null && tile.tileFloorId != ItemData.ITEM_EMPTY_ID) continue;
+							
 					visitedSet.add(fringeVec);
 					singleComponent.add(fringeVec);
 					Set<Vector3i> neighbors = grid.getAllNeighbors(fringeVec);
@@ -111,7 +115,8 @@ public class SpaceFillingAlgorithm {
 				}
 				fringe = newFringe;
 			}
-			connectedComponents.add(singleComponent);
+			if (singleComponent.size() > 0)
+				connectedComponents.add(singleComponent);
 		}
 		return connectedComponents;
 	}

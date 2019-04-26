@@ -62,7 +62,7 @@ public class LocalGrid {
 		return grid[r][c][h];
 	}
 	
-	private boolean inBounds(Vector3i coords) {
+	public boolean inBounds(Vector3i coords) {
 		int r = coords.x, c = coords.y, h = coords.z;
 		return !(r < 0 || c < 0 || h < 0 || r >= rows || c >= cols || h >= heights);
 	}
@@ -99,6 +99,9 @@ public class LocalGrid {
 		for (Vector3i neighbor: neighbors) {
 			if (inBounds(neighbor)) {
 				LocalTile neighborTile = getTile(neighbor);
+				if (neighborTile == null) {
+					neighborTile = createTile(neighbor);
+				}
 				candidateTiles.add(neighborTile);
 			}
 		}
@@ -130,7 +133,7 @@ public class LocalGrid {
 		}};
 	public Set<Vector3i> getEveryNeighborUpDown(Vector3i coords) {
 		Set<Vector3i> candidates = new HashSet<>();
-		for (Vector3i adjOffset: allAdjOffsets) {
+		for (Vector3i adjOffset: allVertAdjOffsets) {
 			Vector3i neighbor = coords.getSum(adjOffset);
 			if (inBounds(neighbor)) {
 				candidates.add(neighbor);
@@ -450,6 +453,7 @@ public class LocalGrid {
 				emptySpaces.add(buildingTile.coords);
 			}
 		}
+		System.out.println(">>>>>!" + emptySpaces.toString());
 		return emptySpaces;
 	}
 	
