@@ -1,6 +1,7 @@
 package io.github.dantetam.world.civilization;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -41,6 +42,25 @@ public class Society {
 	
 	public List<Human> getAllPeople() {
 		return inhabitants;
+	}
+	
+	/**
+	 * Find important locations to travel between within a society, for patrol purposes.
+	 * These locations include homes, businesses, resource stores, and so on.
+	 * 
+	 * @param centerCoords Find locations closest to these given arbitrary coords
+	 */
+	public List<Vector3i> getImportantLocations(Vector3i centerCoords) {
+		Collection<Vector3i> nearBuildings = grid.getNearestBuildings(centerCoords);
+		Collection<Vector3i> humanLocations = grid.getNearestPeople(centerCoords);
+		List<Vector3i> results = new ArrayList<>();
+		for (Vector3i nearBuilding: nearBuildings) {
+			results.add(nearBuilding);
+		}
+		for (Vector3i humanLocation: humanLocations) {
+			results.add(humanLocation);
+		}
+		return results;
 	}
 	
 	/**
@@ -355,6 +375,21 @@ public class Society {
 	}
 	
 	/**
+	 * Directly measure the rarity of all item groups, defined as item count in a group summed up
+	 */
+	public Map<String, Double> findRawGroupsResRarity(Human human) {
+		Map<String, Double> groupItemRarity = new HashMap<>();
+		Map<Integer, Double> itemRarity = this.findRawResourcesRarity(human);
+		for (Entry<Integer, Double> entry: itemRarity.entrySet()) {
+			Set<String> groupNames = ItemData.getGroupNameById(entry.getKey());
+			for (String groupName: groupNames) {
+				MathUti.addNumMap(groupItemRarity, groupName, entry.getValue());
+			}
+		}
+		return groupItemRarity;
+	}
+	
+	/**
 	 * Directly count the adjusted economic rarity of all items on the map i.e.
 	 * the inherent value of items on a 'free market'. This is useful for not having
 	 * too many people produce the same resource, i.e. if wooden walls are the most
@@ -537,6 +572,8 @@ public class Society {
 			double normShelterScore = (double) Math.max(minShelter - shelterScore, 0) / minShelter;
 			MathUti.addNumMap(societalNeed, "Shelter", normShelterScore);
 			
+			MathUti.addNumMap(societalNeed, "Clothing", 1.0);
+			
 			if (human.home == null) {
 				MathUti.addNumMap(societalNeed, "Personal Home", 1.0);
 				MathUti.addNumMap(societalNeed, "Furniture", 0.8);
@@ -566,6 +603,8 @@ public class Society {
 			
 			double beautyScore = grid.averageBeauty(human.location.coords);
 			MathUti.addNumMap(societalNeed, "Beauty", 1.0 - beautyScore);
+			
+			MathUti.addNumMap(societalNeed, "Soldier", 0.7);
 		}
 		return societalNeed;
 	}

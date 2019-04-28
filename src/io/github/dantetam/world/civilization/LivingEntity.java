@@ -1,6 +1,9 @@
 package io.github.dantetam.world.civilization;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import io.github.dantetam.world.grid.LocalBuilding;
 import io.github.dantetam.world.grid.LocalTile;
@@ -11,7 +14,7 @@ import io.github.dantetam.world.process.Process.ProcessStep;
 import io.github.dantetam.world.process.priority.Priority;
 import io.github.dantetam.world.process.prioritytask.Task;
 
-public class LivingEntity {
+public abstract class LivingEntity {
 
 	private int id;
 	public LocalTile location;
@@ -39,9 +42,14 @@ public class LivingEntity {
 	protected static final double LIVE_CONST_LOSS_TICK = 100 / (18 * 60);
 	public double nutrition, maxNutrition, rest, maxRest; //hydration, maxHydration, 
 	
+	//Includes everything wearable, such as normal shirts, and combat armor
+	public Map<String, InventoryItem> clothing;
+	public Set<String> clothingSlotNames = null;
+	
 	public LivingEntity(String name) {
 		this.name = name;
 		inventory = new Inventory();
+		clothing = new HashMap<>();
 	}
 
 	public boolean equals(Object other) {

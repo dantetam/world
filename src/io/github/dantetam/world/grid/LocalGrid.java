@@ -39,6 +39,8 @@ public class LocalGrid {
 	private Map<Integer, KdTree<Vector3i>> globalTileBlockLookup;
 	private KdTree<Vector3i> buildingLookup;
 	
+	private KdTree<Vector3i> peopleLookup;
+	
 	public LocalGrid(Vector3i size) {
 		rows = size.x; cols = size.y; heights = size.z;
 		grid = new LocalTile[rows][cols][heights];
@@ -50,6 +52,8 @@ public class LocalGrid {
 		
 		globalTileBlockLookup = new HashMap<>();
 		buildingLookup = new KdTree<>();
+		
+		peopleLookup = new KdTree<>();
 	}
 	
 	/**
@@ -385,6 +389,10 @@ public class LocalGrid {
 		return this.buildingLookup.nearestNeighbourListSearch(10, coords);
 	}
 	
+	public Collection<Vector3i> getNearestPeople(Vector3i coords) {
+		return this.peopleLookup.nearestNeighbourListSearch(10, coords);
+	}
+	
 	/**
 	 * 
 	 * @param coords The desired coordinates to look for nearest available rooms
@@ -453,7 +461,6 @@ public class LocalGrid {
 				emptySpaces.add(buildingTile.coords);
 			}
 		}
-		System.out.println(">>>>>!" + emptySpaces.toString());
 		return emptySpaces;
 	}
 	
@@ -463,6 +470,9 @@ public class LocalGrid {
 		if (human.location != null) {
 			human.location.removePerson(human);
 			human.location = null;
+			if (human.location.getPeople().size() == 0) {
+				this.peopleLookup.remove(human.location.coords);
+			}
 		}
 		
 		if (tile == null) {
@@ -472,25 +482,28 @@ public class LocalGrid {
 			human.location = tile;
 			tile.addPerson(human);
 			markAllAdjAsExposed(coords);
+			peopleLookup.add(coords);
 		}
-	}
-	
-	public boolean personHasAccessTile(LivingEntity person, LocalTile tile) {
-		if (tile == null) {
-			return false;
-		}
-		return true;
 	}
 	
 	public void movePerson(LivingEntity person, LocalTile tile) {
 		if (person.location != null) {
 			person.location.removePerson(person);
+			if (person.location.getPeople().size() == 0) {
+				this.peopleLookup.remove(person.location.coords);
+			}
 		}
 		person.location = tile;
 		if (person.location != null) {
 			person.location.addPerson(person);
 			markAllAdjAsExposed(tile.coords);
+			peopleLookup.add(tile.coords);
 		}
+	}
+	
+	public boolean personHasAccessTile(LivingEntity person, LocalTile tile) {
+		//TODO
+		return true;
 	}
 	
 	public int findLowestEmptyHeight(int r, int c) {

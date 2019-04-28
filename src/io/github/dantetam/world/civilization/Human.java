@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import io.github.dantetam.vector.Vector3i;
+import io.github.dantetam.world.dataparse.ClothingData;
 import io.github.dantetam.world.grid.LocalBuilding;
 
 public class Human extends LivingEntity {
@@ -22,6 +23,7 @@ public class Human extends LivingEntity {
 		nutrition = 30;
 		rest = 80;
 		skillBook = new SkillBook();
+		clothingSlotNames = ClothingData.initBeingName(this.getClass().getSimpleName());
 	}
 	
 	public void feed(double standardUnitNutrition) {

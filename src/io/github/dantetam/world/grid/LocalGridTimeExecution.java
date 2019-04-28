@@ -38,8 +38,10 @@ import io.github.dantetam.world.process.priority.ItemGroupPickupPriority;
 import io.github.dantetam.world.process.priority.ItemPickupBuildingPriority;
 import io.github.dantetam.world.process.priority.ItemPickupPriority;
 import io.github.dantetam.world.process.priority.MovePriority;
+import io.github.dantetam.world.process.priority.PatrolPriority;
 import io.github.dantetam.world.process.priority.Priority;
 import io.github.dantetam.world.process.priority.RestPriority;
+import io.github.dantetam.world.process.priority.SoldierPriority;
 import io.github.dantetam.world.process.priority.TileHarvestPriority;
 import io.github.dantetam.world.process.priority.TilePlacePriority;
 import io.github.dantetam.world.process.priority.WaitPriority;
@@ -55,9 +57,13 @@ public class LocalGridTimeExecution {
 	
 	public static double numDayTicks = 0;
 	public static Map<Integer, Double> calcUtility;
+	public static Map<String, Double> groupItemRarity;
+	public static List<Vector3i> importantLocations;
 	
 	public static void tick(LocalGrid grid, Society society) {
 		calcUtility = society.findCompleteUtilityAllItems(null);
+		groupItemRarity = society.findRawGroupsResRarity(null);
+		importantLocations = society.getImportantLocations(society.societyCenter);
 		
 		System.out.println("<<<<>>>> NUMBER DAY TICKS: " + numDayTicks);
 		if (numDayTicks % 1440 == 0) {
@@ -327,6 +333,50 @@ public class LocalGridTimeExecution {
 				tasks.add(new MoveTask(1, coordsFrom, coordsTo));
 			}
 		}
+		else if (priority instanceof SoldierPriority) {
+			//SoldierPriority soldierPriority = (SoldierPriority) priority;
+			
+			double weaponAmt = groupItemRarity.containsKey("Weapon") ? groupItemRarity.get("Weapon") : 0;
+			double armorAmt = groupItemRarity.containsKey("Armor") ? groupItemRarity.get("Armor") : 0;
+			
+			double weaponReq = SoldierPriority.weaponAmtRequired(grid, being);
+			double armorReq = SoldierPriority.armorAmtRequired(grid, being);
+			
+			Priority resultPriority = null;
+			
+			if (armorReq > 0 && armorAmt > 0) {
+				resultPriority = progressToFindItemGroup(grid, being.location.coords, "Armor", 1);
+				if (!(resultPriority instanceof ImpossiblePriority)) {
+					return getTasksFromPriority(grid, being, resultPriority);
+				}
+			}
+			if (weaponReq > 0 && weaponAmt > 0) {
+				resultPriority = progressToFindItemGroup(grid, being.location.coords, "Weapon", 1);
+				if (!(resultPriority instanceof ImpossiblePriority)) {
+					return getTasksFromPriority(grid, being, resultPriority);
+				}
+			}
+			
+			resultPriority = new PatrolPriority(importantLocations);
+			return getTasksFromPriority(grid, being, resultPriority);
+		}
+		else if (priority instanceof PatrolPriority) {
+			PatrolPriority patrolPriority = (PatrolPriority) priority;
+			List<Vector3i> locations = patrolPriority.locations;
+			if (locations.size() == 0) {
+				return tasks;
+			}
+			else {
+				int randIndex = (int) (Math.random() * locations.size());
+				Vector3i randomLocation = locations.get(randIndex);
+				if (randomLocation.manhattanDist(being.location.coords) <= 1) {
+					return null;
+				}
+				else {
+					return getTasksFromPriority(grid, being, new MovePriority(randomLocation));
+				}
+			}
+		}
 		else if (priority instanceof DonePriority) {
 			return null;
 		}
@@ -355,6 +405,9 @@ public class LocalGridTimeExecution {
 				priority = new ImpossiblePriority();
 			}
 			return priority;
+		}
+		else if (process.name.equals("Local Soldier Duty")) {
+			return new SoldierPriority(society.societyCenter, being);
 		}
 		
 		Vector3i primaryLocation = null;
