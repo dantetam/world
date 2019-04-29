@@ -5,6 +5,8 @@ import java.util.Set;
 
 public class ClothingData {
 
+	TODO
+	
 	public static Set<String> initBeingName(String name) {
 		if (name.equals("Human")) {
 			return new HashSet<String>() {{
