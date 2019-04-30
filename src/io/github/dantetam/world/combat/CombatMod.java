@@ -19,7 +19,6 @@ public class CombatMod {
 	
 	public CombatModActor effectActor;
 	public String effectKey;
-	
 	public CombatModCalc calcMode; //Otherwise, this is a flat modifier
 	public double data;
 	
@@ -39,6 +38,17 @@ public class CombatMod {
 		this.allConditions = allConditions;
 		this.allCondsLogic = allCondsLogic;
 	}
+	
+	public boolean allSatisfied(Map<String, String> atk, Map<String, String> def,
+			Map<String, String> self, Map<String, String> other) {
+		int numSatisfiedConds = 0;
+		for (CombatCondition cond: allConditions) {
+			numSatisfiedConds += cond.isSatisfied(atk, def, self, other) ? 1 : 0;
+		}
+		return applyCondLogic(allCondsLogic, numSatisfiedConds, allConditions.size());
+	}
+	
+	TODO Better combat mod system? (Generic, with string maps and string items/effects)
 	
 	public static class CombatCondition {
 		public CombatModActor condActor;
@@ -91,20 +101,7 @@ public class CombatMod {
 				numSatisfiedConds += check ? 1 : 0;
 			}
 			
-			switch (condLogicMode) {
-			case ALL:
-				return numSatisfiedConds == condMods.size();
-			case NONE:
-				return numSatisfiedConds == 0;
-			case ANY:
-				return numSatisfiedConds > 0;
-			case XOR:
-				return numSatisfiedConds > 0 && numSatisfiedConds <= condMods.size();
-			case AT_LEAST_HALF:
-				return numSatisfiedConds >= condMods.size() / 2;
-			default:
-				throw new IllegalArgumentException("Invalid CombatCondLogicMode for checking all prereq string checks together");
-			}
+			return applyCondLogic(condLogicMode, numSatisfiedConds, condMods.size());
 		}
 	}
 	
@@ -127,11 +124,32 @@ public class CombatMod {
 		SELF, OTHER, BOTH,
 		
 		//Special for requirement checks
-		NONE, EITHER, XOR
+		NONE, EITHER, XOR,
+		
+		//For effects only
+		ITEM
 	}
 	
 	public static enum CombatCondLogicMode {
 		ALL, NONE, ANY, XOR, AT_LEAST_HALF
+	}
+	
+	public static boolean applyCondLogic(CombatCondLogicMode condLogicMode, int numSatisfiedConds,
+			int totalConds) {
+		switch (condLogicMode) {
+		case ALL:
+			return numSatisfiedConds == totalConds;
+		case NONE:
+			return numSatisfiedConds == 0;
+		case ANY:
+			return numSatisfiedConds > 0;
+		case XOR:
+			return numSatisfiedConds > 0 && numSatisfiedConds <= totalConds;
+		case AT_LEAST_HALF:
+			return numSatisfiedConds >= totalConds / 2;
+		default:
+			throw new IllegalArgumentException("Invalid CombatCondLogicMode for checking all prereq string checks together");
+		}
 	}
 	
 }

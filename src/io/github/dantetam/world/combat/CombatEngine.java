@@ -52,6 +52,8 @@ public class CombatEngine {
 		Map<String, Double> atkBaseStats = new HashMap<String, Double>();
 		Map<String, Double> defBaseStats = new HashMap<String, Double>();
 		
+		List<CombatMod> combatMods = new ArrayList<>();
+		
 		for (CombatItem combatItem: bodyAttacker.allItems) {
 			Map<String, Double> itemStats = CombatData.combatStatsByItemIds.get(combatItem.combatItemId);
 			for (Entry<String, Double> entry: itemStats.entrySet()) {
@@ -65,13 +67,32 @@ public class CombatEngine {
 			}
 		}
 		
-		List<CombatMod> combatMods = new ArrayList<>();
 		for (CombatMod mod: bodyAttacker.activePersonCombatModifiers) {
-			combatMods.add(mod);
+			if (mod.allSatisfied(atk, def, self, other)) {
+				
+			}
 		}
+		for (CombatMod mod: bodyDefender.activePersonCombatModifiers) {
+			if (mod.allSatisfied(atk, def, self, other)) {
+				
+			}
+		}
+		
+		for (CombatItem combatItem: bodyAttacker.allItems) {
+			List<CombatMod> itemMods = CombatData.itemCombatMods.get(combatItem.combatItemId);
+			for (CombatMod mod: itemMods) {
+				if (mod.allSatisfied(atk, def, self, other)) {
+					
+				}
+			}
+		}
+		for (CombatItem combatItem: bodyDefender.allItems) {
+			
+		}
+		
 	}
 	
-	public Set<Body> getAllEffectActors(CombatModActor mode, Body atk, Body def, 
+	public Object getAllEffectActors(CombatModActor mode, Body atk, Body def, 
 			Body self, Body other) {
 		switch (mode) {
 		case ATTACKER:
@@ -84,8 +105,15 @@ public class CombatEngine {
 			return new HashSet<Body>() {{add(other);}};
 		case BOTH:
 			return new HashSet<Body>() {{add(self); add(other);}};
+		case ITEM:
+			return new HashSet<CombatItem>() {{add(item);}};
+		default:
+			throw new IllegalArgumentException();
 		}
 	}
+	
+	public void applyEffectToActors(CombatModActor mode, Body atk, Body def, 
+			Body self, Body other, CombatItem item, Collection<CombatItems> atkItems)
 	
 	public boolean checkIfCombatModApplies(Body bodyAttacker, Body bodyDefender, CombatMod combatMod) {
 		int numSatisfiedConds = 0;

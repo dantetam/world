@@ -1,6 +1,7 @@
 package io.github.dantetam.world.combat;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -9,7 +10,7 @@ public class CombatData {
 	public static Map<Integer, Map<String, Double>> combatStatsByItemIds = new HashMap<>();
 	public static Map<String, Set<Integer>> associatedItemStyles = new HashMap<>();
 	
-	public static Map<Integer, CombatMod> itemCombatMods = new HashMap<>();
+	public static Map<Integer, List<CombatMod>> itemCombatMods = new HashMap<>();
 	
 	public void initCombatItem() {
 		TODO	
