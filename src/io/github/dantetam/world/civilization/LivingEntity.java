@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import io.github.dantetam.world.dataparse.AnatomyData.Body;
 import io.github.dantetam.world.grid.LocalBuilding;
 import io.github.dantetam.world.grid.LocalTile;
 import io.github.dantetam.world.items.Inventory;
@@ -43,13 +44,11 @@ public abstract class LivingEntity {
 	public double nutrition, maxNutrition, rest, maxRest; //hydration, maxHydration, 
 	
 	//Includes everything wearable, such as normal shirts, and combat armor
-	public Map<String, InventoryItem> clothing;
-	public Set<String> clothingSlotNames = null;
+	public Body body;
 	
 	public LivingEntity(String name) {
 		this.name = name;
 		inventory = new Inventory();
-		clothing = new HashMap<>();
 	}
 
 	public boolean equals(Object other) {

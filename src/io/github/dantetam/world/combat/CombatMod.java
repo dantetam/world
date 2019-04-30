@@ -1,6 +1,14 @@
 package io.github.dantetam.world.combat;
 
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+
+import io.github.dantetam.toolbox.MathUti;
+import io.github.dantetam.world.combat.CombatMod.CombatCondition;
+import io.github.dantetam.world.dataparse.AnatomyData.Body;
 
 public class CombatMod {
 
@@ -9,23 +17,95 @@ public class CombatMod {
 	//either OR(host[condKey] == condValue, ...) or AND(host[condKey] == condValue, ...),
 	//the multiplier or flat addition
 	
+	public CombatModActor effectActor;
 	public String effectKey;
+	
 	public CombatModCalc calcMode; //Otherwise, this is a flat modifier
 	public double data;
-	public Map<String, String> condMods;
-	public boolean allCondsNecessary = true;
 	
-	public CombatMod(String effectKey, CombatModCalc calcMode, double data, Map<String, String> condMods) {
-		this(effectKey, calcMode, data, condMods, false);
+	public List<CombatCondition> allConditions;
+	public CombatCondLogicMode allCondsLogic = CombatCondLogicMode.ALL;
+	
+	public CombatMod(String effectKey, CombatModCalc calcMode, double data, 
+			List<CombatCondition> allConditions) {
+		this(effectKey, calcMode, data, allConditions, CombatCondLogicMode.ALL);
 	}
 	
-	public CombatMod(String effectKey, CombatModCalc calcMode, double data, Map<String, String> condMods, 
-			boolean allCondsNecessary) {
+	public CombatMod(String effectKey, CombatModCalc calcMode, double data, 
+			List<CombatCondition> allConditions, CombatCondLogicMode allCondsLogic) {
 		this.effectKey = effectKey;
 		this.calcMode = calcMode;
 		this.data = data;
-		this.condMods = condMods;
-		this.allCondsNecessary = allCondsNecessary;
+		this.allConditions = allConditions;
+		this.allCondsLogic = allCondsLogic;
+	}
+	
+	public static class CombatCondition {
+		public CombatModActor condActor;
+		public Map<String, String> condMods;
+		public CombatCondLogicMode condLogicMode = CombatCondLogicMode.ALL;
+		
+		public boolean isSatisfied(Map<String, String> atk, Map<String, String> def,
+				Map<String, String> self, Map<String, String> other) {
+			int numSatisfiedConds = 0;
+			for (Entry<String, String> entry: condMods.entrySet()) {
+				boolean check;
+				
+				boolean selfCheck = MathUti.checkKeyValue(self, entry.getKey(), entry.getValue());
+				boolean otherCheck = MathUti.checkKeyValue(other, entry.getKey(), entry.getValue());
+				
+				switch (condActor) {
+				case ATTACKER:
+					check = MathUti.checkKeyValue(atk, entry.getKey(), entry.getValue());
+					break;
+				case DEFENDER:
+					check = MathUti.checkKeyValue(def, entry.getKey(), entry.getValue());
+					break;
+				case SELF:
+					check = selfCheck;
+					break;
+				case OTHER:
+					check = otherCheck;
+					break;
+				case BOTH: 
+					check = selfCheck && otherCheck;
+					break;
+				case NONE: 
+					check = !selfCheck || !otherCheck;
+					break;
+				case EITHER: 
+					check = selfCheck || otherCheck;
+					break;
+				case XOR:
+					if (selfCheck && otherCheck) {
+						check = false;
+					}
+					else {
+						check = selfCheck || otherCheck;
+					}
+					break;
+				default:
+					throw new IllegalArgumentException("Invalid CombatModActor case for checking string data");
+				}
+				
+				numSatisfiedConds += check ? 1 : 0;
+			}
+			
+			switch (condLogicMode) {
+			case ALL:
+				return numSatisfiedConds == condMods.size();
+			case NONE:
+				return numSatisfiedConds == 0;
+			case ANY:
+				return numSatisfiedConds > 0;
+			case XOR:
+				return numSatisfiedConds > 0 && numSatisfiedConds <= condMods.size();
+			case AT_LEAST_HALF:
+				return numSatisfiedConds >= condMods.size() / 2;
+			default:
+				throw new IllegalArgumentException("Invalid CombatCondLogicMode for checking all prereq string checks together");
+			}
+		}
 	}
 	
 	/**
@@ -37,6 +117,21 @@ public class CombatMod {
 	 */
 	public static enum CombatModCalc {
 		ADDITIVE_PERCENT, MULTI_PERCENT, FLAT_ADD
+	}
+	
+	/**
+	 * 
+	 */
+	public static enum CombatModActor {
+		ATTACKER, DEFENDER,
+		SELF, OTHER, BOTH,
+		
+		//Special for requirement checks
+		NONE, EITHER, XOR
+	}
+	
+	public static enum CombatCondLogicMode {
+		ALL, NONE, ANY, XOR, AT_LEAST_HALF
 	}
 	
 }

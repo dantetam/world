@@ -53,6 +53,15 @@ public class MathUti {
 		}
 	}
 	
+	public static <T, U> boolean checkKeyValue(Map<T, U> map, T key, U value) {
+		if (!map.containsKey(key)) {
+			return false;
+		}
+		else {
+			return map.get(key).equals(value);
+		}
+	}
+	
 	public static <T, U extends Number> void 
 		insertKeepMaxMap(Map<T, U> map, T key, U value) {
 		if (!map.containsKey(key)) {

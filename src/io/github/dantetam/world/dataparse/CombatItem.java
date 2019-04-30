@@ -1,6 +1,9 @@
 package io.github.dantetam.world.dataparse;
 
+import java.util.List;
 import java.util.Set;
+
+import io.github.dantetam.world.combat.CombatMod;
 
 public class CombatItem {
 
@@ -8,7 +11,9 @@ public class CombatItem {
 	
 	public Set<String> bodyPartsCovered;
 	
-	public int clothingItemId;
+	public int itemWeight;
+	
+	public int combatItemId;
 	public String name;
 	
 }
