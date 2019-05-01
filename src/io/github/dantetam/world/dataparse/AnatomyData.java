@@ -122,6 +122,11 @@ public class AnatomyData {
 			return randBodyPart;
 		}
 		
+		public BodyPart getRandomBodyPartObj() {
+			String bodyPartStr = getBodyPartChance();
+			return bodyParts.get(bodyPartStr);
+		}
+		
 		/*
 		private String getBodyPartAreaChance() {
 			

@@ -76,13 +76,41 @@ public class CombatEngine {
 		return allStats;
 	}
 	
+	public Map<String, String> getItemStats(CombatItem item) {
+		Map<String, Double> itemBaseStats = CombatData.combatStatsByItemIds.get(item.combatItemId);
+		Map<String, String> itemStringStats = new HashMap<>();
+		for (Entry<String, Double> entry: itemBaseStats.entrySet()) {
+			itemStringStats.put(entry.getKey(), entry.getValue() + "");
+		}
+		return itemStringStats;
+	}
+	
+	public static double[][] weaponNumEfficiency = {
+			{1.0},
+			{0.5, 0.3},
+			{0.2, 0.2, 0.1},
+			{0.2, 0.1, 0.1, 0.1}
+	};
+	
 	public void calculateRandomHit(Body bodyAttacker, Body bodyDefender, 
-			List<BodyPart> chosenAtkerWeapons) {
+			List<BodyPart> chosenAtkerWeapons, List<String> combatType) {
 		Map<String, String> atkStats = getCombatStats(bodyAttacker, "Atk");
 		Map<String, String> defStats = getCombatStats(bodyDefender, "Def");
 		
+		for (CombatMod mod: bodyAttacker.activePersonCombatModifiers) {
+			if (mod.allSatisfied(atkStats, defStats, atkStats, defStats)) {
+				applyEffect(mod, mod.effectActor, atkStats, defStats, atkStats, defStats, null);
+			}
+		}
+		for (CombatMod mod: bodyDefender.activePersonCombatModifiers) {
+			if (mod.allSatisfied(atkStats, defStats, defStats, atkStats)) {
+				applyEffect(mod, mod.effectActor, atkStats, defStats, defStats, atkStats, null);
+			}
+		}
+		
 		for (CombatItem combatItem: bodyAttacker.allItems) {
 			List<CombatMod> itemMods = CombatData.itemCombatMods.get(combatItem.combatItemId);
+			Map<String, String> itemStats = getItemStats(combatItem);
 			for (CombatMod mod: itemMods) {
 				if (mod.allSatisfied(atkStats, defStats, atkStats, defStats)) {
 					applyEffect(mod, mod.effectActor, atkStats, defStats, atkStats, defStats, itemStats);
@@ -91,13 +119,43 @@ public class CombatEngine {
 		}
 		for (CombatItem combatItem: bodyDefender.allItems) {
 			List<CombatMod> itemMods = CombatData.itemCombatMods.get(combatItem.combatItemId);
+			Map<String, String> itemStats = getItemStats(combatItem);
 			for (CombatMod mod: itemMods) {
-				if (mod.allSatisfied(atk, def, self, other)) {
-					
+				if (mod.allSatisfied(atkStats, defStats, defStats, atkStats)) {
+					applyEffect(mod, mod.effectActor, atkStats, defStats, defStats, atkStats, itemStats);
 				}
 			}
 		}
 		
+		double[] weaponEfficiency = weaponNumEfficiency[chosenAtkerWeapons.size() - 1];
+		for (int weaponIndex = 0; weaponIndex < chosenAtkerWeapons.size(); weaponIndex++) {
+			BodyPart bodyPart = chosenAtkerWeapons.get(weaponIndex);
+			CombatItem weapon = getWeaponPrecedent(bodyPart);
+			double thisWeaponEff = weaponEfficiency[weaponIndex]; 
+			
+			BodyPart attemptHit = bodyDefender.getRandomBodyPartObj(); 
+		}
+	}
+	
+	private static String[] desiredScoreStats = {"Melee Attack", "Melee Defense", "Ranged Attack", "Manuever"};
+	public CombatItem getWeaponPrecedent(BodyPart part) {
+		CombatItem candidate = null;
+		double bestScore = 0;
+		for (CombatItem heldItem: part.heldItems) {
+			double score = 0;
+			Map<String, Double> itemBaseStats = 
+					CombatData.combatStatsByItemIds.get(heldItem.combatItemId);
+			for (String desiredScoreStat: desiredScoreStats) {
+				if (itemBaseStats.containsKey(desiredScoreStat)) {
+					score += itemBaseStats.get(desiredScoreStat);
+				}
+			}
+			if (score > bestScore || candidate == null) {
+				bestScore = score;
+				candidate = heldItem;
+			}
+		}
+		return candidate;
 	}
 	
 	private void applyEffect(CombatMod mod, CombatModActor mode, 
@@ -107,39 +165,45 @@ public class CombatEngine {
 		case ATTACKER:
 			applyEffectSingle(mod, atk);
 		case DEFENDER:
-			return new HashSet<Body>() {{add(def);}};
+			applyEffectSingle(mod, def);
 		case SELF:
-			return new HashSet<Body>() {{add(self);}};
+			applyEffectSingle(mod, self);
 		case OTHER:
-			return new HashSet<Body>() {{add(other);}};
+			applyEffectSingle(mod, other);
 		case BOTH:
-			return new HashSet<Body>() {{add(self); add(other);}};
+			applyEffectSingle(mod, self);
+			applyEffectSingle(mod, other);
 		case ITEM:
-			return new HashSet<CombatItem>() {{add(item);}};
+			applyEffectSingle(mod, item);
 		default:
 			throw new IllegalArgumentException();
 		}
 	}
 	
 	private void applyEffectSingle(CombatMod mod, Map<String, String> target) {
+		String newEffectKey = "_additive_bonus" + mod.effectKey;
+		String origValue = target.get(mod.effectKey);
+		double origDblValue = Double.parseDouble(origValue);
 		if (mod.calcMode == CombatModCalc.MULTI_PERCENT) {
-			target.put(mod.effectKey, target.get(mod.effectKey) * mod.data);
+			target.put(mod.effectKey, (origDblValue * mod.data) + "");
 		}
 		else if (mod.calcMode == CombatModCalc.FLAT_MULTIPLICATIVE) {
-			
+			target.put(mod.effectKey, (origDblValue + mod.data) + "");
 		}
 		else if (mod.calcMode == CombatModCalc.ADDITIVE_PERCENT) {
-			
+			target.put(newEffectKey, (origDblValue * mod.data) + "");
 		}
 		else if (mod.calcMode == CombatModCalc.FLAT_ADDITIVE) {
-			
+			target.put(newEffectKey, (origDblValue + mod.data) + "");
+		}
+		else {
+			throw new IllegalArgumentException("Could not apply a combat mod effect with calc mode: " + mod.calcMode);
 		}
 	}
 	
+	/*
 	public Object getAllEffectActors(CombatModActor mode, Body atk, Body def, 
-			Body self, Body other) {
-		
-		
+			Body self, Body other, ) {
 		switch (mode) {
 		case ATTACKER:
 			return new HashSet<Body>() {{add(atk);}};
@@ -157,31 +221,9 @@ public class CombatEngine {
 			throw new IllegalArgumentException();
 		}
 	}
-	
+		
 	public void applyEffectToActors(CombatModActor mode, Body atk, Body def, 
 			Body self, Body other, CombatItem item, Collection<CombatItems> atkItems)
-	
-	public boolean checkIfCombatModApplies(Body bodyAttacker, Body bodyDefender, CombatMod combatMod) {
-		int numSatisfiedConds = 0;
-		
-		for (CombatCondition cond: combatMod.allConditions) {
-			
-			switch (cond.condActor) {
-			case ATTACKER:
-				return new HashSet<Body>() {{add(atk);}};
-			case DEFENDER:
-				return new HashSet<Body>() {{add(def);}};
-			case SELF:
-				return new HashSet<Body>() {{add(self);}};
-			case OTHER:
-				return new HashSet<Body>() {{add(other);}};
-			case BOTH:
-				return new HashSet<Body>() {{add(self); add(other);}};
-			}
-		}
-		
-		
-	}
 	
 	public void applyEffect(Map<String, Double>)
 	
@@ -189,5 +231,6 @@ public class CombatEngine {
 			List<CombatMod> allAvailableMods) {
 		
 	}
+	*/
 	
 }
