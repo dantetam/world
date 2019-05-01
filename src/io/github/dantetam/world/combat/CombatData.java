@@ -8,7 +8,9 @@ import java.util.Set;
 public class CombatData {
 
 	public static Map<Integer, Map<String, Double>> combatStatsByItemIds = new HashMap<>();
+	
 	public static Map<String, Set<Integer>> associatedItemStyles = new HashMap<>();
+	public static Map<Integer, Set<String>> combatStylesByItemId = new HashMap<>();
 	
 	public static Map<Integer, List<CombatMod>> itemCombatMods = new HashMap<>();
 	
@@ -27,5 +29,7 @@ public class CombatData {
 		}
 		throw new IllegalArgumentException("Could not instantiate clothes slots for missing being type: " + name);
 	}
+	
+	public Set<String> get
 	
 }

@@ -109,11 +109,12 @@ public class CombatMod {
 	 * This details the various types of calculation in compiling all combat mods,
 	 * ADDITIVE_PERCENT   Add percentage points, calculating only on 'base' value, like a fixed principal
 	 * MULTI_PERCENT      Add percent that can multiply with other percentages, like compound interest
-	 * FLAT_ADD			  Add a final, uniform amount
+	 * FLAT_ADDITIVE			  Add a final, uniform amount, which cannot be compounded
+	 * FLAT_MULTIPLICATIVE        
 	 *
 	 */
 	public static enum CombatModCalc {
-		ADDITIVE_PERCENT, MULTI_PERCENT, FLAT_ADD
+		ADDITIVE_PERCENT, MULTI_PERCENT, FLAT_ADDITIVE, FLAT_MULTIPLICATIVE
 	}
 	
 	/**

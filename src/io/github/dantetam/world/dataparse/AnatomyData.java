@@ -53,6 +53,8 @@ public class AnatomyData {
 		private Map<String, BodyPart> bodyParts = new HashMap<>();
 		private Map<String, Set<String>> neighborBodyPartsMap = new HashMap<>();
 		
+		public String combatStyle;
+		
 		//private Map<String, List<CombatItem>> heldItemsByBodyPart = new HashMap<>();
 		public Set<CombatItem> allItems;
 		public Set<CombatMod> activePersonCombatModifiers;
