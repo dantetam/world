@@ -9,11 +9,15 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.apache.commons.math3.distribution.NormalDistribution;
+import org.apache.commons.math3.distribution.UniformRealDistribution;
+
 import io.github.dantetam.toolbox.MathUti;
 import io.github.dantetam.world.combat.CombatMod.CombatCondition;
 import io.github.dantetam.world.combat.CombatMod.CombatModActor;
 import io.github.dantetam.world.combat.CombatMod.CombatModCalc;
 import io.github.dantetam.world.dataparse.AnatomyData.Body;
+import io.github.dantetam.world.dataparse.AnatomyData.BodyDamage;
 import io.github.dantetam.world.dataparse.AnatomyData.BodyPart;
 import io.github.dantetam.world.dataparse.CombatItem;
 
@@ -21,6 +25,7 @@ public class CombatEngine {
 
 	public static final int BATTLE_PHASE_PREPARE = 10,
 			BATTLE_PHASE_SHOCK = 30, BATTLE_PHASE_DANCE = 10;
+	private static String BONUS_STRING_PREFIX = "_additive_bonus";
 	
 	public static void advanceBattle(Battle battle) {
 		if (battle.battlePhase == null) {
@@ -48,12 +53,30 @@ public class CombatEngine {
 		}
 	}
 	
+	public static void calculateDamageHealth(Body body) {
+		for (BodyPart bodyPart: body.getAllBodyParts()) {
+			double damageVal = bodyPart.getDamageValue();
+			if (damageVal > 0) {
+				bodyPart.health -= damageVal;
+				if (bodyPart.health <= 0) {
+					Set<BodyPart> neighbors = body.getNeighborBodyParts(bodyPart.name);
+					//TODO Add damage to neighboring body parts
+				}
+				body.health -= damageVal;
+			}
+		}
+		if (body.health < 0) {
+			TODO
+			//Stop body from fighting and update it as dead
+		}
+	}
+	
 	public Map<String, String> getCombatStats(Body body, String actorType) {
 		Map<String, String> allStats = new HashMap<>();
 		
 		Map<String, Double> baseStats = new HashMap<>();
 	
-		allStats.put("IsCombatStyle/" + body.combatStyle, "Y");
+		allStats.put("Is_Combat_Style/" + body.combatStyle, "Y");
 		allStats.put("Is" + actorType, "Y");
 		
 		for (CombatItem combatItem: body.allItems) {
@@ -91,6 +114,12 @@ public class CombatEngine {
 			{0.2, 0.2, 0.1},
 			{0.2, 0.1, 0.1, 0.1}
 	};
+	public static Map<Double[], Double> weaponStrikeEffByChance = new HashMap<Double[], Double>() {{
+		put(new Double[] {0.0, 0.3}, 0.17);
+		put(new Double[] {0.0}, 0.74);
+		put(new Double[] {0.4, 1.2}, 0.06);
+		put(new Double[] {1.0, 2.0}, 0.03);
+	}};
 	
 	public void calculateRandomHit(Body bodyAttacker, Body bodyDefender, 
 			List<BodyPart> chosenAtkerWeapons, List<String> combatType) {
@@ -108,9 +137,16 @@ public class CombatEngine {
 			}
 		}
 		
+		Map<CombatItem, Map<String, String>> calcItemStats = new HashMap<>();
+		
 		for (CombatItem combatItem: bodyAttacker.allItems) {
 			List<CombatMod> itemMods = CombatData.itemCombatMods.get(combatItem.combatItemId);
-			Map<String, String> itemStats = getItemStats(combatItem);
+			
+			if (!calcItemStats.containsKey(combatItem)) {
+				calcItemStats.put(combatItem, getItemStats(combatItem));
+			}
+			Map<String, String> itemStats = calcItemStats.get(combatItem);
+			
 			for (CombatMod mod: itemMods) {
 				if (mod.allSatisfied(atkStats, defStats, atkStats, defStats)) {
 					applyEffect(mod, mod.effectActor, atkStats, defStats, atkStats, defStats, itemStats);
@@ -119,7 +155,12 @@ public class CombatEngine {
 		}
 		for (CombatItem combatItem: bodyDefender.allItems) {
 			List<CombatMod> itemMods = CombatData.itemCombatMods.get(combatItem.combatItemId);
-			Map<String, String> itemStats = getItemStats(combatItem);
+			
+			if (!calcItemStats.containsKey(combatItem)) {
+				calcItemStats.put(combatItem, getItemStats(combatItem));
+			}
+			Map<String, String> itemStats = calcItemStats.get(combatItem);
+			
 			for (CombatMod mod: itemMods) {
 				if (mod.allSatisfied(atkStats, defStats, defStats, atkStats)) {
 					applyEffect(mod, mod.effectActor, atkStats, defStats, defStats, atkStats, itemStats);
@@ -132,12 +173,50 @@ public class CombatEngine {
 			BodyPart bodyPart = chosenAtkerWeapons.get(weaponIndex);
 			CombatItem weapon = getWeaponPrecedent(bodyPart);
 			double thisWeaponEff = weaponEfficiency[weaponIndex]; 
+			Map<String, String> weaponStats = calcItemStats.get(weapon);
 			
 			BodyPart attemptHit = bodyDefender.getRandomBodyPartObj(); 
+			CombatItem armor = getWeaponPrecedent(attemptHit);
+			Map<String, String> armorStats = calcItemStats.get(armor);
+			
+			double weaponMeleeAtk = getAdjVal(weaponStats, "Melee Attack");
+			double weaponMeleeDefence = getAdjVal(weaponStats, "Melee Defence");
+			double weaponSpeed = getAdjVal(weaponStats, "Manuever");
+			
+			double armorMeleeAtk = getAdjVal(armorStats, "Melee Attack");
+			double armorMeleeDefence = getAdjVal(armorStats, "Melee Defence");
+			double armorVal = getAdjVal(armorStats, "Armor");
+			double armorSpeed = getAdjVal(armorStats, "Manuever");
+			
+			double weaponHit = new NormalDistribution(weaponMeleeAtk, weaponMeleeAtk * 0.1).sample();
+			Double[] weaponStrikeEff = MathUti.randChoiceFromWeightMap(weaponStrikeEffByChance);
+			double weaponStrike = new UniformRealDistribution(
+					weaponStrikeEff[0], weaponStrikeEff[1]
+					).sample();
+			
+			double dmg = (weaponHit * weaponStrike) / (armorMeleeDefence + armorVal);
+			if (dmg > 0) {
+				attemptHit.damages.add(new BodyDamage("Weapon Strike", dmg, dmg));
+			}
 		}
 	}
 	
-	private static String[] desiredScoreStats = {"Melee Attack", "Melee Defense", "Ranged Attack", "Manuever"};
+	private double getAdjVal(Map<String, String> stringData, String key) {
+		if (stringData.containsKey(key)) {
+			double num = Double.parseDouble(stringData.get(key));
+			String newKey = BONUS_STRING_PREFIX + key;
+			if (stringData.containsKey(newKey)) {
+				double nonMultiBonus = Double.parseDouble(stringData.get(newKey));
+				num += nonMultiBonus;
+			}
+			return num;
+		}
+		else {
+			throw new IllegalArgumentException("Could not find key: " + key + " in map: " + stringData);
+		}
+	}
+	
+	private static String[] desiredScoreStats = {"Melee Attack", "Melee Defense", "Ranged Attack", "Armor", "Manuever"};
 	public CombatItem getWeaponPrecedent(BodyPart part) {
 		CombatItem candidate = null;
 		double bestScore = 0;
@@ -181,11 +260,11 @@ public class CombatEngine {
 	}
 	
 	private void applyEffectSingle(CombatMod mod, Map<String, String> target) {
-		String newEffectKey = "_additive_bonus" + mod.effectKey;
+		String newEffectKey = BONUS_STRING_PREFIX + mod.effectKey;
 		String origValue = target.get(mod.effectKey);
 		double origDblValue = Double.parseDouble(origValue);
 		if (mod.calcMode == CombatModCalc.MULTI_PERCENT) {
-			target.put(mod.effectKey, (origDblValue * mod.data) + "");
+			target.put(mod.effectKey, (origDblValue * (1 + mod.data)) + "");
 		}
 		else if (mod.calcMode == CombatModCalc.FLAT_MULTIPLICATIVE) {
 			target.put(mod.effectKey, (origDblValue + mod.data) + "");

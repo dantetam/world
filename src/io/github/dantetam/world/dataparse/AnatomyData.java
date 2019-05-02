@@ -59,6 +59,8 @@ public class AnatomyData {
 		public Set<CombatItem> allItems;
 		public Set<CombatMod> activePersonCombatModifiers;
 		
+		public int health, maxHealth;
+		
 		//The way in which this being fights, which is chosen by the AI.
 		//The most efficient way for a unit to fight depends on the equipment
 		//of this person, followed by the person's combat skills.
@@ -76,6 +78,18 @@ public class AnatomyData {
 				neighborBodyPartsMap.get(neighborPair[0]).add(neighborPair[1]);
 				neighborBodyPartsMap.get(neighborPair[1]).add(neighborPair[0]);
 			}
+		}
+		
+		public Set<BodyPart> getNeighborBodyParts(String bodyPart) {
+			Set<BodyPart> results = new HashSet<>();
+			for (String neighbor: this.neighborBodyPartsMap.get(bodyPart)) {
+				results.add(bodyParts.get(neighbor));
+			}
+			return results;
+		}
+		
+		public Collection<BodyPart> getAllBodyParts() {
+			return bodyParts.values();
 		}
 		
 		private boolean canWearClothes(Set<String> bodyPartsStrs, CombatItem clothing) {
@@ -140,7 +154,7 @@ public class AnatomyData {
 		public double size;
 		public double vulnerability; //In terms of combat, the chance this part is hit (normalized)
 		public double health, maxHealth;
-		public double damage; //Blood loss, disease, and corruption that affects the whole body
+		public List<BodyDamage> damages; //Blood loss, disease, and corruption that affects the whole body
 		
 		public List<CombatItem> heldItems;
 		public int heldItemWeightCapLeft = 1;
@@ -153,7 +167,7 @@ public class AnatomyData {
 			this.vulnerability = vulnerability;
 			this.maxHealth = maxHealth;
 			this.health = maxHealth;
-			damage = 0;
+			damages = new ArrayList<>();
 			heldItems = new ArrayList<>();
 		}
 		
@@ -186,6 +200,26 @@ public class AnatomyData {
 				heldItems.remove(item);
 				heldItemWeightCapLeft -= item.itemWeight;
 			}
+		}
+		
+		public double getDamageValue() {
+			double sum = 0;
+			for (BodyDamage damage: damages) {
+				sum += damage.damage;
+			}
+			return sum;
+		}
+	}
+	
+	public static class BodyDamage {
+		public String name;
+		public double damage;
+		public double careNeeded;
+		
+		public BodyDamage(String name, double damage, double careNeeded) {
+			this.name = name;
+			this.damage = damage;
+			this.careNeeded = careNeeded;
 		}
 	}
 	
