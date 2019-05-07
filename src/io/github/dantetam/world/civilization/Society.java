@@ -52,7 +52,7 @@ public class Society {
 	 */
 	public List<Vector3i> getImportantLocations(Vector3i centerCoords) {
 		Collection<Vector3i> nearBuildings = grid.getNearestBuildings(centerCoords);
-		Collection<Vector3i> humanLocations = grid.getNearestPeople(centerCoords);
+		Collection<Vector3i> humanLocations = grid.getNearestPeopleCoords(centerCoords);
 		List<Vector3i> results = new ArrayList<>();
 		for (Vector3i nearBuilding: nearBuildings) {
 			results.add(nearBuilding);

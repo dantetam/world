@@ -13,6 +13,7 @@ import org.apache.commons.math3.distribution.NormalDistribution;
 import org.apache.commons.math3.distribution.UniformRealDistribution;
 
 import io.github.dantetam.toolbox.MathUti;
+import io.github.dantetam.world.civilization.LivingEntity;
 import io.github.dantetam.world.combat.CombatMod.CombatCondition;
 import io.github.dantetam.world.combat.CombatMod.CombatModActor;
 import io.github.dantetam.world.combat.CombatMod.CombatModCalc;
@@ -64,10 +65,6 @@ public class CombatEngine {
 				}
 				body.health -= damageVal;
 			}
-		}
-		if (body.health < 0) {
-			TODO
-			//Stop body from fighting and update it as dead
 		}
 	}
 	

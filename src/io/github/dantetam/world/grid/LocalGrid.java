@@ -389,8 +389,20 @@ public class LocalGrid {
 		return this.buildingLookup.nearestNeighbourListSearch(10, coords);
 	}
 	
-	public Collection<Vector3i> getNearestPeople(Vector3i coords) {
+	public Collection<Vector3i> getNearestPeopleCoords(Vector3i coords) {
 		return this.peopleLookup.nearestNeighbourListSearch(10, coords);
+	}
+	
+	public Collection<LivingEntity> getNearestPeopleList(Vector3i coords) {
+		Collection<LivingEntity> allPeople = new ArrayList<>();
+		Collection<Vector3i> coordsList = this.peopleLookup.nearestNeighbourListSearch(10, coords);
+		for (Vector3i personLoc: coordsList) {
+			Collection<LivingEntity> people = this.getTile(personLoc).getPeople();
+			for (LivingEntity person: people) {
+				allPeople.add(person);
+			}
+		}
+		return allPeople;
 	}
 	
 	/**
