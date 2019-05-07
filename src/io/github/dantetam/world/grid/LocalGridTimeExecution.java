@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -55,19 +56,18 @@ import kdtreegeo.KdTree;
 
 public class LocalGridTimeExecution {
 	
-	public static double numDayTicks = 0;
 	public static Map<Integer, Double> calcUtility;
 	public static Map<String, Double> groupItemRarity;
 	public static List<Vector3i> importantLocations;
 	
-	public static void tick(LocalGrid grid, Society society) {
+	public static void tick(WorldGrid world, LocalGrid grid, Society society) {
 		calcUtility = society.findCompleteUtilityAllItems(null);
 		groupItemRarity = society.findRawGroupsResRarity(null);
 		importantLocations = society.getImportantLocations(society.societyCenter);
 		
 		System.out.println("<<<<>>>> NUMBER DAY TICKS: " + numDayTicks);
 		if (numDayTicks % 1440 == 0) {
-			numDayTicks = 0;
+			//numDayTicks = 0;
 			assignAllHumanJobs(society);
 		}
 		

@@ -160,6 +160,8 @@ public class AnatomyData {
 		public int heldItemWeightCapLeft = 1;
 		public int originalWeightCap = 1;
 		
+		public BodyPart insideOrgan;
+		
 		public BodyPart(String name, Vector3f position, double size, double vulnerability, double maxHealth) {
 			this.name = name;
 			this.position = position;
