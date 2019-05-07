@@ -48,8 +48,6 @@ public class CombatMod {
 		return applyCondLogic(allCondsLogic, numSatisfiedConds, allConditions.size());
 	}
 	
-	TODO Better combat mod system? (Generic, with string maps and string items/effects)
-	
 	public static class CombatCondition {
 		public CombatModActor condActor;
 		public Map<String, String> condMods;

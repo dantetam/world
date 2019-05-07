@@ -16,4 +16,8 @@ public class CombatItem {
 	public int combatItemId;
 	public String name;
 	
+	public CombatItem(InventoryItem item) {
+		
+	}
+	
 }

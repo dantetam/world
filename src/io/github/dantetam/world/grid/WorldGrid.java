@@ -1,11 +1,15 @@
 package io.github.dantetam.world.grid;
 
 import java.text.DecimalFormat;
+import java.util.List;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.Map;
 import java.util.Map.Entry;
 
 import io.github.dantetam.vector.Vector3i;
+import io.github.dantetam.world.civilization.Household;
 import io.github.dantetam.world.civilization.Human;
 import io.github.dantetam.world.civilization.Society;
 import io.github.dantetam.world.dataparse.ItemData;
@@ -29,20 +33,25 @@ public class WorldGrid {
 		testSociety.societyCenter = new Vector3i(50,50,30);
 		
 		for (int i = 0; i < 15; i++) {
-			int r = (int) (Math.random() * activeLocalGrid.rows);
-			int c = (int) (Math.random() * activeLocalGrid.cols);
-			int h = activeLocalGrid.findHighestGroundHeight(r,c);
-			
-			Human human = new Human("Human" + i);
-			testSociety.addPerson(human);
-			activeLocalGrid.addHuman(human, new Vector3i(r,c,h));
-			
-			human.inventory.addItem(ItemData.randomItem());
-			human.inventory.addItem(ItemData.randomItem());
-			human.inventory.addItem(ItemData.randomItem());
-			human.inventory.addItem(ItemData.randomItem());
-			human.inventory.addItem(ItemData.item("Wheat Seeds", 50));
-			human.inventory.addItem(ItemData.item("Pine Wood", 50));
+			int numPeopleHouse = (int)(Math.random() * 6) + 1;
+			List<Human> people = new ArrayList<>();
+			for (int j = 0; j < numPeopleHouse; j++) {
+				int r = (int) (Math.random() * activeLocalGrid.rows);
+				int c = (int) (Math.random() * activeLocalGrid.cols);
+				int h = activeLocalGrid.findHighestGroundHeight(r,c);
+				
+				Human human = new Human("Human" + i);
+				people.add(human);
+				activeLocalGrid.addHuman(human, new Vector3i(r,c,h));
+				
+				human.inventory.addItem(ItemData.randomItem());
+				human.inventory.addItem(ItemData.randomItem());
+				human.inventory.addItem(ItemData.randomItem());
+				human.inventory.addItem(ItemData.randomItem());
+				human.inventory.addItem(ItemData.item("Wheat Seeds", 50));
+				human.inventory.addItem(ItemData.item("Pine Wood", 50));
+			}
+			testSociety.addHousehold(new Household(people));
 		}
 		
 		/*
@@ -79,6 +88,10 @@ public class WorldGrid {
 	public void tick() {
 		LocalGridTimeExecution.tick(this, activeLocalGrid, testSociety);
 		currentWorldTime.add(Calendar.SECOND, 1);
+	}
+	
+	public Date getTime() {
+		return currentWorldTime.getTime();
 	}
 	
 }

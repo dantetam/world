@@ -4,7 +4,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 import io.github.dantetam.vector.Vector3i;
-import io.github.dantetam.world.dataparse.ClothingData;
 import io.github.dantetam.world.dataparse.AnatomyData.Body;
 import io.github.dantetam.world.grid.LocalBuilding;
 
@@ -18,6 +17,8 @@ public class Human extends LivingEntity {
 	
 	public String familyName;
 	
+	public HumanBrain brain;
+	
 	public Human(String name) {
 		super(name);
 		allClaims = new HashSet<>();
@@ -26,7 +27,8 @@ public class Human extends LivingEntity {
 		nutrition = 30;
 		rest = 80;
 		skillBook = new SkillBook();
-		body = new Body();
+		body = new Body("Human");
+		brain = new HumanBrain();
 	}
 	
 	public void feed(double standardUnitNutrition) {

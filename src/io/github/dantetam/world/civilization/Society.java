@@ -28,20 +28,26 @@ import io.github.dantetam.world.process.Process.ProcessStep;
 public class Society {
 
 	public LocalGrid grid;
-	private List<Human> inhabitants;
+	private List<Household> households;
 	public Vector3i societyCenter;
 	
 	public Society(LocalGrid grid) {
 		this.grid = grid;
-		inhabitants = new ArrayList<>();
+		households = new ArrayList<>();
 	}
 	
-	public void addPerson(Human person) {
-		inhabitants.add(person);
+	public void addHousehold(Household house) {
+		households.add(house);
 	}
 	
 	public List<Human> getAllPeople() {
-		return inhabitants;
+		List<Human> people = new ArrayList<>();
+		for (Household house: this.households) {
+			for (Human human: house.householdMembers) {
+				people.add(human);
+			}
+		}
+		return people;
 	}
 	
 	/**
@@ -358,7 +364,7 @@ public class Society {
 			}
 		}
 		if (human == null) {
-			for (Human everyHuman: inhabitants) {
+			for (Human everyHuman: this.getAllPeople()) {
 				List<InventoryItem> items = everyHuman.inventory.getItems();
 				for (InventoryItem item: items) {
 					MathUti.addNumMap(itemRarity, item.itemId, (double) item.quantity);
@@ -418,7 +424,7 @@ public class Society {
 				}
 			}
 		}
-		for (Human everyHuman: inhabitants) {
+		for (Human everyHuman: this.getAllPeople()) {
 			List<InventoryItem> items = everyHuman.inventory.getItems();
 			for (InventoryItem item: items) {
 				MathUti.addNumMap(itemRarity, item.itemId, (double) item.quantity);
@@ -548,7 +554,7 @@ public class Society {
 	 */
 	private Map<String, Double> findAllNeedsIntensity() {
 		Map<String, Double> societalNeed = new HashMap<>();
-		for (Human human : inhabitants) {
+		for (Human human : this.getAllPeople()) {
 			double hungerScore = 1.0 - human.nutrition / human.maxNutrition;
 			MathUti.addNumMap(societalNeed, "Eat", hungerScore);
 		

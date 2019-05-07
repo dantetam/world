@@ -65,8 +65,8 @@ public class LocalGridTimeExecution {
 		groupItemRarity = society.findRawGroupsResRarity(null);
 		importantLocations = society.getImportantLocations(society.societyCenter);
 		
-		System.out.println("<<<<>>>> NUMBER DAY TICKS: " + numDayTicks);
-		if (numDayTicks % 1440 == 0) {
+		System.out.println("<<<<>>>> Date: " + world.getTime());
+		if (world.getTime().getSeconds() == 0) {
 			//numDayTicks = 0;
 			assignAllHumanJobs(society);
 		}
@@ -159,7 +159,6 @@ public class LocalGridTimeExecution {
 			}
 			System.out.println();
 		}
-		numDayTicks++;
 	}
 	
 	private static LocalBuilding assignBuilding(LocalGrid grid, LivingEntity being, String buildingName) {
