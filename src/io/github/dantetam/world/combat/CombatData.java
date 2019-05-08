@@ -52,7 +52,7 @@ public class CombatData {
 		throw new IllegalArgumentException("Could not instantiate clothes slots for missing being type: " + name);
 	}
 	
-	public Set<String> getBodyPartsCover(int id) {
+	public static Set<String> getBodyPartsCover(int id) {
 		if (!bodyPartCoverById.containsKey(id)) {
 			throw new IllegalArgumentException("Could not find combat covering data for item id: " + id);
 		}

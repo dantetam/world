@@ -21,15 +21,20 @@ public class AnatomyData {
 		//e.g. pants go on legs and swords go into 'hands', 
 		//or any part of the hand group, like hands, wooden hooks, claws, and so on.
 	
+	//public BodyPart(String name, Vector3f position, double size, double vulnerability, double maxHealth) {
 	public static Set<BodyPart> initBeingNameAnatomy(String name) {
 		if (name.equals("Human")) {
 			return new HashSet<BodyPart>() {{
-				add(new BodyPart("Left Arm", new Vector3f(-0.5f, 0f, 0f), 0.5, 1.0, 20));
-				add(new BodyPart("Right Arm", new Vector3f(0.5f, 0f, 0f), 0.5, 1.0, 20));
+				add(new BodyPart("Left Arm", new Vector3f(-0.5f, 0f, 0f), 0.5, 1.0, 10));
+				add(new BodyPart("Right Arm", new Vector3f(0.5f, 0f, 0f), 0.5, 1.0, 10));
 				add(new BodyPart("Left Leg", new Vector3f(-0.2f, -0.5f, 0f), 0.5, 1.0, 20));
 				add(new BodyPart("Right Leg", new Vector3f(0.2f, -0.5f, 0f), 0.5, 1.0, 20));
-				add(new BodyPart("Head", new Vector3f(0f, 0.3f, 0f), 0.5, 1.0, 20));
-				add(new BodyPart("Torso", new Vector3f(0f, 0f, 0f), 0.5, 1.0, 20));
+				add(new BodyPart("Head", new Vector3f(0f, 0.3f, 0f), 0.5, 1.0, 20).chainPartInside(
+						new BodyPart("Brain", new Vector3f(0f, 0.05f, 0f), 0.2, 0.3, 5))
+				);
+				add(new BodyPart("Torso", new Vector3f(0f, 0f, 0f), 0.5, 2.0, 40).chainPartInside(
+						new BodyPart("Heart", new Vector3f(0.08f, 0.12f, 0f), 0.1, 0.3, 5))
+				);
 			}};
 		}
 		throw new IllegalArgumentException("Could not instantiate anatomy slots for missing being type: " + name);
@@ -160,7 +165,10 @@ public class AnatomyData {
 		public int heldItemWeightCapLeft = 1;
 		public int originalWeightCap = 1;
 		
-		public BodyPart insideOrgan;
+		//Parent-child relationship for some body parts, which define a strict iff existence
+		//of the use of these two fields.
+		public List<BodyPart> insideParts;
+		public BodyPart bodyPartParent;
 		
 		public BodyPart(String name, Vector3f position, double size, double vulnerability, double maxHealth) {
 			this.name = name;
@@ -171,6 +179,8 @@ public class AnatomyData {
 			this.health = maxHealth;
 			damages = new ArrayList<>();
 			heldItems = new ArrayList<>();
+			insideParts = new ArrayList<>();
+			bodyPartParent = null;
 		}
 		
 		public boolean hasCapacity() {
@@ -210,6 +220,31 @@ public class AnatomyData {
 				sum += damage.damage;
 			}
 			return sum;
+		}
+		
+		public BodyPart chainPartInside(BodyPart part) {
+			insideParts.add(part);
+			part.bodyPartParent = this;
+			return this;
+		}
+		
+		public void removePartInside(BodyPart part) {
+			if (insideParts.contains(part)) {
+				insideParts.remove(part);
+			}
+			part.bodyPartParent = null;
+		}
+		
+		public boolean equals(Object other) {
+			if (!(other instanceof BodyPart)) {
+				return false;
+			}
+			BodyPart bodyPart = (BodyPart) other;
+			return this.name.equals(bodyPart.name);
+		}
+		
+		public int hashCode() {
+			return this.name.hashCode();
 		}
 	}
 	
