@@ -1,0 +1,53 @@
+package io.github.dantetam.world.civhumanrelation;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map.Entry;
+
+import io.github.dantetam.world.civilization.Human;
+import io.github.dantetam.world.civilization.HumanBrain;
+import io.github.dantetam.world.civilization.LivingEntity;
+import io.github.dantetam.world.civilization.LocalExperience;
+import io.github.dantetam.world.civilization.Society;
+import io.github.dantetam.world.civilization.HumanBrain.Ethos;
+import io.github.dantetam.world.items.InventoryItem;
+
+public class HumanHumanRel extends HumanRelationship {
+
+	public Human human, targetHuman;
+	
+	public HumanHumanRel(Human human, Human targetHuman) {
+		this.human = human;
+		this.targetHuman = targetHuman;
+		sharedExperiences = new ArrayList<>();
+		opinion = 0;
+	}
+	
+	@Override
+	public double reevaluateOpinion(Date date) {
+		double ethosDiff = HumanBrain.getEthosDifference(human.brain, targetHuman.brain);
+		for (Entry<String, Ethos> entry: human.brain.personalEthos.entrySet()) {
+			Ethos ethos = entry.getValue();
+			
+		}
+		for (LocalExperience experience: this.sharedExperiences) {
+			TODO
+		}
+		return 0;
+	}
+
+	public boolean equals(Object other) {
+		if (!(other instanceof HumanHumanRel)) {
+			return false;
+		}
+		HumanHumanRel rel = (HumanHumanRel) other;
+		return (human.equals(rel.human) && targetHuman.equals(rel.targetHuman)) || 
+				(human.equals(rel.targetHuman) && targetHuman.equals(rel.human));
+	}
+	
+	public int hashCode() {
+		return human.hashCode() + targetHuman.hashCode();
+	}
+	
+}
