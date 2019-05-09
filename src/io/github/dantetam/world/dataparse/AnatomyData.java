@@ -25,15 +25,15 @@ public class AnatomyData {
 	public static Set<BodyPart> initBeingNameAnatomy(String name) {
 		if (name.equals("Human")) {
 			return new HashSet<BodyPart>() {{
-				add(new BodyPart("Left Arm", new Vector3f(-0.5f, 0f, 0f), 0.5, 1.0, 10));
-				add(new BodyPart("Right Arm", new Vector3f(0.5f, 0f, 0f), 0.5, 1.0, 10));
-				add(new BodyPart("Left Leg", new Vector3f(-0.2f, -0.5f, 0f), 0.5, 1.0, 20));
-				add(new BodyPart("Right Leg", new Vector3f(0.2f, -0.5f, 0f), 0.5, 1.0, 20));
-				add(new BodyPart("Head", new Vector3f(0f, 0.3f, 0f), 0.5, 1.0, 20).chainPartInside(
-						new BodyPart("Brain", new Vector3f(0f, 0.05f, 0f), 0.2, 0.3, 5))
+				add(new BodyPart("Left Arm", new Vector3f(-0.5f, 0f, 0f), 0.5, 1.0, 10, 1.0));
+				add(new BodyPart("Right Arm", new Vector3f(0.5f, 0f, 0f), 0.5, 1.0, 10, 1.0));
+				add(new BodyPart("Left Leg", new Vector3f(-0.2f, -0.5f, 0f), 0.5, 1.0, 20, 0.1));
+				add(new BodyPart("Right Leg", new Vector3f(0.2f, -0.5f, 0f), 0.5, 1.0, 20, 0.1));
+				add(new BodyPart("Head", new Vector3f(0f, 0.3f, 0f), 0.5, 1.0, 20, 0.0).chainPartInside(
+						new BodyPart("Brain", new Vector3f(0f, 0.05f, 0f), 0.2, 0.3, 5, 0.0))
 				);
-				add(new BodyPart("Torso", new Vector3f(0f, 0f, 0f), 0.5, 2.0, 40).chainPartInside(
-						new BodyPart("Heart", new Vector3f(0.08f, 0.12f, 0f), 0.1, 0.3, 5))
+				add(new BodyPart("Torso", new Vector3f(0f, 0f, 0f), 0.5, 2.0, 40, 0.1).chainPartInside(
+						new BodyPart("Heart", new Vector3f(0.08f, 0.12f, 0f), 0.1, 0.3, 5, 0.0))
 				);
 			}};
 		}
@@ -159,7 +159,11 @@ public class AnatomyData {
 		public double size;
 		public double vulnerability; //In terms of combat, the chance this part is hit (normalized)
 		public double health, maxHealth;
-		public List<BodyDamage> damages; //Blood loss, disease, and corruption that affects the whole body
+		public double dexterity; //The ability of this limb to hold and manuever items
+				//This stat is to discourage people from holding weapons with their mouths,
+				//and also provide bonuses to non-human creatures and sentient beings.
+		public List<BodyDamage> damages; //The current total rate of damage,
+				//Blood loss, disease, and corruption that affects the whole body
 		
 		public List<CombatItem> heldItems;
 		public int heldItemWeightCapLeft = 1;
@@ -170,13 +174,15 @@ public class AnatomyData {
 		public List<BodyPart> insideParts;
 		public BodyPart bodyPartParent;
 		
-		public BodyPart(String name, Vector3f position, double size, double vulnerability, double maxHealth) {
+		public BodyPart(String name, Vector3f position, double size, double vulnerability, 
+				double maxHealth, double dexterity) {
 			this.name = name;
 			this.position = position;
 			this.size = size;
 			this.vulnerability = vulnerability;
 			this.maxHealth = maxHealth;
 			this.health = maxHealth;
+			this.dexterity = dexterity;
 			damages = new ArrayList<>();
 			heldItems = new ArrayList<>();
 			insideParts = new ArrayList<>();

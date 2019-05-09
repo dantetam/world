@@ -8,6 +8,9 @@ import java.util.Set;
 
 import org.apache.commons.math3.analysis.function.Sigmoid;
 
+import io.github.dantetam.world.civhumanrelation.HumanHumanRel;
+import io.github.dantetam.world.civhumanrelation.HumanRelationship;
+
 /**
  * For all civilized and sentient creatures that can feel coherent moral thoughts,
  * and opinions towards foreigners, other people in their household, society, etc.
@@ -17,15 +20,21 @@ import org.apache.commons.math3.analysis.function.Sigmoid;
 
 public class HumanBrain {
 
+	public Human host;
+	
 	//Relating to this person's general ethics and attitudes towards everyday decisions
 	public Map<String, Ethos> personalEthos; 
 	
 	//Relating to choice of career and object preferences, like for food
 	public Map<String, Ethos> personalBias; 
 	
-	public HumanBrain() {
+	public Map<Human, HumanRelationship> indexedRelationships;
+	
+	public HumanBrain(Human host) {
+		this.host = host;
 		personalEthos = new HashMap<>();
 		personalBias = new HashMap<>();
+		indexedRelationships = new HashMap<>();
 	}
 	
 	public static double getEthosDifference(HumanBrain brainA, HumanBrain brainB) {
@@ -45,6 +54,10 @@ public class HumanBrain {
 			difference += logitScore;
 		}
 		return difference;
+	}
+	
+	public void addHumanRel(Human target) { 
+		indexedRelationships.put(target, new HumanHumanRel(this.host, target));
 	}
 	
 	public static class Ethos {

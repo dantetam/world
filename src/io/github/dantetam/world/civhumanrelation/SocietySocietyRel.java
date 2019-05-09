@@ -13,15 +13,15 @@ import io.github.dantetam.world.civilization.Society;
 import io.github.dantetam.world.civilization.HumanBrain.Ethos;
 import io.github.dantetam.world.items.InventoryItem;
 
-public class HumanSocietyRel extends HumanRelationship {
+public class SocietySocietyRel extends HumanRelationship {
 
-	public Human human;
-	public Society society;
+	public Society hostSociety;
+	public Society otherSociety;
 	
-	public HumanSocietyRel(Human human, Society society) {
+	public SocietySocietyRel(Society hostSociety, Society otherSociety) {
 		super();
-		this.human = human;
-		this.society = society;
+		this.hostSociety = hostSociety;
+		this.otherSociety = otherSociety;
 	}
 	
 	@Override
@@ -30,15 +30,16 @@ public class HumanSocietyRel extends HumanRelationship {
 	}
 
 	public boolean equals(Object other) {
-		if (!(other instanceof HumanSocietyRel)) {
+		if (!(other instanceof SocietySocietyRel)) {
 			return false;
 		}
-		HumanSocietyRel rel = (HumanSocietyRel) other;
-		return human.equals(rel.human) && society.equals(rel.society);
+		SocietySocietyRel rel = (SocietySocietyRel) other;
+		return (hostSociety.equals(rel.hostSociety) && otherSociety.equals(rel.otherSociety)) || 
+				(hostSociety.equals(rel.otherSociety) && otherSociety.equals(rel.hostSociety));
 	}
 	
 	public int hashCode() {
-		return human.hashCode() + society.hashCode();
+		return hostSociety.hashCode() + otherSociety.hashCode();
 	}
 	
 }

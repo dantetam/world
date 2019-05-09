@@ -52,6 +52,10 @@ public class Vector3i extends KdPoint {
 	public int manhattanDist(Vector3i v) {
 		return Math.abs(x - v.x) + Math.abs(y - v.y) + Math.abs(z - v.z);
 	}
+	
+	public int squareDist(Vector3i v) {
+		return Math.max(Math.abs(z - v.z), Math.max(Math.abs(x - v.x), Math.abs(y - v.y)));
+	}
 
 	public Vector3f getScaled(float f) {
 		return new Vector3f(x * f, y * f, z * f);

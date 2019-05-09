@@ -2,6 +2,7 @@ package io.github.dantetam.world.combat;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -34,7 +35,17 @@ public class CombatEngine {
 			battle.battlePhaseTicksLeft = BATTLE_PHASE_PREPARE;
 		}
 	
-		
+		List<LivingEntity[]> combatPairs = battle.adjacentCombatEntities();
+		for (LivingEntity[] combatPair: combatPairs) {
+			LivingEntity attacker = combatPair[0], defender = combatPair[1];
+			List<BodyPart> chosenAtkWeapons = new ArrayList<BodyPart>() {{
+				add(bestBodyPartWithWeapon(attacker.body));
+			}};
+			List<BodyPart> chosenDefWeapons = new ArrayList<BodyPart>() {{
+				add(bestBodyPartWithWeapon(attacker.body));
+			}};
+			calculateRandomHit(attacker.body, defender.body, chosenAtkWeapons, null);
+		}
 		
 		//Cycle through battle modes once the phase timers are up
 		battle.battlePhaseTicksLeft--;
@@ -68,7 +79,7 @@ public class CombatEngine {
 		}
 	}
 	
-	public Map<String, String> getCombatStats(Body body, String actorType) {
+	public static Map<String, String> getCombatStats(Body body, String actorType) {
 		Map<String, String> allStats = new HashMap<>();
 		
 		Map<String, Double> baseStats = new HashMap<>();
@@ -96,7 +107,7 @@ public class CombatEngine {
 		return allStats;
 	}
 	
-	public Map<String, String> getItemStats(CombatItem item) {
+	public static Map<String, String> getItemStats(CombatItem item) {
 		Map<String, Double> itemBaseStats = CombatData.combatStatsByItemIds.get(item.combatItemId);
 		Map<String, String> itemStringStats = new HashMap<>();
 		for (Entry<String, Double> entry: itemBaseStats.entrySet()) {
@@ -118,7 +129,7 @@ public class CombatEngine {
 		put(new Double[] {1.0, 2.0}, 0.03);
 	}};
 	
-	public void calculateRandomHit(Body bodyAttacker, Body bodyDefender, 
+	public static void calculateRandomHit(Body bodyAttacker, Body bodyDefender, 
 			List<BodyPart> chosenAtkerWeapons, List<String> combatType) {
 		Map<String, String> atkStats = getCombatStats(bodyAttacker, "Atk");
 		Map<String, String> defStats = getCombatStats(bodyDefender, "Def");
@@ -198,7 +209,7 @@ public class CombatEngine {
 		}
 	}
 	
-	private double getAdjVal(Map<String, String> stringData, String key) {
+	private static double getAdjVal(Map<String, String> stringData, String key) {
 		if (stringData.containsKey(key)) {
 			double num = Double.parseDouble(stringData.get(key));
 			String newKey = BONUS_STRING_PREFIX + key;
@@ -214,7 +225,7 @@ public class CombatEngine {
 	}
 	
 	private static String[] desiredScoreStats = {"Melee Attack", "Melee Defense", "Ranged Attack", "Armor", "Manuever"};
-	public CombatItem getWeaponPrecedent(BodyPart part) {
+	public static CombatItem getWeaponPrecedent(BodyPart part) {
 		CombatItem candidate = null;
 		double bestScore = 0;
 		for (CombatItem heldItem: part.heldItems) {
@@ -234,7 +245,31 @@ public class CombatEngine {
 		return candidate;
 	}
 	
-	private void applyEffect(CombatMod mod, CombatModActor mode, 
+	private static Map<String, Double> desiredWepStats = new HashMap<String, Double>() {{
+		put("Melee Attack", 1.0);
+		put("Melee Defense", 0.4);
+		put("Ranged Attack", 1.0);
+	}};
+	public static BodyPart bestBodyPartWithWeapon(Body body) {
+		Collection<BodyPart> bodyParts = body.getAllBodyParts();
+		BodyPart best = null;
+		double bestScore = 0;
+		for (BodyPart bodyPart: bodyParts) {
+			double score = 0;
+			CombatItem weapon = getWeaponPrecedent(bodyPart);
+			Map<String, Double> itemBaseStats = CombatData.combatStatsByItemIds.get(weapon.combatItemId);
+			for (Entry<String, Double> entry: desiredWepStats.entrySet()) {
+				score += entry.getValue() * itemBaseStats.get(entry.getKey());
+			}
+			if (score > bestScore || best == null) {
+				best = bodyPart;
+				bestScore = score;
+			}
+		}
+		return best;
+	}
+	
+	private static void applyEffect(CombatMod mod, CombatModActor mode, 
 			Map<String, String> atk, Map<String, String> def,
 			Map<String, String> self, Map<String, String> other, Map<String, String> item) {
 		switch (mode) {
@@ -256,7 +291,7 @@ public class CombatEngine {
 		}
 	}
 	
-	private void applyEffectSingle(CombatMod mod, Map<String, String> target) {
+	private static void applyEffectSingle(CombatMod mod, Map<String, String> target) {
 		String newEffectKey = BONUS_STRING_PREFIX + mod.effectKey;
 		String origValue = target.get(mod.effectKey);
 		double origDblValue = Double.parseDouble(origValue);

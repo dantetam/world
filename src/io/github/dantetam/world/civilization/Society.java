@@ -15,6 +15,7 @@ import java.util.function.Supplier;
 
 import io.github.dantetam.toolbox.MathUti;
 import io.github.dantetam.vector.Vector3i;
+import io.github.dantetam.world.combat.War;
 import io.github.dantetam.world.dataparse.ItemData;
 import io.github.dantetam.world.dataparse.ItemTotalDrops;
 import io.github.dantetam.world.dataparse.ProcessData;
@@ -27,13 +28,18 @@ import io.github.dantetam.world.process.Process.ProcessStep;
 
 public class Society {
 
+	public String name;
 	public LocalGrid grid;
 	private List<Household> households;
 	public Vector3i societyCenter;
 	
-	public Society(LocalGrid grid) {
+	public List<War> warsInvolved;
+	
+	public Society(String name, LocalGrid grid) {
+		this.name = name;
 		this.grid = grid;
 		households = new ArrayList<>();
+		warsInvolved = new ArrayList<>();
 	}
 	
 	public void addHousehold(Household house) {

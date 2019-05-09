@@ -9,18 +9,17 @@ import io.github.dantetam.world.grid.LocalBuilding;
 
 public class Human extends LivingEntity {
 	
+	public Society society;
 	public LocalBuilding home;
-	
 	public Set<Vector3i> allClaims;
-
 	public SkillBook skillBook;
-	
 	public String familyName;
 	
 	public HumanBrain brain;
 	
-	public Human(String name) {
+	public Human(Society society, String name) {
 		super(name);
+		this.society = society;
 		allClaims = new HashSet<>();
 		maxNutrition = 100;
 		maxRest = 100;
@@ -28,7 +27,7 @@ public class Human extends LivingEntity {
 		rest = 80;
 		skillBook = new SkillBook();
 		body = new Body("Human");
-		brain = new HumanBrain();
+		brain = new HumanBrain(this);
 	}
 	
 	public void feed(double standardUnitNutrition) {

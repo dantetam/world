@@ -19,10 +19,9 @@ public class HumanItemRel extends HumanRelationship {
 	public InventoryItem item;
 	
 	public HumanItemRel(Human human, InventoryItem item) {
+		super();
 		this.human = human;
 		this.item = item;
-		sharedExperiences = new ArrayList<>();
-		opinion = 0;
 	}
 	
 	@Override
