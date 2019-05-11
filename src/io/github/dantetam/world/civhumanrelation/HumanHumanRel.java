@@ -17,18 +17,20 @@ public class HumanHumanRel extends HumanRelationship {
 
 	public Human human, targetHuman;
 	public boolean isPersonalHostileOneWay; //Note, this is only for personal disputes and fights, not for wars between societies
+	public String relationshipType;
 	
-	public HumanHumanRel(Human human, Human targetHuman) {
+	public HumanHumanRel(Human human, Human targetHuman, String relationshipType) {
 		super();
 		this.human = human;
 		this.targetHuman = targetHuman;
 		isPersonalHostileOneWay = false;
+		this.relationshipType = relationshipType;
 	}
 	
 	@Override
 	public double reevaluateOpinion(Date date) {
 		double ethosDiff = HumanBrain.getEthosDifference(human.brain, targetHuman.brain);
-		for (Entry<String, Ethos> entry: human.brain.personalEthos.entrySet()) {
+		for (Entry<String, Ethos> entry: human.brain.greatEthos.entrySet()) {
 			Ethos ethos = entry.getValue();
 			
 		}

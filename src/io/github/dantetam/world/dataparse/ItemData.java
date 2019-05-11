@@ -1,6 +1,7 @@
 package io.github.dantetam.world.dataparse;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -14,7 +15,7 @@ import io.github.dantetam.vector.Vector2i;
 import io.github.dantetam.vector.Vector3i;
 import io.github.dantetam.world.grid.LocalBuilding;
 import io.github.dantetam.world.items.InventoryItem;
-import io.github.dantetam.world.process.Process.ProcessStep;
+import io.github.dantetam.world.process.LocalProcess.ProcessStep;
 
 public class ItemData {
 
@@ -65,6 +66,10 @@ public class ItemData {
 	}
 	public static InventoryItem cloneItem(InventoryItem item, int quantity) {
 		return new InventoryItem(item.itemId, quantity, item.name);
+	}
+	
+	public static Collection<InventoryItem> getAllItems() {
+		return allItemsById.values();
 	}
 	
 	public static int getIdFromName(String name) {

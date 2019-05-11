@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.csv.CSVRecord;
 
 import io.github.dantetam.world.items.InventoryItem;
-import io.github.dantetam.world.process.Process.ProcessStep;
+import io.github.dantetam.world.process.LocalProcess.ProcessStep;
 
 public class ProcessCSVParser extends WorldCsvParser {
 	

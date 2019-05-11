@@ -25,8 +25,8 @@ import io.github.dantetam.world.dataparse.ItemData;
 import io.github.dantetam.world.dataparse.ProcessData;
 import io.github.dantetam.world.items.Inventory;
 import io.github.dantetam.world.items.InventoryItem;
-import io.github.dantetam.world.process.Process;
-import io.github.dantetam.world.process.Process.ProcessStep;
+import io.github.dantetam.world.process.LocalProcess;
+import io.github.dantetam.world.process.LocalProcess.ProcessStep;
 import io.github.dantetam.world.process.priority.BuildingHarvestPriority;
 import io.github.dantetam.world.process.priority.BuildingPlacePriority;
 import io.github.dantetam.world.process.priority.ConstructRoomPriority;
@@ -383,7 +383,7 @@ public class LocalGridTimeExecution {
 	}
 	
 	private static Priority getPriorityForStep(Society society, LocalGrid grid, Human being, 
-			Process process, ProcessStep step) {
+			LocalProcess process, ProcessStep step) {
 		Priority priority = null;
 		
 		System.out.println("Figuring out priority, for process: " + process);
@@ -637,18 +637,18 @@ public class LocalGridTimeExecution {
 	}
 	private static void assignSingleHumanJob(Society society, Human human) {
 		Map<Integer, Double> calcUtility = society.findCompleteUtilityAllItems(human);
-		Map<Process, Double> bestProcesses = society.prioritizeProcesses(calcUtility, human, 20, null);
-		Process randBiasedChosenProcess = MathUti.randChoiceFromWeightMap(bestProcesses);
+		Map<LocalProcess, Double> bestProcesses = society.prioritizeProcesses(calcUtility, human, 20, null);
+		LocalProcess randBiasedChosenProcess = MathUti.randChoiceFromWeightMap(bestProcesses);
 		human.processProgress = randBiasedChosenProcess;
 	}
 	
 	private static void collectivelyAssignJobsSociety(Society society) {
 		Map<Integer, Double> calcUtility = society.findCompleteUtilityAllItems(null);
-		Map<Process, Double> bestProcesses = society.prioritizeProcesses(calcUtility, null, 20, null);
+		Map<LocalProcess, Double> bestProcesses = society.prioritizeProcesses(calcUtility, null, 20, null);
 		List<Human> humans = society.getAllPeople();
 		
 		int humanIndex = 0;
-		for (Entry<Process, Double> entry: bestProcesses.entrySet()) {
+		for (Entry<LocalProcess, Double> entry: bestProcesses.entrySet()) {
 			int numPeople = (int) (entry.getValue() * humans.size());
 			numPeople = Math.max(1, numPeople);
 			
@@ -668,10 +668,10 @@ public class LocalGridTimeExecution {
 		KdTree<Vector3i> nearestItemsTree = grid.getKdTreeForItemId(firstItemNeeded);
 		
 		if (nearestItemsTree == null) {
-			List<Process> outputItemProcesses = ProcessData.getProcessesByOutput(firstItemNeeded);
+			List<LocalProcess> outputItemProcesses = ProcessData.getProcessesByOutput(firstItemNeeded);
 			Vector3i bestLocation = null;
 			double bestScore = 0;
-			for (Process process: outputItemProcesses) {
+			for (LocalProcess process: outputItemProcesses) {
 				if (process.name.startsWith("Harvest ")) {
 					int inputTileId = ItemData.getIdFromName(process.requiredTileNameOrGroup);
 					double pickupTime = ItemData.getPickupTime(inputTileId);
@@ -726,8 +726,8 @@ public class LocalGridTimeExecution {
 			Vector3i bestLocation = null;
 			double bestScore = 0;
 			for (int groupId: groupIds) {
-				List<Process> outputItemProcesses = ProcessData.getProcessesByOutput(groupId);
-				for (Process process: outputItemProcesses) {
+				List<LocalProcess> outputItemProcesses = ProcessData.getProcessesByOutput(groupId);
+				for (LocalProcess process: outputItemProcesses) {
 					if (process.name.startsWith("Harvest ")) {
 						int inputTileId = ItemData.getIdFromName(process.requiredTileNameOrGroup);
 						double pickupTime = ItemData.getPickupTime(inputTileId);

@@ -13,7 +13,7 @@ import io.github.dantetam.vector.Vector3i;
 import io.github.dantetam.world.dataparse.ItemTotalDrops.ItemDrop;
 import io.github.dantetam.world.dataparse.ItemTotalDrops.ItemDropTrial;
 import io.github.dantetam.world.items.InventoryItem;
-import io.github.dantetam.world.process.Process.ProcessStep;
+import io.github.dantetam.world.process.LocalProcess.ProcessStep;
 
 public class ItemCSVParser extends WorldCsvParser {
 

@@ -6,12 +6,12 @@ import java.util.List;
 import java.util.Map;
 
 import io.github.dantetam.world.items.InventoryItem;
-import io.github.dantetam.world.process.Process;
-import io.github.dantetam.world.process.Process.ProcessStep;
+import io.github.dantetam.world.process.LocalProcess;
+import io.github.dantetam.world.process.LocalProcess.ProcessStep;
 
 public class ProcessData {
 
-	private static List<Process> processes = new ArrayList<>();
+	private static List<LocalProcess> processes = new ArrayList<>();
 	private static Map<Integer, List<Integer>> recipesByInput = new HashMap<>();
 	private static Map<Integer, List<Integer>> recipesByOutput = new HashMap<>();
 	private static Map<String, Integer> recipesByName = new HashMap<>();
@@ -20,7 +20,7 @@ public class ProcessData {
 			String buildingName, boolean site, String tileFloor, 
 			List<ProcessStep> steps, List<ProcessStep> processResActions) {
 		int index = processes.size();
-		processes.add(new Process(name, input, output, buildingName, site, tileFloor, steps, processResActions));
+		processes.add(new LocalProcess(name, input, output, buildingName, site, tileFloor, steps, processResActions));
 		if (input != null) {
 			for (InventoryItem inputItem: input) {
 				if (!recipesByInput.containsKey(inputItem.itemId)) {
@@ -43,8 +43,8 @@ public class ProcessData {
 	/**
 	 * @return All processes where item with itemId is an input
 	 */
-	public static List<Process> getProcessesByInput(int itemId) {
-		List<Process> subsetProcesses = new ArrayList<>();
+	public static List<LocalProcess> getProcessesByInput(int itemId) {
+		List<LocalProcess> subsetProcesses = new ArrayList<>();
 		if (recipesByInput.containsKey(itemId)) {
 			List<Integer> indices = recipesByInput.get(itemId);
 			for (int index: indices) {
@@ -57,8 +57,8 @@ public class ProcessData {
 	/**
 	 * @return All processes where item with itemId is an output
 	 */
-	public static List<Process> getProcessesByOutput(int itemId) {
-		List<Process> subsetProcesses = new ArrayList<>();
+	public static List<LocalProcess> getProcessesByOutput(int itemId) {
+		List<LocalProcess> subsetProcesses = new ArrayList<>();
 		if (recipesByOutput.containsKey(itemId)) {
 			List<Integer> indices = recipesByOutput.get(itemId);
 			for (int index: indices) {
@@ -68,14 +68,14 @@ public class ProcessData {
 		return subsetProcesses;
 	}
 	
-	public static Process getProcessByName(String name) {
+	public static LocalProcess getProcessByName(String name) {
 		if (recipesByName.containsKey(name)) {
 			return processes.get(recipesByName.get(name));
 		}
 		return null;
 	}
 	
-	public static List<Process> getAllProcesses() {
+	public static List<LocalProcess> getAllProcesses() {
 		return processes;
 	}
 	

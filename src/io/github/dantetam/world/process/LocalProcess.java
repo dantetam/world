@@ -16,7 +16,7 @@ import io.github.dantetam.world.items.InventoryItem;
  *
  */
 
-public class Process {
+public class LocalProcess {
 
 	public String name;
 	public List<InventoryItem> inputItems;
@@ -27,7 +27,7 @@ public class Process {
 	public List<ProcessStep> processSteps; //The linear set of actions done by humans to achieve this goal
 	public List<ProcessStep> processResActions; //The set of actions that occurs when this process is finished
 	
-	public Process(String name, List<InventoryItem> input, ItemTotalDrops output, 
+	public LocalProcess(String name, List<InventoryItem> input, ItemTotalDrops output, 
 			String buildingName, boolean site, String tileFloorId, 
 			List<ProcessStep> steps, List<ProcessStep> processResActions) {
 		this.name = name;
@@ -81,20 +81,20 @@ public class Process {
 	}
 	
 	public boolean equals(Object other) {
-		if (!(other instanceof Process)) return false;
-		return ((Process) other).name.equals(this.name);
+		if (!(other instanceof LocalProcess)) return false;
+		return ((LocalProcess) other).name.equals(this.name);
 	}
 	
 	public int hashCode() {
 		return name.hashCode() + new Inventory(inputItems).hashCode();
 	}
 	
-	public Process clone() {
+	public LocalProcess clone() {
 		List<ProcessStep> steps = new ArrayList<>();
 		for (ProcessStep step: this.processSteps) {
 			steps.add(new ProcessStep(step.stepType, step.timeTicks, step.modifier));
 		}
-		Process clone = new Process(this.name, this.inputItems, this.outputItems, 
+		LocalProcess clone = new LocalProcess(this.name, this.inputItems, this.outputItems, 
 				this.requiredBuildNameOrGroup, this.isCreatedAtSite, this.requiredTileNameOrGroup,
 				new ArrayList<>(steps), processResActions);
 		return clone;

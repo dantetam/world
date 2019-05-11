@@ -10,8 +10,8 @@ import io.github.dantetam.world.grid.LocalBuilding;
 import io.github.dantetam.world.grid.LocalTile;
 import io.github.dantetam.world.items.Inventory;
 import io.github.dantetam.world.items.InventoryItem;
-import io.github.dantetam.world.process.Process;
-import io.github.dantetam.world.process.Process.ProcessStep;
+import io.github.dantetam.world.process.LocalProcess;
+import io.github.dantetam.world.process.LocalProcess.ProcessStep;
 import io.github.dantetam.world.process.priority.Priority;
 import io.github.dantetam.world.process.prioritytask.Task;
 
@@ -22,7 +22,7 @@ public abstract class LivingEntity {
 	public String name;
 
 	//A cloned Process object which keeps track of the remaining steps in the process cycle
-	public Process processProgress;
+	public LocalProcess processProgress;
 	public Priority activePriority;
 	public List<Task> currentQueueTasks;
 	

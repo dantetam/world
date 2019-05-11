@@ -13,7 +13,7 @@ import io.github.dantetam.world.civilization.Household;
 import io.github.dantetam.world.civilization.Human;
 import io.github.dantetam.world.civilization.Society;
 import io.github.dantetam.world.dataparse.ItemData;
-import io.github.dantetam.world.process.Process;
+import io.github.dantetam.world.process.LocalProcess;
 import io.github.dantetam.world.worldgen.LocalGridTerrainInstantiate;
 
 public class WorldGrid {

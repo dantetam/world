@@ -10,6 +10,9 @@ import org.apache.commons.math3.analysis.function.Sigmoid;
 
 import io.github.dantetam.world.civhumanrelation.HumanHumanRel;
 import io.github.dantetam.world.civhumanrelation.HumanRelationship;
+import io.github.dantetam.world.dataparse.EthosData;
+import io.github.dantetam.world.items.InventoryItem;
+import io.github.dantetam.world.process.LocalProcess;
 
 /**
  * For all civilized and sentient creatures that can feel coherent moral thoughts,
@@ -23,7 +26,17 @@ public class HumanBrain {
 	public Human host;
 	
 	//Relating to this person's general ethics and attitudes towards everyday decisions
-	public Map<String, Ethos> personalEthos; 
+	public Map<String, Ethos> greatEthos;
+	public Map<String, Ethos> ethosPersonalityTraits;
+	
+	//Includes attitudes towards crafting, and human-human/human-item interactions
+	public Map<LocalProcess, Ethos> ethosTowardsProcesses;
+	
+	//Includes attitudes towards personality traits
+	//only major ethos. Do not have an opinion about having an opinion on fish.
+	public Map<Ethos, Ethos> ethosTowardsOtherEthos;
+	
+	public Map<Integer, Ethos> ethosTowardsItems; //Indexed by item id
 	
 	//Relating to choice of career and object preferences, like for food
 	public Map<String, Ethos> personalBias; 
@@ -32,20 +45,26 @@ public class HumanBrain {
 	
 	public HumanBrain(Human host) {
 		this.host = host;
-		personalEthos = new HashMap<>();
+		
+		greatEthos = new HashMap<>();
 		personalBias = new HashMap<>();
+		ethosPersonalityTraits = new HashMap<>();
+		ethosTowardsProcesses = new HashMap<>();
+		ethosTowardsOtherEthos = new HashMap<>();
+		ethosTowardsItems = new HashMap<>();
+		
 		indexedRelationships = new HashMap<>();
 	}
 	
 	public static double getEthosDifference(HumanBrain brainA, HumanBrain brainB) {
 		double difference = 0;
-		Set<String> keysA = new HashSet<>(brainA.personalEthos.keySet());
-		Set<String> keysB = new HashSet<>(brainB.personalEthos.keySet());
+		Set<String> keysA = new HashSet<>(brainA.greatEthos.keySet());
+		Set<String> keysB = new HashSet<>(brainB.greatEthos.keySet());
 		keysA.retainAll(keysB);
 		Set<String> sharedKeys = keysA;
 		for (String sharedKey: sharedKeys) {
-			double logSevA = Math.log(brainA.personalEthos.get(sharedKey).severity); 
-			double logSevB = Math.log(brainB.personalEthos.get(sharedKey).severity);
+			double logSevA = Math.log(brainA.greatEthos.get(sharedKey).severity); 
+			double logSevB = Math.log(brainB.greatEthos.get(sharedKey).severity);
 			double diffScore = Math.abs(logSevA - logSevB) + 0.5;
 			
 			//Shifted and capped logit for diff. score 
@@ -56,10 +75,17 @@ public class HumanBrain {
 		return difference;
 	}
 	
-	public void addHumanRel(Human target) { 
-		indexedRelationships.put(target, new HumanHumanRel(this.host, target));
+	public void addHumanRel(Human target, String relType) { 
+		indexedRelationships.put(target, new HumanHumanRel(this.host, target, relType));
 	}
 	
+	/**
+	 * Represents a societal thought, personality trait, or other intellectual quirk
+	 * Note that ethos are essentially brain values with state, so they should be cloned
+	 * into other objects that require ethos.
+	 * @author Dante
+	 *
+	 */
 	public static class Ethos {
 		public String name;
 		
@@ -75,13 +101,35 @@ public class HumanBrain {
 		 */
 		public EthosModifier[] modifiers; 
 		
+		/*
+		 * After believing in this ethos, apply these psychological effects to the human
+		 * or sentient being when making decisions. The effects:
+		 * 
+		 */
+		public EthosModifier[] effects;
+		
 		public double severity; 
+		public double ethosLifetimeHappiness;
+		
+		public Ethos(String name, double severity, String modsString, String effectsString) {
+			this.name = name;
+			this.severity = severity;
+			this.modifiers = EthosData.parseEthosMods(modsString);
+			this.effects = EthosData.parseEthosMods(effectsString);
+			this.ethosLifetimeHappiness = 0;
+		}
 		
 		public double getLogisticVal(double low, double high) {
 			return new Sigmoid(low, high).value(severity);
 		}
 		public double getNormLogisticVal() {
 			return new Sigmoid().value(severity);
+		}
+		
+		public Ethos clone() {
+			Ethos clone = new Ethos(this.name, this.severity, "");
+			
+			return clone;
 		}
 	}
 	

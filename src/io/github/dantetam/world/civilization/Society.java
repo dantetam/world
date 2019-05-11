@@ -23,8 +23,8 @@ import io.github.dantetam.world.grid.LocalBuilding;
 import io.github.dantetam.world.grid.LocalGrid;
 import io.github.dantetam.world.grid.LocalTile;
 import io.github.dantetam.world.items.InventoryItem;
-import io.github.dantetam.world.process.Process;
-import io.github.dantetam.world.process.Process.ProcessStep;
+import io.github.dantetam.world.process.LocalProcess;
+import io.github.dantetam.world.process.LocalProcess.ProcessStep;
 
 public class Society {
 
@@ -83,7 +83,7 @@ public class Society {
 	 * @param desiredItems The restriction to only search for processes 
 	 * @return
 	 */
-	public Map<Process, Double> prioritizeProcesses(Map<Integer, Double> allItemsUtility, 
+	public Map<LocalProcess, Double> prioritizeProcesses(Map<Integer, Double> allItemsUtility, 
 			Human human, int desiredNumProcess, Set<Integer> desiredItems) {
 		Map<Integer, Double> sortedUtility = MathUti.getSortedMapByValueDesc(allItemsUtility);
 		Object[] sortedKeys = sortedUtility.keySet().toArray();
@@ -95,18 +95,18 @@ public class Society {
 		
 		Map<Integer, Double> rawResRarity = findRawResourcesRarity(human);
 		
-		Map<Process, Double> processByUtil = new HashMap<>();
+		Map<LocalProcess, Double> processByUtil = new HashMap<>();
 		int i = 0;
 		while (i < sortedKeys.length) { //processByUtil.size() < desiredNumProcess
 			Integer itemId = (Integer) sortedKeys[i];
 			
-			Map<Process, Double> bestProcesses = findBestProcess(allItemsUtility, rawResRarity, 
+			Map<LocalProcess, Double> bestProcesses = findBestProcess(allItemsUtility, rawResRarity, 
 					human, itemId);
 			
 			if (bestProcesses != null) {
 				if (desiredItems == null || desiredItems.contains(itemId)) {
 					//processByUtil.put(bestProcess, sortedUtility.get(itemId));
-					for (Entry<Process, Double> entry: bestProcesses.entrySet()) {
+					for (Entry<LocalProcess, Double> entry: bestProcesses.entrySet()) {
 						MathUti.insertKeepMaxMap(processByUtil, entry.getKey(), entry.getValue());
 					}
 				}
@@ -115,7 +115,7 @@ public class Society {
 		}
 		
 		Map<String, Double> needsIntensity = findAllNeedsIntensity();
-		for (Process process: ProcessData.getAllProcesses()) {
+		for (LocalProcess process: ProcessData.getAllProcesses()) {
 			if (!processByUtil.containsKey(process)) {
 				double heuristicActionScore = 0;
 				List<ProcessStep> resActions = process.processResActions;
@@ -136,11 +136,11 @@ public class Society {
 		processByUtil = MathUti.getSortedMapByValueDesc(processByUtil);
 		
 		System.out.println("Ranked processes: #####");
-		for (Entry<Process, Double> entry: processByUtil.entrySet()) {
+		for (Entry<LocalProcess, Double> entry: processByUtil.entrySet()) {
 			System.out.println(entry.getKey().name + "; ranking: " + entry.getValue());
 		}
 		
-		Map<Process, Double> processByPercentage = MathUti.getNormalizedMap(processByUtil);
+		Map<LocalProcess, Double> processByPercentage = MathUti.getNormalizedMap(processByUtil);
 		return processByPercentage;
 	}
 	
@@ -149,13 +149,13 @@ public class Society {
 	 * which is possible to complete by this human, by just crafting and collecting raw resources.
 	 * @param human The human in question who has access to resources, buildings, etc.
 	 */
-	public Map<Process, Double> findBestProcess(Map<Integer, Double> allItemsUtility, 
+	public Map<LocalProcess, Double> findBestProcess(Map<Integer, Double> allItemsUtility, 
 			Map<Integer, Double> rawResRarity, Human human, int outputItemId) {
 		Set<Integer> visitedItemIds = new HashSet<>();
 		Set<Integer> fringe = new HashSet<>();
 		fringe.add(outputItemId);
 		
-		Map<Process, Double> bestProcesses = new HashMap<>();
+		Map<LocalProcess, Double> bestProcesses = new HashMap<>();
 		
 		//System.out.println("raw resource rarity: ");
 		//System.out.println(rawResRarity);
@@ -168,8 +168,8 @@ public class Society {
 				
 				//System.out.println("Process for base item >>>: " + ItemData.getNameFromId(fringeId));
 				
-				List<Process> processes = ProcessData.getProcessesByOutput(fringeId);
-				for (Process process: processes) {
+				List<LocalProcess> processes = ProcessData.getProcessesByOutput(fringeId);
+				for (LocalProcess process: processes) {
 					List<InventoryItem> inputs = new ArrayList<>();
 					
 					if (process.requiredBuildNameOrGroup != null) {
@@ -217,7 +217,7 @@ public class Society {
 	}
 	
 	//Return the necessary items that are needed for a process
-	public boolean canCompleteProcess(Process process, Map<Integer, Double> rawResRarity) {
+	public boolean canCompleteProcess(LocalProcess process, Map<Integer, Double> rawResRarity) {
 		//Check for resources
 		List<InventoryItem> inputs = process.inputItems;
 		for (InventoryItem input: inputs) {
@@ -467,7 +467,7 @@ public class Society {
 		while (fringe.size() > 0) {
 			Set<Integer> newFringe = new HashSet<>();
 			for (Integer itemId: fringe) {
-				List<Process> inputProcessses = ProcessData.getProcessesByInput(itemId);
+				List<LocalProcess> inputProcessses = ProcessData.getProcessesByInput(itemId);
 				
 				//Collect all possible items that can come from breaking or crafting with itemId
 				List<ItemTotalDrops> allItemDrops = new ArrayList<>();
@@ -475,7 +475,7 @@ public class Society {
 				if (onBlockDropExp != null && ItemData.isPlaceable(itemId)) {
 					allItemDrops.add(onBlockDropExp);
 				}
-				for (Process process: inputProcessses) {
+				for (LocalProcess process: inputProcessses) {
 					if (process.outputItems != null) {
 						allItemDrops.add(process.outputItems);
 					}
@@ -519,8 +519,8 @@ public class Society {
 				//System.out.println("-------------------------------------");
 				//System.out.println("Starting item: " + ItemData.getNameFromId(outputItemId) + ", " + outputUtil);
 				
-				List<Process> processes = ProcessData.getProcessesByOutput(outputItemId);
-				for (Process process: processes) {
+				List<LocalProcess> processes = ProcessData.getProcessesByOutput(outputItemId);
+				for (LocalProcess process: processes) {
 					List<InventoryItem> inputs = process.inputItems;
 					
 					double totalItems = 0;
