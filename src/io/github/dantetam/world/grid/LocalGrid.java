@@ -84,12 +84,12 @@ public class LocalGrid {
 		return false;
 	}
 	
-	private static final Set<Vector3i> directAdjOffsets = new HashSet<Vector3i>() {
+	public static final Set<Vector3i> directAdjOffsets6 = new HashSet<Vector3i>() {
 		{add(new Vector3i(1,0,0)); add(new Vector3i(-1,0,0)); add(new Vector3i(0,1,0));
 			add(new Vector3i(0,-1,0)); add(new Vector3i(0,0,1)); add(new Vector3i(0,0,-1));}};
 	public Set<Vector3i> getAllNeighbors(Vector3i coords) {
 		Set<Vector3i> candidates = new HashSet<>();
-		for (Vector3i adjOffset: directAdjOffsets) {
+		for (Vector3i adjOffset: directAdjOffsets6) {
 			Vector3i neighbor = coords.getSum(adjOffset);
 			if (inBounds(neighbor)) {
 				candidates.add(neighbor);
@@ -112,12 +112,12 @@ public class LocalGrid {
 		return candidateTiles;
 	}
 	
-	private static final Set<Vector3i> allAdjOffsets = new HashSet<Vector3i>() {
+	public static final Set<Vector3i> allAdjOffsets8 = new HashSet<Vector3i>() {
 		{add(new Vector3i(1,0,0)); add(new Vector3i(-1,0,0)); add(new Vector3i(0,1,0)); add(new Vector3i(0,-1,0)); 
 		add(new Vector3i(1,1,0)); add(new Vector3i(1,-1,0)); add(new Vector3i(-1,-1,0)); add(new Vector3i(-1,1,0));}};
 	public Set<Vector3i> getAllFlatAdjAndDiag(Vector3i coords) {
 		Set<Vector3i> candidates = new HashSet<>();
-		for (Vector3i adjOffset: allAdjOffsets) {
+		for (Vector3i adjOffset: allAdjOffsets8) {
 			Vector3i neighbor = coords.getSum(adjOffset);
 			if (inBounds(neighbor)) {
 				candidates.add(neighbor);
@@ -126,7 +126,7 @@ public class LocalGrid {
 		return candidates;
 	}
 	
-	private static final Set<Vector3i> allVertAdjOffsets = new HashSet<Vector3i>() {{
+	public static final Set<Vector3i> allVertAdjOffsets26 = new HashSet<Vector3i>() {{
 		add(new Vector3i(1,0,0)); add(new Vector3i(-1,0,0)); add(new Vector3i(0,1,0)); add(new Vector3i(0,-1,0)); 
 		add(new Vector3i(1,1,0)); add(new Vector3i(1,-1,0)); add(new Vector3i(-1,-1,0)); add(new Vector3i(-1,1,0));
 		add(new Vector3i(1,0,1)); add(new Vector3i(-1,0,1)); add(new Vector3i(0,1,1)); add(new Vector3i(0,-1,1)); 
@@ -137,7 +137,7 @@ public class LocalGrid {
 		}};
 	public Set<Vector3i> getEveryNeighborUpDown(Vector3i coords) {
 		Set<Vector3i> candidates = new HashSet<>();
-		for (Vector3i adjOffset: allVertAdjOffsets) {
+		for (Vector3i adjOffset: allVertAdjOffsets26) {
 			Vector3i neighbor = coords.getSum(adjOffset);
 			if (inBounds(neighbor)) {
 				candidates.add(neighbor);

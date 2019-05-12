@@ -7,7 +7,7 @@ import org.apache.commons.csv.CSVRecord;
 public class EthosCSVParser extends WorldCsvParser {
 
 	public static void init() {
-		TODO
+		//TODO
 		//List<CSVRecord> csvRecords = parseCsvFile("res/items/world-itemideas.csv");
 	}
 	

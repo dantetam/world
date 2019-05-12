@@ -28,6 +28,7 @@ public class Human extends LivingEntity {
 		skillBook = new SkillBook();
 		body = new Body("Human");
 		brain = new HumanBrain(this);
+		HumanBrainInitialize.initHumanBrain(brain);
 	}
 	
 	public void feed(double standardUnitNutrition) {

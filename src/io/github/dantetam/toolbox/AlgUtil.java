@@ -3,11 +3,13 @@ package io.github.dantetam.toolbox;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.Stack;
 
 import io.github.dantetam.vector.Vector3i;
+import io.github.dantetam.world.grid.LocalGrid;
 
 public class AlgUtil {
 	
@@ -66,6 +68,36 @@ public class AlgUtil {
 		zeroCenteredRect[0] += topLeftBound.x;
 		zeroCenteredRect[1] += topLeftBound.y;
 		return zeroCenteredRect;
+	}
+	
+	/**
+	 * @return Any vectors in the given list, that border the outside of the set.
+	 * If the given list of vectors represents a building foundation, the result of this calculation
+	 * represents the bounding walls of the buildings, with corners included.
+	 * 
+	 * This returns a list as a solution to create an ordered set for use in calculations,
+	 * involving human distance travelling and priority. 
+	 */
+	public static List<Vector3i> getBorderRegionFromCoords(List<Vector3i> coords) {
+		Set<Vector3i> vecSet = new HashSet<>();
+		for (Vector3i coord: coords) {
+			vecSet.add(coord);
+		}
+		return getBorderRegionFromCoords(vecSet);
+	}
+	public static List<Vector3i> getBorderRegionFromCoords(Set<Vector3i> coords) {
+		List<Vector3i> perimeter = new ArrayList<>();
+		Set<Vector3i> vecAdjOffsets = LocalGrid.allAdjOffsets8;
+		for (Vector3i coord: coords) {
+			for (Vector3i offset: vecAdjOffsets) {
+				Vector3i neighbor = coord.getSum(offset);
+				if (!coords.contains(neighbor)) {
+					perimeter.add(coord);
+					break;
+				}
+			}
+		}
+		return perimeter;
 	}
 	
 	public static int[] findBestRect(Set<Vector3i> coords, int desiredR, int desiredC) {

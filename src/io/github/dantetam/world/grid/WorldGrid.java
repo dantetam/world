@@ -29,7 +29,7 @@ public class WorldGrid {
 		int biome = 3;
 		activeLocalGrid = new LocalGridTerrainInstantiate(sizes, biome).setupGrid();
 		
-		testSociety = new Society(activeLocalGrid);
+		testSociety = new Society("TestSociety", activeLocalGrid);
 		testSociety.societyCenter = new Vector3i(50,50,30);
 		
 		for (int i = 0; i < 15; i++) {
@@ -40,7 +40,7 @@ public class WorldGrid {
 				int c = (int) (Math.random() * activeLocalGrid.cols);
 				int h = activeLocalGrid.findHighestGroundHeight(r,c);
 				
-				Human human = new Human("Human" + i);
+				Human human = new Human(testSociety, "Human" + i);
 				people.add(human);
 				activeLocalGrid.addHuman(human, new Vector3i(r,c,h));
 				

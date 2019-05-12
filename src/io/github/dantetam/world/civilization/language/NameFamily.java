@@ -10,7 +10,7 @@ public class NameFamily {
 		this.languageFamily = languageFamily;
 	}
 	
-	public static String generateName() {
+	public String generateName() {
 		return "Name" + (int)(Math.random() * System.currentTimeMillis() % 100000); 
 	}
 	

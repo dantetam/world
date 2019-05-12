@@ -127,8 +127,9 @@ public class HumanBrain {
 		}
 		
 		public Ethos clone() {
-			Ethos clone = new Ethos(this.name, this.severity, "");
-			
+			Ethos clone = new Ethos(this.name, this.severity, "", "");
+			clone.modifiers = this.modifiers;
+			clone.effects = this.effects;
 			return clone;
 		}
 	}

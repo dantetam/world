@@ -36,12 +36,14 @@ public abstract class LivingEntity {
 	
 	// Maps item id to item objects, for finding out quickly if this person has item x
 	public Inventory inventory;
-
+	
 	protected static final double NUTRITION_CONSTANT = 10;
 	protected static final double REST_CONSTANT_TICK = 100 / (6 * 60);
 	protected static final double NUTRI_CONST_LOSS_TICK = 100 / (24 * 60);
 	protected static final double LIVE_CONST_LOSS_TICK = 100 / (18 * 60);
-	public double nutrition, maxNutrition, rest, maxRest; //hydration, maxHydration, 
+	public double nutrition, maxNutrition, rest, maxRest, fun, maxFun; //hydration, maxHydration, 
+	
+	public double age;
 	
 	//Includes everything wearable, such as normal shirts, and combat armor
 	public Body body;
@@ -49,6 +51,7 @@ public abstract class LivingEntity {
 	public LivingEntity(String name) {
 		this.name = name;
 		inventory = new Inventory();
+		age = 0;
 	}
 
 	public boolean equals(Object other) {

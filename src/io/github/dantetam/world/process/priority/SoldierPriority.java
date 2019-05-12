@@ -15,11 +15,11 @@ public class SoldierPriority extends Priority {
 	}
 
 	public static double weaponAmtRequired(LocalGrid grid, LivingEntity being) {
-		
+		return being.body.getWeaponNeed();
 	}
 	
 	public static double armorAmtRequired(LocalGrid grid, LivingEntity being) {
-		
+		return being.body.getArmorNeed();
 	}
 	
 }

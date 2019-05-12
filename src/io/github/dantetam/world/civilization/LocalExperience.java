@@ -13,9 +13,14 @@ import java.util.List;
 public class LocalExperience {
 
 	public List<LocalEvent> events;
+	public double opinion;
 	
 	public LocalExperience(List<LocalEvent> events) {
 		this.events = events;
+		opinion = 0;
+		for (LocalEvent event: events) {
+			opinion += event.opinion;
+		}
 	}
 	
 }

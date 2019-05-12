@@ -30,7 +30,12 @@ public class Battle {
 	}
 	
 	public Battle(List<Set<LivingEntity>> combatantTeams) {
-		TODO
+		this.combatantTeams = combatantTeams;
+		for (Set<LivingEntity> team: combatantTeams) {
+			for (LivingEntity entity: team) {
+				
+			}
+		}
 	}
 	
 	public List<LivingEntity> getCombatantsWithNoNeighbors() {

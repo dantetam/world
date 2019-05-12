@@ -67,7 +67,6 @@ public class LocalGridTimeExecution {
 		
 		System.out.println("<<<<>>>> Date: " + world.getTime());
 		if (world.getTime().getSeconds() == 0) {
-			//numDayTicks = 0;
 			assignAllHumanJobs(society);
 		}
 		
@@ -393,12 +392,13 @@ public class LocalGridTimeExecution {
 			Vector2i requiredSpace = new Vector2i(width, width);
 			
 			List<Vector3i> bestRectangle = findBestOpenRectSpace(grid, being.location.coords, requiredSpace);
+			List<Vector3i> borderRegion = AlgUtil.getBorderRegionFromCoords(bestRectangle);
 			
 			Set<Integer> bestBuildingMaterials = society.getBestBuildingMaterials(calcUtility, 
-					being, (requiredSpace.x + requiredSpace.y) * 2);
+					being, borderRegion.size());
 				
 			if (bestRectangle != null) {
-				priority = new ConstructRoomPriority(bestRectangle, bestBuildingMaterials);
+				priority = new ConstructRoomPriority(borderRegion, bestBuildingMaterials);
 			}
 			else {
 				priority = new ImpossiblePriority();

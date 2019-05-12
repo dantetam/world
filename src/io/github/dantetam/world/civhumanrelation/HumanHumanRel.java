@@ -30,14 +30,16 @@ public class HumanHumanRel extends HumanRelationship {
 	@Override
 	public double reevaluateOpinion(Date date) {
 		double ethosDiff = HumanBrain.getEthosDifference(human.brain, targetHuman.brain);
+		double opinionSum = 0;
 		for (Entry<String, Ethos> entry: human.brain.greatEthos.entrySet()) {
 			Ethos ethos = entry.getValue();
 			
 		}
 		for (LocalExperience experience: this.sharedExperiences) {
-			TODO
+			opinionSum += experience.opinion;
+			//TODO
 		}
-		return 0;
+		return opinionSum;
 	}
 
 	public boolean equals(Object other) {

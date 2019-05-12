@@ -13,10 +13,12 @@ public class LocalEvent {
 
 	public Date timeEvent;
 	public String type;
+	public double opinion;
 	
-	public LocalEvent(Date timeEvent, String type) {
+	public LocalEvent(Date timeEvent, String type, double opinion) {
 		this.timeEvent = timeEvent;
 		this.type = type;
+		this.opinion = opinion;
 	}
 	
 }
