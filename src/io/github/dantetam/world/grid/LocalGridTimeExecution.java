@@ -110,7 +110,7 @@ public class LocalGridTimeExecution {
 				if (human.processProgress.requiredBuildNameOrGroup != null && human.processBuilding == null) {
 					assignBuilding(grid, human, human.processProgress.requiredBuildNameOrGroup);
 				}
-				else if (human.processProgress.requiredTileNameOrGroup != null) {
+				else if (human.processProgress.requiredTileNameOrGroup != null && human.processTile == null) {
 					assignTile(grid, human, human.processProgress.requiredTileNameOrGroup);
 				}
 				
@@ -185,6 +185,7 @@ public class LocalGridTimeExecution {
 		Collection<Vector3i> candidates = items.nearestNeighbourListSearch(10, being.location.coords);
 		Map<LocalTile, Integer> tileByPathScore = new HashMap<>();
 		for (Vector3i candidate: candidates) {
+			System.out.println("Calc path: " + being.location.coords + " to -> " + grid.getTile(candidate).coords);
 			LocalTile tile = grid.getTile(candidate);
 			if (!tile.harvestInUse) {
 				ScoredPath scoredPath = Pathfinder.findPath(grid, being, being.location, grid.getTile(candidate));
@@ -464,6 +465,7 @@ public class LocalGridTimeExecution {
 					System.out.println("Could not create building space of size: " + requiredSpace);
 					priority = new ImpossiblePriority();
 				}
+				return priority;
 			}
 			else {
 				Vector3i nearOpenSpace = (Vector3i) boundsData[0]; // = grid.getNearOpenSpace(society.societyCenter);

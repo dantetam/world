@@ -1,6 +1,7 @@
 package io.github.dantetam.world.ai;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -9,11 +10,17 @@ import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Set;
 
+import io.github.dantetam.vector.Vector3i;
+import io.github.dantetam.world.civilization.Household;
+import io.github.dantetam.world.civilization.Human;
 import io.github.dantetam.world.civilization.LivingEntity;
+import io.github.dantetam.world.civilization.Society;
 import io.github.dantetam.world.dataparse.ItemData;
 import io.github.dantetam.world.dataparse.ProcessData;
+import io.github.dantetam.world.dataparse.WorldCsvParser;
 import io.github.dantetam.world.grid.LocalGrid;
 import io.github.dantetam.world.grid.LocalTile;
+import io.github.dantetam.world.worldgen.LocalGridTerrainInstantiate;
 
 /**
  * Created by Dante on 6/23/2016.
@@ -34,15 +41,21 @@ public class Pathfinder {
 	}
 	*/
 	
-	private static Set<LocalTile> validNeighbors(LocalGrid grid, LivingEntity being, LocalTile tile) {
+	private LocalGrid grid;
+	
+	public Pathfinder(LocalGrid grid) {
+		this.grid = grid;
+	}
+	
+	private Set<LocalTile> validNeighbors(LivingEntity being, LocalTile tile) {
 		return grid.getAccessibleNeighbors(tile, being);
 	}
 	
-	private static double getTileDist(LocalTile a, LocalTile b) {
+	private double getTileDist(LocalTile a, LocalTile b) {
 		return a.coords.dist(b.coords);
 	}
 	
-	private static int getTileAccessibilityPenalty(LocalTile tile) {
+	private int getTileAccessibilityPenalty(LocalTile tile) {
 		if (tile == null) return 0;
 
 		if (tile.tileBlockId != ItemData.ITEM_EMPTY_ID) {
@@ -61,8 +74,14 @@ public class Pathfinder {
 		return 0;
 	}
 	
-    public static ScoredPath findPath(LocalGrid grid, LivingEntity being, LocalTile start, LocalTile end) {
-        List<LocalTile> results = new ArrayList<>();
+    public ScoredPath findPath(LivingEntity being, LocalTile start, LocalTile end) {
+        int nodesExpanded = 0;
+    	
+    	if (start == null || end == null) {
+        	throw new IllegalArgumentException("Start or end null, start: " + start + ", end: " + end);
+        }
+    	
+    	List<LocalTile> results = new ArrayList<>();
         if (start.equals(end)) {
             results.add(end);
             return new ScoredPath(results, 0);
@@ -71,7 +90,7 @@ public class Pathfinder {
         final HashMap<LocalTile, Double> dist = new HashMap<>();
         Map<LocalTile, LocalTile> prev = new HashMap<>();
         PriorityQueue<LocalTile> fringe;
-
+        
         fringe = new PriorityQueue<LocalTile>(16, new Comparator() {
             @Override
             public int compare(Object o1, Object o2) {
@@ -81,15 +100,16 @@ public class Pathfinder {
                 //return (int)((dist.get(n1) - dist.get(n2) + end.dist(n1) - end.dist(n2)*16.0d));
                 int accessScore1 = getTileAccessibilityPenalty(n1);
                 int accessScore2 = getTileAccessibilityPenalty(n2);
-                return (dist.get(n1) - dist.get(n2) + getTileDist(end, n1) - getTileDist(end, n2)
-                		+ accessScore1 - accessScore2) > 0 ? 1 : -1;
+                return (dist.get(n1) - dist.get(n2) + 0.1*getTileDist(end, n1) - 0.1*getTileDist(end, n2)
+                		+ 0.1*accessScore1 - 0.1*accessScore2) > 0 ? 1 : -1;
             }
         });
-
+        
         fringe.add(start);
         dist.put(start, 0.0);
         while (!fringe.isEmpty()) {
             LocalTile v = fringe.poll();
+            nodesExpanded++;
             if (visited.contains(v)) {
                 continue;
             }
@@ -99,17 +119,21 @@ public class Pathfinder {
                     results.add(0, v);
                     v = prev.get(v);
                 } while (v != null);
+                
+                System.out.println("Nodes expanded: " + nodesExpanded);
+                
                 return new ScoredPath(results, dist.get(end).intValue());
             }
-            for (LocalTile c : validNeighbors(grid, being, v)) {
+            for (LocalTile c : validNeighbors(being, v)) {
                 if ((!dist.containsKey(c)) || (dist.containsKey(c) && dist.get(c) > dist.get(v) + getTileDist(v, c))) {
-                    dist.put(c, dist.get(v) + getTileDist(v, c) + getTileAccessibilityPenalty(c));
+                    dist.put(c, dist.get(v) + 0.1*getTileDist(v, c) + 0.1*getTileAccessibilityPenalty(c));
                     //c.queue = dist.get(v) + v.dist(c) + c.dist(end);
                     fringe.add(c);
                     prev.put(c, v);
                 }
             }
         }
+        
         return null;
     }
     
@@ -120,6 +144,61 @@ public class Pathfinder {
     		this.path = path;
     		this.score = score;
     	}
+    }
+    
+    //Pathfinding trials for analysis, since pathfinding is an intensive and ubiquitous calculation.
+    public static void main(String[] args) {
+    	WorldCsvParser.init();
+    	
+    	Vector3i sizes = new Vector3i(200,200,50);
+		int biome = 3;
+		LocalGrid activeLocalGrid = new LocalGridTerrainInstantiate(sizes, biome).setupGrid();
+		
+		Society testSociety = new Society("TestSociety", activeLocalGrid);
+		testSociety.societyCenter = new Vector3i(20,20,10);
+		
+		List<Human> people = new ArrayList<>();
+		for (int j = 0; j < 1; j++) {
+			int r = (int) (Math.random() * 99), c = (int) (Math.random() * 99);
+			int h = activeLocalGrid.findHighestGroundHeight(r,c);
+			
+			Human human = new Human(testSociety, "Human" + j);
+			people.add(human);
+			activeLocalGrid.addHuman(human, new Vector3i(r,c,h));
+			
+			human.inventory.addItem(ItemData.randomItem());
+			human.inventory.addItem(ItemData.randomItem());
+			human.inventory.addItem(ItemData.randomItem());
+			human.inventory.addItem(ItemData.randomItem());  
+			human.inventory.addItem(ItemData.item("Wheat Seeds", 50));
+			human.inventory.addItem(ItemData.item("Pine Wood", 50));
+		}
+		testSociety.addHousehold(new Household(people));
+		
+		System.out.println("Start pathfinding time trial now");
+		
+		for (int i = 0; i < 10; i++) {
+			long startTime = Calendar.getInstance().getTimeInMillis();
+			
+			int r = (int) (Math.random() * 95) + 5;
+			int c = (int) (Math.random() * 95) + 5;
+			
+			LocalTile baseTile = people.get(0).location;
+			Vector3i coords = new Vector3i(
+					baseTile.coords.x + r, 
+					baseTile.coords.y + c, 
+					activeLocalGrid.findHighestGroundHeight(baseTile.coords.x + r, baseTile.coords.y + c) - 3
+			);
+			activeLocalGrid.createTile(coords);
+			
+			System.out.println("Finding path from " + baseTile.coords + " to " + coords);
+			
+			Pathfinder.findPath(activeLocalGrid, people.get(0), baseTile, activeLocalGrid.getTile(coords));
+			
+			long endTime = Calendar.getInstance().getTimeInMillis();
+			
+			System.out.println("Completed trials in " + (endTime - startTime) + "ms");
+		}
     }
 
 }

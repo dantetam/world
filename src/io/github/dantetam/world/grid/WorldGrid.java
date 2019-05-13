@@ -40,7 +40,7 @@ public class WorldGrid {
 				int c = (int) (Math.random() * activeLocalGrid.cols);
 				int h = activeLocalGrid.findHighestGroundHeight(r,c);
 				
-				Human human = new Human(testSociety, "Human" + i);
+				Human human = new Human(testSociety, "Human" + j + " of House " + i);
 				people.add(human);
 				activeLocalGrid.addHuman(human, new Vector3i(r,c,h));
 				

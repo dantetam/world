@@ -1,6 +1,7 @@
 package io.github.dantetam.world.dataparse;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -9,7 +10,7 @@ import io.github.dantetam.world.civilization.HumanBrain.EthosModifier;
 
 public class EthosData {
 
-	private static Map<String, Ethos> greatEthos; //TODO
+	private static Map<String, Ethos> greatEthos = new HashMap<>(); //TODO
 	
 	public static Collection<Ethos> getMajorEthos() {
 		return greatEthos.values();

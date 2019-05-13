@@ -37,6 +37,8 @@ public abstract class LivingEntity {
 	// Maps item id to item objects, for finding out quickly if this person has item x
 	public Inventory inventory;
 	
+	//TODO public LivingEntityDNA dna;
+	
 	protected static final double NUTRITION_CONSTANT = 10;
 	protected static final double REST_CONSTANT_TICK = 100 / (6 * 60);
 	protected static final double NUTRI_CONST_LOSS_TICK = 100 / (24 * 60);

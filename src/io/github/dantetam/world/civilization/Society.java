@@ -116,7 +116,7 @@ public class Society {
 		
 		Map<String, Double> needsIntensity = findAllNeedsIntensity();
 		for (LocalProcess process: ProcessData.getAllProcesses()) {
-			if (!processByUtil.containsKey(process)) {
+			if (!processByUtil.containsKey(process) && canCompleteProcess(process, rawResRarity)) {
 				double heuristicActionScore = 0;
 				List<ProcessStep> resActions = process.processResActions;
 				if (resActions != null) {
@@ -394,8 +394,10 @@ public class Society {
 		Map<Integer, Double> itemRarity = this.findRawResourcesRarity(human);
 		for (Entry<Integer, Double> entry: itemRarity.entrySet()) {
 			Set<String> groupNames = ItemData.getGroupNameById(entry.getKey());
-			for (String groupName: groupNames) {
-				MathUti.addNumMap(groupItemRarity, groupName, entry.getValue());
+			if (groupNames != null) {
+				for (String groupName: groupNames) {
+					MathUti.addNumMap(groupItemRarity, groupName, entry.getValue());
+				}
 			}
 		}
 		return groupItemRarity;
