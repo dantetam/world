@@ -188,7 +188,7 @@ public class LocalGridTimeExecution {
 			System.out.println("Calc path: " + being.location.coords + " to -> " + grid.getTile(candidate).coords);
 			LocalTile tile = grid.getTile(candidate);
 			if (!tile.harvestInUse) {
-				ScoredPath scoredPath = Pathfinder.findPath(grid, being, being.location, grid.getTile(candidate));
+				ScoredPath scoredPath = new Pathfinder(grid).findPath(being, being.location, grid.getTile(candidate));
 				tileByPathScore.put(tile, scoredPath.score);
 			}
 		}
@@ -324,7 +324,7 @@ public class LocalGridTimeExecution {
 		}
 		else if (priority instanceof MovePriority) {
 			MovePriority movePriority = (MovePriority) priority;
-			ScoredPath scoredPath = Pathfinder.findPath(grid, being, being.location, grid.getTile(movePriority.coords));
+			ScoredPath scoredPath = new Pathfinder(grid).findPath(being, being.location, grid.getTile(movePriority.coords));
 			List<LocalTile> path = scoredPath.path;
 			for (int i = 0; i < path.size() - 1; i++) {
 				Vector3i coordsFrom = path.get(i).coords;

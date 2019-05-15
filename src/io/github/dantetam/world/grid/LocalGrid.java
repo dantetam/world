@@ -97,7 +97,7 @@ public class LocalGrid {
 		}
 		return candidates;
 	}
-	public Set<LocalTile> getAccessibleNeighbors(LocalTile tile, LivingEntity being) {
+	public Set<LocalTile> getAccessibleNeighbors(LocalTile tile) {
 		Set<Vector3i> neighbors = getAllNeighbors(tile.coords);
 		Set<LocalTile> candidateTiles = new HashSet<>();
 		for (Vector3i neighbor: neighbors) {
@@ -111,6 +111,8 @@ public class LocalGrid {
 		}
 		return candidateTiles;
 	}
+	//TODO: Conditional access to local tiles based on actor biology
+	//public Set<LocalTile> getAccessibleNeighbors(LocalTile tile, LivingEntity being)
 	
 	public static final Set<Vector3i> allAdjOffsets8 = new HashSet<Vector3i>() {
 		{add(new Vector3i(1,0,0)); add(new Vector3i(-1,0,0)); add(new Vector3i(0,1,0)); add(new Vector3i(0,-1,0)); 

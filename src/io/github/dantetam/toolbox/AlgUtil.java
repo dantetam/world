@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.Stack;
 
+import io.github.dantetam.vector.Vector2i;
 import io.github.dantetam.vector.Vector3i;
 import io.github.dantetam.world.grid.LocalGrid;
 
@@ -98,6 +99,46 @@ public class AlgUtil {
 			}
 		}
 		return perimeter;
+	}
+	public static Set<Vector2i> getBorderRegionFromCoords2d(Set<Vector2i> coords) {
+		Set<Vector2i> perimeter = new HashSet<>();
+		Set<Vector2i> vecAdjOffsets = new HashSet<Vector2i>() {{
+			add(new Vector2i(1,0)); add(new Vector2i(-1,0));
+			add(new Vector2i(0,1)); add(new Vector2i(0,-1));
+			add(new Vector2i(1,-1)); add(new Vector2i(-1,1));
+			add(new Vector2i(1,1)); add(new Vector2i(-1,-1));
+		}};
+		for (Vector2i coord: coords) {
+			for (Vector2i offset: vecAdjOffsets) {
+				Vector2i neighbor = coord.getSum(offset);
+				if (!coords.contains(neighbor)) {
+					perimeter.add(coord);
+					break;
+				}
+			}
+		}
+		return perimeter;
+	}
+	public static Set<Vector2i> getCornerRegionCoords2d(Set<Vector2i> coords) {
+		Set<Vector2i> corners = new HashSet<>();
+		for (Vector2i coord: coords) {
+			Vector2i up = coord.getSum(new Vector2i(0,1));
+			Vector2i down = coord.getSum(new Vector2i(0,-1));
+			Vector2i left = coord.getSum(new Vector2i(-1,0));
+			Vector2i right = coord.getSum(new Vector2i(1,0));
+			
+			Vector2i c1 = coord.getSum(new Vector2i(1,1));
+			Vector2i c2 = coord.getSum(new Vector2i(-1,-1));
+			Vector2i c3 = coord.getSum(new Vector2i(1,-1));
+			Vector2i c4 = coord.getSum(new Vector2i(-1,1));
+			if (!(coords.contains(up) && coords.contains(down)) && 
+					!(coords.contains(left) && coords.contains(right)) && 
+					!(coords.contains(c1) && coords.contains(c2)) &&
+					!(coords.contains(c3) && coords.contains(c4))) {
+				corners.add(coord);
+			}
+		}
+		return corners;
 	}
 	
 	public static int[] findBestRect(Set<Vector3i> coords, int desiredR, int desiredC) {
@@ -242,6 +283,39 @@ public class AlgUtil {
         return new int[] {maxR - rows + 1, maxC - cols + 1, rows, cols};
     }  
 	
+	public static List<Set<Vector2i>> getConnectedComponents(boolean[][] data, boolean target) {
+		List<Set<Vector2i>> results = new ArrayList<>();
+		boolean[][] visited = new boolean[data.length][data[0].length];
+		for (int r = 0; r < data.length; r++) {
+			for (int c = 0; c < data[0].length; c++) {
+				if (visited[r][c]) continue;
+				Set<Vector2i> component = new HashSet<>();
+				List<Vector2i> fringe = new ArrayList<>();
+				fringe.add(new Vector2i(r,c));
+				while (fringe.size() > 0) {
+					Vector2i first = fringe.remove(0);
+					if (first.x < 0 || first.y < 0 || 
+							first.x >= data.length || first.y >= data[0].length || 
+							visited[first.x][first.y] || 
+							data[first.x][first.y] != target) continue;
+					visited[first.x][first.y] = true;
+					component.add(first);
+					fringe.add(first.getSum(new Vector2i(1, 0)));
+					fringe.add(first.getSum(new Vector2i(-1, 0)));
+					fringe.add(first.getSum(new Vector2i(0, 1)));
+					fringe.add(first.getSum(new Vector2i(0, -1)));
+					fringe.add(first.getSum(new Vector2i(1, 1)));
+					fringe.add(first.getSum(new Vector2i(-1, -1)));
+					fringe.add(first.getSum(new Vector2i(1, -1)));
+					fringe.add(first.getSum(new Vector2i(-1, 1)));
+				}
+				if (component.size() > 0)
+					results.add(component);
+			}
+		}
+		return results;
+	}
+	
 	private static void printTable(int[][] data) {
 		for (int r = 0; r < data.length; r++) {
 			for (int c = 0; c < data[0].length; c++) {
@@ -253,7 +327,7 @@ public class AlgUtil {
 	
 	public static void main(String[] args) {
 		boolean[][] matrix = {
-				{true, true, false, false, false},
+				{true, true, false, false, true},
 				{true, false, false, false, false},
 				{false, true, false, true, false},
 				{false, true, true, true, true},
@@ -275,6 +349,28 @@ public class AlgUtil {
 		coords.add(new Vector3i(5,-1,1));
 		coords.add(new Vector3i(2,1,4));
 		System.out.println(Arrays.toString(AlgUtil.findCoordBounds(coords)));
+		
+		
+		Set<Vector2i> cornerCoordsTest = new HashSet<>();
+		cornerCoordsTest.add(new Vector2i(1,1));
+		cornerCoordsTest.add(new Vector2i(1,0));
+		cornerCoordsTest.add(new Vector2i(1,-1));
+		
+		cornerCoordsTest.add(new Vector2i(-1,1));
+		cornerCoordsTest.add(new Vector2i(-1,0));
+		cornerCoordsTest.add(new Vector2i(-1,-1));
+		
+		cornerCoordsTest.add(new Vector2i(0,1));
+		cornerCoordsTest.add(new Vector2i(0,-1));
+		cornerCoordsTest.add(new Vector2i(0,0));
+		
+		Set<Vector2i> border = getBorderRegionFromCoords2d(cornerCoordsTest);
+		System.out.println(border);
+		
+		Set<Vector2i> corners = AlgUtil.getCornerRegionCoords2d(cornerCoordsTest);
+		System.out.println(corners);
+		
+		System.out.println(AlgUtil.getConnectedComponents(matrix, true));
 	}
 
 }

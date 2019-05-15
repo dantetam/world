@@ -41,14 +41,32 @@ public class Pathfinder {
 	}
 	*/
 	
-	private LocalGrid grid;
+	protected LocalGrid grid;
 	
 	public Pathfinder(LocalGrid grid) {
 		this.grid = grid;
 	}
 	
+	/**
+	 * @param minRestrict,maxRestrict Inclusive bounds on where to find neighbors, i.e.
+	 * if minRestrict is (x,y,z), then do not include neighbors with coordinates less than 
+	 * x,y,z in each dimension respectively. If null, there are no restrictions in one direction
+	 * @return
+	 */
 	private Set<LocalTile> validNeighbors(LivingEntity being, LocalTile tile) {
-		return grid.getAccessibleNeighbors(tile, being);
+		Set<LocalTile> candidates = grid.getAccessibleNeighbors(tile);
+		/*
+		if (minRestrict == null && maxRestrict == null) return candidates;
+		Set<LocalTile> valid = new HashSet<>();
+		for (LocalTile candidate: candidates) {
+			if (minRestrict != null) {
+				if (candidate.coords.x < minRestrict.x) {
+					
+				}
+			}
+		}
+		*/
+		return candidates;
 	}
 	
 	private double getTileDist(LocalTile a, LocalTile b) {
@@ -74,7 +92,11 @@ public class Pathfinder {
 		return 0;
 	}
 	
-    public ScoredPath findPath(LivingEntity being, LocalTile start, LocalTile end) {
+	public ScoredPath findPath(LivingEntity being, LocalTile start, LocalTile end) {
+		return findPath(being, start, end, null, null);
+	}
+    public ScoredPath findPath(LivingEntity being, LocalTile start, LocalTile end,
+    		Vector3i minRestrict, Vector3i maxRestrict) {
         int nodesExpanded = 0;
     	
     	if (start == null || end == null) {
@@ -113,15 +135,27 @@ public class Pathfinder {
             if (visited.contains(v)) {
                 continue;
             }
+            if (minRestrict != null) {
+            	if (v.coords.x < minRestrict.x || 
+            		v.coords.y < minRestrict.y ||
+            		v.coords.z < minRestrict.z) { //If tile is not within the inclusive bounds
+            		continue;
+            	}
+            }
+            if (maxRestrict != null) {
+            	if (v.coords.x > maxRestrict.x || 
+            		v.coords.y > maxRestrict.y ||
+            		v.coords.z > maxRestrict.z) {
+            		continue;
+            	}
+            }
             visited.add(v);
             if (v.equals(end)) {
                 do {
                     results.add(0, v);
                     v = prev.get(v);
                 } while (v != null);
-                
-                System.out.println("Nodes expanded: " + nodesExpanded);
-                
+                //System.out.println("Nodes expanded: " + nodesExpanded);
                 return new ScoredPath(results, dist.get(end).intValue());
             }
             for (LocalTile c : validNeighbors(being, v)) {
@@ -165,13 +199,6 @@ public class Pathfinder {
 			Human human = new Human(testSociety, "Human" + j);
 			people.add(human);
 			activeLocalGrid.addHuman(human, new Vector3i(r,c,h));
-			
-			human.inventory.addItem(ItemData.randomItem());
-			human.inventory.addItem(ItemData.randomItem());
-			human.inventory.addItem(ItemData.randomItem());
-			human.inventory.addItem(ItemData.randomItem());  
-			human.inventory.addItem(ItemData.item("Wheat Seeds", 50));
-			human.inventory.addItem(ItemData.item("Pine Wood", 50));
 		}
 		testSociety.addHousehold(new Household(people));
 		
@@ -193,7 +220,7 @@ public class Pathfinder {
 			
 			System.out.println("Finding path from " + baseTile.coords + " to " + coords);
 			
-			Pathfinder.findPath(activeLocalGrid, people.get(0), baseTile, activeLocalGrid.getTile(coords));
+			new Pathfinder(activeLocalGrid).findPath(people.get(0), baseTile, activeLocalGrid.getTile(coords));
 			
 			long endTime = Calendar.getInstance().getTimeInMillis();
 			
