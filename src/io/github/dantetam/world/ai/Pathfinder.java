@@ -96,12 +96,15 @@ public class Pathfinder {
 		return findPath(being, start, end, null, null);
 	}
     public ScoredPath findPath(LivingEntity being, LocalTile start, LocalTile end,
-    		Vector3i minRestrict, Vector3i maxRestrict) {
+    		Vector3i minRestrict, Vector3i maxRestrict) {	
         int nodesExpanded = 0;
     	
     	if (start == null || end == null) {
         	throw new IllegalArgumentException("Start or end null, start: " + start + ", end: " + end);
         }
+    	
+    	System.out.println("Finding path between: " + start.coords + " -> " + end.coords + ",\n with bounds: "
+    			+ minRestrict + " <-> " + maxRestrict);
     	
     	List<LocalTile> results = new ArrayList<>();
         if (start.equals(end)) {
@@ -122,8 +125,8 @@ public class Pathfinder {
                 //return (int)((dist.get(n1) - dist.get(n2) + end.dist(n1) - end.dist(n2)*16.0d));
                 int accessScore1 = getTileAccessibilityPenalty(n1);
                 int accessScore2 = getTileAccessibilityPenalty(n2);
-                return (dist.get(n1) - dist.get(n2) + 0.1*getTileDist(end, n1) - 0.1*getTileDist(end, n2)
-                		+ 0.1*accessScore1 - 0.1*accessScore2) > 0 ? 1 : -1;
+                return (dist.get(n1) - dist.get(n2) + 0.3*getTileDist(end, n1) - 0.3*getTileDist(end, n2)
+                		+ 0*accessScore1 - 0*accessScore2) > 0 ? 1 : -1;
             }
         });
         
@@ -131,10 +134,10 @@ public class Pathfinder {
         dist.put(start, 0.0);
         while (!fringe.isEmpty()) {
             LocalTile v = fringe.poll();
-            nodesExpanded++;
             if (visited.contains(v)) {
                 continue;
             }
+            visited.add(v);
             if (minRestrict != null) {
             	if (v.coords.x < minRestrict.x || 
             		v.coords.y < minRestrict.y ||
@@ -149,18 +152,18 @@ public class Pathfinder {
             		continue;
             	}
             }
-            visited.add(v);
+            nodesExpanded++;
             if (v.equals(end)) {
                 do {
                     results.add(0, v);
                     v = prev.get(v);
                 } while (v != null);
-                //System.out.println("Nodes expanded: " + nodesExpanded);
-                return new ScoredPath(results, dist.get(end).intValue());
+                System.out.println("Nodes expanded: " + nodesExpanded);
+                return new ScoredPath(results, dist.get(end).doubleValue());
             }
             for (LocalTile c : validNeighbors(being, v)) {
                 if ((!dist.containsKey(c)) || (dist.containsKey(c) && dist.get(c) > dist.get(v) + getTileDist(v, c))) {
-                    dist.put(c, dist.get(v) + 0.1*getTileDist(v, c) + 0.1*getTileAccessibilityPenalty(c));
+                    dist.put(c, dist.get(v) + 0.3*getTileDist(v, c) + 0*getTileAccessibilityPenalty(c));
                     //c.queue = dist.get(v) + v.dist(c) + c.dist(end);
                     fringe.add(c);
                     prev.put(c, v);
@@ -173,8 +176,8 @@ public class Pathfinder {
     
     public static class ScoredPath {
     	public List<LocalTile> path;
-    	public int score;
-    	public ScoredPath(List<LocalTile> path, int score) {
+    	public double score;
+    	public ScoredPath(List<LocalTile> path, double score) {
     		this.path = path;
     		this.score = score;
     	}

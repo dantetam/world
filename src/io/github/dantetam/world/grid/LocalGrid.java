@@ -84,6 +84,24 @@ public class LocalGrid {
 		return false;
 	}
 	
+	public boolean tileIsAccessible(Vector3i coords) {
+		LocalTile tile = getTile(coords);
+		if (tile == null) return false;
+		Vector3i belowCoords = new Vector3i(coords.x, coords.y, coords.z - 1);
+		if (inBounds(belowCoords)) {
+			if (!tileIsOccupied(coords)) {
+				return false;
+			}
+		}
+		//if (tile.tileBlockId != ItemData.ITEM_EMPTY_ID) return false;
+		if (tile.building != null) {
+			if (tile.building.calculatedLocations != null) {
+				return !tile.building.calculatedLocations.contains(coords);
+			}
+		}
+		return true;
+	}
+	
 	public static final Set<Vector3i> directAdjOffsets6 = new HashSet<Vector3i>() {
 		{add(new Vector3i(1,0,0)); add(new Vector3i(-1,0,0)); add(new Vector3i(0,1,0));
 			add(new Vector3i(0,-1,0)); add(new Vector3i(0,0,1)); add(new Vector3i(0,0,-1));}};

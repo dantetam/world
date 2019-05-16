@@ -50,6 +50,8 @@ public class LocalGridTerrainInstantiate {
 		
 		int quartzId = ItemData.getIdFromName("Quartz");
 		
+		int airId = ItemData.ITEM_EMPTY_ID;
+		
 	    int[][] surfaceClusters = generateSurfaceClusters(
 	    		ConstantData.clusterUbiquityMap, 
 	    		ConstantData.clusterSizesMap, 
@@ -95,13 +97,19 @@ public class LocalGridTerrainInstantiate {
 					localGrid.setTileInstantiate(coords, newTile);
 				}
 				
-				for (double h = localGrid.heights - 1; h > grassHeight - 1; h--) {
+				for (double h = grassHeight + 5; h > grassHeight - 1; h--) {
 					if (h < 0 || h >= localGrid.heights) break;
 					int height = (int) h;
 					Vector3i coords = new Vector3i(r,c,height);
 					LocalTile tile = localGrid.getTile(coords);
 					if (tile != null) {
 						tile.exposedToAir = true;
+					}
+					else {
+						LocalTile newTile = new LocalTile(coords);
+						newTile.tileBlockId = airId;
+						newTile.tileFloorId = airId;
+						localGrid.setTileInstantiate(coords, newTile);
 					}
 				}
 			}

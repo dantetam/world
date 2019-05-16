@@ -141,6 +141,15 @@ public class AlgUtil {
 		return corners;
 	}
 	
+	public static Vector3i getRandVecInBounds(Vector3i a, Vector3i b) {
+		int minX = Math.min(a.x, b.x), minY = Math.min(a.y, b.y), minZ = Math.min(a.z, b.z);
+		int maxX = Math.max(a.x, b.x), maxY = Math.max(a.y, b.y), maxZ = Math.max(a.z, b.z);
+		int newX = (int) (Math.random() * (maxX - minX + 1)) + minX;
+		int newY = (int) (Math.random() * (maxY - minY + 1)) + minY;
+		int newZ = (int) (Math.random() * (maxZ - minZ + 1)) + minZ;
+		return new Vector3i(newX, newY, newZ);
+	}
+	
 	public static int[] findBestRect(Set<Vector3i> coords, int desiredR, int desiredC) {
 		Vector3i[] bounds = findCoordBounds(coords);
 		Vector3i topLeftBound = bounds[0], bottomRightBound = bounds[1];

@@ -183,7 +183,7 @@ public class LocalGridTimeExecution {
 		KdTree<Vector3i> items = grid.getKdTreeForTile(tileId);
 		if (items == null) return null;
 		Collection<Vector3i> candidates = items.nearestNeighbourListSearch(10, being.location.coords);
-		Map<LocalTile, Integer> tileByPathScore = new HashMap<>();
+		Map<LocalTile, Double> tileByPathScore = new HashMap<>();
 		for (Vector3i candidate: candidates) {
 			System.out.println("Calc path: " + being.location.coords + " to -> " + grid.getTile(candidate).coords);
 			LocalTile tile = grid.getTile(candidate);

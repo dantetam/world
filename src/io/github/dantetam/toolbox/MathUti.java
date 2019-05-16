@@ -13,7 +13,7 @@ import java.util.Set;
 public class MathUti {
 
 	public static double roundToPower2(double n) {
-		return Math.pow(2, Math.round(Math.log10(n) / Math.log10(2)));
+		return Math.pow(2, Math.ceil(Math.log10(n) / Math.log10(2)));
 	}
 	
 	public static void printTable(double[][] terrain) {
