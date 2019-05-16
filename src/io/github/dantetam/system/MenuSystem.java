@@ -16,9 +16,9 @@ import io.github.dantetam.render.TextBox;
 import io.github.dantetam.toolbox.MathUti;
 import io.github.dantetam.toolbox.MousePicker;
 import io.github.dantetam.vector.Vector3i;
-import io.github.dantetam.world.civilization.LivingEntity;
 import io.github.dantetam.world.dataparse.ItemData;
 import io.github.dantetam.world.grid.LocalTile;
+import io.github.dantetam.world.life.LivingEntity;
 
 public class MenuSystem extends BaseSystem {
 

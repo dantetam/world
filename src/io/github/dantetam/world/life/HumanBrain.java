@@ -1,4 +1,4 @@
-package io.github.dantetam.world.civilization;
+package io.github.dantetam.world.life;
 
 import java.util.HashMap;
 import java.util.HashSet;

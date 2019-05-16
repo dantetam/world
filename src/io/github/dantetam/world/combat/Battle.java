@@ -11,8 +11,8 @@ import java.util.Set;
 
 import io.github.dantetam.vector.Vector3i;
 import io.github.dantetam.world.civhumanrelation.HumanRelationship;
-import io.github.dantetam.world.civilization.LivingEntity;
 import io.github.dantetam.world.grid.LocalGrid;
+import io.github.dantetam.world.life.LivingEntity;
 
 public class Battle {
 

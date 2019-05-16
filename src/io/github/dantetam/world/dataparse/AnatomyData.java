@@ -59,6 +59,8 @@ public class AnatomyData {
 		private Map<String, BodyPart> bodyParts = new HashMap<>();
 		private Map<String, Set<String>> neighborBodyPartsMap = new HashMap<>();
 		
+		private Map<String, BodyTrait> bodyTraits = new HashMap<>();
+		
 		public String combatStyle;
 		
 		//private Map<String, List<CombatItem>> heldItemsByBodyPart = new HashMap<>();
@@ -281,13 +283,11 @@ public class AnatomyData {
 	}
 	
 	public static class MainBodyPart extends BodyPart {
-
 		public MainBodyPart(String name, Vector3f position, double size, double vulnerability, double maxHealth,
 				double dexterity) {
 			super(name, position, size, vulnerability, maxHealth, dexterity);
 			// TODO Auto-generated constructor stub
 		}
-		
 	}
 	
 	public static class BodyDamage {
@@ -299,6 +299,16 @@ public class AnatomyData {
 			this.name = name;
 			this.damage = damage;
 			this.careNeeded = careNeeded;
+		}
+	}
+	
+	public static class BodyTrait {
+		public String traitName;
+		public double traitModifier;
+		
+		public BodyTrait(String traitName, double traitModifier) {
+			this.traitName = traitName;
+			this.traitModifier = traitModifier;
 		}
 	}
 	

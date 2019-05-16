@@ -5,13 +5,13 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map.Entry;
 
-import io.github.dantetam.world.civilization.Human;
-import io.github.dantetam.world.civilization.HumanBrain;
-import io.github.dantetam.world.civilization.LivingEntity;
 import io.github.dantetam.world.civilization.LocalExperience;
 import io.github.dantetam.world.civilization.Society;
-import io.github.dantetam.world.civilization.HumanBrain.Ethos;
 import io.github.dantetam.world.items.InventoryItem;
+import io.github.dantetam.world.life.Human;
+import io.github.dantetam.world.life.HumanBrain;
+import io.github.dantetam.world.life.LivingEntity;
+import io.github.dantetam.world.life.HumanBrain.Ethos;
 
 public class HumanItemRel extends HumanRelationship {
 

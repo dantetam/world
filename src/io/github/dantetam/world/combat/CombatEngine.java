@@ -14,13 +14,13 @@ import org.apache.commons.math3.distribution.NormalDistribution;
 import org.apache.commons.math3.distribution.UniformRealDistribution;
 
 import io.github.dantetam.toolbox.MathUti;
-import io.github.dantetam.world.civilization.LivingEntity;
 import io.github.dantetam.world.combat.CombatMod.CombatCondition;
 import io.github.dantetam.world.combat.CombatMod.CombatModActor;
 import io.github.dantetam.world.combat.CombatMod.CombatModCalc;
 import io.github.dantetam.world.dataparse.AnatomyData.Body;
 import io.github.dantetam.world.dataparse.AnatomyData.BodyDamage;
 import io.github.dantetam.world.dataparse.AnatomyData.BodyPart;
+import io.github.dantetam.world.life.LivingEntity;
 import io.github.dantetam.world.dataparse.CombatItem;
 
 public class CombatEngine {

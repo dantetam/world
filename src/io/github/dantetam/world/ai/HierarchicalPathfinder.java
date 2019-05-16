@@ -16,13 +16,13 @@ import io.github.dantetam.vector.Vector2i;
 import io.github.dantetam.vector.Vector3i;
 import io.github.dantetam.world.ai.Pathfinder.ScoredPath;
 import io.github.dantetam.world.civilization.Household;
-import io.github.dantetam.world.civilization.Human;
-import io.github.dantetam.world.civilization.LivingEntity;
 import io.github.dantetam.world.civilization.Society;
 import io.github.dantetam.world.dataparse.ItemData;
 import io.github.dantetam.world.dataparse.WorldCsvParser;
 import io.github.dantetam.world.grid.LocalGrid;
 import io.github.dantetam.world.grid.LocalTile;
+import io.github.dantetam.world.life.Human;
+import io.github.dantetam.world.life.LivingEntity;
 import io.github.dantetam.world.worldgen.LocalGridTerrainInstantiate;
 
 public class HierarchicalPathfinder extends Pathfinder {

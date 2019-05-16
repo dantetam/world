@@ -1,4 +1,4 @@
-package io.github.dantetam.world.civilization;
+package io.github.dantetam.world.life;
 
 import java.util.HashMap;
 import java.util.List;
@@ -37,7 +37,7 @@ public abstract class LivingEntity {
 	// Maps item id to item objects, for finding out quickly if this person has item x
 	public Inventory inventory;
 	
-	//TODO public LivingEntityDNA dna;
+	public DNALivingEntity dna;
 	
 	protected static final double NUTRITION_CONSTANT = 10;
 	protected static final double REST_CONSTANT_TICK = 100 / (6 * 60);

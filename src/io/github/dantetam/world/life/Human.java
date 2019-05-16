@@ -1,9 +1,11 @@
-package io.github.dantetam.world.civilization;
+package io.github.dantetam.world.life;
 
 import java.util.HashSet;
 import java.util.Set;
 
 import io.github.dantetam.vector.Vector3i;
+import io.github.dantetam.world.civilization.SkillBook;
+import io.github.dantetam.world.civilization.Society;
 import io.github.dantetam.world.dataparse.AnatomyData.Body;
 import io.github.dantetam.world.grid.LocalBuilding;
 

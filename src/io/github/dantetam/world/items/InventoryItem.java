@@ -1,7 +1,7 @@
 package io.github.dantetam.world.items;
 
-import io.github.dantetam.world.civilization.LivingEntity;
 import io.github.dantetam.world.dataparse.ItemData;
+import io.github.dantetam.world.life.LivingEntity;
 
 /**
  * Represents an item that has been 'compressed' e.g. is not a building,

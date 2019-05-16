@@ -23,6 +23,8 @@ import io.github.dantetam.world.grid.LocalBuilding;
 import io.github.dantetam.world.grid.LocalGrid;
 import io.github.dantetam.world.grid.LocalTile;
 import io.github.dantetam.world.items.InventoryItem;
+import io.github.dantetam.world.life.Human;
+import io.github.dantetam.world.life.HumanBrain.Ethos;
 import io.github.dantetam.world.process.LocalProcess;
 import io.github.dantetam.world.process.LocalProcess.ProcessStep;
 
@@ -34,6 +36,8 @@ public class Society {
 	public Vector3i societyCenter;
 	
 	public List<War> warsInvolved;
+	
+	public Map<String, Ethos> dominantEthos;
 	
 	public Society(String name, LocalGrid grid) {
 		this.name = name;

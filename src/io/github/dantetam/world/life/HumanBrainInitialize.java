@@ -1,13 +1,13 @@
-package io.github.dantetam.world.civilization;
+package io.github.dantetam.world.life;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import io.github.dantetam.world.civilization.HumanBrain.Ethos;
 import io.github.dantetam.world.dataparse.EthosData;
 import io.github.dantetam.world.dataparse.ItemData;
 import io.github.dantetam.world.dataparse.ProcessData;
 import io.github.dantetam.world.items.InventoryItem;
+import io.github.dantetam.world.life.HumanBrain.Ethos;
 import io.github.dantetam.world.process.LocalProcess;
 
 public class HumanBrainInitialize {

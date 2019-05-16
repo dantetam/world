@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import io.github.dantetam.world.civilization.language.NameFamily;
+import io.github.dantetam.world.life.Human;
 
 public class HouseholdGenerator {
 

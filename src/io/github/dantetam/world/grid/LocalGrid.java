@@ -12,12 +12,12 @@ import java.util.Set;
 import io.github.dantetam.toolbox.AlgUtil;
 import io.github.dantetam.vector.Vector2i;
 import io.github.dantetam.vector.Vector3i;
-import io.github.dantetam.world.civilization.Human;
-import io.github.dantetam.world.civilization.LivingEntity;
 import io.github.dantetam.world.dataparse.ItemData;
 import io.github.dantetam.world.dataparse.WorldCsvParser;
 import io.github.dantetam.world.items.Inventory;
 import io.github.dantetam.world.items.InventoryItem;
+import io.github.dantetam.world.life.Human;
+import io.github.dantetam.world.life.LivingEntity;
 import kdtreegeo.KdTree;
 
 /**

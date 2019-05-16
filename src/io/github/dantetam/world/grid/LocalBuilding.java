@@ -7,8 +7,8 @@ import java.util.List;
 import java.util.Set;
 
 import io.github.dantetam.vector.Vector3i;
-import io.github.dantetam.world.civilization.LivingEntity;
 import io.github.dantetam.world.items.Inventory;
+import io.github.dantetam.world.life.LivingEntity;
 
 public class LocalBuilding {
 
