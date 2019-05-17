@@ -12,7 +12,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import io.github.dantetam.toolbox.AlgUtil;
+import io.github.dantetam.toolbox.VecGridUtil;
 import io.github.dantetam.toolbox.MathUti;
 import io.github.dantetam.vector.Vector2i;
 import io.github.dantetam.vector.Vector3i;
@@ -393,7 +393,7 @@ public class LocalGridTimeExecution {
 			Vector2i requiredSpace = new Vector2i(width, width);
 			
 			List<Vector3i> bestRectangle = findBestOpenRectSpace(grid, being.location.coords, requiredSpace);
-			List<Vector3i> borderRegion = AlgUtil.getBorderRegionFromCoords(bestRectangle);
+			List<Vector3i> borderRegion = VecGridUtil.getBorderRegionFromCoords(bestRectangle);
 			
 			Set<Integer> bestBuildingMaterials = society.getBestBuildingMaterials(calcUtility, 
 					being, borderRegion.size());
@@ -455,7 +455,7 @@ public class LocalGridTimeExecution {
 				List<Vector3i> bestRectangle = findBestOpenRectSpace(grid, being.location.coords, requiredSpace);
 			
 				if (bestRectangle != null) {
-					System.out.println("Create building space: " + Arrays.toString(AlgUtil.findCoordBounds(bestRectangle)));
+					System.out.println("Create building space: " + Arrays.toString(VecGridUtil.findCoordBounds(bestRectangle)));
 					Set<Integer> bestBuildingMaterials = society.getBestBuildingMaterials(calcUtility, 
 							being, (requiredSpace.x + requiredSpace.y) * 2);
 					grid.setInUseRoomSpace(bestRectangle, true);
@@ -781,7 +781,7 @@ public class LocalGridTimeExecution {
 		
 		if (openSpace != null) {
 			int height = openSpace.iterator().next().z;
-			int[] maxSubRect = AlgUtil.findMaxRect(openSpace);
+			int[] maxSubRect = VecGridUtil.findMaxRect(openSpace);
 			int bestR = maxSubRect[0], bestC = maxSubRect[1],
 					rectR = maxSubRect[2], rectC = maxSubRect[3];
 				

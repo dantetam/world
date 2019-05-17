@@ -43,6 +43,8 @@ public class HumanBrain {
 	
 	public Map<Human, HumanRelationship> indexedRelationships;
 	
+	public Map<String, Double> languageCodesStrength;
+	
 	public HumanBrain(Human host) {
 		this.host = host;
 		
@@ -54,6 +56,8 @@ public class HumanBrain {
 		ethosTowardsItems = new HashMap<>();
 		
 		indexedRelationships = new HashMap<>();
+		
+		languageCodesStrength = new HashMap<>(); TODO
 	}
 	
 	public static double getEthosDifference(HumanBrain brainA, HumanBrain brainB) {

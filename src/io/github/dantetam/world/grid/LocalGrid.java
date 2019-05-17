@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import io.github.dantetam.toolbox.AlgUtil;
+import io.github.dantetam.toolbox.VecGridUtil;
 import io.github.dantetam.vector.Vector2i;
 import io.github.dantetam.vector.Vector3i;
 import io.github.dantetam.world.dataparse.ItemData;
@@ -440,7 +440,7 @@ public class LocalGrid {
 				Set<Vector3i> emptySpace = getFreeSpace(building);
 				if (emptySpace.size() > requiredSpace.x * requiredSpace.y) { //Preliminary check for minimum bounding box
 					int height = emptySpace.iterator().next().z;
-					int[] boundsData = AlgUtil.findBestRect(emptySpace, requiredSpace.x, requiredSpace.y);
+					int[] boundsData = VecGridUtil.findBestRect(emptySpace, requiredSpace.x, requiredSpace.y);
 					Vector3i nearOpenSpace = new Vector3i(boundsData[0], boundsData[1], height);
 					Vector2i bounds2d = new Vector2i(boundsData[2], boundsData[3]);
 					if (checkIfUseRoomSpace(nearOpenSpace, bounds2d) && 

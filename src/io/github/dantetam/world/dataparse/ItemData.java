@@ -10,7 +10,7 @@ import java.util.Map;
 import java.util.Set;
 
 import io.github.dantetam.lwjglEngine.render.VBOLoader;
-import io.github.dantetam.toolbox.AlgUtil;
+import io.github.dantetam.toolbox.VecGridUtil;
 import io.github.dantetam.vector.Vector2i;
 import io.github.dantetam.vector.Vector3i;
 import io.github.dantetam.world.grid.LocalBuilding;
@@ -179,7 +179,7 @@ public class ItemData {
 		if (isBuilding) {
 			if (specBuildOffsets != null && specBuildOffsets.size() > 0) {
 				specialBuildingOffsets.put(id, specBuildOffsets);
-				Vector3i[] pointBounds = AlgUtil.findCoordBounds(specBuildOffsets);
+				Vector3i[] pointBounds = VecGridUtil.findCoordBounds(specBuildOffsets);
 				Vector3i bounds = pointBounds[1].getSubtractedBy(pointBounds[0]);
 				buildingSizes.put(id, new Vector2i(bounds.x, bounds.y));
 			}

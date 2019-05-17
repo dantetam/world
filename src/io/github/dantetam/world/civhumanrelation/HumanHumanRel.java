@@ -33,7 +33,9 @@ public class HumanHumanRel extends HumanRelationship {
 		double opinionSum = 0;
 		for (Entry<String, Ethos> entry: human.brain.greatEthos.entrySet()) {
 			Ethos ethos = entry.getValue();
-			
+			if (ethos.name.equals("Language Ethoscentrism")) {
+				
+			}
 		}
 		for (LocalExperience experience: this.sharedExperiences) {
 			opinionSum += experience.opinion;

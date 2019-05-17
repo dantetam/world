@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import io.github.dantetam.toolbox.AlgUtil;
+import io.github.dantetam.toolbox.VecGridUtil;
 import io.github.dantetam.toolbox.MathUti;
 import io.github.dantetam.vector.Vector2i;
 import io.github.dantetam.vector.Vector3i;
@@ -55,7 +55,7 @@ public class SpaceFillingAlgorithm {
 			for (Set<Vector3i> component: components) {
 				
 				//int[] maxSubRect = AlgUtil.findMaxRect(component);
-				int[] maxSubRect = AlgUtil.findBestRect(component, desiredR, desiredC);
+				int[] maxSubRect = VecGridUtil.findBestRect(component, desiredR, desiredC);
 				
 				if (maxSubRect == null || maxSubRect[2] < desiredR || maxSubRect[3] < desiredC) continue; 
 				

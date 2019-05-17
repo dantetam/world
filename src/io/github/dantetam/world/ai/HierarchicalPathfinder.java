@@ -11,7 +11,7 @@ import java.util.PriorityQueue;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import io.github.dantetam.toolbox.AlgUtil;
+import io.github.dantetam.toolbox.VecGridUtil;
 import io.github.dantetam.vector.Vector2i;
 import io.github.dantetam.vector.Vector3i;
 import io.github.dantetam.world.ai.Pathfinder.ScoredPath;
@@ -295,8 +295,8 @@ public class HierarchicalPathfinder extends Pathfinder {
 			//Convert the maximal door into an outline, and then retrieve its corners
 			//The corners represent the abstract nodes in the pre-calculation,
 			//which are always shared between the two blocks in question.
-			Set<Vector2i> borderComp = AlgUtil.getBorderRegionFromCoords2d(compLocalCoord);
-			Set<Vector2i> corners = AlgUtil.getCornerRegionCoords2d(borderComp);
+			Set<Vector2i> borderComp = VecGridUtil.getBorderRegionFromCoords2d(compLocalCoord);
+			Set<Vector2i> corners = VecGridUtil.getCornerRegionCoords2d(borderComp);
 			
 			List<Vector3i> trueCoordsFirst = new ArrayList<>();
 			List<Vector3i> trueCoordsSecond = new ArrayList<>();
@@ -414,7 +414,7 @@ public class HierarchicalPathfinder extends Pathfinder {
 				overlap[i][j] = first[i][j] && second[i][j];
 			}
 		}
-		return AlgUtil.getConnectedComponents(overlap, true);
+		return VecGridUtil.getConnectedComponents(overlap, true);
 	}
 	
 	private static class LocalGridBlock {
@@ -544,8 +544,8 @@ public class HierarchicalPathfinder extends Pathfinder {
 		while (true) {
 			blockStart = hPath.abstractBlocks[randStartCoords.x][randStartCoords.y][randStartCoords.z];
 			blockEnd = hPath.abstractBlocks[randEndCoords.x][randEndCoords.y][randEndCoords.z];
-			startVec = AlgUtil.getRandVecInBounds(blockStart.minBound, blockStart.maxBound);
-			endVec = AlgUtil.getRandVecInBounds(blockEnd.minBound, blockEnd.maxBound);
+			startVec = VecGridUtil.getRandVecInBounds(blockStart.minBound, blockStart.maxBound);
+			endVec = VecGridUtil.getRandVecInBounds(blockEnd.minBound, blockEnd.maxBound);
 			if (activeLocalGrid.tileIsAccessible(startVec) && activeLocalGrid.tileIsAccessible(endVec))
 				break;
 		}

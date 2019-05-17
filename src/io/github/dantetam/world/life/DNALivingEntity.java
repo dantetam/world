@@ -5,12 +5,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import io.github.dantetam.toolbox.StringUtil;
 import io.github.dantetam.world.dataparse.AnatomyData.Body;
 
 public abstract class DNALivingEntity {
 
 	public String speciesName;
-	protected Map<String, String> dnaMap;
+	protected Map<String, String> dnaMap; //Representation of genes ordered by name
 	
 	//Not really broad haplogroups in the sense of world populations, but 
 	public List<String> haploGroupMutations; 
@@ -32,5 +33,31 @@ public abstract class DNALivingEntity {
 	
 	//How two organisms (usually but not always the same species) give new DNA to their offspring
 	public abstract Map<String, String> recombineDNA(DNALivingEntity otherDNA);
+	
+	public double compareGenesDist(DNALivingEntity otherDna, String geneName) {
+		if (!this.dnaMap.containsKey(geneName) || !this.dnaMap.containsKey(geneName)) {
+			throw new IllegalArgumentException("This DNA and/or other DNA do not contain the gene named: " + geneName);
+		}
+		String gene = dnaMap.get(geneName), otherGene = otherDna.dnaMap.get(geneName);
+		return dnaStringDist(gene, otherGene);
+	}
+	
+	protected double dnaStringDist(String stringA, String stringB) {
+		double avgDist = 0;
+		int minLen = Math.min(stringA.length(), stringB.length());
+		for (int i = 0; i < minLen; i++) {
+			char charA = stringA.charAt(i), charB = stringB.charAt(i);
+			int indexA = StringUtil.getIndexOfChar(charA), indexB = StringUtil.getIndexOfChar(charB);
+			if (indexA < indexB) {
+				int temp = indexA;
+				indexA = indexB;
+				indexB = temp;
+			}
+			int wrapIndexB = indexB - StringUtil.alphanum.length();
+			int charDist = Math.min(indexB - indexA, indexA - wrapIndexB);
+			avgDist += (double) charDist / minLen;
+		}
+		return avgDist;
+	}
 	
 }

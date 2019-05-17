@@ -1,18 +1,24 @@
 package io.github.dantetam.world.life;
 
+import java.util.HashMap;
 import java.util.Map;
 
+import io.github.dantetam.toolbox.StringUtil;
 import io.github.dantetam.world.dataparse.AnatomyData.Body;
 
 public class DNAHuman extends DNALivingEntity {
 
+	private static final double RACE_MUTATE_FREQ = 0.02;
+	
 	public DNAHuman(String speciesName) {
 		super(speciesName);
+		initDnaMap();
 	}
 
 	@Override
 	public void initDnaMap() {
-		
+		this.dnaMap = new HashMap<>();
+		this.dnaMap.put("race", StringUtil.genAlphaNumericStr(20));
 	}
 
 	@Override
@@ -22,7 +28,29 @@ public class DNAHuman extends DNALivingEntity {
 
 	@Override
 	public Map<String, String> recombineDNA(DNALivingEntity otherDNA) {
+		Map<String, String> newDna = new HashMap<>();
+		
+		String newRace = "";
+		String race = this.dnaMap.get("race");
+		String otherRace = otherDNA.dnaMap.get("race");
+		for (int index = 0; index < race.length(); index++) {
+			if (Math.random() < 0.5) {
+				newRace += race.charAt(index);
+			}
+			else {
+				newRace += otherRace.charAt(index);
+			}
+		}
+		if (Math.random() < RACE_MUTATE_FREQ) {
+			int rotateAmt = Math.random() < 0.5 ? 1 : -1;
+			int randIndex = (int) (Math.random() * newRace.length());
+			char rotateChar = StringUtil.getNextCharOffset(newRace.charAt(randIndex), rotateAmt);
+			newRace = newRace.substring(0,randIndex) + rotateChar + newRace.substring(randIndex+1);
+		}
+		
+		newDna.put("race", newRace);
+		
 		return null;
 	}
-
+	
 }

@@ -12,7 +12,7 @@ import io.github.dantetam.vector.Vector2i;
 import io.github.dantetam.vector.Vector3i;
 import io.github.dantetam.world.grid.LocalGrid;
 
-public class AlgUtil {
+public class VecGridUtil {
 	
 	/**
 	 * @return The minimum and maximum bounds of the set of coords in three dimensions,
@@ -357,7 +357,7 @@ public class AlgUtil {
 		coords.add(new Vector3i(1,1,1));
 		coords.add(new Vector3i(5,-1,1));
 		coords.add(new Vector3i(2,1,4));
-		System.out.println(Arrays.toString(AlgUtil.findCoordBounds(coords)));
+		System.out.println(Arrays.toString(VecGridUtil.findCoordBounds(coords)));
 		
 		
 		Set<Vector2i> cornerCoordsTest = new HashSet<>();
@@ -376,10 +376,10 @@ public class AlgUtil {
 		Set<Vector2i> border = getBorderRegionFromCoords2d(cornerCoordsTest);
 		System.out.println(border);
 		
-		Set<Vector2i> corners = AlgUtil.getCornerRegionCoords2d(cornerCoordsTest);
+		Set<Vector2i> corners = VecGridUtil.getCornerRegionCoords2d(cornerCoordsTest);
 		System.out.println(corners);
 		
-		System.out.println(AlgUtil.getConnectedComponents(matrix, true));
+		System.out.println(VecGridUtil.getConnectedComponents(matrix, true));
 	}
 
 }

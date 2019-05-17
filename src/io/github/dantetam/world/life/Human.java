@@ -18,6 +18,7 @@ public class Human extends LivingEntity {
 	public String familyName;
 	
 	public HumanBrain brain;
+	public DNAHuman dna;
 	
 	public Human(Society society, String name) {
 		super(name);
@@ -31,6 +32,7 @@ public class Human extends LivingEntity {
 		body = new Body("Human");
 		brain = new HumanBrain(this);
 		HumanBrainInitialize.initHumanBrain(brain);
+		dna = new DNAHuman("Human");
 	}
 	
 	public void feed(double standardUnitNutrition) {
@@ -48,6 +50,10 @@ public class Human extends LivingEntity {
 	
 	public void spendEnergy() {
 		rest = Math.max(rest - LIVE_CONST_LOSS_TICK, 0);
+	}
+	
+	public double raceSimilarityScore(Human human) {
+		return this.dna.compareGenesDist(human.dna, "race");
 	}
 
 }
