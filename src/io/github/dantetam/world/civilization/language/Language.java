@@ -1,13 +1,17 @@
 package io.github.dantetam.world.civilization.language;
 
-public class NameFamily {
+public class Language {
 
 	//public MarkovChainGenerator probGenerator;
 	
 	public String languageFamily;
+	public String languageName;
+	public String groupIdentifier;
 	
-	public NameFamily(String languageFamily) {
+	public Language(String languageFamily, String languageName, String groupIdentifier) {
 		this.languageFamily = languageFamily;
+		this.languageName = languageName;
+		this.groupIdentifier = groupIdentifier;
 	}
 	
 	public String generateName() {

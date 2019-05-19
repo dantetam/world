@@ -3,13 +3,13 @@ package io.github.dantetam.world.civilization;
 import java.util.ArrayList;
 import java.util.List;
 
-import io.github.dantetam.world.civilization.language.NameFamily;
+import io.github.dantetam.world.civilization.language.Language;
 import io.github.dantetam.world.life.Human;
 
 public class HouseholdGenerator {
 
 	public static Household createHousehold(Society society) {
-		NameFamily nameGen = new NameFamily("Test");
+		Language nameGen = new Language("Test");
 		String familyName = nameGen.generateName();
 		
 		Household household = new Household(new ArrayList<>());

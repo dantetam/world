@@ -84,6 +84,10 @@ public class MathUti {
 		return normalized;
 	}
 	
+	/**
+	 * @param map A mapping of items to probabilities, not necessarily normalized
+	 * @return A random choice from the normalized weight map. Null iff the map is empty
+	 */
 	public static <T, U extends Number> T randChoiceFromWeightMap(Map<T, U> map) {
 		Map<T, Double> normalized = getNormalizedMap(map);
 		double random = Math.random();

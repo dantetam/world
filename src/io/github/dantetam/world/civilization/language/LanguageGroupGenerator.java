@@ -16,6 +16,6 @@ package io.github.dantetam.world.civilization.language;
 
 public class LanguageGroupGenerator {
 
-	TODO
+	
 	
 }
