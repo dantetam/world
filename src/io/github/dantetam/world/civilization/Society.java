@@ -38,6 +38,7 @@ public class Society {
 	public List<War> warsInvolved;
 	
 	public Map<String, Ethos> dominantEthos;
+	public String dominantCultureStr;
 	
 	public Society(String name, LocalGrid grid) {
 		this.name = name;

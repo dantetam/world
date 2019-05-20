@@ -44,5 +44,12 @@ public class StringUtil {
 		}
 		return alphanum.indexOf(base);
 	}
+
+	public static String mutateAlphaNumStr(String newRace) {
+		int rotateAmt = Math.random() < 0.5 ? 1 : -1;
+		int randIndex = (int) (Math.random() * newRace.length());
+		char rotateChar = StringUtil.getNextCharOffset(newRace.charAt(randIndex), rotateAmt);
+		return newRace.substring(0,randIndex) + rotateChar + newRace.substring(randIndex+1);
+	}
 	
 }

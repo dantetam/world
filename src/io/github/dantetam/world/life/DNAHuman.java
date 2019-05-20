@@ -42,10 +42,7 @@ public class DNAHuman extends DNALivingEntity {
 			}
 		}
 		if (Math.random() < RACE_MUTATE_FREQ) {
-			int rotateAmt = Math.random() < 0.5 ? 1 : -1;
-			int randIndex = (int) (Math.random() * newRace.length());
-			char rotateChar = StringUtil.getNextCharOffset(newRace.charAt(randIndex), rotateAmt);
-			newRace = newRace.substring(0,randIndex) + rotateChar + newRace.substring(randIndex+1);
+			newRace = StringUtil.mutateAlphaNumStr(newRace);
 		}
 		
 		newDna.put("race", newRace);

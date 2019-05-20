@@ -28,6 +28,7 @@ import kn.uni.voronoitreemap.j2d.PolygonSimple;
 import io.github.dantetam.lwjglEngine.terrain.NeighborsGraphStructure.Edge;
 import io.github.dantetam.toolbox.MathUti;
 import io.github.dantetam.toolbox.RGBUtil;
+import io.github.dantetam.vector.Vector2i;
 
 public class RasterizeVoronoi {
 
@@ -57,79 +58,6 @@ public class RasterizeVoronoi {
 		}
 		return terrain;
 	}
-
-	/**
-	 * 
-	 * @param voronoi
-	 * @param voronoiBounds
-	 * @param rows
-	 * @param cols
-	 * @param rasterRowTimes
-	 * @param rasterColTimes
-	 * @return A (cols, rows) grid subdivided into rasterColTimes * rasterRowTimes
-	 *         raster test points, oriented in true x,y coordinates (analogous to
-	 *         the Voronoi polygons).
-	 */
-	/*
-	private static double[][] getRasterGridFromVoronoi(List<JSite> voronoi, Rectangle2D.Double voronoiBounds,
-			int[][] biomesGuide, int rasterRowTimes, int rasterColTimes) {
-		int rows = biomesGuide.length, cols = biomesGuide[0].length;
-		double[][] rasterResults = new double[cols * rasterColTimes][rows * rasterRowTimes];
-		for (int r = 0; r < rasterResults.length; r++) {
-			for (int c = 0; c < rasterResults[0].length; c++) {
-				rasterResults[r][c] = -1;
-			}
-		}
-		double rasterWidth = voronoiBounds.width / (cols * rasterColTimes);
-		double rasterHeight = voronoiBounds.height / (rows * rasterRowTimes);
-
-		for (JSite jsite : voronoi) {
-			PolygonSimple polygon = jsite.getSite().getPolygon();
-
-			double[] fWeights = new double[polygon.length];
-			for (int i = 0; i < polygon.length; i++)
-				fWeights[i] = 1;
-
-			int[] biomeAtVertices = new int[polygon.length];
-			for (int polygonIndex = 0; polygonIndex < polygon.length; polygonIndex++) {
-				Point2D vertex = polygon.getPoint(polygonIndex);
-				double percentageX = (vertex.x - voronoiBounds.x) / voronoiBounds.width;
-				double percentageY = (vertex.y - voronoiBounds.y) / voronoiBounds.height;
-				int tileX = (int) (cols * percentageX);
-				int tileY = (int) (rows * percentageY);
-				tileX = Math.min(tileX, cols - 1);
-				tileY = Math.min(tileY, rows - 1);
-				int biome = biomesGuide[tileY][tileX];
-				biomeAtVertices[polygonIndex] = biome;
-			}
-
-			// Overwrite the table within the bounds of the polygon
-			Rectangle polyBound = polygon.getBounds();
-			double startX = polyBound.x - (polyBound.x % rasterWidth) + rasterWidth;
-			double startY = polyBound.y - (polyBound.y % rasterHeight) + rasterHeight;
-			for (double x = startX; x < polyBound.x + polyBound.width; x += rasterWidth) {
-				for (double y = startY; y < polyBound.y + polyBound.height; y += rasterHeight) {
-					if (polygon.contains(new Point2D(x, y))) {
-						int rasterRow = (int) ((y / voronoiBounds.height) * rows * rasterRowTimes);
-						int rasterCol = (int) ((x / voronoiBounds.width) * cols * rasterColTimes);
-						if (rasterRow > 0 && rasterCol > 0 && rasterRow < rasterResults.length
-								&& rasterCol < rasterResults.length) {
-							// Source biome data using a polygonal interpolator
-							double avgBiome = 0;
-							double[] vertexWeights = PolygonInterpolation.getPolyCoords(polygon, new Point2D(x, y),
-									fWeights);
-							for (int polygonIndex = 0; polygonIndex < polygon.length; polygonIndex++) {
-								avgBiome += vertexWeights[polygonIndex] * biomeAtVertices[polygonIndex];
-							}
-							rasterResults[rasterRow][rasterCol] = (int) Math.round(avgBiome);
-						}
-					}
-				}
-			}
-		}
-		return rasterResults;
-	}
-	*/
 	
 	public static double[][] getTransposedTable(double[][] arr) {
         double[][] transposed = new double[arr[0].length][arr.length];
@@ -142,16 +70,18 @@ public class RasterizeVoronoi {
 	}
 	
 	/**
-	 * Return a new double[][] arr representing the pixels of a new blend map, i.e. a grayscale terrain.
-	 * @param voronoi
-	 * @param voronoiBounds
-	 * @param biomesGuide
-	 * @param rasterRowTimes
-	 * @param rasterColTimes
-	 * @return
+	 * @param voronoi        The Voronoi polygonal graph structure returned from the modified Nocaj et. al. library
+	 * @param voronoiBounds  The 2D rectangle bounds of the space in which the graph resides
+	 * @param biomesGuide	 The biome data from which to assign points within a polygon
+	 * @param rasterRowTimes The scaling factor in the y dimension, 
+	 * 						 the number of sampling points per one unit of real data
+	 * @param rasterColTimes The scaling factor in the x dimension
+	 * 
+	 * @return a new double[][] arr representing the pixels of a new blend map, i.e. a grayscale terrain.
 	 */
-	public static double[][] getPixelRasterGridFromVoronoi(List<JSite> voronoi, Rectangle2D.Double voronoiBounds,
-			int[][] biomesGuide, int rasterRowTimes, int rasterColTimes) {
+	public static double[][] getPixelRasterGridFromVoronoi(List<JSite> voronoi, 
+			Rectangle2D.Double voronoiBounds, int[][] biomesGuide, 
+			int rasterRowTimes, int rasterColTimes) {
 		int rows = biomesGuide.length, cols = biomesGuide[0].length;
 		double[][] rasterResults = new double[cols * rasterColTimes][rows * rasterRowTimes];
 		for (int r = 0; r < rasterResults.length; r++) {
@@ -183,7 +113,6 @@ public class RasterizeVoronoi {
 				double voronoiSpaceX = ((rasterCol + 0.5) / rasterResults.length) * voronoiBounds.width + voronoiBounds.x;
 				double voronoiSpaceY = ((rasterRow + 0.5) / rasterResults[0].length) * voronoiBounds.height + voronoiBounds.y;
 				Point2D inspectPoint = new Point2D(voronoiSpaceX, voronoiSpaceY);
-				
 				boolean foundMatch = false;
 				
 				//Search for the polygon containing this calculated point in the 'Voronoi space'
@@ -195,32 +124,7 @@ public class RasterizeVoronoi {
 					int polygonCandidateIndex = centroidToPolygons.get(neighborCandidate);
 					PolygonSimple polygonCandidate = voronoi.get(polygonCandidateIndex).getSite().getPolygon();
 					if (polygonCandidate.contains(inspectPoint)) {
-						//Get stored biome data for polygon's vertices
-						/*
-						int[] biomeAtVertices = biomeAtPolyVerticesMap.get(polygonCandidateIndex);
-						
-						double[] fWeights = new double[polygonCandidate.length];
-						for (int i = 0; i < polygonCandidate.length; i++) {
-							fWeights[i] = 1;		
-						}
-								
-						//Set the 'raster' data to be the interpolated biome data across this polygon
-						double avgBiome = 0;
-						double[] vertexWeights = PolygonInterpolation.getPolyCoords(polygonCandidate, new Point2D(voronoiSpaceX, voronoiSpaceY),
-								fWeights);
-						for (int polygonIndex = 0; polygonIndex < polygonCandidate.length; polygonIndex++) {
-							if (vertexWeights[polygonIndex] < -1) {
-								//System.out.println("Faulty weight: " + vertexWeights[polygonIndex]);
-							}
-							else {
-								avgBiome += vertexWeights[polygonIndex] * biomeAtVertices[polygonIndex];
-							}
-						}
-						rasterResults[rasterCol][rasterRow] = (int) Math.round(avgBiome); //avgBiome;
-						*/
-						
 						rasterResults[rasterCol][rasterRow] = getBiomePolyVoronoiLinearInterp(polygonCandidate.getCentroid(), voronoiBounds, biomesGuide);
-						
 						foundMatch = true;
 						break;
 					}
@@ -232,6 +136,62 @@ public class RasterizeVoronoi {
 		}
 		
 		System.out.println("Failed matches: " + failedMatches);
+		
+		return rasterResults;
+	}
+	
+	/**
+	 * @param voronoi         The Voronoi polygonal graph structure returned from the modified Nocaj et. al. library
+	 * @param voronoiBounds   The 2D rectangle bounds of the space in which the graph resides
+	 * @param totalRasterRows The scaling factor in the y dimension, 
+	 * 						  the number of sampling points in total
+	 * @param totalRasterCols The scaling factor in the x dimension
+	 * 
+	 * @return a mapping of every raster sample point to a polygon (using best match if the alg. fails, in case
+	 * 			like non-convex distortions of the Voronoi shapes, see ).
+	 */
+	public static int[][] rasterizedPolyPointMap(List<JSite> voronoi, 
+			Rectangle2D.Double voronoiBounds, int totalRasterRows, int totalRasterCols) {
+		int[][] rasterResults = new int[totalRasterCols][totalRasterRows];
+
+		//Create this geometric data all in advance for use in overlapping calculations later
+		KdTree<Point2D> centroidKdTree = new KdTree<>(); 
+		Map<Point2D, Integer> centroidToPolygons = new HashMap<>();
+		for (int i = 0; i < voronoi.size(); i++) {
+			JVertex poly = voronoi.get(i).getSite();
+			centroidToPolygons.put(new Point2D(poly.x, poly.y), i);
+			centroidKdTree.add(new Point2D(poly.x, poly.y));
+		}
+		
+		for (int rasterCol = 0; rasterCol < totalRasterCols; rasterCol++) {
+			for (int rasterRow = 0; rasterRow < totalRasterRows; rasterRow++) {
+				double voronoiSpaceX = ((rasterCol + 0.5) / rasterResults.length) * voronoiBounds.width + voronoiBounds.x;
+				double voronoiSpaceY = ((rasterRow + 0.5) / rasterResults[0].length) * voronoiBounds.height + voronoiBounds.y;
+				Point2D inspectPoint = new Point2D(voronoiSpaceX, voronoiSpaceY);
+				boolean foundMatch = false;
+				
+				//Search for the polygon containing this calculated point in the 'Voronoi space'
+				//Note that because of the noise generation algorithms, there is no guarantee either way between
+				//point is closest to centroid x <-> this point 'belongs' to the modified Voronoi polygon.
+				//This was a guaranteed if and only if relationship for normal Voronoi diagrams.
+				Collection<Point2D> nearestNeighbors = centroidKdTree.nearestNeighbourListSearch(7, inspectPoint);
+				for (Point2D neighborCandidate : nearestNeighbors) {
+					int polygonCandidateIndex = centroidToPolygons.get(neighborCandidate);
+					PolygonSimple polygonCandidate = voronoi.get(polygonCandidateIndex).getSite().getPolygon();
+					if (polygonCandidate.contains(inspectPoint)) {
+						rasterResults[rasterCol][rasterRow] = polygonCandidateIndex;
+						foundMatch = true;
+						break;
+					}
+ 				}
+				
+				if (!foundMatch) {
+					Point2D nearestNeighbor = centroidKdTree.nearestNeighborSearch(inspectPoint);
+					int polygonCandidateIndex = centroidToPolygons.get(nearestNeighbor);
+					rasterResults[rasterCol][rasterRow] = polygonCandidateIndex;
+				}
+			}
+		}
 		
 		return rasterResults;
 	}
