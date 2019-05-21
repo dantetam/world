@@ -20,7 +20,7 @@ public class DNAHuman extends DNALivingEntity {
 		this.dnaMap = new HashMap<>();
 		this.dnaMap.put("race", StringUtil.genAlphaNumericStr(20));
 	}
-
+	
 	@Override
 	public Body getBodyFromDNA() {
 		return null;
@@ -30,17 +30,10 @@ public class DNAHuman extends DNALivingEntity {
 	public Map<String, String> recombineDNA(DNALivingEntity otherDNA) {
 		Map<String, String> newDna = new HashMap<>();
 		
-		String newRace = "";
 		String race = this.dnaMap.get("race");
 		String otherRace = otherDNA.dnaMap.get("race");
-		for (int index = 0; index < race.length(); index++) {
-			if (Math.random() < 0.5) {
-				newRace += race.charAt(index);
-			}
-			else {
-				newRace += otherRace.charAt(index);
-			}
-		}
+		
+		String newRace = StringUtil.randMergeStrs(race, otherRace);
 		if (Math.random() < RACE_MUTATE_FREQ) {
 			newRace = StringUtil.mutateAlphaNumStr(newRace);
 		}

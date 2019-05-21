@@ -9,9 +9,6 @@ import io.github.dantetam.world.life.Human;
 public class HouseholdGenerator {
 
 	public static Household createHousehold(Society society) {
-		Language nameGen = new Language("Test");
-		String familyName = nameGen.generateName();
-		
 		Household household = new Household(new ArrayList<>());
 		List<Human> humans = new ArrayList<>();
 		

@@ -8,12 +8,16 @@ import java.util.Date;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import io.github.dantetam.vector.Vector2i;
 import io.github.dantetam.vector.Vector3i;
 import io.github.dantetam.world.civilization.Household;
 import io.github.dantetam.world.civilization.Society;
 import io.github.dantetam.world.dataparse.ItemData;
 import io.github.dantetam.world.life.Human;
+import io.github.dantetam.world.life.LivingEntity;
 import io.github.dantetam.world.process.LocalProcess;
+import io.github.dantetam.world.worldgen.DNAGridGeneration;
+import io.github.dantetam.world.worldgen.DNAGridGeneration.DNATileData;
 import io.github.dantetam.world.worldgen.LocalGridTerrainInstantiate;
 
 public class WorldGrid {
@@ -22,12 +26,18 @@ public class WorldGrid {
 	public LocalGrid activeLocalGrid;
 	public Society testSociety;
 	
+	private LocalGrid[][] localGridTiles;
+	
 	public WorldGrid() {
 		currentWorldTime = Calendar.getInstance();
-		
+		Vector2i worldSize = new Vector2i(50, 50);
+		localGridTiles = new LocalGrid[worldSize.x][worldSize.y];
+
 		Vector3i sizes = new Vector3i(200,200,50);
 		int biome = 3;
-		activeLocalGrid = new LocalGridTerrainInstantiate(sizes, biome).setupGrid();
+		localGridTiles[2][2] = new LocalGridTerrainInstantiate(sizes, biome).setupGrid();
+		
+		activeLocalGrid = localGridTiles[2][2];
 		
 		testSociety = new Society("TestSociety", activeLocalGrid);
 		testSociety.societyCenter = new Vector3i(50,50,30);
@@ -52,6 +62,27 @@ public class WorldGrid {
 				human.inventory.addItem(ItemData.item("Pine Wood", 50));
 			}
 			testSociety.addHousehold(new Household(people));
+		}
+		
+		DNATileData[][] worldData = DNAGridGeneration.createGrid(worldSize);
+		for (int r = 0; r < worldSize.x; r++) {
+			for (int c = 0; c < worldSize.y; c++) {
+				LocalGrid grid = localGridTiles[r][c];
+				if (grid != null) {
+					DNATileData tileData = worldData[r][c];
+					for (LivingEntity being: grid.getAllLivingBeings()) {
+						if (being instanceof Human) {
+							Human human = (Human) being;
+							human.dna.overrideDnaMapping("race", tileData.race);
+							human.dna.overrideDnaMapping("culture", tileData.culture);
+							for (int i = 0; i < tileData.languages.size(); i++) {
+								String language = tileData.languages.get(i);
+								human.brain.languageCodesStrength.put(language, 1.0 / i);
+							}
+						}
+					}
+				}
+			}
 		}
 		
 		/*

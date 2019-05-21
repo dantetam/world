@@ -20,6 +20,8 @@ import kn.uni.voronoitreemap.j2d.Point2D;
 
 public class DNAGridGeneration {
 
+	public static final int DNA_RACE_LEN = 20, DNA_CULTURE_LEN = 20, DNA_LANG_LEN = 20;
+	
 	/**
 	 * @return A mapping for the world's starting distribution of DNA, cultures, and so on.
 	 */
@@ -31,6 +33,8 @@ public class DNAGridGeneration {
 		List<JSite> voronoi = VoronoiLibrary.voronoiLib(topLeftBound, bottomRightBound, averageDistance,
 				lloydRelaxationTimes);
 		Rectangle2D.Double voronoiBounds = new Rectangle2D.Double(0, 0, 1600, 1600);
+		
+		//1 to 1 per tile correspondence
 		int[][] polyIndicesArr = RasterizeVoronoi.rasterizedPolyPointMap(voronoi, voronoiBounds, dimensions.x, dimensions.y);
 		
 		Object[] neighborData = NeighborsGraphStructure.computePolygonalNeighbors(voronoi);
@@ -44,9 +48,10 @@ public class DNAGridGeneration {
 			for (int c = 0; c < dimensions.y; c++) {
 				int polyIndex = polyIndicesArr[r][c];
 				DNATileData dnaAtPoly = initialData.get(polyIndex);
-				TODO
+				data[r][c] = dnaAtPoly;
 			}
 		}
+		return data;
 	}
 	
 	private static Map<Integer, DNATileData> initializeVoronoi(int numPolygons, Map<Integer, Set<Integer>> polygonNeighborMap) {
@@ -60,31 +65,56 @@ public class DNAGridGeneration {
 			do {
 				index = (int) (Math.random() * numPolygons);
 			} while (fringe.contains(index));
-			String race = StringUtil.genAlphaNumericStr(20);
-			String culture = StringUtil.genAlphaNumericStr(20);
-			data.put(index, new DNATileData(race, culture));
+			String race = StringUtil.genAlphaNumericStr(DNA_RACE_LEN);
+			String culture = StringUtil.genAlphaNumericStr(DNA_CULTURE_LEN);
+			List<String> languages = StringUtil.genAlphaNumericStrList(DNA_LANG_LEN, 3);
+			data.put(index, new DNATileData(race, culture, languages));
+			fringe.add(index);
 		}
 		
-		while (fringe.size() > 0) {
+		while (fringe.size() > 0) {			
 			int index = fringe.remove(0);
-			if (prev.containsKey(index)) continue;
 			
 			if (!data.containsKey(index)) {
 				int previousIndex = prev.get(index);
 				DNATileData prevCul = data.get(previousIndex);
-				DNATileData cloneCul = new DNATileData(prevCul.race, prevCul.culture);
+				
+				List<String> cloneLanguages = new ArrayList<>(prevCul.languages);
+				if (Math.random() < 0.05) {
+					int randIndex = (int) (Math.random() * cloneLanguages.size());
+					String origLang = cloneLanguages.remove(randIndex);
+					int multiMutateTimes = 1;
+					if (Math.random() < 0.2) { //Effectively, 1% of the time
+						multiMutateTimes = (int) (Math.random() * 6) + 2;
+						for (int i = 0; i < multiMutateTimes; i++) {
+							origLang = StringUtil.mutateAlphaNumStr(origLang);
+						}
+					} 
+					cloneLanguages.add(origLang);
+				}
+				if (Math.random() < 0.01) {
+					int randIndex = (int) (Math.random() * cloneLanguages.size());
+					String origLang = cloneLanguages.remove(randIndex);
+					String newLang = StringUtil.genAlphaNumericStr(DNA_LANG_LEN);
+					String mergedLang = StringUtil.randMergeStrs(origLang, newLang, 0.75);
+					cloneLanguages.add(mergedLang);
+				}
+				
+				DNATileData cloneCul = new DNATileData(prevCul.race, prevCul.culture,
+						cloneLanguages);
 				if (Math.random() < 0.5) {
 					cloneCul.culture = StringUtil.mutateAlphaNumStr(cloneCul.culture);
 				}
 				if (Math.random() < 0.15) {
 					cloneCul.race = StringUtil.mutateAlphaNumStr(cloneCul.race);
 				}
-				data.put(previousIndex, cloneCul);
+				data.put(index, cloneCul);
 			}
 			
 			Set<Integer> neighbors = polygonNeighborMap.get(index);
 			for (Integer neighbor: neighbors) {
-				prev.put(index, neighbor);
+				if (prev.containsKey(neighbor)) continue;
+				prev.put(neighbor, index);
 				fringe.add(neighbor);
 			}
 		}
@@ -95,10 +125,28 @@ public class DNAGridGeneration {
 	public static class DNATileData {
 		public String race;
 		public String culture;
+		public List<String> languages;
 		
-		public DNATileData(String race, String culture) {
+		public DNATileData(String race, String culture, List<String> languages) {
 			this.race = race;
 			this.culture = culture;
+			this.languages = languages;
+		}
+		
+		public String toString() {
+			return this.hashCode() + "";
+		}
+	}
+	
+	public static void main(String[] args) {
+		DNATileData[][] data = createGrid(new Vector2i(50,50));
+		for (int r = 0; r < data.length; r++) {
+			for (int c = 0; c < data[0].length; c++) {
+				if (data[r][c] != null)
+					System.out.print(data[r][c].languages.toString());
+				System.out.print(" ");
+			}
+			System.out.println();
 		}
 	}
 	

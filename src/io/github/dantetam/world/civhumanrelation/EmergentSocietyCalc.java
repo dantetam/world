@@ -18,10 +18,22 @@ package io.github.dantetam.world.civhumanrelation;
  *
  */
 
-TODO
+//TODO
 
+/*
 public class EmergentSocietyCalc {
 
-	public double 
+	public double calcPropensityHarmonySociety() {
+		
+	}
+	
+	public double calcPropensityTakeoverSociety() {
+		
+	}
+	
+	public double calcPropensityHarmonySociety() {
+		
+	}
 	
 }
+*/

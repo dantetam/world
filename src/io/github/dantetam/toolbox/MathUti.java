@@ -12,6 +12,12 @@ import java.util.Set;
 
 public class MathUti {
 
+	public static int trueMod(int a, int m) {
+		int i = a % m;
+		if (i < 0) i += m;
+		return i;
+	}
+	
 	public static double roundToPower2(double n) {
 		return Math.pow(2, Math.ceil(Math.log10(n) / Math.log10(2)));
 	}

@@ -31,6 +31,7 @@ public class LocalGrid {
 	public int rows, cols, heights; //Sizes of the three dimensions of this local grid
 	private LocalTile[][][] grid; //A 3D grid, with the third dimension representing height, such that [][][50] is one level higher than [][][49].
 	private Set<LocalBuilding> allBuildings; //Contains all buildings within this grid, updated when necessary
+	private Set<LivingEntity> allLivingBeings;
 	
 	private Map<Integer, KdTree<Vector3i>> itemIdQuickTileLookup; //Search for item ids quickly in 3d space
 	private KdTree<Vector3i> globalItemsLookup; //Search for all items left on the floor, for quicker kdtree search over a smaller space
@@ -45,6 +46,7 @@ public class LocalGrid {
 		rows = size.x; cols = size.y; heights = size.z;
 		grid = new LocalTile[rows][cols][heights];
 		allBuildings = new HashSet<>();
+		allLivingBeings = new HashSet<>();
 		
 		itemIdQuickTileLookup = new HashMap<>();
 		globalItemsLookup = new KdTree<>();
@@ -425,6 +427,10 @@ public class LocalGrid {
 		return allPeople;
 	}
 	
+	public Set<LivingEntity> getAllLivingBeings() {
+		return this.allLivingBeings;
+	}
+	
 	/**
 	 * 
 	 * @param coords The desired coordinates to look for nearest available rooms
@@ -503,7 +509,8 @@ public class LocalGrid {
 			human.location.removePerson(human);
 			human.location = null;
 			if (human.location.getPeople().size() == 0) {
-				this.peopleLookup.remove(human.location.coords);
+				peopleLookup.remove(human.location.coords);
+				allLivingBeings.remove(human);
 			}
 		}
 		
@@ -515,6 +522,7 @@ public class LocalGrid {
 			tile.addPerson(human);
 			markAllAdjAsExposed(coords);
 			peopleLookup.add(coords);
+			allLivingBeings.add(human);
 		}
 	}
 	

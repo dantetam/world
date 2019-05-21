@@ -1,8 +1,11 @@
 package io.github.dantetam.toolbox;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 
 public class StringUtil {
 
@@ -31,10 +34,18 @@ public class StringUtil {
             buf[idx] = symbols[random.nextInt(symbols.length)];
         return new String(buf);
     }
+	
+	public static List<String> genAlphaNumericStrList(int length, int times) {
+		List<String> list = new ArrayList<>();
+		for (int i = 0; i < times; i++) {
+			list.add(genAlphaNumericStr(length));
+		}
+		return list;
+	}
 
 	public static char getNextCharOffset(char base, int offset) {
 		int index = getIndexOfChar(base);
-		index = (index + offset) % alphanum.length();
+		index = MathUti.trueMod(index + offset, alphanum.length());
 		return alphanum.charAt(index);
 	}
 	
@@ -45,11 +56,28 @@ public class StringUtil {
 		return alphanum.indexOf(base);
 	}
 
-	public static String mutateAlphaNumStr(String newRace) {
+	public static String mutateAlphaNumStr(String string) {
 		int rotateAmt = Math.random() < 0.5 ? 1 : -1;
-		int randIndex = (int) (Math.random() * newRace.length());
-		char rotateChar = StringUtil.getNextCharOffset(newRace.charAt(randIndex), rotateAmt);
-		return newRace.substring(0,randIndex) + rotateChar + newRace.substring(randIndex+1);
+		int randIndex = (int) (Math.random() * string.length());
+		char rotateChar = StringUtil.getNextCharOffset(string.charAt(randIndex), rotateAmt);
+		return string.substring(0,randIndex) + rotateChar + string.substring(randIndex+1);
+	}
+
+	public static String randMergeStrs(String race, String otherRace) {
+		return randMergeStrs(race, otherRace, 0.5);
+	}
+	
+	public static String randMergeStrs(String race, String otherRace, double weightToFirst) {
+		String newRace = "";
+		for (int index = 0; index < race.length(); index++) {
+			if (Math.random() < weightToFirst) {
+				newRace += race.charAt(index);
+			}
+			else {
+				newRace += otherRace.charAt(index);
+			}
+		}
+		return newRace;
 	}
 	
 }

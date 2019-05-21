@@ -60,4 +60,8 @@ public abstract class DNALivingEntity {
 		return avgDist;
 	}
 	
+	public void overrideDnaMapping(String key, String value) {
+		dnaMap.put(key, value);
+	}
+	
 }

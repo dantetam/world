@@ -57,7 +57,7 @@ public class HumanBrain {
 		
 		indexedRelationships = new HashMap<>();
 		
-		languageCodesStrength = new HashMap<>(); TODO
+		languageCodesStrength = new HashMap<>(); //TODO
 	}
 	
 	public static double getEthosDifference(HumanBrain brainA, HumanBrain brainB) {
