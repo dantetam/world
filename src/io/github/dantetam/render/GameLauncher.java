@@ -84,10 +84,6 @@ public class GameLauncher {
 		}
 	}
 
-	public void fixCamera(int r, int c) {
-		// TODO: Implement
-	}
-
 	public static float[] cycleScreenResolution(int offset) {
 		screenResolutionIndex = Math.floorMod(screenResolutionIndex + offset, screenXValues.length); // Cyclical mod
 																										// (i.e. no

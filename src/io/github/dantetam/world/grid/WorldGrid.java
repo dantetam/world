@@ -8,11 +8,13 @@ import java.util.Date;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import io.github.dantetam.toolbox.StringUtil;
 import io.github.dantetam.vector.Vector2i;
 import io.github.dantetam.vector.Vector3i;
 import io.github.dantetam.world.civilization.Household;
 import io.github.dantetam.world.civilization.Society;
 import io.github.dantetam.world.dataparse.ItemData;
+import io.github.dantetam.world.life.Ethos;
 import io.github.dantetam.world.life.Human;
 import io.github.dantetam.world.life.LivingEntity;
 import io.github.dantetam.world.process.LocalProcess;
@@ -75,6 +77,12 @@ public class WorldGrid {
 							Human human = (Human) being;
 							human.dna.overrideDnaMapping("race", tileData.race);
 							human.dna.overrideDnaMapping("culture", tileData.culture);
+							String apparentCul = tileData.culture.repeat(1);
+							for (int i = 0; i < (int) (Math.random() * 8); i++) {
+								apparentCul = StringUtil.mutateAlphaNumStr(apparentCul);
+							}
+							human.brain.greatEthos.put("Culture", 
+									new Ethos("Culture", 1.0, "MOD:" + apparentCul, ""));
 							for (int i = 0; i < tileData.languages.size(); i++) {
 								String language = tileData.languages.get(i);
 								human.brain.languageCodesStrength.put(language, 1.0 / i);

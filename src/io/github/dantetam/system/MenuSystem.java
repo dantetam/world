@@ -132,7 +132,7 @@ public class MenuSystem extends BaseSystem {
 			// if (!main.enabled) break;
 			if (menus.get(menu).active()) {
 				if (!menus.get(menu).noShortcuts) {
-					makeShortcut(menus.get(menu));
+					//makeShortcut(menus.get(menu));
 				}
 				for (int i = clicks.size() - 1; i >= 0; i--) {
 					Click click = clicks.get(i);
@@ -153,6 +153,7 @@ public class MenuSystem extends BaseSystem {
 	}
 
 	// TODO: Possibly sort shortcuts; higher buttons get lower numbers for shortcuts
+	/*
 	public void makeShortcut(Menu menu) {
 		int iter = 1;
 		for (int i = 0; i < menu.buttons.size(); i++) {
@@ -168,11 +169,8 @@ public class MenuSystem extends BaseSystem {
 			}
 		}
 	}
+	*/
 
-	public void displayMenu(int menu) {
-
-	}
-	
 	public void forceFullUIUpdate() {
 		//System.out.println("force update");
 		updateMenus();

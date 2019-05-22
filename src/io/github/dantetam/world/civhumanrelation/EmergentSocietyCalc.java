@@ -1,5 +1,9 @@
 package io.github.dantetam.world.civhumanrelation;
 
+import java.util.List;
+
+import io.github.dantetam.world.life.Human;
+
 /**
  * Provide utility methods for operating on society/household data,
  * which are used to provide decision data given to humans,
@@ -18,22 +22,34 @@ package io.github.dantetam.world.civhumanrelation;
  *
  */
 
-//TODO
-
-/*
 public class EmergentSocietyCalc {
-
-	public double calcPropensityHarmonySociety() {
+	
+	private static double nonlinearRelUtil(double rel) {
+		return Math.signum(rel) * Math.abs(Math.pow(rel, 1.6));
+	}
+	
+	public double calcPropensityHarmonySociety(List<Human> humans) {
+		double propensityUtil = 0;
+		double numRel = humans.size() * (humans.size() - 1) / 2;
+		for (Human human: humans) {
+			for (Human otherHuman: humans) {
+				if (human.equals(otherHuman)) {
+					HumanHumanRel oneWayRel = human.brain.getHumanRel(otherHuman);
+					if (oneWayRel != null) {
+						propensityUtil += nonlinearRelUtil(oneWayRel.opinion) / numRel;
+					}
+				}
+			}
+		}
+		return propensityUtil;
+	}
+	
+	public double calcPropensityTakeoverSociety(List<Human> humans) {
 		
 	}
 	
-	public double calcPropensityTakeoverSociety() {
-		
-	}
-	
-	public double calcPropensityHarmonySociety() {
+	public double calcProsWealthPowerSociety(List<Human> humans) {
 		
 	}
 	
 }
-*/

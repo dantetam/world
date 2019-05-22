@@ -11,7 +11,6 @@ import io.github.dantetam.world.items.InventoryItem;
 import io.github.dantetam.world.life.Human;
 import io.github.dantetam.world.life.HumanBrain;
 import io.github.dantetam.world.life.LivingEntity;
-import io.github.dantetam.world.life.HumanBrain.Ethos;
 
 public class HumanSocietyRel extends HumanRelationship {
 

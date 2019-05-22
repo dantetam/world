@@ -5,7 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import io.github.dantetam.world.life.HumanBrain.Ethos;
+import io.github.dantetam.world.life.Ethos;
 import io.github.dantetam.world.life.HumanBrain.EthosModifier;
 
 public class EthosData {

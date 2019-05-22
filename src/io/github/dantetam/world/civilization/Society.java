@@ -23,8 +23,8 @@ import io.github.dantetam.world.grid.LocalBuilding;
 import io.github.dantetam.world.grid.LocalGrid;
 import io.github.dantetam.world.grid.LocalTile;
 import io.github.dantetam.world.items.InventoryItem;
+import io.github.dantetam.world.life.Ethos;
 import io.github.dantetam.world.life.Human;
-import io.github.dantetam.world.life.HumanBrain.Ethos;
 import io.github.dantetam.world.process.LocalProcess;
 import io.github.dantetam.world.process.LocalProcess.ProcessStep;
 

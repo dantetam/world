@@ -48,7 +48,6 @@ public class MainGameLoop {
 	}
 
 	public void stop() {
-		// TODO: Remember to stop
 		// Do some clean up of all data
 		TextMaster.cleanUp();
 		renderer.cleanUp();

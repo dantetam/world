@@ -12,9 +12,10 @@ import io.github.dantetam.world.items.InventoryItem;
 import io.github.dantetam.world.life.Human;
 import io.github.dantetam.world.life.HumanBrain;
 import io.github.dantetam.world.life.LivingEntity;
-import io.github.dantetam.world.life.HumanBrain.Ethos;
 
 public abstract class HumanRelationship {
+	
+	public static final int RELATION_BASELINE = 15;
 	
 	public List<LocalExperience> sharedExperiences;
 	public double opinion;
