@@ -18,7 +18,9 @@ public abstract class HumanRelationship {
 	public static final int RELATION_BASELINE = 15;
 	
 	public List<LocalExperience> sharedExperiences;
+	
 	public double opinion;
+	//TODO: Feel multiple types of opinions towards others, such as love, friendship, superiority, etc.
 	
 	public HumanRelationship() {
 		sharedExperiences = new ArrayList<>();

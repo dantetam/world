@@ -18,6 +18,7 @@ import io.github.dantetam.vector.Vector2i;
 import io.github.dantetam.vector.Vector3i;
 import io.github.dantetam.world.ai.Pathfinder;
 import io.github.dantetam.world.ai.Pathfinder.ScoredPath;
+import io.github.dantetam.world.civhumanrelation.EmergentSocietyCalc;
 import io.github.dantetam.world.civilization.Society;
 import io.github.dantetam.world.dataparse.ItemData;
 import io.github.dantetam.world.dataparse.ProcessData;
@@ -68,6 +69,7 @@ public class LocalGridTimeExecution {
 		System.out.println("<<<<>>>> Date: " + world.getTime());
 		if (world.getTime().getSeconds() == 0) {
 			assignAllHumanJobs(society);
+			considerFreeActions(society);
 		}
 		
 		System.out.println("################");
@@ -663,6 +665,10 @@ public class LocalGridTimeExecution {
 				humanIndex++;
 			}
 		}
+	}
+	
+	private static void considerFreeActions(Society society, Date date) {
+		TODO
 	}
 	
 	private static Priority progressToFindItem(LocalGrid grid, Vector3i centerCoords,

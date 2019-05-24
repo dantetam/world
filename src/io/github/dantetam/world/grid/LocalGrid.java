@@ -26,6 +26,9 @@ import kdtreegeo.KdTree;
  *
  */
 
+//TODO: Different societies claim possibly overlapping tiles in a grid, use these claims
+//as a basis for societal wealth, as well as part of larger border disputes.
+
 public class LocalGrid {
 
 	public int rows, cols, heights; //Sizes of the three dimensions of this local grid

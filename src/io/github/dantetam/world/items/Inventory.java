@@ -185,6 +185,18 @@ public class Inventory {
 		return true;
 	}
 	
+	//Pure utility wealth. See Society.java for the also relevant measure of "societal utility wealth",
+	//which factors in the scarcity and needs of resources in a society.
+	public double getTotalWealth() {
+		if (this.items == null) return 0;
+		double sumWealth = 0;
+		for (InventoryItem item: this.items) {
+			double wealth = ItemData.getBaseItemValue(item.itemId);
+			sumWealth += wealth;
+		}
+		return sumWealth;
+	}
+	
 	public int size() {
 		if (items == null) return 0;
 		return items.size();

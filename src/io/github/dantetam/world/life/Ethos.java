@@ -37,7 +37,9 @@ public class Ethos {
 	 */
 	public EthosModifier[] effects;
 	
+	//log scale from 
 	public double severity; 
+	
 	public double ethosLifetimeHappiness;
 	
 	public Ethos(String name, double severity, String modsString, String effectsString) {

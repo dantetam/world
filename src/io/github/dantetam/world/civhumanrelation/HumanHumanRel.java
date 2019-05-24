@@ -42,7 +42,6 @@ public class HumanHumanRel extends HumanRelationship {
 			if (ethos.name.equals("Ethos Diff Tolerance")) {
 				double severityMulti = ethos.getLogisticVal(-2.5, 2.5);
 				double totalEthosDiff = HumanBrain.getEthosDifference(human.brain, targetHuman.brain);
-				TODO;
 				opinionSum += -1 * severityMulti * totalEthosDiff * 10;
 			}
 		}

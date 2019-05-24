@@ -61,11 +61,13 @@ public class HumanBrain {
 		double difference = 0;
 		Set<String> keysA = new HashSet<>(brainA.greatEthos.keySet());
 		Set<String> keysB = new HashSet<>(brainB.greatEthos.keySet());
-		keysA.retainAll(keysB);
+		keysA.retainAll(keysB); //A = A intersection B
 		Set<String> sharedKeys = keysA;
 		for (String sharedKey: sharedKeys) {
-			double logSevA = Math.log(brainA.greatEthos.get(sharedKey).severity); 
-			double logSevB = Math.log(brainB.greatEthos.get(sharedKey).severity);
+			double sevA = brainA.greatEthos.get(sharedKey).severity;
+			double sevB = brainB.greatEthos.get(sharedKey).severity;
+			double logSevA = Math.signum(sevA) * Math.log(sevA); 
+			double logSevB = Math.signum(sevB) * Math.log(sevB);
 			double diffScore = Math.abs(logSevA - logSevB) + 0.5;
 			
 			//Shifted and capped logit for diff. score 

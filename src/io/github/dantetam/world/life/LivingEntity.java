@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import io.github.dantetam.world.dataparse.ItemData;
 import io.github.dantetam.world.dataparse.AnatomyData.Body;
 import io.github.dantetam.world.grid.LocalBuilding;
 import io.github.dantetam.world.grid.LocalTile;
@@ -79,6 +80,32 @@ public abstract class LivingEntity {
 	
 	public void spendEnergy() {
 		rest = Math.max(rest - LIVE_CONST_LOSS_TICK, 0);
+	}
+	
+	public double getTotalWealth() {
+		double sumWealth = 0;
+		sumWealth += inventory.getTotalWealth();
+		
+		double ownedItemsWealth = 0;
+		for (InventoryItem item: this.ownedItems) {
+			double wealth = ItemData.getBaseItemValue(item.itemId);
+			ownedItemsWealth += wealth;
+		}
+		sumWealth += ownedItemsWealth;
+		
+		double ownedBuildingsWealth = 0;
+		for (LocalBuilding building: ownedBuildings) {
+			double wealth = ItemData.getBaseItemValue(building.buildingId);
+			ownedBuildingsWealth += wealth;
+			ownedBuildingsWealth += building.inventory.getTotalWealth();
+		}
+		sumWealth += ownedBuildingsWealth;
+		
+		return sumWealth;
+	}
+	
+	public void wearItem(InventoryItem item) {
+		
 	}
 
 }
