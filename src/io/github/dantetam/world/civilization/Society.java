@@ -49,6 +49,12 @@ public class Society {
 	
 	public void addHousehold(Household house) {
 		households.add(house);
+		house.society = this;
+	}
+	
+	public void removeHousehold(Household house) {
+		households.remove(house);
+		house.society = null;
 	}
 	
 	public List<Human> getAllPeople() {

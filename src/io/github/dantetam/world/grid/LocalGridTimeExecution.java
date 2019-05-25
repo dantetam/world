@@ -69,7 +69,6 @@ public class LocalGridTimeExecution {
 		System.out.println("<<<<>>>> Date: " + world.getTime());
 		if (world.getTime().getSeconds() == 0) {
 			assignAllHumanJobs(society);
-			considerFreeActions(society);
 		}
 		
 		System.out.println("################");
@@ -665,10 +664,6 @@ public class LocalGridTimeExecution {
 				humanIndex++;
 			}
 		}
-	}
-	
-	private static void considerFreeActions(Society society, Date date) {
-		TODO
 	}
 	
 	private static Priority progressToFindItem(LocalGrid grid, Vector3i centerCoords,

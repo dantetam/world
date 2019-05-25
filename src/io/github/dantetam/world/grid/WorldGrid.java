@@ -6,8 +6,10 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import io.github.dantetam.toolbox.StringUtil;
 import io.github.dantetam.vector.Vector2i;
@@ -32,11 +34,20 @@ public class WorldGrid {
 	private LocalGrid[][] localGridTiles;
 	private Map<String, Society> societiesByName = new HashMap<>();
 	
+	//Store/find all free households in the world
+	private Map<Vector2i, Set<Household>> worldAllHouseholds = new HashMap<>();
+	
 	public WorldGrid() {
 		currentWorldTime = Calendar.getInstance();
 		Vector2i worldSize = new Vector2i(50, 50);
 		localGridTiles = new LocalGrid[worldSize.x][worldSize.y];
 
+		for (int r = 0; r < worldSize.x; r++) {
+			for (int c = 0; c < worldSize.y; c++) {
+				worldAllHouseholds.put(new Vector2i(r,c), new HashSet<>());
+			}
+		}
+		
 		Vector3i sizes = new Vector3i(200,200,50);
 		int biome = 3;
 		localGridTiles[2][2] = new LocalGridTerrainInstantiate(sizes, biome).setupGrid();
@@ -124,6 +135,10 @@ public class WorldGrid {
 		}
 		
 		//tick();
+	}
+	
+	public void addSociety(Society society) {
+		this.societiesByName.put(society.name, society);
 	}
 	
 	public void tick() {
