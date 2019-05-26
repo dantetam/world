@@ -64,4 +64,12 @@ public abstract class DNALivingEntity {
 		dnaMap.put(key, value);
 	}
 	
+	public String getDnaMapping(String key) {
+		if (!dnaMap.containsKey(key)) {
+			throw new IllegalArgumentException("Could not find in dna, key: " + key);
+			//return null;
+		}
+		return dnaMap.get(key);
+	}
+	
 }

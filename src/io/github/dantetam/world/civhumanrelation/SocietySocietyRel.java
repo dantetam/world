@@ -17,6 +17,8 @@ public class SocietySocietyRel extends HumanRelationship {
 	public Society hostSociety;
 	public Society otherSociety;
 	
+	TODO SocietalRelationMode //War, Peace, Def. Allies, Allies, etc.
+	
 	public SocietySocietyRel(Society hostSociety, Society otherSociety) {
 		super();
 		this.hostSociety = hostSociety;

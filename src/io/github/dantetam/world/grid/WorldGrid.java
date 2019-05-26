@@ -14,8 +14,10 @@ import java.util.Set;
 import io.github.dantetam.toolbox.StringUtil;
 import io.github.dantetam.vector.Vector2i;
 import io.github.dantetam.vector.Vector3i;
+import io.github.dantetam.world.civhumansocietyai.FreeActionsSociety;
 import io.github.dantetam.world.civilization.Household;
 import io.github.dantetam.world.civilization.Society;
+import io.github.dantetam.world.civilization.SocietyDiplomacy;
 import io.github.dantetam.world.dataparse.ItemData;
 import io.github.dantetam.world.life.Ethos;
 import io.github.dantetam.world.life.Human;
@@ -31,20 +33,25 @@ public class WorldGrid {
 	public LocalGrid activeLocalGrid;
 	public Society testSociety;
 	
+	public int worldRows, worldCols;
 	private LocalGrid[][] localGridTiles;
-	private Map<String, Society> societiesByName = new HashMap<>();
+	
+	//Manage all societies, relations, wars, and societal relationships in general
+	private SocietyDiplomacy societalDiplomacy;
 	
 	//Store/find all free households in the world
-	private Map<Vector2i, Set<Household>> worldAllHouseholds = new HashMap<>();
+	private Map<Vector2i, List<Household>> worldAllHouseholds = new HashMap<>();
 	
 	public WorldGrid() {
 		currentWorldTime = Calendar.getInstance();
-		Vector2i worldSize = new Vector2i(50, 50);
+		worldRows = 50;
+		worldCols = 50;
+		Vector2i worldSize = new Vector2i(worldRows, worldCols);
 		localGridTiles = new LocalGrid[worldSize.x][worldSize.y];
 
 		for (int r = 0; r < worldSize.x; r++) {
 			for (int c = 0; c < worldSize.y; c++) {
-				worldAllHouseholds.put(new Vector2i(r,c), new HashSet<>());
+				worldAllHouseholds.put(new Vector2i(r,c), new ArrayList<>());
 			}
 		}
 		
@@ -106,25 +113,6 @@ public class WorldGrid {
 			}
 		}
 		
-		/*
-		Map<Integer, Double> calcUtility = testSociety.findCompleteUtilityAllItems();
-		
-		for (Entry<Integer, Double> entry: calcUtility.entrySet()) {
-			System.out.println(ItemData.getNameFromId(entry.getKey()) + ": " + entry.getValue());
-		}
-	
-		//Process process = testSociety.findBestProcess(calcUtility, ItemData.getIdFromName("Wheat"));
-		//System.out.println(process.toString());
-	
-		Map<Process, Double> bestProcesses = testSociety.prioritizeProcesses(calcUtility, null, 20);
-		
-		for (Entry<Process, Double> entry: bestProcesses.entrySet()) {
-			System.out.println("<########>");
-			System.out.println(entry.getKey());
-			System.out.println(entry.getValue());
-		}
-		*/
-		
 		Map<Integer, Double> calcUtility = testSociety.findCompleteUtilityAllItems(null);
 		
 		DecimalFormat df = new DecimalFormat("#.##");
@@ -133,21 +121,53 @@ public class WorldGrid {
 			if (entry.getValue() > 0)
 				System.out.println(ItemData.getNameFromId(entry.getKey()) + ": " + df.format(entry.getValue()));
 		}
-		
-		//tick();
 	}
 	
 	public void addSociety(Society society) {
-		this.societiesByName.put(society.name, society);
+		this.societalDiplomacy.addSociety(society);
 	}
 	
 	public void tick() {
-		LocalGridTimeExecution.tick(this, activeLocalGrid, testSociety);
+		for (int r = 0; r < worldRows; r++) {
+			for (int c = 0; c < worldCols; c++) {
+				LocalGrid grid = localGridTiles[r][c];
+				if (grid != null) {
+					List<Household> households = getFreeHouseholds(new Vector2i(r,c));
+					FreeActionsSociety.considerAllFreeActionsHouseholds(
+							this, activeLocalGrid, households, getTime());
+					
+					TODO //Tick for every society involved in this grid
+					LocalGridTimeExecution.tick(this, grid, testSociety);
+				}
+			}
+		}
+		
 		currentWorldTime.add(Calendar.SECOND, 1);
 	}
 	
 	public Date getTime() {
 		return currentWorldTime.getTime();
+	}
+	
+	public boolean inBounds(Vector2i coord) {
+		if (coord.x < 0 || coord.x >= worldRows || coord.y < 0 || coord.y >= worldCols) {
+			return false;
+		}
+		return true;
+	}
+	
+	public List<Household> getFreeHouseholds(Vector2i coord) {
+		if (inBounds(coord)) {
+			List<Household> freeHouses = new ArrayList<>();
+			List<Household> allHousesAtCoord = this.worldAllHouseholds.get(coord);
+			for (Household house: allHousesAtCoord) {
+				if (house.society == null) {
+					freeHouses.add(house);
+				}
+			}
+			return freeHouses;
+		}
+		return null;
 	}
 	
 }

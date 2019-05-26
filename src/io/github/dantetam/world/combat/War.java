@@ -29,6 +29,14 @@ public class War {
 		warscoreAttacker = 0;
 	}
 	
+	public boolean isInvolvedInWar(Society society) {
+		if (warLeaderAttacker.equals(society) || attackerAllies.contains(society) ||
+				warLeaderDefender.equals(society) || defenderAllies.contains(society)) {
+			return true;
+		}
+		return false;
+	}
+	
 	public Set<Society> getOppositeSide(Society society) {
 		if (warLeaderAttacker.equals(society) || attackerAllies.contains(society)) {
 			Set<Society> opposite = new HashSet<>(defenderAllies);

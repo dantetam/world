@@ -18,7 +18,7 @@ import io.github.dantetam.vector.Vector2i;
 import io.github.dantetam.vector.Vector3i;
 import io.github.dantetam.world.ai.Pathfinder;
 import io.github.dantetam.world.ai.Pathfinder.ScoredPath;
-import io.github.dantetam.world.civhumanrelation.EmergentSocietyCalc;
+import io.github.dantetam.world.civhumansocietyai.EmergentSocietyCalc;
 import io.github.dantetam.world.civilization.Society;
 import io.github.dantetam.world.dataparse.ItemData;
 import io.github.dantetam.world.dataparse.ProcessData;

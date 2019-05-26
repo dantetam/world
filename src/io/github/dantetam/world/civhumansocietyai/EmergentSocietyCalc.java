@@ -1,4 +1,4 @@
-package io.github.dantetam.world.civhumanrelation;
+package io.github.dantetam.world.civhumansocietyai;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Set;
 
 import io.github.dantetam.toolbox.MathUti;
+import io.github.dantetam.world.civhumanrelation.HumanHumanRel;
 import io.github.dantetam.world.civilization.Household;
 import io.github.dantetam.world.life.Human;
 

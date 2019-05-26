@@ -41,7 +41,7 @@ public abstract class HumanRelationship {
 	
 	public static boolean isHostileTowardsSentient(Human host, Human target) {
 		for (War war: host.society.warsInvolved) {
-			if (war.getOppositeSide(host.society).contains(target)) {
+			if (war.getOppositeSide(host.society).contains(target.society)) {
 				return true;
 			}
 		}
