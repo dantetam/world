@@ -35,6 +35,8 @@ public class Society {
 	private List<Household> households;
 	public Vector3i societyCenter;
 	
+	public SocietyLeadership leadershipManager;
+	
 	public List<War> warsInvolved;
 	
 	public Map<String, Ethos> dominantEthos;
@@ -65,6 +67,10 @@ public class Society {
 			}
 		}
 		return people;
+	}
+	
+	public List<Household> getAllHouseholds() {
+		return households;
 	}
 	
 	/**

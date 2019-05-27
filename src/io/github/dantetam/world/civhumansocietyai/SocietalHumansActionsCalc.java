@@ -19,7 +19,7 @@ import io.github.dantetam.world.life.Human;
  *
  */
 
-public class SocietalActionsCalc {
+public class SocietalHumansActionsCalc {
 	
 	//See EmergentSocietyCalc.java
 	

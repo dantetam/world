@@ -9,6 +9,12 @@ public class SocietyLeadership {
 
 	TODO Implement in Society
 	
+	//Evaluate all factors of society, its people, and its method of determining/selecting rulers,
+	//in order to figure out succession (or beginning, when societies emerge).
+	public Map societalPrefLeadership; 
+	
+	
+		
 	public enum SocietyLeadershipMode {
 		DICTATORSHIP, GROUP, SENATE, FULL_DEMOCRACY 
 	}

@@ -1,5 +1,6 @@
 package io.github.dantetam.world.civilization;
 
+import java.util.Collection;
 import java.util.List;
 
 import io.github.dantetam.world.civhumanrelation.HumanHumanRel;
@@ -36,5 +37,9 @@ public class Household {
 		}
 		return sumWealth;
  	}
+	
+	public void removePeopleOutHouse(Collection<Human> humans) {
+		householdMembers.removeAll(humans);
+	}
 	
 }

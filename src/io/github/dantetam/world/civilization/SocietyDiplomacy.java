@@ -1,9 +1,11 @@
 package io.github.dantetam.world.civilization;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
 import io.github.dantetam.world.civhumanrelation.SocietySocietyRel;
+import io.github.dantetam.world.combat.War;
 
 public class SocietyDiplomacy {
 
@@ -19,8 +21,16 @@ public class SocietyDiplomacy {
 		relationships.put(society, new HashMap<>());
 	}
 	
-	public void declareWar() {
-		TODO
+	public void declareWar(Society attacker, Society defender) {
+		 TODO
+	}
+	
+	public void declarePeace(War warToEnd) {
+		
+	}
+	
+	public Collection<Society> getAllSocieties() {
+		return societiesByName.values();
 	}
 	
 }

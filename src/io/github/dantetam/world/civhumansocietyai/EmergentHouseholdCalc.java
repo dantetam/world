@@ -8,6 +8,7 @@ import java.util.Set;
 
 import io.github.dantetam.world.civhumanrelation.HumanHumanRel;
 import io.github.dantetam.world.civilization.Household;
+import io.github.dantetam.world.life.Ethos;
 import io.github.dantetam.world.life.Human;
 
 /**
@@ -40,13 +41,24 @@ public class EmergentHouseholdCalc {
 		}
 		
 		if (bestHuman == null) {
-			TODO
+			for (Human candidate: household.householdMembers) {
+				Ethos ethosIndep = candidate.brain.ethosPersonalityTraits.get("Independence");
+				double severity = ethosIndep != null ? Math.log(ethosIndep.severity) : 0;
+				if (severity > bestScore) {
+					bestScore = severity;
+					bestHuman = candidate;
+				}
+			}
 		}
 		
 		return bestHuman;
 	}
 	
-	public List<List<Human>> divideHouseholdsBySeparating(final Household house, 
+	/**
+	 * @return The split of the household when certain people leave, into two groups:
+	 * those who stay and those who leave, respectively.
+	 */
+	public static List<List<Human>> divideHouseholdsBySeparating(final Household house, 
 			List<Human> separatingHumans, Date date) {
 		List<Human> humansToMove = new ArrayList<>();
 		humansToMove.addAll(separatingHumans);
@@ -64,7 +76,7 @@ public class EmergentHouseholdCalc {
 			}
 		}
 		
-		return new ArrayList<List<Human>>() {{add(humansToMove); add(humansStaying);}};
+		return new ArrayList<List<Human>>() {{add(humansStaying); add(humansToMove);}};
 	}
 	
 }
