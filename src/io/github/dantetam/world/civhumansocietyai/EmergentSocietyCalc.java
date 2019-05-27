@@ -27,15 +27,13 @@ import io.github.dantetam.world.life.Human;
  * (one that can be done at any time by consenting individuals),
  * is stored as a process (possibly at the society level?).
  * 
+ * See FreeActionsSociety.java
+ * 
  * @author Dante
  *
  */
 
 public class EmergentSocietyCalc {
-	
-	private static double nonlinearRelUtil(double rel) {
-		return Math.signum(rel) * Math.pow(Math.abs(rel), 1.6);
-	}
 
 	/*
 	public static List<Human> calcMaxSubgroupNoLeader(List<Human> humans, Date date, 
@@ -151,10 +149,10 @@ public class EmergentSocietyCalc {
 			for (Human otherHuman: humans) {
 				if (human.equals(otherHuman)) {
 					HumanHumanRel oneWayRel = human.brain.getHumanRel(otherHuman);
-					oneWayRel.reevaluateOpinion(date);
-					double opinion = oneWayRel.opinion / 50;
 					if (oneWayRel != null) {
-						propensityUtil += nonlinearRelUtil(opinion) / numRel;
+						oneWayRel.reevaluateOpinion(date);
+						double opinion = oneWayRel.opinion / 50;
+						propensityUtil += PropensityUtil.nonlinearRelUtil(opinion) / numRel;
 					}
 				}
 			}
@@ -172,7 +170,7 @@ public class EmergentSocietyCalc {
 			double candidateWealth = human.getTotalWealth();
 			HumanHumanRel oneWayRel = human.brain.getHumanRel(host);
 			oneWayRel.reevaluateOpinion(date);
-			double relUtil = nonlinearRelUtil(Math.signum(50 - oneWayRel.opinion) * Math.abs(oneWayRel.opinion - 50) / 50);
+			double relUtil = PropensityUtil.nonlinearRelUtil(Math.signum(50 - oneWayRel.opinion) * Math.abs(oneWayRel.opinion - 50) / 50);
 			if (hostWealth > human.getTotalWealth() * 0.8) {
 				propensityUtil += relUtil * Math.max(3.5, hostWealth / candidateWealth);
 			}
@@ -192,7 +190,7 @@ public class EmergentSocietyCalc {
 			double candidateWealth = human.getTotalWealth();
 			HumanHumanRel oneWayRel = human.brain.getHumanRel(host);
 			oneWayRel.reevaluateOpinion(date);
-			double relUtil = nonlinearRelUtil(Math.signum(oneWayRel.opinion - 50) * Math.abs(oneWayRel.opinion - 50) / 100);
+			double relUtil = PropensityUtil.nonlinearRelUtil(Math.signum(oneWayRel.opinion - 50) * Math.abs(oneWayRel.opinion - 50) / 100);
 			if (hostWealth > candidateWealth) {
 				propensityUtil += relUtil * Math.max(2.5, hostWealth / candidateWealth);
 			}
@@ -265,7 +263,7 @@ public class EmergentSocietyCalc {
 					oneWayRel.reevaluateOpinion(date);
 					double opinion = oneWayRel.opinion / 50;
 					if (oneWayRel != null) {
-						propensityUtil += nonlinearRelUtil(opinion) / numRel;
+						propensityUtil += PropensityUtil.nonlinearRelUtil(opinion) / numRel;
 					}
 				}
 			}
@@ -283,7 +281,7 @@ public class EmergentSocietyCalc {
 			double candidateWealth = human.getTotalWealth();
 			HumanHumanRel oneWayRel = human.householdGetHouseRel(host);
 			oneWayRel.reevaluateOpinion(date);
-			double relUtil = nonlinearRelUtil(Math.signum(50 - oneWayRel.opinion) * Math.abs(oneWayRel.opinion - 50) / 50);
+			double relUtil = PropensityUtil.nonlinearRelUtil(Math.signum(50 - oneWayRel.opinion) * Math.abs(oneWayRel.opinion - 50) / 50);
 			if (hostWealth > human.getTotalWealth() * 0.8) {
 				propensityUtil += relUtil * Math.max(3.5, hostWealth / candidateWealth);
 			}
@@ -303,7 +301,7 @@ public class EmergentSocietyCalc {
 			double candidateWealth = human.getTotalWealth();
 			HumanHumanRel oneWayRel = human.householdGetHouseRel(host);
 			oneWayRel.reevaluateOpinion(date);
-			double relUtil = nonlinearRelUtil(Math.signum(oneWayRel.opinion - 50) * Math.abs(oneWayRel.opinion - 50) / 100);
+			double relUtil = PropensityUtil.nonlinearRelUtil(Math.signum(oneWayRel.opinion - 50) * Math.abs(oneWayRel.opinion - 50) / 100);
 			if (hostWealth > candidateWealth) {
 				propensityUtil += relUtil * Math.max(2.5, hostWealth / candidateWealth);
 			}

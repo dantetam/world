@@ -8,6 +8,15 @@ import java.util.Map;
 import io.github.dantetam.toolbox.StringUtil;
 import io.github.dantetam.world.dataparse.AnatomyData.Body;
 
+/**
+ * Used for a storage of inherited technical true DNA inside, as well as 
+ * inherited thoughts and culture within a person. This grouping is used
+ * to clean up the technical details of certain "inherent" ideas that remain
+ * in a person, like their sexual orientation. 
+ * @author Dante
+ *
+ */
+
 public abstract class DNALivingEntity {
 
 	public String speciesName;

@@ -17,9 +17,13 @@ public class HumanHumanRel extends HumanRelationship {
 
 	public Human human, targetHuman;
 	public boolean isPersonalHostileOneWay; //Note, this is only for personal disputes and fights, not for wars between societies
-	public String relationshipType;
+	public HumanHumanRelType relationshipType;
 	
-	public HumanHumanRel(Human human, Human targetHuman, String relationshipType) {
+	public enum HumanHumanRelType {
+		NEUTRAL, FAMILY, MARRIAGE, FRIEND
+	}
+	
+	public HumanHumanRel(Human human, Human targetHuman, HumanHumanRelType relationshipType) {
 		super();
 		this.human = human;
 		this.targetHuman = targetHuman;

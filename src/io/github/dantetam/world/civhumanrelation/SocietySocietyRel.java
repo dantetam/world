@@ -17,12 +17,18 @@ public class SocietySocietyRel extends HumanRelationship {
 	public Society hostSociety;
 	public Society otherSociety;
 	
-	TODO SocietalRelationMode //War, Peace, Def. Allies, Allies, etc.
+	public SocietalRelationMode societyRelMode; //War, Peace, Def. Allies, Allies, etc.
+	
+	public enum SocietalRelationMode {
+		NEUTRAL, WAR, DEFENSIVE_ALLIES, ALLIES,
+		OVERLORD, VASSAL //one-way relations towards, i.e. hostSociety is the overlord of otherSociety
+	}
 	
 	public SocietySocietyRel(Society hostSociety, Society otherSociety) {
 		super();
 		this.hostSociety = hostSociety;
 		this.otherSociety = otherSociety;
+		societyRelMode = SocietalRelationMode.NEUTRAL;
 	}
 	
 	@Override

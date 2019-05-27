@@ -20,8 +20,8 @@ public class FreeActionsSociety {
 		put("formSociety", new FreeAction("formSociety", null, 50));
 	}};
 	
-	public static Map<String, FreeAction> freeActions = new HashMap<String, FreeAction>() {{
-		
+	public static Map<String, FreeAction> freeActionsListHuman = new HashMap<String, FreeAction>() {{
+		put("formNewHousehold", new FreeAction("formNewHousehold", null, 50));
 	}};
 	
 	public static class FreeAction {
@@ -68,7 +68,13 @@ public class FreeActionsSociety {
 	
 	public static void considerAllFreeActionsHumans(WorldGrid world, LocalGrid grid, 
 			List<Human> humans, Date date) {
-		
+		for (Entry<String, FreeAction> entry: freeActionsListHuman.entrySet()) {
+			if (!entry.getValue().fireChanceExecute()) continue;
+			String name = entry.getKey();
+			if (name.equals("formNewHousehold")) {
+				
+			}
+		}
 	}
 	
 	public static void considerAllFreeActions(WorldGrid world, LocalGrid grid, 

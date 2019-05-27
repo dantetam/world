@@ -18,7 +18,14 @@ public class DNAHuman extends DNALivingEntity {
 	@Override
 	public void initDnaMap() {
 		this.dnaMap = new HashMap<>();
-		this.dnaMap.put("race", StringUtil.genAlphaNumericStr(20));
+		//this.dnaMap.put("race", StringUtil.genAlphaNumericStr(20));
+		String sex = randomSex();
+		String gender = randomGenderFromSex(sex);
+		String orient = randomSexualOri(gender);
+		
+		this.dnaMap.put("sex", sex);
+		this.dnaMap.put("gender", gender);
+		this.dnaMap.put("sexualOri", orient);
 	}
 	
 	@Override
@@ -30,17 +37,49 @@ public class DNAHuman extends DNALivingEntity {
 	public Map<String, String> recombineDNA(DNALivingEntity otherDNA) {
 		Map<String, String> newDna = new HashMap<>();
 		
-		String race = this.dnaMap.get("race");
-		String otherRace = otherDNA.dnaMap.get("race");
-		
-		String newRace = StringUtil.randMergeStrs(race, otherRace);
-		if (Math.random() < RACE_MUTATE_FREQ) {
-			newRace = StringUtil.mutateAlphaNumStr(newRace);
+		String[] keysFairlyMerged = {"race", "culture"};
+		for (String key: keysFairlyMerged) {
+			String race = this.dnaMap.get(key);
+			String otherRace = otherDNA.dnaMap.get(key);
+			
+			String newRace = StringUtil.randMergeStrs(race, otherRace);
+			if (Math.random() < RACE_MUTATE_FREQ) {
+				newRace = StringUtil.mutateAlphaNumStr(newRace);
+			}
+			
+			newDna.put(key, newRace);
 		}
 		
-		newDna.put("race", newRace);
-		
-		return null;
+		return newDna;
+	}
+	
+	public String randomSex() {
+		if (Math.random() < 0.005) {
+			return "nonbinary";
+		}
+		return Math.random() < 0.5 ? "XX" : "XY";
+	}
+	
+	public String randomGenderFromSex(String sexChromo) {
+		double rand = Math.random();
+		if (rand < 0.020) {
+			return "nonbinary";
+		}
+		if (rand < 0.026) {
+			return sexChromo == "XX" ? "male" : "female";
+		}
+		return sexChromo == "XX" ? "female" : "male";
+	}
+	
+	public String randomSexualOri(String gender) {
+		double rand = Math.random();
+		if (rand < 0.04) {
+			return "all";
+		}
+		if (rand < 0.12) {
+			return gender;
+		}
+		return gender == "male" ? "female" : "male";
 	}
 	
 }
