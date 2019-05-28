@@ -42,6 +42,8 @@ public class Society {
 	public Map<String, Ethos> dominantEthos;
 	public String dominantCultureStr;
 	
+	public JobMarket jobMarket;
+	
 	public Society(String name, LocalGrid grid) {
 		this.name = name;
 		this.grid = grid;
@@ -90,6 +92,10 @@ public class Society {
 			results.add(humanLocation);
 		}
 		return results;
+	}
+	
+	public void createJobOffers(Map<Integer, Double> calcUtility) {
+		TODO
 	}
 	
 	/**

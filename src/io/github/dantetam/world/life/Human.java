@@ -1,6 +1,8 @@
 package io.github.dantetam.world.life;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import io.github.dantetam.vector.Vector3i;
@@ -20,6 +22,9 @@ public class Human extends LivingEntity {
 	public HumanBrain brain;
 	public DNAHuman dna;
 	
+	public Human lord;
+	public List<Human> servants;
+	
 	public Human(Society society, String name) {
 		super(name);
 		this.society = society;
@@ -33,6 +38,7 @@ public class Human extends LivingEntity {
 		brain = new HumanBrain(this);
 		HumanBrainInitialize.initHumanBrain(brain);
 		dna = new DNAHuman("Human");
+		servants = new ArrayList<>();
 	}
 	
 	public void feed(double standardUnitNutrition) {

@@ -68,6 +68,7 @@ public class LocalGridTimeExecution {
 		
 		System.out.println("<<<<>>>> Date: " + world.getTime());
 		if (world.getTime().getSeconds() == 0) {
+			society.createJobOffers(calcUtility);
 			assignAllHumanJobs(society);
 		}
 		

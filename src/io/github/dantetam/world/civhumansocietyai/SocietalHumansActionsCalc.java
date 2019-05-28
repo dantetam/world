@@ -62,4 +62,16 @@ public class SocietalHumansActionsCalc {
 		return pairs;
 	}
 	
+	/**
+	 * Determine the wealth and current job processes of every human in this society,
+	 * in line with Society.java::prioritizeProcesses (of this pipeline),
+	 * and determine the propensity of every human to hire others as soldiers, workers, etc.
+	 * @param humans
+	 * @param date
+	 * @return
+	 */
+	public static List<Human[]> possibleEmploymentPairs(List<Human> humans, Date date) {
+		
+	}
+	
 }
