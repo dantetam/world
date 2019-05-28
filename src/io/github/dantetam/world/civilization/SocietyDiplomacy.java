@@ -33,4 +33,21 @@ public class SocietyDiplomacy {
 		return societiesByName.values();
 	}
 	
+	public Map<Society, SocietySocietyRel> getInterSocietalRel(Society host) {
+		if (relationships.containsKey(host)) {
+			return relationships.get(host);
+		}
+		return null;
+	}
+	
+	public SocietySocietyRel getInterSocietalRel(Society host, Society target) {
+		if (relationships.containsKey(host)) {
+			Map<Society, SocietySocietyRel> hostRelMap = relationships.get(host);
+			if (hostRelMap.containsKey(target)) {
+				return hostRelMap.get(target);
+			}
+		}
+		return null;
+	}
+	
 }

@@ -38,7 +38,7 @@ public class WorldGrid {
 	private LocalGrid[][] localGridTiles;
 	
 	//Manage all societies, relations, wars, and societal relationships in general
-	private SocietyDiplomacy societalDiplomacy;
+	public SocietyDiplomacy societalDiplomacy;
 	
 	//Store/find all free households in the world
 	private Map<Vector2i, List<Household>> worldAllHouseholds = new HashMap<>();
