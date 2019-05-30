@@ -13,7 +13,7 @@ import io.github.dantetam.world.life.Human;
 
 public class SocietyLeadership {
 
-	TODO //Implement in Society
+	TODO; //Implement in Society
 	
 	public List<Human> currentLeaders;
 	

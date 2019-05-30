@@ -11,6 +11,7 @@ import io.github.dantetam.world.grid.LocalBuilding;
 import io.github.dantetam.world.grid.LocalTile;
 import io.github.dantetam.world.items.Inventory;
 import io.github.dantetam.world.items.InventoryItem;
+import io.github.dantetam.world.process.LocalJob;
 import io.github.dantetam.world.process.LocalProcess;
 import io.github.dantetam.world.process.LocalProcess.ProcessStep;
 import io.github.dantetam.world.process.priority.Priority;
@@ -26,6 +27,7 @@ public abstract class LivingEntity {
 	public LocalProcess processProgress;
 	public Priority activePriority;
 	public List<Task> currentQueueTasks;
+	public LocalJob jobProcessProgress; //For activities mandated by a lord, employer, or society
 	
 	public LocalBuilding processBuilding;
 	public LocalTile processTile;

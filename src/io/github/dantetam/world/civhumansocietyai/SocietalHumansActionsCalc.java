@@ -12,6 +12,8 @@ import io.github.dantetam.toolbox.MathUti;
 import io.github.dantetam.world.civhumanrelation.HumanHumanRel;
 import io.github.dantetam.world.civilization.Household;
 import io.github.dantetam.world.life.Human;
+import io.github.dantetam.world.process.LocalJob;
+import io.github.dantetam.world.process.LocalProcess;
 
 /**
  * 
@@ -68,10 +70,16 @@ public class SocietalHumansActionsCalc {
 	 * and determine the propensity of every human to hire others as soldiers, workers, etc.
 	 * @param humans
 	 * @param date
-	 * @return
+	 * @return A mapping of humans that wish to employ others, with the associated potential utility
 	 */
-	public static List<Human[]> possibleEmploymentPairs(List<Human> humans, Date date) {
+	/*
+	public static Map<Human, Double> possibleEmployerUtil(Human employee, Human boss, LocalJob job) {
 		
+	}
+	*/
+	
+	public static double possibleEmployeeUtil(Human employee, Human boss, LocalJob job) {
+		TODO;
 	}
 	
 }

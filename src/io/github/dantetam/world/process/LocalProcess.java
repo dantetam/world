@@ -57,6 +57,20 @@ public class LocalProcess {
 		return sum;
 	}
 	
+	public List<Integer> heurCapitalInputs() {
+		List<Integer> itemIds = new ArrayList<>();
+		for (InventoryItem item: inputItems) {
+			itemIds.add(item.itemId);
+		}
+		if (requiredBuildNameOrGroup != null) {
+			itemIds.add(ItemData.getIdFromName(requiredBuildNameOrGroup));
+		}
+		if (requiredTileNameOrGroup != null) {
+			itemIds.add(ItemData.getIdFromName(requiredTileNameOrGroup));
+		}
+		return itemIds;
+	}
+	
 	public String toString() {
 		String result = "Process: " + name + "/ Input: ";
 		

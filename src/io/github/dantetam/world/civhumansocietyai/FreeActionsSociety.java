@@ -32,18 +32,26 @@ public class FreeActionsSociety {
 	
 	public static void considerAllFreeActions(WorldGrid world, 
 			Society host, Date date) {
-		Map<Society, SocietySocietyRel> hostRel = world.societalDiplomacy.getInterSocietalRel(host);
-		if (hostRel != null) {
-			for (Entry<Society, SocietySocietyRel> entry: hostRel.entrySet()) {
-				Society otherSociety = entry.getKey();
-				SocietySocietyRel oneWayRel = world.societalDiplomacy.getInterSocietalRel(host, otherSociety);
-				double util = 0;
-				if (oneWayRel != null) {
-					oneWayRel.reevaluateOpinion(date);
-					double opinion = oneWayRel.opinion / 50;
-					util = PropensityUtil.nonlinearRelUtil(opinion);
+		for (Entry<String, FreeAction> actionEntry: freeActionsInterSociety.entrySet()) {
+			if (!actionEntry.getValue().fireChanceExecute()) continue;
+			String name = actionEntry.getKey();
+			if (name.equals("declareWar")) {
+				Map<Society, SocietySocietyRel> hostRel = world.societalDiplomacy.getInterSocietalRel(host);
+				if (hostRel != null) {
+					for (Entry<Society, SocietySocietyRel> entry: hostRel.entrySet()) {
+						Society otherSociety = entry.getKey();
+						SocietySocietyRel oneWayRel = world.societalDiplomacy.getInterSocietalRel(host, otherSociety);
+						double util = 0;
+						if (oneWayRel != null) {
+							oneWayRel.reevaluateOpinion(date);
+							double opinion = oneWayRel.opinion / 50;
+							util = PropensityUtil.nonlinearRelUtil(opinion);
+						}
+						if (util < -2.5) {
+							world.societalDiplomacy.declareWar(host, otherSociety);
+						}
+					}
 				}
-				TODO
 			}
 		}
 	}

@@ -17,12 +17,12 @@ public class SocietyLeadershipSuccession {
 
 	public void determineSuccessors(Society society, 
 			SocietyLeadershipMode mode, SocSuccessionType successType) {
-		TODO
+		TODO;
 	}
 	
 	public List<Human> findCandidates(Society society, 
 			SocietyLeadershipMode mode, SocSuccessionType successType) {
-		
+		TODO;
 	}
 	
 }

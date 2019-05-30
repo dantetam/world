@@ -68,7 +68,7 @@ public class LocalGridTimeExecution {
 		
 		System.out.println("<<<<>>>> Date: " + world.getTime());
 		if (world.getTime().getSeconds() == 0) {
-			society.createJobOffers(calcUtility);
+			society.createJobOffers();
 			assignAllHumanJobs(society);
 		}
 		
@@ -107,29 +107,84 @@ public class LocalGridTimeExecution {
 					human.currentQueueTasks = null;
 				}
 			}
-			if (human.processProgress != null) { 
+			
+			if (human.jobProcessProgress != null) {
+				LocalProcess process = human.jobProcessProgress.jobWorkProcess;
+				List<LivingEntity> capitalOwners = new ArrayList<LivingEntity>() {{
+					add(human); 
+					if (human.household != null) {
+						addAll(human.household.householdMembers);
+					}
+					add(human.jobProcessProgress.boss);
+				}};
 				//Assign the location of the process where the steps are undertaken
-				if (human.processProgress.requiredBuildNameOrGroup != null && human.processBuilding == null) {
-					assignBuilding(grid, human, human.processProgress.requiredBuildNameOrGroup);
+				if (process.requiredBuildNameOrGroup != null && human.processBuilding == null) {
+					assignBuilding(grid, human, capitalOwners, process.requiredBuildNameOrGroup);
 				}
-				else if (human.processProgress.requiredTileNameOrGroup != null && human.processTile == null) {
-					assignTile(grid, human, human.processProgress.requiredTileNameOrGroup);
+				else if (process.requiredTileNameOrGroup != null && human.processTile == null) {
+					assignTile(grid, human, capitalOwners, process.requiredTileNameOrGroup);
 				}
 				
+				//Follow through with one step, deconstruct into a priority, and get its status back.
+				if (process.processSteps.size() > 0) {
+					ProcessStep step = process.processSteps.get(0);
+					if (human.activePriority == null) {
+						human.activePriority = getPriorityForStep(society, grid, human, process, step);
+						String priorityName = human.activePriority == null ? "null" : human.activePriority.getClass().getSimpleName();
+						System.out.println(human.name + ", for its process: " + process + ", ");
+								System.out.println("was given the PRIORITY: " + priorityName);
+					}
+					if (human.activePriority instanceof DonePriority || 
+							human.activePriority instanceof ImpossiblePriority) {
+						process.processSteps.remove(0);
+						human.activePriority = null;
+					}
+					if (human.activePriority instanceof WaitPriority) {
+						human.activePriority = null;
+					}
+				}
+				//Process has been completed, remove it from person
+				if (process.processSteps.size() == 0) { 
+					executeProcessResActions(grid, human, process.processResActions);
+					System.out.println(human.name + " COMPLETED process (as an employee for a job): " + process);
+					human.jobProcessProgress = null; //Reset all jobs and job fields to null
+					if (human.processBuilding != null) {
+						human.processBuilding.currentUser = null;
+						human.processBuilding = null;
+					}
+					if (human.processTile != null) {
+						human.processTile.harvestInUse = false;
+						human.processTile = null;
+					}
+				}
+			}
+			else if (human.processProgress != null) { 
+				List<LivingEntity> capitalOwners = new ArrayList<LivingEntity>() {{
+					add(human);
+					if (human.household != null) {
+						addAll(human.household.householdMembers);
+					}
+				}};
+				//Assign the location of the process where the steps are undertaken
+				if (human.processProgress.requiredBuildNameOrGroup != null && human.processBuilding == null) {
+					assignBuilding(grid, human, capitalOwners, human.processProgress.requiredBuildNameOrGroup);
+				}
+				else if (human.processProgress.requiredTileNameOrGroup != null && human.processTile == null) {
+					assignTile(grid, human, capitalOwners, human.processProgress.requiredTileNameOrGroup);
+				}
+				
+				//Follow through with one step, deconstruct into a priority, and get its status back.
 				if (human.processProgress.processSteps.size() > 0) {
 					ProcessStep step = human.processProgress.processSteps.get(0);
-					
 					if (human.activePriority == null) {
 						human.activePriority = getPriorityForStep(society, grid, human, human.processProgress, step);
 						String priorityName = human.activePriority == null ? "null" : human.activePriority.getClass().getSimpleName();
 						System.out.println(human.name + ", for its process: " + human.processProgress + ", ");
 								System.out.println("was given the PRIORITY: " + priorityName);
 					}
-					
 					if (human.activePriority instanceof DonePriority || 
 							human.activePriority instanceof ImpossiblePriority) {
 						human.processProgress.processSteps.remove(0);
-						//human.processProgress = null;
 						human.activePriority = null;
 					}
 					if (human.activePriority instanceof WaitPriority) {
@@ -139,10 +194,8 @@ public class LocalGridTimeExecution {
 				//Process has been completed, remove it from person
 				if (human.processProgress.processSteps.size() == 0) { 
 					executeProcessResActions(grid, human, human.processProgress.processResActions);
-					
 					System.out.println(human.name + " COMPLETED process: " + human.processProgress);
-					human.processProgress = null;
-					
+					human.processProgress = null; //Reset all jobs and job fields to null
 					if (human.processBuilding != null) {
 						human.processBuilding.currentUser = null;
 						human.processBuilding = null;
@@ -151,10 +204,12 @@ public class LocalGridTimeExecution {
 						human.processTile.harvestInUse = false;
 						human.processTile = null;
 					}
-					
 					assignSingleHumanJob(society, human);
 				}
 			}
+			
+			//Assign a new process. Note that a human may have a priority not linked to any higher structure,
+			//which we do not want to override or chain incorrectly to a new job.
 			if (human.processProgress == null && human.activePriority == null) {
 				assignSingleHumanJob(society, human);
 			}
@@ -162,7 +217,8 @@ public class LocalGridTimeExecution {
 		}
 	}
 	
-	private static LocalBuilding assignBuilding(LocalGrid grid, LivingEntity being, String buildingName) {
+	private static LocalBuilding assignBuilding(LocalGrid grid, LivingEntity being, 
+			List<LivingEntity> validOwners, String buildingName) {
 		int id = ItemData.getIdFromName(buildingName);
 		KdTree<Vector3i> nearestItemsTree = grid.getKdTreeForItemId(id);
 		if (nearestItemsTree == null || nearestItemsTree.size() == 0) return null;
@@ -171,16 +227,19 @@ public class LocalGridTimeExecution {
 				numCandidates, being.location.coords);
 		for (Vector3i nearestCoord: nearestCoords) {
 			LocalBuilding building = grid.getTile(nearestCoord).building;
-			if (building.currentUser == null) {
-				building.currentUser = being;
-				being.processBuilding = building;
-				break;
+			if (building.owner == null || validOwners.contains(building.owner)) {
+				if (building.currentUser == null) {
+					building.currentUser = being;
+					being.processBuilding = building;
+					break;
+				}
 			}
 		}
 		return being.processBuilding;
 	}
 	
-	private static LocalTile assignTile(LocalGrid grid, LivingEntity being, String tileName) {
+	private static LocalTile assignTile(LocalGrid grid, LivingEntity being, 
+			List<LivingEntity> validOwners, String tileName) {
 		int tileId = ItemData.getIdFromName(tileName);
 		KdTree<Vector3i> items = grid.getKdTreeForTile(tileId);
 		if (items == null) return null;
@@ -189,9 +248,11 @@ public class LocalGridTimeExecution {
 		for (Vector3i candidate: candidates) {
 			System.out.println("Calc path: " + being.location.coords + " to -> " + grid.getTile(candidate).coords);
 			LocalTile tile = grid.getTile(candidate);
-			if (!tile.harvestInUse) {
-				ScoredPath scoredPath = new Pathfinder(grid).findPath(being, being.location, grid.getTile(candidate));
-				tileByPathScore.put(tile, scoredPath.score);
+			if (tile.humanClaim == null || validOwners.contains(tile.humanClaim)) {
+				if (!tile.harvestInUse) {
+					ScoredPath scoredPath = new Pathfinder(grid).findPath(being, being.location, grid.getTile(candidate));
+					tileByPathScore.put(tile, scoredPath.score);
+				}
 			}
 		}
 		tileByPathScore = MathUti.getSortedMapByValueDesc(tileByPathScore);
@@ -384,6 +445,11 @@ public class LocalGridTimeExecution {
 		return tasks;
 	}
 	
+	/**
+	 * Deconstruct a process into a priority.
+	 * @return the Priority object which represents the given group of actions/approach, for working towards
+	 * 		the given process and step.
+	 */
 	private static Priority getPriorityForStep(Society society, LocalGrid grid, Human being, 
 			LocalProcess process, ProcessStep step) {
 		Priority priority = null;

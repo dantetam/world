@@ -15,6 +15,7 @@ import java.util.function.Supplier;
 
 import io.github.dantetam.toolbox.MathUti;
 import io.github.dantetam.vector.Vector3i;
+import io.github.dantetam.world.civhumansocietyai.SocietalHumansActionsCalc;
 import io.github.dantetam.world.combat.War;
 import io.github.dantetam.world.dataparse.ItemData;
 import io.github.dantetam.world.dataparse.ItemTotalDrops;
@@ -25,6 +26,7 @@ import io.github.dantetam.world.grid.LocalTile;
 import io.github.dantetam.world.items.InventoryItem;
 import io.github.dantetam.world.life.Ethos;
 import io.github.dantetam.world.life.Human;
+import io.github.dantetam.world.process.LocalJob;
 import io.github.dantetam.world.process.LocalProcess;
 import io.github.dantetam.world.process.LocalProcess.ProcessStep;
 
@@ -49,6 +51,7 @@ public class Society {
 		this.grid = grid;
 		households = new ArrayList<>();
 		warsInvolved = new ArrayList<>();
+		this.leadershipManager = new SocietyLeadership(this);
 	}
 	
 	public void addHousehold(Household house) {
@@ -94,8 +97,8 @@ public class Society {
 		return results;
 	}
 	
-	public void createJobOffers(Map<Integer, Double> calcUtility) {
-		TODO
+	public void createJobOffers() {
+		this.jobMarket.createJobOffers(this);
 	}
 	
 	/**
@@ -111,18 +114,12 @@ public class Society {
 		Map<Integer, Double> sortedUtility = MathUti.getSortedMapByValueDesc(allItemsUtility);
 		Object[] sortedKeys = sortedUtility.keySet().toArray();
 		
-		//System.out.println("Ranked items: ###############");
-		//for (Entry<Integer, Double> entry: sortedUtility.entrySet()) {
-			//System.out.println(ItemData.getNameFromId(entry.getKey()) + "; ranking: " + entry.getValue());
-		//}
-		
 		Map<Integer, Double> rawResRarity = findRawResourcesRarity(human);
 		
 		Map<LocalProcess, Double> processByUtil = new HashMap<>();
 		int i = 0;
 		while (i < sortedKeys.length) { //processByUtil.size() < desiredNumProcess
 			Integer itemId = (Integer) sortedKeys[i];
-			
 			Map<LocalProcess, Double> bestProcesses = findBestProcess(allItemsUtility, rawResRarity, 
 					human, itemId);
 			
@@ -137,6 +134,7 @@ public class Society {
 			i++;
 		}
 		
+		//For leftover processes that have not been assigned a utility yet
 		Map<String, Double> needsIntensity = findAllNeedsIntensity();
 		for (LocalProcess process: ProcessData.getAllProcesses()) {
 			if (!processByUtil.containsKey(process) && canCompleteProcess(process, rawResRarity)) {
@@ -155,16 +153,33 @@ public class Society {
 					processByUtil.put(process, heuristicActionScore);
 			}
 		}
-
-		processByUtil = MathUti.getSortedMapByValueDesc(processByUtil);
+		
+		Map<LocalProcess, Double> processByPercentage = MathUti.getNormalizedMap(processByUtil);
+		processByPercentage = MathUti.getSortedMapByValueDesc(processByPercentage);
 		
 		System.out.println("Ranked processes: #####");
 		for (Entry<LocalProcess, Double> entry: processByUtil.entrySet()) {
 			System.out.println(entry.getKey().name + "; ranking: " + entry.getValue());
 		}
 		
-		Map<LocalProcess, Double> processByPercentage = MathUti.getNormalizedMap(processByUtil);
 		return processByPercentage;
+	}
+	
+	public Map<LocalJob, Double> prioritizeJobs(Human human, Map<LocalProcess, Double> processUtil) {
+		Map<LocalJob, Double> rankedJobs = new HashMap<>();
+		
+		TODO
+		
+		for (Entry<LocalProcess, LocalJob> entry: this.jobMarket.allJobsAvailable.entrySet()) {
+			double physicalUtil = processUtil.containsKey(entry.getKey()) ? processUtil.get(entry.getKey()) : 0;
+			double workProsUtil = SocietalHumansActionsCalc
+					.possibleEmployeeUtil(human, entry.getValue().boss, entry.getValue());
+			rankedJobs.put(entry.getValue());
+		}
+		
+		rankedJobs = MathUti.getNormalizedMap(rankedJobs);
+		rankedJobs = MathUti.getSortedMapByValueDesc(rankedJobs);
+		return rankedJobs;
 	}
 	
 	/**
@@ -434,18 +449,6 @@ public class Society {
 	 */
 	private Map<Integer, Double> findAdjEconomicRarity() {
 		Map<Integer, Double> itemRarity = this.findAllAvailableResourceRarity(null);
-		/*
-		for (int r = 0; r < grid.rows; r++) {
-			for (int c = 0; c < grid.cols; c++) {
-				int startHeight = grid.findLowestEmptyHeight(r, c) - 1;
-				for (int h = startHeight; h >= startHeight - 5; h--) {
-					LocalTile tile = grid.getTile(new Vector3i(r, c, h));
-					if (tile == null) continue;
-					//
-				}
-			}
-		}
-		*/
 		for (LocalBuilding building: grid.getAllBuildings()) {
 			for (int itemId: building.buildingBlockIds) {
 				ItemTotalDrops drops = ItemData.getOnBlockItemDrops(itemId);
@@ -548,6 +551,14 @@ public class Society {
 				for (LocalProcess process: processes) {
 					List<InventoryItem> inputs = process.inputItems;
 					
+					double inputCosts = 0;
+					for (Integer itemId: process.heurCapitalInputs()) {
+						if (newFinalUtility.containsKey(itemId)) {
+							double inputUtil = newFinalUtility.get(itemId);
+							inputCosts += inputUtil;
+						}
+					}
+					
 					double totalItems = 0;
 					for (InventoryItem item: inputs) {
 						totalItems += item.quantity;
@@ -564,7 +575,10 @@ public class Society {
 						//System.out.println((int) (percentage * 100) + "%, " + (int) provisionalUtil + " util, " + (int) (percentage * (outputUtil + provisionalUtil) / 2.0) + " frac. util");
 						//System.out.println("");
 						
-						MathUti.insertKeepMaxMap(newFinalUtility, item.itemId, percentage * (outputUtil + provisionalUtil) / 2.0);
+						double avgUtil = (outputUtil + provisionalUtil) / 2.0;
+						avgUtil -= inputCosts;
+						
+						MathUti.insertKeepMaxMap(newFinalUtility, item.itemId, percentage * avgUtil);
 						
 						if (!expandedItemIds.contains(item.itemId)) {
 							expandedItemIds.add(item.itemId);

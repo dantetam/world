@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Set;
 
 import io.github.dantetam.vector.Vector3i;
+import io.github.dantetam.world.civilization.Household;
 import io.github.dantetam.world.civilization.SkillBook;
 import io.github.dantetam.world.civilization.Society;
 import io.github.dantetam.world.dataparse.AnatomyData.Body;
@@ -24,6 +25,9 @@ public class Human extends LivingEntity {
 	
 	public Human lord;
 	public List<Human> servants;
+	public List<Human> workers;
+	
+	public Household household;
 	
 	public Human(Society society, String name) {
 		super(name);
@@ -39,6 +43,7 @@ public class Human extends LivingEntity {
 		HumanBrainInitialize.initHumanBrain(brain);
 		dna = new DNAHuman("Human");
 		servants = new ArrayList<>();
+		workers = new ArrayList<>();
 	}
 	
 	public void feed(double standardUnitNutrition) {
