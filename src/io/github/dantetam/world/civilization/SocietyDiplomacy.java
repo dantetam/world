@@ -22,11 +22,11 @@ public class SocietyDiplomacy {
 	}
 	
 	public void declareWar(Society attacker, Society defender) {
-		 TODO
+		//TODO
 	}
 	
 	public void declarePeace(War warToEnd) {
-		
+		//TODO
 	}
 	
 	public Collection<Society> getAllSocieties() {

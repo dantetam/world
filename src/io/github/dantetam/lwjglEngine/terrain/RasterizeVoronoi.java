@@ -26,7 +26,7 @@ import kn.uni.voronoitreemap.gui.VoronoiLibrary;
 import kn.uni.voronoitreemap.j2d.Point2D;
 import kn.uni.voronoitreemap.j2d.PolygonSimple;
 import io.github.dantetam.lwjglEngine.terrain.NeighborsGraphStructure.Edge;
-import io.github.dantetam.toolbox.MathUti;
+import io.github.dantetam.toolbox.MapUtil;
 import io.github.dantetam.toolbox.RGBUtil;
 import io.github.dantetam.vector.Vector2i;
 

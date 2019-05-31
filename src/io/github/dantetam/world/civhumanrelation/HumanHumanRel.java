@@ -20,7 +20,7 @@ public class HumanHumanRel extends HumanRelationship {
 	public HumanHumanRelType relationshipType;
 	
 	public enum HumanHumanRelType {
-		NEUTRAL, FAMILY, MARRIAGE, FRIEND
+		NEUTRAL, FAMILY, MARRIAGE, FRIEND //TODO: Initialize, implement, set to correct data field
 	}
 	
 	public HumanHumanRel(Human human, Human targetHuman, HumanHumanRelType relationshipType) {

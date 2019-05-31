@@ -11,7 +11,7 @@ import java.util.Map;
 import java.util.Set;
 
 import io.github.dantetam.toolbox.VecGridUtil;
-import io.github.dantetam.toolbox.MathUti;
+import io.github.dantetam.toolbox.MapUtil;
 import io.github.dantetam.vector.Vector2i;
 import io.github.dantetam.vector.Vector3i;
 import io.github.dantetam.world.dataparse.ItemData;
@@ -76,7 +76,7 @@ public class SpaceFillingAlgorithm {
 			}
 			
 			if (componentScore.size() > 0) {
-				componentScore = MathUti.getSortedMapByValueDesc(componentScore);
+				componentScore = MapUtil.getSortedMapByValueDesc(componentScore);
 				Integer bestSpaceIndex = (Integer) componentScore.keySet().toArray()[0];
 				Set<Vector3i> bestSpace = components.get(bestSpaceIndex);
 				return bestSpace;

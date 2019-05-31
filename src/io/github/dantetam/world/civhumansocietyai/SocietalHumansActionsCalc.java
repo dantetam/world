@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import io.github.dantetam.toolbox.MathUti;
+import io.github.dantetam.toolbox.MapUtil;
 import io.github.dantetam.world.civhumanrelation.HumanHumanRel;
 import io.github.dantetam.world.civilization.Household;
 import io.github.dantetam.world.life.Human;
@@ -78,8 +78,10 @@ public class SocietalHumansActionsCalc {
 	}
 	*/
 	
-	public static double possibleEmployeeUtil(Human employee, Human boss, LocalJob job) {
-		TODO;
+	//TODO
+	public static double possibleEmployeeUtil(Human employee, Human boss, LocalJob job, Date date) {
+		double emplBossRelUtil = calcPropensityToMarry(employee, boss, date);
+		return emplBossRelUtil;
 	}
 	
 }

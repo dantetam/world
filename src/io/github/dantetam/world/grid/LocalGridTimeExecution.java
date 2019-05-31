@@ -13,7 +13,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import io.github.dantetam.toolbox.VecGridUtil;
-import io.github.dantetam.toolbox.MathUti;
+import io.github.dantetam.toolbox.MapUtil;
 import io.github.dantetam.vector.Vector2i;
 import io.github.dantetam.vector.Vector3i;
 import io.github.dantetam.world.ai.Pathfinder;
@@ -26,6 +26,7 @@ import io.github.dantetam.world.items.Inventory;
 import io.github.dantetam.world.items.InventoryItem;
 import io.github.dantetam.world.life.Human;
 import io.github.dantetam.world.life.LivingEntity;
+import io.github.dantetam.world.process.LocalJob;
 import io.github.dantetam.world.process.LocalProcess;
 import io.github.dantetam.world.process.LocalProcess.ProcessStep;
 import io.github.dantetam.world.process.priority.BuildingHarvestPriority;
@@ -66,10 +67,12 @@ public class LocalGridTimeExecution {
 		groupItemRarity = society.findRawGroupsResRarity(null);
 		importantLocations = society.getImportantLocations(society.societyCenter);
 		
-		System.out.println("<<<<>>>> Date: " + world.getTime());
-		if (world.getTime().getSeconds() == 0) {
+		Date date = world.getTime();
+		
+		System.out.println("<<<<>>>> Date: " + date);
+		if (date.getSeconds() == 0) {
 			society.createJobOffers();
-			assignAllHumanJobs(society);
+			assignAllHumanJobs(society, date);
 		}
 		
 		System.out.println("################");
@@ -204,14 +207,14 @@ public class LocalGridTimeExecution {
 						human.processTile.harvestInUse = false;
 						human.processTile = null;
 					}
-					assignSingleHumanJob(society, human);
+					assignSingleHumanJob(society, human, date);
 				}
 			}
 			
 			//Assign a new process. Note that a human may have a priority not linked to any higher structure,
 			//which we do not want to override or chain incorrectly to a new job.
 			if (human.processProgress == null && human.activePriority == null) {
-				assignSingleHumanJob(society, human);
+				assignSingleHumanJob(society, human, date);
 			}
 			System.out.println();
 		}
@@ -255,7 +258,7 @@ public class LocalGridTimeExecution {
 				}
 			}
 		}
-		tileByPathScore = MathUti.getSortedMapByValueDesc(tileByPathScore);
+		tileByPathScore = MapUtil.getSortedMapByValueDesc(tileByPathScore);
 		for (Object obj: tileByPathScore.keySet().toArray()) {
 			LocalTile bestTile = (LocalTile) obj;
 			being.processTile = bestTile;
@@ -699,16 +702,19 @@ public class LocalGridTimeExecution {
 		}
 	}
 	
-	private static void assignAllHumanJobs(Society society) {
+	private static void assignAllHumanJobs(Society society, Date date) {
 		List<Human> humans = society.getAllPeople();
 		for (Human human: humans) {
-			assignSingleHumanJob(society, human);
+			assignSingleHumanJob(society, human, date);
 		}
 	}
-	private static void assignSingleHumanJob(Society society, Human human) {
+	private static void assignSingleHumanJob(Society society, Human human, Date date) {
 		Map<Integer, Double> calcUtility = society.findCompleteUtilityAllItems(human);
 		Map<LocalProcess, Double> bestProcesses = society.prioritizeProcesses(calcUtility, human, 20, null);
-		LocalProcess randBiasedChosenProcess = MathUti.randChoiceFromWeightMap(bestProcesses);
+		
+		Map<LocalJob, Double> bestJobs = society.prioritizeJobs(human, bestProcesses, date);
+		
+		LocalProcess randBiasedChosenProcess = MapUtil.randChoiceFromWeightMap(bestProcesses);
 		human.processProgress = randBiasedChosenProcess;
 	}
 	
@@ -779,7 +785,7 @@ public class LocalGridTimeExecution {
 			int distUtil = centerCoords.manhattanDist(itemCoords);
 			score.put(itemCoords, Math.min(numItemsAtTile, amountNeeded) / Math.pow(distUtil, 2));
 		}
-		score = MathUti.getSortedMapByValueDesc(score);
+		score = MapUtil.getSortedMapByValueDesc(score);
 		
 		Vector3i location = (Vector3i) score.keySet().toArray()[0];
 		InventoryItem itemClone = new InventoryItem(firstItemNeeded, amountNeeded, ItemData.getNameFromId(firstItemNeeded));
@@ -837,7 +843,7 @@ public class LocalGridTimeExecution {
 			int distUtil = centerCoords.manhattanDist(itemCoords);
 			score.put(itemCoords, Math.min(numItemsAtTile, amountNeeded) / Math.pow(distUtil, 2));
 		}
-		score = MathUti.getSortedMapByValueDesc(score);		
+		score = MapUtil.getSortedMapByValueDesc(score);		
 		Vector3i location = (Vector3i) score.keySet().toArray()[0];
 
 		return new ItemGroupPickupPriority(location, itemGroupName, amountNeeded);

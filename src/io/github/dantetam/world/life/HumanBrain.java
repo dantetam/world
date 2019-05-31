@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Set;
 
 import io.github.dantetam.world.civhumanrelation.HumanHumanRel;
+import io.github.dantetam.world.civhumanrelation.HumanHumanRel.HumanHumanRelType;
 import io.github.dantetam.world.civhumanrelation.HumanRelationship;
 import io.github.dantetam.world.items.InventoryItem;
 import io.github.dantetam.world.process.LocalProcess;
@@ -25,6 +26,7 @@ public class HumanBrain {
 	//Relating to this person's general ethics and attitudes towards everyday decisions
 	public Map<String, Ethos> greatEthos;
 	public Map<String, Ethos> ethosPersonalityTraits;
+	public Map<String, Ethos> ethosEconomics; //For certain inherent valuings or ideas of resources
 	
 	//Includes attitudes towards crafting, and human-human/human-item interactions
 	public Map<LocalProcess, Ethos> ethosTowardsProcesses;
@@ -78,7 +80,10 @@ public class HumanBrain {
 		return difference;
 	}
 	
-	public void addHumanRel(Human target, String relType) { 
+	public void addHumanRel(Human target) { 
+		addHumanRel(target, HumanHumanRelType.NEUTRAL);
+	}
+	public void addHumanRel(Human target, HumanHumanRelType relType) { 
 		indexedRelationships.put(target, new HumanHumanRel(this.host, target, relType));
 	}
 	

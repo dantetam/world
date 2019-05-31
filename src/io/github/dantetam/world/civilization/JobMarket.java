@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import io.github.dantetam.world.life.Ethos;
 import io.github.dantetam.world.life.Human;
 import io.github.dantetam.world.process.LocalJob;
 import io.github.dantetam.world.process.LocalProcess;
@@ -20,8 +21,11 @@ public class JobMarket {
 		allJobsAvailable.clear();
 		for (Human human: society.getAllPeople()) {
 			
-			TODO;
 			double wagePercentageOfOutput = 0.25;
+			Ethos workPayEthos = human.brain.ethosEconomics.get("Worker Percentage Wages");
+			if (workPayEthos != null) {
+				wagePercentageOfOutput += workPayEthos.getLogisticVal(-0.2, 0.5);
+			}
 			
 			Map<Integer, Double> calcUtility = society.findCompleteUtilityAllItems(human);
 			Map<LocalProcess, Double> bestProcesses = society.prioritizeProcesses(calcUtility, human, 20, null);

@@ -11,7 +11,7 @@ import java.util.Set;
 
 import org.lwjgl.util.vector.Vector3f;
 
-import io.github.dantetam.toolbox.MathUti;
+import io.github.dantetam.toolbox.MapUtil;
 import io.github.dantetam.world.combat.CombatEngine;
 import io.github.dantetam.world.combat.CombatMod;
 import io.github.dantetam.world.items.InventoryItem;
@@ -165,7 +165,7 @@ public class AnatomyData {
 				BodyPart bodyPartObj = this.bodyParts.get(entry.getKey());
 				bodyPartSizes.put(entry.getKey(), bodyPartObj.size * bodyPartObj.vulnerability);
 			}
-			String randBodyPart = MathUti.randChoiceFromWeightMap(bodyPartSizes);
+			String randBodyPart = MapUtil.randChoiceFromWeightMap(bodyPartSizes);
 			return randBodyPart;
 		}
 		

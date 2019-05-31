@@ -13,7 +13,7 @@ import java.util.Set;
 import org.apache.commons.math3.distribution.NormalDistribution;
 import org.apache.commons.math3.distribution.UniformRealDistribution;
 
-import io.github.dantetam.toolbox.MathUti;
+import io.github.dantetam.toolbox.MapUtil;
 import io.github.dantetam.world.combat.CombatMod.CombatCondition;
 import io.github.dantetam.world.combat.CombatMod.CombatModActor;
 import io.github.dantetam.world.combat.CombatMod.CombatModCalc;
@@ -90,7 +90,7 @@ public class CombatEngine {
 		for (CombatItem combatItem: body.allItems) {
 			Map<String, Double> itemStats = CombatData.combatStatsByItemIds.get(combatItem.combatItemId);
 			for (Entry<String, Double> entry: itemStats.entrySet()) {
-				MathUti.addNumMap(baseStats, entry.getKey(), entry.getValue());
+				MapUtil.addNumMap(baseStats, entry.getKey(), entry.getValue());
 			}
 			allStats.put("Has_Item/" + combatItem.name, "Y");
 			
@@ -197,7 +197,7 @@ public class CombatEngine {
 			double armorSpeed = getAdjVal(armorStats, "Manuever");
 			
 			double weaponHit = new NormalDistribution(weaponMeleeAtk, weaponMeleeAtk * 0.1).sample();
-			Double[] weaponStrikeEff = MathUti.randChoiceFromWeightMap(weaponStrikeEffByChance);
+			Double[] weaponStrikeEff = MapUtil.randChoiceFromWeightMap(weaponStrikeEffByChance);
 			double weaponStrike = new UniformRealDistribution(
 					weaponStrikeEff[0], weaponStrikeEff[1]
 					).sample();

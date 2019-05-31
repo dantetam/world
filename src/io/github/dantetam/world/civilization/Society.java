@@ -2,6 +2,7 @@ package io.github.dantetam.world.civilization;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -13,7 +14,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
-import io.github.dantetam.toolbox.MathUti;
+import io.github.dantetam.toolbox.MapUtil;
 import io.github.dantetam.vector.Vector3i;
 import io.github.dantetam.world.civhumansocietyai.SocietalHumansActionsCalc;
 import io.github.dantetam.world.combat.War;
@@ -111,7 +112,7 @@ public class Society {
 	 */
 	public Map<LocalProcess, Double> prioritizeProcesses(Map<Integer, Double> allItemsUtility, 
 			Human human, int desiredNumProcess, Set<Integer> desiredItems) {
-		Map<Integer, Double> sortedUtility = MathUti.getSortedMapByValueDesc(allItemsUtility);
+		Map<Integer, Double> sortedUtility = MapUtil.getSortedMapByValueDesc(allItemsUtility);
 		Object[] sortedKeys = sortedUtility.keySet().toArray();
 		
 		Map<Integer, Double> rawResRarity = findRawResourcesRarity(human);
@@ -127,7 +128,7 @@ public class Society {
 				if (desiredItems == null || desiredItems.contains(itemId)) {
 					//processByUtil.put(bestProcess, sortedUtility.get(itemId));
 					for (Entry<LocalProcess, Double> entry: bestProcesses.entrySet()) {
-						MathUti.insertKeepMaxMap(processByUtil, entry.getKey(), entry.getValue());
+						MapUtil.insertKeepMaxMap(processByUtil, entry.getKey(), entry.getValue());
 					}
 				}
 			}
@@ -154,8 +155,8 @@ public class Society {
 			}
 		}
 		
-		Map<LocalProcess, Double> processByPercentage = MathUti.getNormalizedMap(processByUtil);
-		processByPercentage = MathUti.getSortedMapByValueDesc(processByPercentage);
+		Map<LocalProcess, Double> processByPercentage = MapUtil.getNormalizedMap(processByUtil);
+		processByPercentage = MapUtil.getSortedMapByValueDesc(processByPercentage);
 		
 		System.out.println("Ranked processes: #####");
 		for (Entry<LocalProcess, Double> entry: processByUtil.entrySet()) {
@@ -165,20 +166,19 @@ public class Society {
 		return processByPercentage;
 	}
 	
-	public Map<LocalJob, Double> prioritizeJobs(Human human, Map<LocalProcess, Double> processUtil) {
+	public Map<LocalJob, Double> prioritizeJobs(Human human, 
+			Map<LocalProcess, Double> processUtil, Date date) {
 		Map<LocalJob, Double> rankedJobs = new HashMap<>();
-		
-		TODO
 		
 		for (Entry<LocalProcess, LocalJob> entry: this.jobMarket.allJobsAvailable.entrySet()) {
 			double physicalUtil = processUtil.containsKey(entry.getKey()) ? processUtil.get(entry.getKey()) : 0;
 			double workProsUtil = SocietalHumansActionsCalc
-					.possibleEmployeeUtil(human, entry.getValue().boss, entry.getValue());
-			rankedJobs.put(entry.getValue());
+					.possibleEmployeeUtil(human, entry.getValue().boss, entry.getValue(), date);
+			rankedJobs.put(entry.getValue(), (physicalUtil + workProsUtil) / 2);
 		}
 		
-		rankedJobs = MathUti.getNormalizedMap(rankedJobs);
-		rankedJobs = MathUti.getSortedMapByValueDesc(rankedJobs);
+		rankedJobs = MapUtil.getNormalizedMap(rankedJobs);
+		rankedJobs = MapUtil.getSortedMapByValueDesc(rankedJobs);
 		return rankedJobs;
 	}
 	
@@ -227,7 +227,7 @@ public class Society {
 						double util = allItemsUtility.containsKey(input.itemId) ? 
 								allItemsUtility.get(input.itemId) : 0;
 						if (canCompleteProcess(process, rawResRarity)) {
-							MathUti.insertKeepMaxMap(bestProcesses, process.clone(), util);
+							MapUtil.insertKeepMaxMap(bestProcesses, process.clone(), util);
 							//System.out.println("COMPLETE process: " + process.name + " " + util);
 							continue;
 						}
@@ -250,7 +250,7 @@ public class Society {
 			fringe = newFringe;
 		}
 		
-		bestProcesses = MathUti.getSortedMapByValue(bestProcesses);
+		bestProcesses = MapUtil.getSortedMapByValue(bestProcesses);
 		return bestProcesses;
 	}
 	
@@ -337,7 +337,7 @@ public class Society {
 			double sumWeightsUtility = 0;
 			
 			for (Entry<String, Double> entry: needsUtilityFromItems.entrySet()) {
-				MathUti.addNumMap(totalNeedsUtility, entry.getKey(), entry.getValue());
+				MapUtil.addNumMap(totalNeedsUtility, entry.getKey(), entry.getValue());
 				sumWeightsUtility += entry.getValue();
 			}
 			
@@ -352,7 +352,7 @@ public class Society {
 		}
 		
 		Map<Integer, Double> propogatedFinalUtil = backpropUtilToComponents(finalOutputUtility, availableItemIds);
-		propogatedFinalUtil = MathUti.getSortedMapByValue(propogatedFinalUtil);
+		propogatedFinalUtil = MapUtil.getSortedMapByValue(propogatedFinalUtil);
 		
 		//Map<String, Double> sortedNeedUtility = MathUti.getSortedMapByValue(totalNeedsUtility); 
 		
@@ -376,12 +376,12 @@ public class Society {
 							if (item.currentUser == null || human == null || item.currentUser.equals(human)) {
 								int id = item.itemId;
 								int num = item.quantity;
-								MathUti.addNumMap(itemRarity, id, (double) num);
+								MapUtil.addNumMap(itemRarity, id, (double) num);
 							}
 						}
 					}
 					if (tile.tileBlockId != ItemData.ITEM_EMPTY_ID) {
-						MathUti.addNumMap(itemRarity, tile.tileBlockId, 1.0);
+						MapUtil.addNumMap(itemRarity, tile.tileBlockId, 1.0);
 					}
 					/*
 					if (tile.tileBlockId != ItemData.ITEM_EMPTY_ID) {
@@ -397,12 +397,12 @@ public class Society {
 		}
 		for (LocalBuilding building: grid.getAllBuildings()) {
 			if (human == null || building.owner == null || building.owner.equals(human)) {
-				MathUti.addNumMap(itemRarity, building.buildingId, 1.0);
+				MapUtil.addNumMap(itemRarity, building.buildingId, 1.0);
 				for (int itemId: building.buildingBlockIds) {
 					ItemTotalDrops drops = ItemData.getOnBlockItemDrops(itemId);
 					Map<Integer, Double> itemExpectations = drops.itemExpectation();
 					for (Entry<Integer, Double> entry: itemExpectations.entrySet()) {
-						MathUti.addNumMap(itemRarity, entry.getKey(), entry.getValue());
+						MapUtil.addNumMap(itemRarity, entry.getKey(), entry.getValue());
 					}
 				}
 			}
@@ -411,14 +411,14 @@ public class Society {
 			for (Human everyHuman: this.getAllPeople()) {
 				List<InventoryItem> items = everyHuman.inventory.getItems();
 				for (InventoryItem item: items) {
-					MathUti.addNumMap(itemRarity, item.itemId, (double) item.quantity);
+					MapUtil.addNumMap(itemRarity, item.itemId, (double) item.quantity);
 				}
 			}
 		}
 		else {
 			List<InventoryItem> items = human.inventory.getItems();
 			for (InventoryItem item: items) {
-				MathUti.addNumMap(itemRarity, item.itemId, (double) item.quantity);
+				MapUtil.addNumMap(itemRarity, item.itemId, (double) item.quantity);
 			}
 		}
 		return itemRarity;
@@ -434,7 +434,7 @@ public class Society {
 			Set<String> groupNames = ItemData.getGroupNameById(entry.getKey());
 			if (groupNames != null) {
 				for (String groupName: groupNames) {
-					MathUti.addNumMap(groupItemRarity, groupName, entry.getValue());
+					MapUtil.addNumMap(groupItemRarity, groupName, entry.getValue());
 				}
 			}
 		}
@@ -454,21 +454,21 @@ public class Society {
 				ItemTotalDrops drops = ItemData.getOnBlockItemDrops(itemId);
 				Map<Integer, Double> itemExpectations = drops.itemExpectation();
 				for (Entry<Integer, Double> entry: itemExpectations.entrySet()) {
-					MathUti.addNumMap(itemRarity, entry.getKey(), entry.getValue());
+					MapUtil.addNumMap(itemRarity, entry.getKey(), entry.getValue());
 				}
 			}
 		}
 		for (Human everyHuman: this.getAllPeople()) {
 			List<InventoryItem> items = everyHuman.inventory.getItems();
 			for (InventoryItem item: items) {
-				MathUti.addNumMap(itemRarity, item.itemId, (double) item.quantity);
+				MapUtil.addNumMap(itemRarity, item.itemId, (double) item.quantity);
 			}
 			if (everyHuman.processProgress != null) {
 				ItemTotalDrops drops = everyHuman.processProgress.outputItems;
 				if (drops != null) {
 					Map<Integer, Double> itemExpectations = drops.itemExpectation();
 					for (Entry<Integer, Double> entry: itemExpectations.entrySet()) {
-						MathUti.addNumMap(itemRarity, entry.getKey(), entry.getValue() * 5);
+						MapUtil.addNumMap(itemRarity, entry.getKey(), entry.getValue() * 5);
 					}
 				}
 			}
@@ -518,7 +518,7 @@ public class Society {
 							newFringe.add(nextItemId);
 						}
 						//System.out.println(ItemData.getNameFromId(itemId) + " ---expand---> " + ItemData.getNameFromId(nextItemId));
-						MathUti.addNumMap(itemRarity, nextItemId, entry.getValue());
+						MapUtil.addNumMap(itemRarity, nextItemId, entry.getValue());
 					}
 				}
 				
@@ -578,7 +578,7 @@ public class Society {
 						double avgUtil = (outputUtil + provisionalUtil) / 2.0;
 						avgUtil -= inputCosts;
 						
-						MathUti.insertKeepMaxMap(newFinalUtility, item.itemId, percentage * avgUtil);
+						MapUtil.insertKeepMaxMap(newFinalUtility, item.itemId, percentage * avgUtil);
 						
 						if (!expandedItemIds.contains(item.itemId)) {
 							expandedItemIds.add(item.itemId);
@@ -601,7 +601,7 @@ public class Society {
 		Map<String, Double> societalNeed = new HashMap<>();
 		for (Human human : this.getAllPeople()) {
 			double hungerScore = 1.0 - human.nutrition / human.maxNutrition;
-			MathUti.addNumMap(societalNeed, "Eat", hungerScore);
+			MapUtil.addNumMap(societalNeed, "Eat", hungerScore);
 		
 			//double thirstScore = 1.0 - human.hydration / human.maxHydration;
 			//MathUti.addNumMap(societalNeed, "Drink", thirstScore);
@@ -621,13 +621,13 @@ public class Society {
 			
 			int minShelter = 20;
 			double normShelterScore = (double) Math.max(minShelter - shelterScore, 0) / minShelter;
-			MathUti.addNumMap(societalNeed, "Shelter", normShelterScore);
+			MapUtil.addNumMap(societalNeed, "Shelter", normShelterScore);
 			
-			MathUti.addNumMap(societalNeed, "Clothing", 1.0);
+			MapUtil.addNumMap(societalNeed, "Clothing", 1.0);
 			
 			if (human.home == null) {
-				MathUti.addNumMap(societalNeed, "Personal Home", 1.0);
-				MathUti.addNumMap(societalNeed, "Furniture", 0.8);
+				MapUtil.addNumMap(societalNeed, "Personal Home", 1.0);
+				MapUtil.addNumMap(societalNeed, "Furniture", 0.8);
 			}
 			else {
 				double normFurnitureScore = 0;
@@ -648,14 +648,14 @@ public class Society {
 					}
 				}
 				normFurnitureScore = Math.min(normFurnitureScore, 1.0);
-				MathUti.addNumMap(societalNeed, "Furniture", normFurnitureScore);
-				MathUti.addNumMap(societalNeed, "Personal Home", normFurnitureScore / 3);
+				MapUtil.addNumMap(societalNeed, "Furniture", normFurnitureScore);
+				MapUtil.addNumMap(societalNeed, "Personal Home", normFurnitureScore / 3);
 			}	
 			
 			double beautyScore = grid.averageBeauty(human.location.coords);
-			MathUti.addNumMap(societalNeed, "Beauty", 1.0 - beautyScore);
+			MapUtil.addNumMap(societalNeed, "Beauty", 1.0 - beautyScore);
 			
-			MathUti.addNumMap(societalNeed, "Soldier", 0.7);
+			MapUtil.addNumMap(societalNeed, "Soldier", 0.7);
 		}
 		return societalNeed;
 	}
@@ -668,28 +668,28 @@ public class Society {
 		
 		if (ItemData.isPlaceable(itemId)) {
 			int pickupTime = ItemData.getPickupTime(itemId);
-			MathUti.addNumMap(rawUtilByNeed, "Shelter", pickupTime / 100.0);
+			MapUtil.addNumMap(rawUtilByNeed, "Shelter", pickupTime / 100.0);
 		}
 		
 		List<ProcessStep> itemActions = ItemData.getItemActions(itemId);
 		if (itemActions != null) {
 			for (ProcessStep step: itemActions) {
-				MathUti.addNumMap(rawUtilByNeed, step.stepType, step.modifier);
+				MapUtil.addNumMap(rawUtilByNeed, step.stepType, step.modifier);
 			}
 		}
 		
 		List<ProcessStep> itemProps = ItemData.getItemProps(itemId);
 		if (itemProps != null) {
 			for (ProcessStep step: itemProps) {
-				MathUti.addNumMap(rawUtilByNeed, step.stepType, step.modifier);
+				MapUtil.addNumMap(rawUtilByNeed, step.stepType, step.modifier);
 			}
 		}
 		
 		double baseValue = ItemData.getBaseItemValue(itemId);
-		MathUti.addNumMap(rawUtilByNeed, "Wealth", baseValue);
+		MapUtil.addNumMap(rawUtilByNeed, "Wealth", baseValue);
 		
 		double beautyValue = ItemData.getItemBeautyValue(itemId);
-		MathUti.addNumMap(rawUtilByNeed, "Beauty", beautyValue / 3.0);
+		MapUtil.addNumMap(rawUtilByNeed, "Beauty", beautyValue / 3.0);
 		
 		/*
 		System.out.println(ItemData.getNameFromId(itemId) + " stats: ");

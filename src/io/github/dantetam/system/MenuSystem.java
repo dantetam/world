@@ -13,7 +13,7 @@ import io.github.dantetam.render.Button;
 import io.github.dantetam.render.GameLauncher;
 import io.github.dantetam.render.Menu;
 import io.github.dantetam.render.TextBox;
-import io.github.dantetam.toolbox.MathUti;
+import io.github.dantetam.toolbox.MapUtil;
 import io.github.dantetam.toolbox.MousePicker;
 import io.github.dantetam.vector.Vector3i;
 import io.github.dantetam.world.dataparse.ItemData;
@@ -97,7 +97,7 @@ public class MenuSystem extends BaseSystem {
 					
 					if (tile.building.inventory.size() > 0) {
 						String allItems = "Building Items: " + tile.building.inventory.toUniqueItemsMap();
-						List<String> itemsWordWrapped = MathUti.wrapString(allItems, 40);
+						List<String> itemsWordWrapped = MapUtil.wrapString(allItems, 40);
 						for (String line: itemsWordWrapped)
 							texts.add(line);
 					} else {
@@ -111,7 +111,7 @@ public class MenuSystem extends BaseSystem {
 					for (LivingEntity being: tile.getPeople()) {
 						if (being.inventory.size() > 0) {
 							texts.add(being.name);
-							List<String> humanInvWrapped = MathUti.wrapString(being.inventory.toString(), 40);
+							List<String> humanInvWrapped = MapUtil.wrapString(being.inventory.toString(), 40);
 							for (String text: humanInvWrapped) 
 								texts.add(text);
 						} else {

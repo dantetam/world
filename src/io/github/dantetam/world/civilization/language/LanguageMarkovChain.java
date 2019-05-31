@@ -3,7 +3,7 @@ package io.github.dantetam.world.civilization.language;
 import java.util.HashMap;
 import java.util.Map;
 
-import io.github.dantetam.toolbox.MathUti;
+import io.github.dantetam.toolbox.MapUtil;
 
 public class LanguageMarkovChain {
 
@@ -47,7 +47,7 @@ public class LanguageMarkovChain {
 		}
 		
 		public TrieProbability randomNextChar() {
-			return MathUti.randChoiceFromWeightMap(nextTrieNodes);
+			return MapUtil.randChoiceFromWeightMap(nextTrieNodes);
 		}
 	}
 	

@@ -12,8 +12,6 @@ import io.github.dantetam.world.life.Human;
  */
 
 public class SocietyLeadership {
-
-	TODO; //Implement in Society
 	
 	public List<Human> currentLeaders;
 	
@@ -26,7 +24,7 @@ public class SocietyLeadership {
 		
 	}
 	
-	TODO //SocietalEthos, political, in the technical impl. like that of a human
+	//TODO: SocietalEthos, political, in the technical impl. like that of a human
 		
 	public enum SocietyLeadershipMode {
 		DICTATORSHIP, GROUP, SENATE, FULL_DEMOCRACY 

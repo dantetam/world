@@ -6,7 +6,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import io.github.dantetam.toolbox.MathUti;
+import io.github.dantetam.toolbox.MapUtil;
 import io.github.dantetam.world.combat.CombatMod.CombatCondition;
 import io.github.dantetam.world.dataparse.AnatomyData.Body;
 
@@ -59,15 +59,15 @@ public class CombatMod {
 			for (Entry<String, String> entry: condMods.entrySet()) {
 				boolean check;
 				
-				boolean selfCheck = MathUti.checkKeyValue(self, entry.getKey(), entry.getValue());
-				boolean otherCheck = MathUti.checkKeyValue(other, entry.getKey(), entry.getValue());
+				boolean selfCheck = MapUtil.checkKeyValue(self, entry.getKey(), entry.getValue());
+				boolean otherCheck = MapUtil.checkKeyValue(other, entry.getKey(), entry.getValue());
 				
 				switch (condActor) {
 				case ATTACKER:
-					check = MathUti.checkKeyValue(atk, entry.getKey(), entry.getValue());
+					check = MapUtil.checkKeyValue(atk, entry.getKey(), entry.getValue());
 					break;
 				case DEFENDER:
-					check = MathUti.checkKeyValue(def, entry.getKey(), entry.getValue());
+					check = MapUtil.checkKeyValue(def, entry.getKey(), entry.getValue());
 					break;
 				case SELF:
 					check = selfCheck;
