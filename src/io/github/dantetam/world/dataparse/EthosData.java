@@ -11,9 +11,28 @@ import io.github.dantetam.world.life.HumanBrain.EthosModifier;
 public class EthosData {
 
 	private static Map<String, Ethos> greatEthos = new HashMap<>(); //TODO
+	private static Map<String, Ethos> ethosPersonalityTraits = new HashMap<>();
 	
 	public static Collection<Ethos> getMajorEthos() {
 		return greatEthos.values();
+	}
+	
+	public static Collection<Ethos> getPersonalityTraits() {
+		return ethosPersonalityTraits.values();
+	}
+	
+	/**
+	 * For initialization only
+	 */
+	public Map<String, Ethos> initGreatEthos() {
+		return greatEthos;
+	}
+	
+	/**
+	 * For initialization only
+	 */
+	public Map<String, Ethos> initPersonalTraits() {
+		return ethosPersonalityTraits;
 	}
 	
 	public static EthosModifier[] parseEthosMods(String str) {

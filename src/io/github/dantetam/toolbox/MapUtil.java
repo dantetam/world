@@ -84,6 +84,16 @@ public class MapUtil {
 		}
 		return null;
 	}
+	
+	public static <U extends Number> Object randChoiceFromMaps(Map<?, U>... maps) {
+		Map<Object, U> allItemsMap = new HashMap<>();
+		for (Map<?, U> map: maps) {
+			for (Entry<?, U> entry: map.entrySet()) {
+				allItemsMap.put(entry.getKey(), entry.getValue());
+			}
+		}
+		return randChoiceFromWeightMap(allItemsMap);
+	}
 
 	//Ascending sort on a generic mapping
 	public static <K, V extends Comparable<? super V>> Map<K, V> getSortedMapByValue(Map<K, V> map) {

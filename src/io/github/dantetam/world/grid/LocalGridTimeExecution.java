@@ -132,7 +132,8 @@ public class LocalGridTimeExecution {
 				if (process.processSteps.size() > 0) {
 					ProcessStep step = process.processSteps.get(0);
 					if (human.activePriority == null) {
-						human.activePriority = getPriorityForStep(society, grid, human, process, step);
+						human.activePriority = getPriorityForStep(society, grid, 
+								human, human.jobProcessProgress.boss, process, step);
 						String priorityName = human.activePriority == null ? "null" : human.activePriority.getClass().getSimpleName();
 						System.out.println(human.name + ", for its process: " + process + ", ");
 								System.out.println("was given the PRIORITY: " + priorityName);
@@ -180,7 +181,7 @@ public class LocalGridTimeExecution {
 				if (human.processProgress.processSteps.size() > 0) {
 					ProcessStep step = human.processProgress.processSteps.get(0);
 					if (human.activePriority == null) {
-						human.activePriority = getPriorityForStep(society, grid, human, human.processProgress, step);
+						human.activePriority = getPriorityForStep(society, grid, human, human, human.processProgress, step);
 						String priorityName = human.activePriority == null ? "null" : human.activePriority.getClass().getSimpleName();
 						System.out.println(human.name + ", for its process: " + human.processProgress + ", ");
 								System.out.println("was given the PRIORITY: " + priorityName);
@@ -450,11 +451,12 @@ public class LocalGridTimeExecution {
 	
 	/**
 	 * Deconstruct a process into a priority.
+	 * @param ownerProducts  The person to which the final goods should go to (for employees working under a boss)
 	 * @return the Priority object which represents the given group of actions/approach, for working towards
 	 * 		the given process and step.
 	 */
-	private static Priority getPriorityForStep(Society society, LocalGrid grid, Human being, 
-			LocalProcess process, ProcessStep step) {
+	private static Priority getPriorityForStep(Society society, LocalGrid grid, 
+			Human being, Human ownerProducts, LocalProcess process, ProcessStep step) {
 		Priority priority = null;
 		
 		System.out.println("Figuring out priority, for process: " + process);
@@ -649,6 +651,9 @@ public class LocalGridTimeExecution {
 		}
 		else if (step.stepType.equals("O")) {
 			List<InventoryItem> outputItems = process.outputItems.getOneItemDrop();
+			for (InventoryItem item: outputItems) {
+				item.owner = ownerProducts;
+			}
 			System.out.println("Dropped items: " + new Inventory(outputItems) + " at place: " + itemMode);
 			destinationInventory.addItems(outputItems);
 			if (!itemMode.equals("Personal")) { //Keep a record of this item in the 3d space
@@ -710,12 +715,19 @@ public class LocalGridTimeExecution {
 	}
 	private static void assignSingleHumanJob(Society society, Human human, Date date) {
 		Map<Integer, Double> calcUtility = society.findCompleteUtilityAllItems(human);
-		Map<LocalProcess, Double> bestProcesses = society.prioritizeProcesses(calcUtility, human, 20, null);
 		
+		Map<LocalProcess, Double> bestProcesses = society.prioritizeProcesses(calcUtility, human, 20, null);
 		Map<LocalJob, Double> bestJobs = society.prioritizeJobs(human, bestProcesses, date);
 		
-		LocalProcess randBiasedChosenProcess = MapUtil.randChoiceFromWeightMap(bestProcesses);
-		human.processProgress = randBiasedChosenProcess;
+		Object potentialJob = MapUtil.randChoiceFromMaps(bestProcesses, bestJobs);
+		if (potentialJob instanceof LocalJob) {
+			human.jobProcessProgress = (LocalJob) potentialJob;
+		}
+		else if (potentialJob instanceof LocalProcess) {
+			human.processProgress = (LocalProcess) potentialJob;
+		}
+		//LocalProcess randBiasedChosenProcess = MapUtil.randChoiceFromWeightMap(bestProcesses);
+		//human.processProgress = randBiasedChosenProcess;
 	}
 	
 	private static void collectivelyAssignJobsSociety(Society society) {
