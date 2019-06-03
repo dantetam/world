@@ -63,4 +63,17 @@ public class Ethos {
 		clone.effects = this.effects;
 		return clone;
 	}
+	
+	public boolean equals(Object other) {
+		if (!(other instanceof Ethos)) {
+			return false;
+		}
+		Ethos ethos = (Ethos) other;
+		return this.name.equals(ethos.name);
+	}
+	
+	public int hashCode() {
+		return this.name.hashCode();
+	}
+	
 }

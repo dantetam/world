@@ -24,6 +24,7 @@ import io.github.dantetam.world.process.LocalProcess;
 public class SocietalHumansActionsCalc {
 	
 	//See EmergentSocietyCalc.java
+	//TODO; //Use societal/human ethos in calc. Add more unique actions with consequences.
 	
 	public static double calcPropensityToMarry(Human human, Human otherHuman, Date date) {
 		HumanHumanRel oneWayRel = human.brain.getHumanRel(otherHuman);
@@ -33,6 +34,10 @@ public class SocietalHumansActionsCalc {
 			return PropensityUtil.nonlinearRelUtil(opinion);
 		}
 		return 0;
+	}
+	
+	public static boolean proposeMarriage(Human proposer, Human target) {
+		return true;
 	}
 	
 	//Intended to be calculated on all members of a society

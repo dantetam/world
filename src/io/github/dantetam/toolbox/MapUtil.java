@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -55,6 +56,19 @@ public class MapUtil {
 		else {
 			map.put(key, (U) new Double(Math.max(map.get(key).doubleValue(), value.doubleValue())));
 		}
+	}
+	
+	public static <K, V> void insertNestedListMap(Map<K, List<V>> map, K key, V value) {
+		if (!map.containsKey(key)) {
+			map.put(key, new ArrayList<V>());
+		}
+		map.get(key).add(value);
+	}
+	public static <K, V> void insertNestedSetMap(Map<K, Set<V>> map, K key, V value) {
+		if (!map.containsKey(key)) {
+			map.put(key, new HashSet<V>());
+		}
+		map.get(key).add(value);
 	}
 	
 	public static <T, U extends Number> Map<T, Double> getNormalizedMap(Map<T, U> map) {

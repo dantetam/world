@@ -15,6 +15,7 @@ import io.github.dantetam.toolbox.StringUtil;
 import io.github.dantetam.vector.Vector2i;
 import io.github.dantetam.vector.Vector3i;
 import io.github.dantetam.world.civhumansocietyai.FreeActionsHousehold;
+import io.github.dantetam.world.civhumansocietyai.FreeActionsHumans;
 import io.github.dantetam.world.civhumansocietyai.FreeActionsSociety;
 import io.github.dantetam.world.civilization.Household;
 import io.github.dantetam.world.civilization.Society;
@@ -136,6 +137,9 @@ public class WorldGrid {
 					List<Household> households = getFreeHouseholds(new Vector2i(r,c));
 					FreeActionsHousehold.considerAllFreeActionsHouseholds(
 							this, activeLocalGrid, households, getTime());
+					
+					FreeActionsHumans.considerAllFreeActionsHumans(this, 
+							testSociety.getAllPeople(), getTime());
 					
 					//TODO //Tick for every society involved in this grid
 					LocalGridTimeExecution.tick(this, grid, testSociety);

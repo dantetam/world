@@ -42,7 +42,7 @@ public class EmergentHouseholdCalc {
 		
 		if (bestHuman == null) {
 			for (Human candidate: household.householdMembers) {
-				Ethos ethosIndep = candidate.brain.ethosPersonalityTraits.get("Independence");
+				Ethos ethosIndep = candidate.brain.ethosPersonalityTraits.get("Individualist");
 				double severity = ethosIndep != null ? Math.log(ethosIndep.severity) : 0;
 				if (severity > bestScore) {
 					bestScore = severity;

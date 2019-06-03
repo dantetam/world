@@ -36,14 +36,14 @@ public class HumanHumanRel extends HumanRelationship {
 		double opinionSum = 0;
 		for (Entry<String, Ethos> entry: human.brain.greatEthos.entrySet()) {
 			Ethos ethos = entry.getValue();
-			if (ethos.name.equals("Language Ethoscentrism")) {
+			if (ethos.name.equals("Ethnocentrism")) {
 				double severityMulti = ethos.getLogisticVal(0, 2.5);
 				double raceSimilarity = human.dna.compareGenesDist(targetHuman.dna, "race");
 				double culSimilarityEmbed = human.dna.compareGenesDist(targetHuman.dna, "culture");
 				//double culSimilarityApparent = human.brain.greatEthos
 				opinionSum += severityMulti * (raceSimilarity + culSimilarityEmbed * 0.5 - 0.9) * 10; 
 			}
-			if (ethos.name.equals("Ethos Diff Tolerance")) {
+			if (ethos.name.equals("Open")) {
 				double severityMulti = ethos.getLogisticVal(-2.5, 2.5);
 				double totalEthosDiff = HumanBrain.getEthosDifference(human.brain, targetHuman.brain);
 				opinionSum += -1 * severityMulti * totalEthosDiff * 10;
