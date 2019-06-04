@@ -50,8 +50,8 @@ public class StringUtil {
 	}
 	
 	public static int getIndexOfChar(char base) {
-		if (alphanumIndices.containsKey(base)) {
-			throw new IllegalArgumentException("This character offset method requires alphanumeric char");
+		if (!alphanumIndices.containsKey(base)) {
+			throw new IllegalArgumentException("This character offset method requires alphanumeric char, given: " + base);
 		}
 		return alphanum.indexOf(base);
 	}

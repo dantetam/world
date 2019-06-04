@@ -53,6 +53,7 @@ public class Society {
 		households = new ArrayList<>();
 		warsInvolved = new ArrayList<>();
 		this.leadershipManager = new SocietyLeadership(this);
+		this.jobMarket = new JobMarket();
 	}
 	
 	public void addHousehold(Household house) {

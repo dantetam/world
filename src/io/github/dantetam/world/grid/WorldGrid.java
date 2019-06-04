@@ -57,6 +57,8 @@ public class WorldGrid {
 			}
 		}
 		
+		societalDiplomacy = new SocietyDiplomacy(this);
+		
 		Vector3i sizes = new Vector3i(200,200,50);
 		int biome = 3;
 		localGridTiles[2][2] = new LocalGridTerrainInstantiate(sizes, biome).setupGrid();

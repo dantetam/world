@@ -15,7 +15,7 @@ public class EthosData {
 	//Note that opposite ethos is a one way relation e.g.
 	//kind people can have an aversion to cruel people, 
 	//but cruel people are apathetic the other way.
-	public static Map<String, Set<String>> oppositeEthosMap;
+	public static Map<String, Set<String>> oppositeEthosMap = new HashMap<>();
 	
 	private static Map<String, Ethos> greatEthos = new HashMap<>(); //TODO
 	private static Map<String, Ethos> ethosPersonalityTraits = new HashMap<>();
