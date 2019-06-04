@@ -79,6 +79,14 @@ public class Society {
 		return households;
 	}
 	
+	public double getTotalWealth() {
+		double wealth = 0;
+		for (Household household: this.households) {
+			wealth += household.getTotalWealth();
+		}
+		return wealth;
+	}
+	
 	/**
 	 * Find important locations to travel between within a society, for patrol purposes.
 	 * These locations include homes, businesses, resource stores, and so on.

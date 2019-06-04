@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map.Entry;
 
+import io.github.dantetam.world.civhumanrelation.SocietySocietyRel.SocietalRelationMode;
 import io.github.dantetam.world.civilization.LocalExperience;
 import io.github.dantetam.world.civilization.Society;
 import io.github.dantetam.world.items.InventoryItem;
@@ -22,6 +23,7 @@ public class SocietySocietyRel extends HumanRelationship {
 	public enum SocietalRelationMode {
 		NEUTRAL, WAR, DEFENSIVE_ALLIES, ALLIES,
 		OVERLORD, VASSAL //one-way relations towards, i.e. hostSociety is the overlord of otherSociety
+		//A society can only have one overlord
 	}
 	
 	public SocietySocietyRel(Society hostSociety, Society otherSociety) {

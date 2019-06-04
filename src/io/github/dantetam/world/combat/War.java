@@ -37,6 +37,20 @@ public class War {
 		return false;
 	}
 	
+	public Set<Society> getSameSide(Society society) {
+		if (warLeaderAttacker.equals(society) || attackerAllies.contains(society)) {
+			Set<Society> opposite = new HashSet<>(attackerAllies);
+			opposite.add(warLeaderAttacker);
+			return opposite;
+		}
+		else if (warLeaderDefender.equals(society) || defenderAllies.contains(society)) {
+			Set<Society> opposite = new HashSet<>(defenderAllies);
+			opposite.add(warLeaderDefender);
+			return opposite;
+		}
+		throw new IllegalArgumentException("Invalid war calculation, " + society + " not involved in war: " + this.toString());
+	}
+	
 	public Set<Society> getOppositeSide(Society society) {
 		if (warLeaderAttacker.equals(society) || attackerAllies.contains(society)) {
 			Set<Society> opposite = new HashSet<>(defenderAllies);
@@ -49,6 +63,10 @@ public class War {
 			return opposite;
 		}
 		throw new IllegalArgumentException("Invalid war calculation, " + society + " not involved in war: " + this.toString());
+	}
+	
+	public boolean hostileInThisWar(Society society, Society otherSociety) {
+		return getOppositeSide(society).contains(otherSociety);
 	}
 	
 }

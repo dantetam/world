@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import io.github.dantetam.toolbox.ListUtil;
+import io.github.dantetam.toolbox.MapUtil;
 import io.github.dantetam.world.civilization.Society;
 import io.github.dantetam.world.dataparse.EthosData;
 import io.github.dantetam.world.dataparse.ItemData;
@@ -51,10 +52,12 @@ public class HumanBrainInitialize {
 			Ethos newEthos = new Ethos(name, 0, "", "");
 			brain.ethosTowardsOtherEthos.put(ethos, newEthos);
 		}
+		
+		initValuesToHumanEthos(brain);
 	}
 
-	//Assign random, sensible values to ethos, 
-	public static void initValuesToHumanEthos(HumanBrain brain) {
+	//Assign random, sensible values to ethos, TODO
+	private static void initValuesToHumanEthos(HumanBrain brain) {
 		for (Entry<String, Ethos> entry: brain.greatEthos.entrySet()) {
 			Ethos ethos = entry.getValue();
 			ethos.severity = Math.random() * 60 - 30;
@@ -75,7 +78,6 @@ public class HumanBrainInitialize {
 				ethosOpinion.severity = ethos.severity + offset;
 			}
 		}
-		TODO
 	}
 	
 	/**
@@ -84,7 +86,7 @@ public class HumanBrainInitialize {
 	 * @param human The human in question
 	 */
 	public static void calculateHumanEthosExp(Human human) {
-		
+		//TODO
 	}
 
 	/**
@@ -99,7 +101,30 @@ public class HumanBrainInitialize {
 	 */
 	public static void influenceHumanBrain(HumanBrain newBrain, List<HumanBrain> otherBrains, 
 			Society society) {
-		
+		double n = otherBrains.size();
+		for (HumanBrain brain: otherBrains) {
+			for (Entry<String, Ethos> entry: brain.greatEthos.entrySet()) {
+				newBrain.greatEthos.get(entry.getKey()).severity += entry.getValue().severity / n;
+			}
+			for (Entry<String, Ethos> entry: brain.ethosPersonalityTraits.entrySet()) {
+				newBrain.ethosPersonalityTraits.get(entry.getKey()).severity += entry.getValue().severity / n;
+			}
+			for (Entry<String, Ethos> entry: brain.ethosEconomics.entrySet()) {
+				newBrain.ethosEconomics.get(entry.getKey()).severity += entry.getValue().severity / n;
+			}
+			for (Entry<LocalProcess, Ethos> entry: brain.ethosTowardsProcesses.entrySet()) {
+				newBrain.ethosTowardsProcesses.get(entry.getKey()).severity += entry.getValue().severity / n;
+			}
+			for (Entry<Integer, Ethos> entry: brain.ethosTowardsItems.entrySet()) {
+				newBrain.ethosTowardsItems.get(entry.getKey()).severity += entry.getValue().severity / n;
+			}
+			for (Entry<Ethos, Ethos> entry: brain.ethosTowardsOtherEthos.entrySet()) {
+				newBrain.ethosTowardsOtherEthos.get(entry.getKey()).severity += entry.getValue().severity / n;
+			}
+			for (Entry<String, Double> entry: brain.languageCodesStrength.entrySet()) {
+				MapUtil.addNumMap(newBrain.languageCodesStrength, entry.getKey(), entry.getValue() / n);
+			}
+		}
 	}
 	
 	private static Collection<Ethos> getAllHumanEthos(HumanBrain brain) {

@@ -29,6 +29,10 @@ public class MapUtil {
 		}
 	}
 
+	/**
+	 * Safe addition into a map (null check). 
+	 * Add value to key k, defaulting to k -> 0 when k is not a key.
+	 */
 	public static <T, U extends Number> void 
 			addNumMap(Map<T, U> map, T key, U value) {
 		if (!map.containsKey(key)) {
