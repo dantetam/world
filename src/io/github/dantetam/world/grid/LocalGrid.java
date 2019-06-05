@@ -631,7 +631,7 @@ public class LocalGrid {
 			for (int c = -dist*2; c <= dist*2; c++) {
 				if (inBounds(new Vector3i(r,c,0))) {
 					int h = findHighestGroundHeight(r,c);
-					if (this.tileIsOccupied(new Vector3i(r,c,h))) {
+					if (this.tileIsAccessible(new Vector3i(r,c,h))) {
 						return new Vector3i(r,c,h);
 					}
 				}

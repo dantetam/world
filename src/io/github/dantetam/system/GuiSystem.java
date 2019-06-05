@@ -71,31 +71,39 @@ public class GuiSystem extends BaseSystem {
 				LocalTile tile;
 				while (candidateHeight > 0) {
 					tile = activeGrid.getTile(new Vector3i(x,z,candidateHeight));
-					if (tile != null) { //if (tile.isOccupied());
+					if (tile != null) { //if (activeGrid.tileIsOccupied(tile.coords))
+						/*
 						if (!tile.exposedToAir) {
 							listGuis.add(new GuiQuad(darknessTexture, guiPos, guiDim));
 						}
-						else {
-							if (tile.tileBlockId != ItemData.ITEM_EMPTY_ID) {
-								int tileTexture = ItemData.getTextureFromItemId(tile.tileBlockId);
-								listGuis.add(new GuiQuad(tileTexture, guiPos, guiDim));
-				 			}
-							else if (tile.tileFloorId != ItemData.ITEM_EMPTY_ID) {
-								int tileTexture = ItemData.getTextureFromItemId(tile.tileFloorId);
-								listGuis.add(new GuiQuad(tileTexture, guiPos, guiDim));
-							}
-							if (tile.itemsOnFloor.size() > 0) {
-								TextBox buildingTextBox = getDefaultTextBoxGui(guiDefaultTexture, "I", "", guiPos.x, guiPos.y, guiWidth, guiHeight);
-								listTexts.add(buildingTextBox);
-							}
-							if (tile.getPeople() != null && tile.getPeople().size() > 0) {
-								TextBox buildingTextBox = getDefaultTextBoxGui(guiDefaultTexture, "H!", "", guiPos.x, guiPos.y, guiWidth, guiHeight);
-								listTexts.add(buildingTextBox);
-							}
-							
-							if (candidateHeight != originalHeight) { //Air overlay for looking at lower heights with air on top
-								listGuis.add(new GuiQuad(airTileTexture, guiPos, guiDim));
-							}
+						*/
+						
+						/*
+						if (tile.tileBlockId == ItemData.ITEM_EMPTY_ID) {
+							candidateHeight--;
+							continue;
+						}
+						*/
+
+						if (tile.tileBlockId != ItemData.ITEM_EMPTY_ID) {
+							int tileTexture = ItemData.getTextureFromItemId(tile.tileBlockId);
+							listGuis.add(new GuiQuad(tileTexture, guiPos, guiDim));
+			 			}
+						else if (tile.tileFloorId != ItemData.ITEM_EMPTY_ID) {
+							int tileTexture = ItemData.getTextureFromItemId(tile.tileFloorId);
+							listGuis.add(new GuiQuad(tileTexture, guiPos, guiDim));
+						}
+						if (tile.itemsOnFloor.size() > 0) {
+							TextBox buildingTextBox = getDefaultTextBoxGui(guiDefaultTexture, "I", "", guiPos.x, guiPos.y, guiWidth, guiHeight);
+							listTexts.add(buildingTextBox);
+						}
+						if (tile.getPeople() != null && tile.getPeople().size() > 0) {
+							TextBox buildingTextBox = getDefaultTextBoxGui(guiDefaultTexture, "H!", "", guiPos.x, guiPos.y, guiWidth, guiHeight);
+							listTexts.add(buildingTextBox);
+						}
+						
+						if (candidateHeight != originalHeight) { //Air overlay for looking at lower heights with air on top
+							listGuis.add(new GuiQuad(airTileTexture, guiPos, guiDim));
 						}
 						break;
 					}
