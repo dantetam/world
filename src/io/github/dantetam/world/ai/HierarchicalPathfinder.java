@@ -39,19 +39,26 @@ public class HierarchicalPathfinder extends Pathfinder {
 		initAllAbstractNodes();
 	}
 	
-	public void findAbstractPath() {
-		
-	}
-	
 	public double getNodeDist(AbstractNode c, AbstractNode v) {
 		return c.coords.squareDist(v.coords);
 	}
 	
-	public ScoredPath findPath(Vector3i startVec, Vector3i endVec) {
+	public ScoredPath findPath(LivingEntity being, LocalTile tileA, LocalTile tileB) {
+		return this.findPath(being, tileA.coords, tileB.coords);
+	}
+	
+	public ScoredPath findPath(LivingEntity being, Vector3i startVec, Vector3i endVec) {
 		LocalGridBlock startCluster = getBlockFromCoords(startVec), endCluster = getBlockFromCoords(endVec);
 		AbstractNode startNode = addTempNode(startCluster, startVec);
 		AbstractNode endNode = addTempNode(endCluster, endVec);
 		ScoredAbstractPath absPath = findAbstractPath(startNode, endNode);
+		
+		List<LocalTile> completePath = new ArrayList<>();
+		double totalScore = 0;
+		
+		if (absPath == null) {
+			return new ScoredPath(completePath, totalScore);
+		}
 		
 		System.out.println(absPath);
 		System.out.println(startVec + " path to -> " + endVec);
@@ -59,12 +66,23 @@ public class HierarchicalPathfinder extends Pathfinder {
 			AbstractNode firstNode = absPath.path.get(node);
 			AbstractNode secondNode = absPath.path.get(node + 1);
 			System.out.println("\t Score: " + firstNode.distToPathableNodes.get(secondNode).score + ": " + firstNode.distToPathableNodes.get(secondNode).path);
+			//ScoredPath localPath = super.findPath(being, grid.getTile(firstNode.coords), grid.getTile(secondNode.coords));
+			ScoredPath localPath = firstNode.distToPathableNodes.get(secondNode);
+			for (int local = 0; local < localPath.path.size(); local++) {
+				//Do not double count vertices due to the way they are compiled in a hierarchical search
+				if (node != absPath.path.size() - 2 && local == localPath.path.size() - 1) break;
+				LocalTile tile = localPath.path.get(local);
+				completePath.add(tile);
+			}
+			totalScore += localPath.score;
 		}
+		
+		ScoredPath path = new ScoredPath(completePath, totalScore);
 		
 		removeTempNode(getBlockFromCoords(startVec), startNode);
 		removeTempNode(getBlockFromCoords(endVec), endNode);
 		
-		return null;
+		return path;
 	}
 	
 	public ScoredAbstractPath findAbstractPath(AbstractNode start, AbstractNode end) {	
@@ -107,10 +125,10 @@ public class HierarchicalPathfinder extends Pathfinder {
             if (v.distToPathableNodes != null) {
             	for (Entry<AbstractNode, ScoredPath> entry: v.distToPathableNodes.entrySet()) {
             		AbstractNode c = entry.getKey();
-            		System.out.println("\t Expanding: " + c.coords.toString());
             		double cvHeurDist = entry.getValue().score;
                     if ((!dist.containsKey(c)) || (dist.containsKey(c) && dist.get(c) > dist.get(v) + cvHeurDist)) {
-                        dist.put(c, dist.get(v) + cvHeurDist);
+                    	System.out.println("\t Expanding: " + c.coords.toString());
+                    	dist.put(c, dist.get(v) + cvHeurDist);
                         fringe.add(c);
                         prev.put(c, v);
                     }
@@ -511,6 +529,18 @@ public class HierarchicalPathfinder extends Pathfinder {
 		
 		HierarchicalPathfinder hPath = new HierarchicalPathfinder(activeLocalGrid);
 		
+		List<Human> people = new ArrayList<>();
+		for (int j = 0; j < 1; j++) {
+			int r = (int) (Math.random() * 99), c = (int) (Math.random() * 99);
+			int h = activeLocalGrid.findHighestGroundHeight(r,c);
+			
+			Human human = new Human(testSociety, "Human" + j);
+			people.add(human);
+			activeLocalGrid.addHuman(human, new Vector3i(r,c,h));
+		}
+		testSociety.addHousehold(new Household(people));
+		
+		/*
 		for (int r = 0; r < hPath.abstractBlocks.length; r++) {
 			for (int c = 0; c < hPath.abstractBlocks[0].length; c++) {
 				for (int h = 0; h < hPath.abstractBlocks[0][0].length; h++) {
@@ -523,6 +553,7 @@ public class HierarchicalPathfinder extends Pathfinder {
 				}
 			}
 		}
+		*/
 		
 		Vector3i randStartCoords = new Vector3i(
 				(int) (Math.random() * hPath.abstractBlocks.length),
@@ -534,22 +565,62 @@ public class HierarchicalPathfinder extends Pathfinder {
 				(int) (Math.random() * hPath.abstractBlocks[0].length),
 				(int) (Math.random() * hPath.abstractBlocks[0][0].length)
 				);
+		
+		//randEndCoords = randStartCoords.getSum(new Vector3i(1,1,1));
+		
 		LocalGridBlock blockStart;
 		LocalGridBlock blockEnd;
 		//AbstractNode randStartNode = blockStart.importantNodes.values().iterator().next();
 		//AbstractNode randEndNode = blockStart.importantNodes.values().iterator().next();
 		System.out.println("Finding a viable path to test");
 		
+		ScoredPath path;
 		Vector3i startVec, endVec;
 		while (true) {
-			blockStart = hPath.abstractBlocks[randStartCoords.x][randStartCoords.y][randStartCoords.z];
-			blockEnd = hPath.abstractBlocks[randEndCoords.x][randEndCoords.y][randEndCoords.z];
-			startVec = VecGridUtil.getRandVecInBounds(blockStart.minBound, blockStart.maxBound);
-			endVec = VecGridUtil.getRandVecInBounds(blockEnd.minBound, blockEnd.maxBound);
-			if (activeLocalGrid.tileIsAccessible(startVec) && activeLocalGrid.tileIsAccessible(endVec))
+			while (true) {
+				blockStart = hPath.abstractBlocks[randStartCoords.x][randStartCoords.y][randStartCoords.z];
+				blockEnd = hPath.abstractBlocks[randEndCoords.x][randEndCoords.y][randEndCoords.z];
+				startVec = VecGridUtil.getRandVecInBounds(blockStart.minBound, blockStart.maxBound);
+				endVec = VecGridUtil.getRandVecInBounds(blockEnd.minBound, blockEnd.maxBound);
+				if (activeLocalGrid.tileIsAccessible(startVec) && activeLocalGrid.tileIsAccessible(endVec))
+					if (activeLocalGrid.getTile(startVec).exposedToAir && activeLocalGrid.getTile(endVec).exposedToAir)
+						break;
+				
+				randStartCoords = new Vector3i(
+						(int) (Math.random() * hPath.abstractBlocks.length),
+						(int) (Math.random() * hPath.abstractBlocks[0].length),
+						(int) (Math.random() * hPath.abstractBlocks[0][0].length)
+						);
+				randEndCoords = new Vector3i(
+						(int) (Math.random() * hPath.abstractBlocks.length),
+						(int) (Math.random() * hPath.abstractBlocks[0].length),
+						(int) (Math.random() * hPath.abstractBlocks[0][0].length)
+						);
+			}
+			
+			System.out.println("Pathing: " + startVec + ", " + endVec + " ####################################");
+			
+			path = hPath.findPath(null, startVec, endVec);
+			if (path != null && path.path != null && path.path.size() > 0) {
 				break;
+			}
 		}
-		hPath.findPath(startVec, endVec);
+		
+		System.out.println("Hierarchical Path: ");
+		System.out.println(path.path);
+		
+		List<Vector3i> vecs = new ArrayList<>();
+		vecs.add(startVec); vecs.add(endVec);
+		Vector3i[] tempBounds = VecGridUtil.findCoordBounds(
+				vecs
+			);
+		
+		System.out.println("Regular Path: ");
+		Pathfinder regPather = new Pathfinder(activeLocalGrid);
+		ScoredPath oldStylePath = regPather.findPath(people.get(0), 
+				activeLocalGrid.getTile(startVec), activeLocalGrid.getTile(endVec), 
+				tempBounds[0], tempBounds[1]);
+		System.out.println(oldStylePath.path);
 	}
 	
 }

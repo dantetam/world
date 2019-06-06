@@ -19,7 +19,8 @@ public class InputSystem extends BaseSystem {
 	public boolean on = true;
 
 	public enum KeyPressBind {
-		ADVANCE_TURN(GLFW.GLFW_KEY_SPACE, 0), ADVANCE_MULTIPLE_TURNS(GLFW.GLFW_KEY_RIGHT_ALT, 0), 
+		ADVANCE_TURN(GLFW.GLFW_KEY_ENTER, 0), ADVANCE_MULTIPLE_TURNS(GLFW.GLFW_KEY_RIGHT_ALT, 0), 
+		PAUSE_UNPAUSE(GLFW.GLFW_KEY_SPACE, 0),
 		TOGGLE_MINIMAP(GLFW.GLFW_KEY_M), TOGGLE_FOG(GLFW.GLFW_KEY_R),
 		TOGGLE_TACTICAL(GLFW.GLFW_KEY_T), ZOOM_IN(GLFW.GLFW_KEY_I), ZOOM_OUT(GLFW.GLFW_KEY_O),
 		CLOSE_ALL(GLFW.GLFW_KEY_X), FUNCTION_1(GLFW.GLFW_KEY_F1, GLFW.GLFW_KEY_1),
@@ -200,6 +201,11 @@ public class InputSystem extends BaseSystem {
 			System.out.println("##### End 10 turns #####");
 			for (int i = 0; i < 10; i++)
 				super.gameLauncher.worldGrid.tick();
+		}
+		else if (action.equals("PAUSE_UNPAUSE")) {
+			System.out.println("##### Toggle game process #####");
+				super.gameLauncher.worldGrid.currentlyTicking = 
+						!super.gameLauncher.worldGrid.currentlyTicking;
 		}
 		
 		gameLauncher.menuSystem.forceFullUIUpdate();

@@ -44,6 +44,8 @@ public class WorldGrid {
 	//Store/find all free households in the world
 	private Map<Vector2i, List<Household>> worldAllHouseholds = new HashMap<>();
 	
+	public boolean currentlyTicking = false;
+	
 	public WorldGrid() {
 		currentWorldTime = Calendar.getInstance();
 		worldRows = 50;

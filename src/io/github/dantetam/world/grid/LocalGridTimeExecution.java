@@ -254,7 +254,10 @@ public class LocalGridTimeExecution {
 			LocalTile tile = grid.getTile(candidate);
 			if (tile.humanClaim == null || validOwners.contains(tile.humanClaim)) {
 				if (!tile.harvestInUse) {
-					ScoredPath scoredPath = new Pathfinder(grid).findPath(being, being.location, grid.getTile(candidate));
+					ScoredPath scoredPath = new Pathfinder(grid).findPath(
+							being, being.location, grid.getTile(candidate));
+					ScoredPath hierScoredPath = grid.pathfinder.findPath(being, being.location, grid.getTile(candidate));
+					System.out.println(hierScoredPath.path);
 					tileByPathScore.put(tile, scoredPath.score);
 				}
 			}

@@ -12,6 +12,7 @@ import java.util.Set;
 import io.github.dantetam.toolbox.VecGridUtil;
 import io.github.dantetam.vector.Vector2i;
 import io.github.dantetam.vector.Vector3i;
+import io.github.dantetam.world.ai.HierarchicalPathfinder;
 import io.github.dantetam.world.dataparse.ItemData;
 import io.github.dantetam.world.dataparse.WorldCsvParser;
 import io.github.dantetam.world.items.Inventory;
@@ -44,6 +45,8 @@ public class LocalGrid {
 	private KdTree<Vector3i> buildingLookup;
 	
 	private KdTree<Vector3i> peopleLookup;
+	
+	public HierarchicalPathfinder pathfinder;
 	
 	public LocalGrid(Vector3i size) {
 		rows = size.x; cols = size.y; heights = size.z;

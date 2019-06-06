@@ -57,6 +57,10 @@ public class LocalTile {
 		return ((LocalTile) other).coords.equals(this.coords);
 	}
 	
+	public String toString() {
+		return "Tile: " + this.coords.toString();
+	}
+	
 	/*
 	public boolean isOccupied() {
 		return tileBlockId != ItemData.ITEM_EMPTY_ID || tileFloorId != ItemData.ITEM_EMPTY_ID || people.size() > 0;
