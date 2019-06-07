@@ -158,7 +158,7 @@ public class ProcessCSVParser extends WorldCsvParser {
 			processName = outputString;
 		}
 		
-		List<ProcessStep> processResActions = null;
+		List<ProcessStep> processResActions = new ArrayList<>();
 		String processResActionsStr = record.get("Result Action");
 		if (!processResActionsStr.isBlank()) {
 			processResActions = getProcessingSteps(record.get("Result Action"));

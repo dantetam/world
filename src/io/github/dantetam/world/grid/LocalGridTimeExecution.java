@@ -41,6 +41,7 @@ import io.github.dantetam.world.process.priority.ItemGroupPickupPriority;
 import io.github.dantetam.world.process.priority.ItemPickupBuildingPriority;
 import io.github.dantetam.world.process.priority.ItemPickupPriority;
 import io.github.dantetam.world.process.priority.MovePriority;
+import io.github.dantetam.world.process.priority.MoveTolDistOnePriority;
 import io.github.dantetam.world.process.priority.PatrolPriority;
 import io.github.dantetam.world.process.priority.Priority;
 import io.github.dantetam.world.process.priority.RestPriority;
@@ -197,8 +198,8 @@ public class LocalGridTimeExecution {
 				}
 				//Process has been completed, remove it from person
 				if (human.processProgress.processSteps.size() == 0) { 
-					executeProcessResActions(grid, human, human.processProgress.processResActions);
 					System.out.println(human.name + " COMPLETED process: " + human.processProgress);
+					executeProcessResActions(grid, human, human.processProgress.processResActions);
 					human.processProgress = null; //Reset all jobs and job fields to null
 					if (human.processBuilding != null) {
 						human.processBuilding.currentUser = null;
@@ -254,7 +255,7 @@ public class LocalGridTimeExecution {
 			LocalTile tile = grid.getTile(candidate);
 			if (tile.humanClaim == null || validOwners.contains(tile.humanClaim)) {
 				if (!tile.harvestInUse) {
-					ScoredPath scoredPath = new Pathfinder(grid).findPath(
+					ScoredPath scoredPath = grid.pathfinder.findPath(
 							being, being.location, grid.getTile(candidate));
 					ScoredPath hierScoredPath = grid.pathfinder.findPath(being, being.location, grid.getTile(candidate));
 					System.out.println(hierScoredPath.path);
@@ -283,7 +284,7 @@ public class LocalGridTimeExecution {
 				return null;
 			}
 			else {
-				return getTasksFromPriority(grid, being, new MovePriority(itemPriority.coords));
+				return getTasksFromPriority(grid, being, new MoveTolDistOnePriority(itemPriority.coords));
 			}
 		}
 		else if (priority instanceof ItemDeliveryPriority) {
@@ -295,7 +296,7 @@ public class LocalGridTimeExecution {
 				return null;
 			}
 			else {
-				return getTasksFromPriority(grid, being, new MovePriority(itemPriority.coords));
+				return getTasksFromPriority(grid, being, new MoveTolDistOnePriority(itemPriority.coords));
 			}
 		}
 		else if (priority instanceof ItemPickupBuildingPriority) {
@@ -308,7 +309,7 @@ public class LocalGridTimeExecution {
 				return null;
 			}
 			else {
-				return getTasksFromPriority(grid, being, new MovePriority(itemPriority.coords));
+				return getTasksFromPriority(grid, being, new MoveTolDistOnePriority(itemPriority.coords));
 			}
 		}
 		else if (priority instanceof ItemDeliveryBuildingPriority) {
@@ -322,7 +323,7 @@ public class LocalGridTimeExecution {
 				return null;
 			}
 			else {
-				return getTasksFromPriority(grid, being, new MovePriority(itemPriority.coords));
+				return getTasksFromPriority(grid, being, new MoveTolDistOnePriority(itemPriority.coords));
 			}
 		}
 		else if (priority instanceof TileHarvestPriority) {
@@ -332,7 +333,7 @@ public class LocalGridTimeExecution {
 				tasks.add(new HarvestBlockTileTask(pickupTime, tilePriority.coords));
 			}
 			else {
-				return getTasksFromPriority(grid, being, new MovePriority(tilePriority.coords));
+				return getTasksFromPriority(grid, being, new MoveTolDistOnePriority(tilePriority.coords));
 			}
 		}
 		else if (priority instanceof BuildingPlacePriority) {
@@ -349,7 +350,7 @@ public class LocalGridTimeExecution {
 				}
 			}
 			else {
-				return getTasksFromPriority(grid, being, new MovePriority(buildPriority.coords));
+				return getTasksFromPriority(grid, being, new MoveTolDistOnePriority(buildPriority.coords));
 			}
 		}
 		else if (priority instanceof BuildingHarvestPriority) {
@@ -361,7 +362,7 @@ public class LocalGridTimeExecution {
 				tasks.add(new HarvestBuildingTask(pickupTime, buildPriority.coords, tile.building));
 			}
 			else {
-				return getTasksFromPriority(grid, being, new MovePriority(buildPriority.coords));
+				return getTasksFromPriority(grid, being, new MoveTolDistOnePriority(buildPriority.coords));
 			}
 		}
 		else if (priority instanceof EatPriority) {
@@ -381,6 +382,9 @@ public class LocalGridTimeExecution {
 			
 			Vector3i bestLocation = null;
 			while (bestLocation == null || grid.getTile(bestLocation).tileFloorId == ItemData.ITEM_EMPTY_ID) {
+				if (consPriority.remainingBuildCoords.size() == 0) {
+					return null;
+				}
 				bestLocation = consPriority.remainingBuildCoords.remove(0);
 			}
 			
@@ -394,13 +398,36 @@ public class LocalGridTimeExecution {
 		}
 		else if (priority instanceof MovePriority) {
 			MovePriority movePriority = (MovePriority) priority;
-			ScoredPath scoredPath = new Pathfinder(grid).findPath(being, being.location, grid.getTile(movePriority.coords));
+			ScoredPath scoredPath = grid.pathfinder.findPath(
+					being, being.location, grid.getTile(movePriority.coords));
 			List<LocalTile> path = scoredPath.path;
 			for (int i = 0; i < path.size() - 1; i++) {
 				Vector3i coordsFrom = path.get(i).coords;
 				Vector3i coordsTo = path.get(i+1).coords;
 				tasks.add(new MoveTask(1, coordsFrom, coordsTo));
 			}
+		}
+		else if (priority instanceof MoveTolDistOnePriority) {
+			MoveTolDistOnePriority movePriority = (MoveTolDistOnePriority) priority;
+			
+			//Allow being to move to the actual space or any tile one distance unit away
+			Set<Vector3i> validSpace = grid.getAllFlatAdjAndDiag(movePriority.coords);
+			
+			for (Vector3i candidateDest: validSpace) {
+				ScoredPath scoredPath = grid.pathfinder.findPath(
+						being, being.location.coords, candidateDest);
+				if (scoredPath.isValid()) {
+					List<LocalTile> path = scoredPath.path;
+					for (int i = 0; i < path.size() - 1; i++) {
+						Vector3i coordsFrom = path.get(i).coords;
+						Vector3i coordsTo = path.get(i+1).coords;
+						tasks.add(new MoveTask(1, coordsFrom, coordsTo));
+					}
+					return tasks;
+				}
+			}
+			
+			return null;
 		}
 		else if (priority instanceof SoldierPriority) {
 			//SoldierPriority soldierPriority = (SoldierPriority) priority;
@@ -673,8 +700,10 @@ public class LocalGridTimeExecution {
 	}
 	
 	private static void executeProcessResActions(LocalGrid grid, LivingEntity being, List<ProcessStep> actions) {
-		for (ProcessStep action: actions) {
-			executeProcessResAction(grid, being, action);
+		if (actions != null) {
+			for (ProcessStep action: actions) {
+				executeProcessResAction(grid, being, action);
+			}
 		}
 	}
 	private static void executeProcessResAction(LocalGrid grid, LivingEntity being, ProcessStep action) {

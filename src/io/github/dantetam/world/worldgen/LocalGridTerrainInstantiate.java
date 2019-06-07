@@ -38,10 +38,9 @@ public class LocalGridTerrainInstantiate {
 		localGrid = new LocalGrid(sizes);
 		generatedTerrainLen = (int) MathUti.roundToPower2(Math.max(Math.max(sizes.x, sizes.y), sizes.z));
 		localGridBiome = biome;
-		localGrid.pathfinder = new HierarchicalPathfinder(localGrid);
 	}
 	
-	public LocalGrid setupGrid() {
+	public LocalGrid setupGrid(boolean setupAdvancedPathfinding) {
 		double[][] terrain = generateTerrain();
 		int[][] biomes = generateFlatTableInt(localGrid.rows, localGrid.cols, localGridBiome);
 		double[][] temperature = generateFlatTableDouble(localGrid.rows, localGrid.cols, 0);
@@ -121,6 +120,9 @@ public class LocalGridTerrainInstantiate {
 		for (Entry<int[], ProceduralTree> entry : gridTrees.entrySet()) {
 			TreeVoxelGeneration.generateSingle3dTree(localGrid, entry.getKey(), entry.getValue());
 		}
+		
+		if (setupAdvancedPathfinding)
+			localGrid.pathfinder = new HierarchicalPathfinder(localGrid);
 		
 		System.out.println(localGrid.rows + " " + localGrid.cols + " " + localGrid.heights);
 		System.out.println(gridTrees.size());

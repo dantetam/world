@@ -63,7 +63,7 @@ public class WorldGrid {
 		
 		Vector3i sizes = new Vector3i(200,200,50);
 		int biome = 3;
-		localGridTiles[2][2] = new LocalGridTerrainInstantiate(sizes, biome).setupGrid();
+		localGridTiles[2][2] = new LocalGridTerrainInstantiate(sizes, biome).setupGrid(true);
 		
 		activeLocalGrid = localGridTiles[2][2];
 		

@@ -50,6 +50,7 @@ public class HumanBrain {
 		greatEthos = new HashMap<>();
 		personalBias = new HashMap<>();
 		ethosPersonalityTraits = new HashMap<>();
+		ethosEconomics = new HashMap<>();
 		ethosTowardsProcesses = new HashMap<>();
 		ethosTowardsOtherEthos = new HashMap<>();
 		ethosTowardsItems = new HashMap<>();

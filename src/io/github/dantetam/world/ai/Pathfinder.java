@@ -70,7 +70,7 @@ public class Pathfinder {
 	}
 	
 	private double getTileDist(LocalTile a, LocalTile b) {
-		return a.coords.dist(b.coords);
+		return a.coords.manhattanDist(b.coords);
 	}
 	
 	private int getTileAccessibilityPenalty(LocalTile tile) {
@@ -92,10 +92,12 @@ public class Pathfinder {
 		return 0;
 	}
 	
-	public ScoredPath findPath(LivingEntity being, LocalTile start, LocalTile end) {
+	//protected static final double 
+	
+	protected ScoredPath findPath(LivingEntity being, LocalTile start, LocalTile end) {
 		return findPath(being, start, end, null, null);
 	}
-    public ScoredPath findPath(LivingEntity being, LocalTile start, LocalTile end,
+	protected ScoredPath findPath(LivingEntity being, LocalTile start, LocalTile end,
     		Vector3i minRestrict, Vector3i maxRestrict) {	
         int nodesExpanded = 0;
     	
@@ -125,8 +127,11 @@ public class Pathfinder {
                 //return (int)((dist.get(n1) - dist.get(n2) + end.dist(n1) - end.dist(n2)*16.0d));
                 int accessScore1 = getTileAccessibilityPenalty(n1);
                 int accessScore2 = getTileAccessibilityPenalty(n2);
-                return (dist.get(n1) - dist.get(n2) + 0.3*getTileDist(end, n1) - 0.3*getTileDist(end, n2)
-                		+ 0*accessScore1 - 0*accessScore2) > 0 ? 1 : -1;
+                return (
+                		1 * (dist.get(n1) - dist.get(n2)) + 
+                		1.05 * (getTileDist(end, n1) - getTileDist(end, n2)) + 
+                		0.3 * (accessScore1 - accessScore2)
+                		) > 0 ? 1 : -1;
             }
         });
         
@@ -163,7 +168,7 @@ public class Pathfinder {
             }
             for (LocalTile c : validNeighbors(being, v)) {
                 if ((!dist.containsKey(c)) || (dist.containsKey(c) && dist.get(c) > dist.get(v) + getTileDist(v, c))) {
-                    dist.put(c, dist.get(v) + 0.3*getTileDist(v, c) + 0*getTileAccessibilityPenalty(c));
+                    dist.put(c, 1*dist.get(v) + 0.7*getTileDist(v, c) + 0*getTileAccessibilityPenalty(c));
                     //c.queue = dist.get(v) + v.dist(c) + c.dist(end);
                     fringe.add(c);
                     prev.put(c, v);
@@ -181,6 +186,9 @@ public class Pathfinder {
     		this.path = path;
     		this.score = score;
     	}
+    	public boolean isValid() {
+    		return this.path != null && this.path.size() > 0;
+    	}
     }
     
     //Pathfinding trials for analysis, since pathfinding is an intensive and ubiquitous calculation.
@@ -189,7 +197,7 @@ public class Pathfinder {
     	
     	Vector3i sizes = new Vector3i(200,200,50);
 		int biome = 3;
-		LocalGrid activeLocalGrid = new LocalGridTerrainInstantiate(sizes, biome).setupGrid();
+		LocalGrid activeLocalGrid = new LocalGridTerrainInstantiate(sizes, biome).setupGrid(false);
 		
 		Society testSociety = new Society("TestSociety", activeLocalGrid);
 		testSociety.societyCenter = new Vector3i(20,20,10);
@@ -210,8 +218,9 @@ public class Pathfinder {
 		for (int i = 0; i < 10; i++) {
 			long startTime = Calendar.getInstance().getTimeInMillis();
 			
-			int r = (int) (Math.random() * 95) + 5;
-			int c = (int) (Math.random() * 95) + 5;
+			//int r = (int) (Math.random() * 95) + 5;
+			//int c = (int) (Math.random() * 95) + 5;
+			int r = i*5, c = i*5;
 			
 			LocalTile baseTile = people.get(0).location;
 			Vector3i coords = new Vector3i(
@@ -223,7 +232,8 @@ public class Pathfinder {
 			
 			System.out.println("Finding path from " + baseTile.coords + " to " + coords);
 			
-			new Pathfinder(activeLocalGrid).findPath(people.get(0), baseTile, activeLocalGrid.getTile(coords));
+			new Pathfinder(activeLocalGrid).findPath(people.get(0), 
+					baseTile, activeLocalGrid.getTile(coords));
 			
 			long endTime = Calendar.getInstance().getTimeInMillis();
 			

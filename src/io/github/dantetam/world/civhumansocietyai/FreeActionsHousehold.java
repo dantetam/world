@@ -25,10 +25,12 @@ public class FreeActionsHousehold {
 		put("formNewHousehold", new FreeAction("formNewHousehold", null, 50));
 	}};
 	
+	/*
 	public static void considerAllFreeActions(WorldGrid world, LocalGrid grid, 
 			Society society, Date date) {
 		//TODO
 	}
+	*/
 	
 	public static void considerAllFreeActionsHouseholds(WorldGrid world, LocalGrid grid, 
 			List<Household> freeHouseholds, Date date) {
@@ -38,6 +40,7 @@ public class FreeActionsHousehold {
 			if (name.equals("formSociety")) {
 				List<Household> bestGroup = EmergentSocietyCalc.calcHouseholdGen(
 						freeHouseholds, date, "harmony", 4.0);
+				if (bestGroup == null) continue;
 				Household hostHouse = bestGroup.get(0);
 				Human host = hostHouse.headOfHousehold;
 				//Create a new society with these people who have agreed through their util. calc.

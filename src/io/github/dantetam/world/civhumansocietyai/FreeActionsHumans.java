@@ -26,6 +26,7 @@ public class FreeActionsHumans {
 			String name = entry.getKey();
 			if (name.equals("formNewHouseMarriage")) {
 				List<Human[]> marriagePairs = SocietalHumansActionsCalc.possibleMarriagePairs(humans, date);
+				if (marriagePairs.size() == 0) continue;
 				int randIndex = (int) (Math.random() * marriagePairs.size());
 				Human[] pair = marriagePairs.get(randIndex);
 				Human proposer = pair[0], target = pair[1];

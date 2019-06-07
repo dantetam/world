@@ -60,12 +60,12 @@ public class HierarchicalPathfinder extends Pathfinder {
 			return new ScoredPath(completePath, totalScore);
 		}
 		
-		System.out.println(absPath);
+		//System.out.println(absPath);
 		System.out.println(startVec + " path to -> " + endVec);
 		for (int node = 0; node < absPath.path.size() - 1; node++) {
 			AbstractNode firstNode = absPath.path.get(node);
 			AbstractNode secondNode = absPath.path.get(node + 1);
-			System.out.println("\t Score: " + firstNode.distToPathableNodes.get(secondNode).score + ": " + firstNode.distToPathableNodes.get(secondNode).path);
+			//System.out.println("\t Score: " + firstNode.distToPathableNodes.get(secondNode).score + ": " + firstNode.distToPathableNodes.get(secondNode).path);
 			//ScoredPath localPath = super.findPath(being, grid.getTile(firstNode.coords), grid.getTile(secondNode.coords));
 			ScoredPath localPath = firstNode.distToPathableNodes.get(secondNode);
 			for (int local = 0; local < localPath.path.size(); local++) {
@@ -102,7 +102,10 @@ public class HierarchicalPathfinder extends Pathfinder {
             	AbstractNode n1 = (AbstractNode) o1;
             	AbstractNode n2 = (AbstractNode) o2;
                 if (n1.equals(n2)) return 0;
-                return (dist.get(n1) - dist.get(n2) + 0.3*getNodeDist(end, n1) - 0.3*getNodeDist(end, n2)) > 0 ? 1 : -1;
+                return (
+                		1 * (dist.get(n1) - dist.get(n2)) + 
+                		1.05 * (getNodeDist(end, n1) - getNodeDist(end, n2))
+                		) > 0 ? 1 : -1;
             }
         });
         
@@ -110,7 +113,7 @@ public class HierarchicalPathfinder extends Pathfinder {
         dist.put(start, 0.0);
         while (!fringe.isEmpty()) {        	
         	AbstractNode v = fringe.poll();
-        	System.out.println("At node: " + v.coords.toString());
+        	//System.out.println("At node: " + v.coords.toString());
             if (visited.contains(v)) {
                 continue;
             }
@@ -127,8 +130,8 @@ public class HierarchicalPathfinder extends Pathfinder {
             		AbstractNode c = entry.getKey();
             		double cvHeurDist = entry.getValue().score;
                     if ((!dist.containsKey(c)) || (dist.containsKey(c) && dist.get(c) > dist.get(v) + cvHeurDist)) {
-                    	System.out.println("\t Expanding: " + c.coords.toString());
-                    	dist.put(c, dist.get(v) + cvHeurDist);
+                    	//System.out.println("\t Expanding: " + c.coords.toString());
+                    	dist.put(c, dist.get(v) + 0.7*cvHeurDist);
                         fringe.add(c);
                         prev.put(c, v);
                     }
@@ -520,9 +523,9 @@ public class HierarchicalPathfinder extends Pathfinder {
 	public static void main(String[] args) {
 		WorldCsvParser.init();
     	
-    	Vector3i sizes = new Vector3i(60,60,60);
+    	Vector3i sizes = new Vector3i(120,120,120);
 		int biome = 3;
-		LocalGrid activeLocalGrid = new LocalGridTerrainInstantiate(sizes, biome).setupGrid();
+		LocalGrid activeLocalGrid = new LocalGridTerrainInstantiate(sizes, biome).setupGrid(true);
 		
 		Society testSociety = new Society("TestSociety", activeLocalGrid);
 		testSociety.societyCenter = new Vector3i(10,10,10);
@@ -576,7 +579,8 @@ public class HierarchicalPathfinder extends Pathfinder {
 		
 		ScoredPath path;
 		Vector3i startVec, endVec;
-		while (true) {
+		int numPathsTested = 0;
+		while (numPathsTested < 10) {
 			while (true) {
 				blockStart = hPath.abstractBlocks[randStartCoords.x][randStartCoords.y][randStartCoords.z];
 				blockEnd = hPath.abstractBlocks[randEndCoords.x][randEndCoords.y][randEndCoords.z];
@@ -598,29 +602,34 @@ public class HierarchicalPathfinder extends Pathfinder {
 						);
 			}
 			
-			System.out.println("Pathing: " + startVec + ", " + endVec + " ####################################");
-			
 			path = hPath.findPath(null, startVec, endVec);
 			if (path != null && path.path != null && path.path.size() > 0) {
-				break;
+				System.out.println("Pathing: " + startVec + ", " + endVec + " ####################################");
+				
+				numPathsTested++;
+				
+				System.out.println("Hierarchical Path: ");
+				System.out.println(path.path);
+				System.out.println("Score (high means longer): " + path.score);
+				
+				List<Vector3i> vecs = new ArrayList<>();
+				vecs.add(startVec); vecs.add(endVec);
+				Vector3i[] tempBounds = VecGridUtil.findCoordBounds(
+						vecs
+					);
+				
+				System.out.println("Regular Path: ");
+				Pathfinder regPather = new Pathfinder(activeLocalGrid);
+				ScoredPath oldStylePath = regPather.findPath(people.get(0), 
+						activeLocalGrid.getTile(startVec), activeLocalGrid.getTile(endVec), 
+						tempBounds[0], tempBounds[1]);
+				System.out.println(oldStylePath.path);
+				System.out.println("Score (high means longer): " + oldStylePath.score);
+			}
+			else {
+				continue;
 			}
 		}
-		
-		System.out.println("Hierarchical Path: ");
-		System.out.println(path.path);
-		
-		List<Vector3i> vecs = new ArrayList<>();
-		vecs.add(startVec); vecs.add(endVec);
-		Vector3i[] tempBounds = VecGridUtil.findCoordBounds(
-				vecs
-			);
-		
-		System.out.println("Regular Path: ");
-		Pathfinder regPather = new Pathfinder(activeLocalGrid);
-		ScoredPath oldStylePath = regPather.findPath(people.get(0), 
-				activeLocalGrid.getTile(startVec), activeLocalGrid.getTile(endVec), 
-				tempBounds[0], tempBounds[1]);
-		System.out.println(oldStylePath.path);
 	}
 	
 }
