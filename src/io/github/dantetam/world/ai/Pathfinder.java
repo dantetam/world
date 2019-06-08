@@ -102,8 +102,9 @@ public class Pathfinder {
         int nodesExpanded = 0;
     	
     	if (start == null || end == null) {
-        	throw new IllegalArgumentException("Start or end null, start: " + start + ", end: " + end);
-        }
+        	//throw new IllegalArgumentException("Start or end null, start: " + start + ", end: " + end);
+    		return null;
+    	}
     	
     	//System.out.println("Finding path between: " + start.coords + " -> " + end.coords + ",\n with bounds: "
     			// + minRestrict + " <-> " + maxRestrict);

@@ -49,6 +49,9 @@ public class LocalTile {
 	}
 	
 	public List<LivingEntity> getPeople() {
+		if (people == null) {
+			return new ArrayList<>();
+		}
 		return people;
 	}
 	

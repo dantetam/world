@@ -212,9 +212,15 @@ public class HierarchicalPathfinder extends Pathfinder {
 		}
 	}
 	
+	/**
+	 * Find a path between node and otherNode. If block is given, restrict the path to within its boundaries
+	 * @param node
+	 * @param otherNode
+	 * @param block      The potential restriction (null if not given)
+	 */
 	private void attemptConnectAbsNode(AbstractNode node, AbstractNode otherNode, LocalGridBlock block) {
 		if (node.equals(otherNode)) return;
-		ScoredPath existingPath = otherNode.getDist(otherNode);
+		ScoredPath existingPath = otherNode.getDist(node);
 		if (existingPath == null) {
 			if (block != null) {
 				existingPath = super.findPath(null, 

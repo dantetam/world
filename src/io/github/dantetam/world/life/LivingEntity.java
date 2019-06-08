@@ -1,5 +1,6 @@
 package io.github.dantetam.world.life;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -56,6 +57,8 @@ public abstract class LivingEntity {
 	public LivingEntity(String name) {
 		this.name = name;
 		inventory = new Inventory();
+		ownedBuildings = new ArrayList<>();
+		ownedItems = new ArrayList<>();
 		age = 0;
 	}
 
@@ -91,7 +94,7 @@ public abstract class LivingEntity {
 		double ownedItemsWealth = 0;
 		for (InventoryItem item: this.ownedItems) {
 			double wealth = ItemData.getBaseItemValue(item.itemId);
-			ownedItemsWealth += wealth;
+			ownedItemsWealth += wealth * item.quantity;
 		}
 		sumWealth += ownedItemsWealth;
 		
@@ -107,7 +110,7 @@ public abstract class LivingEntity {
 	}
 	
 	public void wearItem(InventoryItem item) {
-		
+		//TODO
 	}
 
 }

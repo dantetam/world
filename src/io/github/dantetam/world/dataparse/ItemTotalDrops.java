@@ -34,7 +34,7 @@ public class ItemTotalDrops {
 		for (ItemDropTrial trial : independentDrops) {
 			InventoryItem item = trial.getItemDrop();
 			if (item != null) {
-				trialDrops.add(trial.getItemDrop());
+				trialDrops.add(item);
 			}
 		}
 		return trialDrops;

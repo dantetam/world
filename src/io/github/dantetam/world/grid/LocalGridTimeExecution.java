@@ -83,6 +83,9 @@ public class LocalGridTimeExecution {
 					", with process: " + processName); 
 			System.out.println("Inventory (counts): " + human.inventory.toUniqueItemsMap());
 					// + human.processProgress == null ? "null" : human.processProgress.name);
+			System.out.println("Wealth: " + human.getTotalWealth() + 
+					", buildings: " + human.ownedBuildings.size() +
+					", num items: " + human.ownedItems.size());
 			System.out.println("Priority: " + human.activePriority);
 			
 			if (human.currentQueueTasks != null && human.currentQueueTasks.size() > 0) {
@@ -108,7 +111,7 @@ public class LocalGridTimeExecution {
 				if (human.currentQueueTasks != null && human.currentQueueTasks.size() > 0)
 					System.out.println(human.currentQueueTasks.get(0).getClass());
 				if (human.currentQueueTasks == null) {
-					human.currentQueueTasks = null;
+					human.activePriority = null;
 				}
 			}
 			
@@ -460,7 +463,7 @@ public class LocalGridTimeExecution {
 			PatrolPriority patrolPriority = (PatrolPriority) priority;
 			List<Vector3i> locations = patrolPriority.locations;
 			if (locations.size() == 0) {
-				return tasks;
+				return null;
 			}
 			else {
 				int randIndex = (int) (Math.random() * locations.size());
@@ -469,7 +472,7 @@ public class LocalGridTimeExecution {
 					return null;
 				}
 				else {
-					return getTasksFromPriority(grid, being, new MovePriority(randomLocation));
+					return getTasksFromPriority(grid, being, new MoveTolDistOnePriority(randomLocation));
 				}
 			}
 		}
@@ -526,23 +529,28 @@ public class LocalGridTimeExecution {
 			destinationInventory = being.inventory;
 			itemMode = "Tile";
 		}
-		else if (being.processProgress.requiredBuildNameOrGroup == null) {
+		else if (process.requiredBuildNameOrGroup == null && process.requiredTileNameOrGroup == null) {
 			primaryLocation = being.location.coords;
 			destinationInventory = being.inventory;
 			itemMode = "Personal";
 		}
+		else {
+			System.err.println("Warning, could not find case for process, "
+					+ "building and/or tile required: " + process.toString());
+			return new ImpossiblePriority();
+		}
 		
-		if ((primaryLocation == null && being.processProgress.requiredBuildNameOrGroup != null)
-				|| being.processProgress.isCreatedAtSite) {
+		if ((primaryLocation == null && process.requiredBuildNameOrGroup != null)
+				|| process.isCreatedAtSite) {
 			System.out.println("Find status building case");
-			System.out.println(being.processProgress.requiredBuildNameOrGroup);
-			System.out.println(being.processProgress);
+			System.out.println(process.requiredBuildNameOrGroup);
+			System.out.println(process);
 			
 			int buildingId; 
 			Vector2i requiredSpace;
 			
-			if (being.processProgress.requiredBuildNameOrGroup != null) {
-				buildingId = ItemData.getIdFromName(being.processProgress.requiredBuildNameOrGroup);
+			if (process.requiredBuildNameOrGroup != null) {
+				buildingId = ItemData.getIdFromName(process.requiredBuildNameOrGroup);
 				requiredSpace = ItemData.buildingSize(buildingId);
 			}
 			else {
@@ -577,7 +585,7 @@ public class LocalGridTimeExecution {
 				System.out.println("Assigned building space: " + nearOpenSpace.toString());
 				grid.setInUseRoomSpace(nearOpenSpace, bounds2d, true);
 				
-				if (being.processProgress.isCreatedAtSite) {
+				if (process.isCreatedAtSite) {
 					being.processTile = grid.getTile(nearOpenSpace);
 					if (being.location.coords.manhattanDist(primaryLocation) <= 1) {
 						//continue

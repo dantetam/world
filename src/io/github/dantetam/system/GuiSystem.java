@@ -66,6 +66,9 @@ public class GuiSystem extends BaseSystem {
 		
 		for (int x = minX; x <= maxX; x++) {
 			for (int z = minZ; z <= maxZ; z++) {
+				if (!activeGrid.inBounds(new Vector3i(x,z,0))) {
+					continue;
+				}
 				Vector2f guiPos = new Vector2f(guiWidth * (x - minX), guiHeight * (z - minZ)); 
 				int candidateHeight = originalHeight; //Find the highest height <= camera height, in the rendering style of DF
 				LocalTile tile;
@@ -77,38 +80,32 @@ public class GuiSystem extends BaseSystem {
 							listGuis.add(new GuiQuad(darknessTexture, guiPos, guiDim));
 						}
 						*/
-						
-						/*
-						if (tile.tileBlockId == ItemData.ITEM_EMPTY_ID) {
-							candidateHeight--;
-							continue;
-						}
-						*/
 
 						if (tile.tileBlockId != ItemData.ITEM_EMPTY_ID) {
 							int tileTexture = ItemData.getTextureFromItemId(tile.tileBlockId);
 							listGuis.add(new GuiQuad(tileTexture, guiPos, guiDim));
+							break;
 			 			}
 						else if (tile.tileFloorId != ItemData.ITEM_EMPTY_ID) {
 							int tileTexture = ItemData.getTextureFromItemId(tile.tileFloorId);
 							listGuis.add(new GuiQuad(tileTexture, guiPos, guiDim));
+							break;
 						}
 						if (tile.itemsOnFloor.size() > 0) {
 							TextBox buildingTextBox = getDefaultTextBoxGui(guiDefaultTexture, "I", "", guiPos.x, guiPos.y, guiWidth, guiHeight);
 							listTexts.add(buildingTextBox);
+							break;
 						}
 						if (tile.getPeople() != null && tile.getPeople().size() > 0) {
 							TextBox buildingTextBox = getDefaultTextBoxGui(guiDefaultTexture, "H!", "", guiPos.x, guiPos.y, guiWidth, guiHeight);
 							listTexts.add(buildingTextBox);
+							break;
 						}
-						
-						if (candidateHeight != originalHeight) { //Air overlay for looking at lower heights with air on top
-							listGuis.add(new GuiQuad(airTileTexture, guiPos, guiDim));
-						}
-						break;
 					}
-					
 					candidateHeight--;
+				}
+				if (candidateHeight != originalHeight) { //Air overlay for looking at lower heights with air on top
+					listGuis.add(new GuiQuad(airTileTexture, guiPos, guiDim));
 				}
 			}
 		}

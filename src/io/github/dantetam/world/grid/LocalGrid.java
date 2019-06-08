@@ -250,11 +250,13 @@ public class LocalGrid {
 		itemIdQuickTileLookup.get(item.itemId).add(coords);
 		
 		Set<String> itemGroups = ItemData.getGroupNameById(item.itemId);
-		for (String itemGroup: itemGroups) {
-			if (!(itemGroupTileLookup.containsKey(itemGroup))) {
-				itemGroupTileLookup.put(itemGroup, new KdTree<Vector3i>());
+		if (itemGroups != null) {
+			for (String itemGroup: itemGroups) {
+				if (!(itemGroupTileLookup.containsKey(itemGroup))) {
+					itemGroupTileLookup.put(itemGroup, new KdTree<Vector3i>());
+				}
+				itemGroupTileLookup.get(itemGroup).add(coords);
 			}
-			itemGroupTileLookup.get(itemGroup).add(coords);
 		}
 		
 		globalItemsLookup.add(coords);

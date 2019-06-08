@@ -192,7 +192,7 @@ public class Inventory {
 		double sumWealth = 0;
 		for (InventoryItem item: this.items) {
 			double wealth = ItemData.getBaseItemValue(item.itemId);
-			sumWealth += wealth;
+			sumWealth += wealth * item.quantity;
 		}
 		return sumWealth;
 	}
