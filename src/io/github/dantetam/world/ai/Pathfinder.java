@@ -69,8 +69,12 @@ public class Pathfinder {
 		return candidates;
 	}
 	
+	//Generate distance between two neighboring tiles, assuming they're adjacent
 	private double getTileDist(LocalTile a, LocalTile b) {
-		return a.coords.manhattanDist(b.coords);
+		if (a.coords.manhattanDist(b.coords) > 1) {
+			return 1.4;
+		}
+		return 1.0;
 	}
 	
 	private int getTileAccessibilityPenalty(LocalTile tile) {
@@ -164,7 +168,7 @@ public class Pathfinder {
                     results.add(0, v);
                     v = prev.get(v);
                 } while (v != null);
-                //System.out.println("Nodes expanded: " + nodesExpanded);
+                System.out.println("Nodes expanded: " + nodesExpanded);
                 return new ScoredPath(results, dist.get(end).doubleValue());
             }
             for (LocalTile c : validNeighbors(being, v)) {
@@ -177,6 +181,7 @@ public class Pathfinder {
             }
         }
         
+        System.out.println("Nodes expanded: " + nodesExpanded);
         return null;
     }
     

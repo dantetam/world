@@ -181,6 +181,11 @@ public class HierarchicalPathfinder extends Pathfinder {
 				for (int h = 0; h < abstractBlocks[0][0].length; h++) {
 					LocalGridBlock block = abstractBlocks[r][c][h];
 					
+					//TODO
+					//Make this process more efficient by not double using maximal door info
+					//Once the maximal 2d window has been calculated between two 3d blocks,
+					//use it for both sets of important points.
+					
 					getAllMaximalDoors(new Vector3i(r,c,h), 'r', true);
 					getAllMaximalDoors(new Vector3i(r,c,h), 'r', false);
 					getAllMaximalDoors(new Vector3i(r,c,h), 'c', true);
@@ -199,8 +204,23 @@ public class HierarchicalPathfinder extends Pathfinder {
 	public void getDistInAbsBlock(LocalGridBlock block) {
 		System.out.println("Computing paths between num blocks: " + block.importantNodes.size());
 		
+		//Use a three dimensional flood fill (connected component search)
+		//to eliminate any impossible paths immediately
+		/*
+		Map<Vector3i, Integer> connectedCompsMap = VecGridUtil.connectedComponents3D(
+				block.minBound, block.maxBound, grid);
+		*/
+		
 		for (AbstractNode node: block.importantNodes.values()) {
 			for (AbstractNode otherNode: block.importantNodes.values()) {
+				/*
+				if (connectedCompsMap.containsKey(node.coords) &&
+						connectedCompsMap.containsKey(otherNode.coords)) {
+					if (connectedCompsMap.get(node.coords) == connectedCompsMap.get(otherNode.coords)) {
+						attemptConnectAbsNode(node, otherNode, block);
+					}
+				}
+				*/
 				attemptConnectAbsNode(node, otherNode, block);
 			}
 			if (node.mirrorConnections != null) { 
@@ -529,14 +549,14 @@ public class HierarchicalPathfinder extends Pathfinder {
 	public static void main(String[] args) {
 		WorldCsvParser.init();
     	
-    	Vector3i sizes = new Vector3i(120,120,120);
+    	Vector3i sizes = new Vector3i(50,50,50);
 		int biome = 3;
 		LocalGrid activeLocalGrid = new LocalGridTerrainInstantiate(sizes, biome).setupGrid(true);
 		
 		Society testSociety = new Society("TestSociety", activeLocalGrid);
 		testSociety.societyCenter = new Vector3i(10,10,10);
 		
-		HierarchicalPathfinder hPath = new HierarchicalPathfinder(activeLocalGrid);
+		//HierarchicalPathfinder hPath = new HierarchicalPathfinder(activeLocalGrid);
 		
 		List<Human> people = new ArrayList<>();
 		for (int j = 0; j < 1; j++) {
@@ -564,16 +584,7 @@ public class HierarchicalPathfinder extends Pathfinder {
 		}
 		*/
 		
-		Vector3i randStartCoords = new Vector3i(
-				(int) (Math.random() * hPath.abstractBlocks.length),
-				(int) (Math.random() * hPath.abstractBlocks[0].length),
-				(int) (Math.random() * hPath.abstractBlocks[0][0].length)
-				);
-		Vector3i randEndCoords = new Vector3i(
-				(int) (Math.random() * hPath.abstractBlocks.length),
-				(int) (Math.random() * hPath.abstractBlocks[0].length),
-				(int) (Math.random() * hPath.abstractBlocks[0][0].length)
-				);
+		Vector3i randStartCoords, randEndCoords;
 		
 		//randEndCoords = randStartCoords.getSum(new Vector3i(1,1,1));
 		
@@ -588,27 +599,27 @@ public class HierarchicalPathfinder extends Pathfinder {
 		int numPathsTested = 0;
 		while (numPathsTested < 10) {
 			while (true) {
-				blockStart = hPath.abstractBlocks[randStartCoords.x][randStartCoords.y][randStartCoords.z];
-				blockEnd = hPath.abstractBlocks[randEndCoords.x][randEndCoords.y][randEndCoords.z];
+				randStartCoords = new Vector3i(
+						(int) (Math.random() * activeLocalGrid.pathfinder.abstractBlocks.length),
+						(int) (Math.random() * activeLocalGrid.pathfinder.abstractBlocks[0].length),
+						(int) (Math.random() * activeLocalGrid.pathfinder.abstractBlocks[0][0].length)
+						);
+				randEndCoords = new Vector3i(
+						(int) (Math.random() * activeLocalGrid.pathfinder.abstractBlocks.length),
+						(int) (Math.random() * activeLocalGrid.pathfinder.abstractBlocks[0].length),
+						(int) (Math.random() * activeLocalGrid.pathfinder.abstractBlocks[0][0].length)
+						);
+				
+				blockStart = activeLocalGrid.pathfinder.abstractBlocks[randStartCoords.x][randStartCoords.y][randStartCoords.z];
+				blockEnd = activeLocalGrid.pathfinder.abstractBlocks[randEndCoords.x][randEndCoords.y][randEndCoords.z];
 				startVec = VecGridUtil.getRandVecInBounds(blockStart.minBound, blockStart.maxBound);
 				endVec = VecGridUtil.getRandVecInBounds(blockEnd.minBound, blockEnd.maxBound);
 				if (activeLocalGrid.tileIsAccessible(startVec) && activeLocalGrid.tileIsAccessible(endVec))
 					if (activeLocalGrid.getTile(startVec).exposedToAir && activeLocalGrid.getTile(endVec).exposedToAir)
 						break;
-				
-				randStartCoords = new Vector3i(
-						(int) (Math.random() * hPath.abstractBlocks.length),
-						(int) (Math.random() * hPath.abstractBlocks[0].length),
-						(int) (Math.random() * hPath.abstractBlocks[0][0].length)
-						);
-				randEndCoords = new Vector3i(
-						(int) (Math.random() * hPath.abstractBlocks.length),
-						(int) (Math.random() * hPath.abstractBlocks[0].length),
-						(int) (Math.random() * hPath.abstractBlocks[0][0].length)
-						);
 			}
 			
-			path = hPath.findPath(null, startVec, endVec);
+			path = activeLocalGrid.pathfinder.findPath(null, startVec, endVec);
 			if (path != null && path.path != null && path.path.size() > 0) {
 				System.out.println("Pathing: " + startVec + ", " + endVec + " ####################################");
 				

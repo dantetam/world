@@ -2,15 +2,22 @@ package io.github.dantetam.toolbox;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
 
 import io.github.dantetam.vector.Vector2i;
 import io.github.dantetam.vector.Vector3i;
+import io.github.dantetam.world.ai.Pathfinder;
+import io.github.dantetam.world.dataparse.WorldCsvParser;
 import io.github.dantetam.world.grid.LocalGrid;
+import io.github.dantetam.world.grid.LocalTile;
+import io.github.dantetam.world.worldgen.LocalGridTerrainInstantiate;
 
 public class VecGridUtil {
 	
@@ -52,6 +59,10 @@ public class VecGridUtil {
 		return new Vector3i[] {minBounds, maxBounds};
 	}
 	
+	/**
+	 * @param coords  The available coords that a rectangle could occupy
+	 * @return        The maximal rectangle within the set of vectors
+	 */
 	public static int[] findMaxRect(Set<Vector3i> coords) {
 		Vector3i[] bounds = findCoordBounds(coords);
 		Vector3i topLeftBound = bounds[0], bottomRightBound = bounds[1];
@@ -69,6 +80,32 @@ public class VecGridUtil {
 		zeroCenteredRect[0] += topLeftBound.x;
 		zeroCenteredRect[1] += topLeftBound.y;
 		return zeroCenteredRect;
+	}
+	
+	/**
+	 * ("Breaking Path Symmetries on 4-Connected Grid Maps", Harabor and Botea, 2010)
+	 * In A* pathfinding, too many nodes can be expanded due to the fact that symmetric paths
+	 * with the same cost are factored into node expansion. This step is to find maximal
+	 * rectangular solids, which can be streamlined connections across the perimeter.
+	 * 
+	 * This approach is extended to three dimensions with trivial proof. 
+	 *  
+	 * @return A list of the maximal rectangular solids
+	 */
+	public static List<RectangularSolid> findMaximalRectSolids() {
+		
+	}
+	
+	//Represents a single rectangular solid, for use in rectangular symmetry pathfinding 
+	//See VecGridUtil::findMaximalRectSolids();
+	public static class RectangularSolid {
+		public Vector3i topLeftCorner; //The coordinate of the rectangular solid with the least x,y,z coords
+		public Vector3i solidDimensions; //The measurements of the solid, e.g. 2x2x2 represents an object,
+			//2 tiles wide in each dimension, for a total of 8 occupied tiles.
+		public RectangularSolid(Vector3i corner, Vector3i dim) {
+			this.topLeftCorner = corner;
+			this.solidDimensions = dim;
+		}
 	}
 	
 	/**
@@ -141,6 +178,53 @@ public class VecGridUtil {
 		return corners;
 	}
 	
+	/**
+	 * 
+	 * @param minBoundsInc  The minimum bounds of the space to separate into components
+	 * @param maxBoundsInc  
+	 * @param grid          The grid in question
+	 * @return A mapping of every vector into a numbered connected component
+	 */
+	public static Map<Vector3i, Integer> connectedComponents3D(Vector3i minBoundsInc,
+			Vector3i maxBoundsInc, LocalGrid grid) {
+		Map<Vector3i, Integer> results = new HashMap<>();
+		Set<Vector3i> visited = new HashSet<>();
+		int componentNumber = 0;
+		
+		for (int r = minBoundsInc.x; r < maxBoundsInc.x; r++) {
+			for (int c = minBoundsInc.y; c < maxBoundsInc.y; c++) {
+				for (int h = minBoundsInc.z; h < maxBoundsInc.z; h++) {
+					Set<Vector3i> componentVecs = new HashSet<>();
+					List<Vector3i> fringe = new ArrayList<>();
+					fringe.add(new Vector3i(r,c,h));
+					
+					while (fringe.size() > 0) {
+						Vector3i first = fringe.remove(0);
+						if (!visited.contains(first) && 
+								grid.inBounds(first) && vecInBounds(minBoundsInc, maxBoundsInc, first)) {
+							visited.add(first);
+							if (grid.tileIsAccessible(first)) {
+								componentVecs.add(first);
+								Set<Vector3i> neighbors = grid.getEveryNeighborUpDown(first);
+								for (Vector3i neighbor: neighbors) {
+									fringe.add(neighbor);
+								}
+							}
+						}
+					}
+					
+					for (Vector3i componentVec: componentVecs) {
+						results.put(componentVec, componentNumber);
+					}
+					
+					componentNumber++;
+				}
+			}
+		}
+		
+		return results;
+	}
+	
 	public static Vector3i getRandVecInBounds(Vector3i a, Vector3i b) {
 		int minX = Math.min(a.x, b.x), minY = Math.min(a.y, b.y), minZ = Math.min(a.z, b.z);
 		int maxX = Math.max(a.x, b.x), maxY = Math.max(a.y, b.y), maxZ = Math.max(a.z, b.z);
@@ -148,6 +232,28 @@ public class VecGridUtil {
 		int newY = (int) (Math.random() * (maxY - minY + 1)) + minY;
 		int newZ = (int) (Math.random() * (maxZ - minZ + 1)) + minZ;
 		return new Vector3i(newX, newY, newZ);
+	}
+	
+	public static boolean vecInBounds(Vector3i minBounds, Vector3i maxBounds, Vector3i coords) {
+		List<Vector3i> pair = new ArrayList<>();
+		pair.add(minBounds); pair.add(maxBounds);
+		Vector3i[] bounds = findCoordBounds(pair);
+		Vector3i topLeftBound = bounds[0], bottomRightBound = bounds[1];
+		if (minBounds != null) {
+        	if (coords.x < topLeftBound.x || 
+        		coords.y < topLeftBound.y ||
+        		coords.z < topLeftBound.z) { //If tile is not within the inclusive bounds
+        		return false;
+        	}
+        }
+        if (maxBounds != null) {
+        	if (coords.x > bottomRightBound.x || 
+        		coords.y > bottomRightBound.y ||
+        		coords.z > bottomRightBound.z) {
+        		return false;
+        	}
+        }
+        return true;
 	}
 	
 	public static int[] findBestRect(Set<Vector3i> coords, int desiredR, int desiredC) {
@@ -335,6 +441,32 @@ public class VecGridUtil {
 	}
 	
 	public static void main(String[] args) {
+		cont3dCompTest();
+	}
+	
+	public static void cont3dCompTest() {
+		WorldCsvParser.init();
+    	
+    	Vector3i sizes = new Vector3i(50,50,50);
+		int biome = 3;
+		LocalGrid activeLocalGrid = new LocalGridTerrainInstantiate(sizes, biome).setupGrid(false);
+		
+		System.out.println("Start 3d component time trial now");
+		long startTime = Calendar.getInstance().getTimeInMillis();
+		
+		Map<Vector3i, Integer> components = connectedComponents3D(
+				new Vector3i(0,0,0),
+				new Vector3i(199,199,49),
+				activeLocalGrid
+				);
+		
+		long endTime = Calendar.getInstance().getTimeInMillis();
+		System.out.println("Completed trials in " + (endTime - startTime) + "ms");
+	
+		//System.out.println(components);
+	}
+	
+	public void matrixAndComp2DTest() {
 		boolean[][] matrix = {
 				{true, true, false, false, true},
 				{true, false, false, false, false},
