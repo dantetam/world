@@ -40,8 +40,8 @@ public class HumanBrain {
 	//Relating to choice of career and object preferences, like for food
 	public Map<String, Ethos> personalBias; 
 	
-	public Map<Human, HumanRelationship> indexedRelationships;
 	
+	public Map<Human, HumanRelationship> indexedRelationships;
 	public Map<String, Double> languageCodesStrength;
 	
 	public HumanBrain(Human host) {

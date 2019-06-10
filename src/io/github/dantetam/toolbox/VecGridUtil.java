@@ -92,7 +92,25 @@ public class VecGridUtil {
 	 *  
 	 * @return A list of the maximal rectangular solids
 	 */
-	public static List<RectangularSolid> findMaximalRectSolids() {
+	public static List<RectangularSolid> findMaximalRectSolids(LocalGrid grid) {
+		int[][][] solidData = new int[grid.rows][grid.cols][grid.heights];
+		Vector3i minBoundsInc = new Vector3i(0,0,0);
+		Vector3i maxBoundsInc = new Vector3i(grid.rows, grid.cols, grid.heights);
+		for (int r = minBoundsInc.x; r < maxBoundsInc.x; r++) {
+			for (int c = minBoundsInc.y; c < maxBoundsInc.y; c++) {
+				for (int h = minBoundsInc.z; h < maxBoundsInc.z; h++) {
+					Vector3i minPoint = new Vector3i(r,c,h);
+					int s0 = 1, s1 = 1, s2 = 1;
+					boolean rExp = true, cExp = true, hExp = true;
+					while (true) {
+						
+					}
+				}
+			}
+		}
+	}
+	public static boolean canExpand(LocalGrid grid, Vector3i minPoint, 
+			Vector3i currentDimensions, char direction) {
 		
 	}
 	
@@ -191,9 +209,9 @@ public class VecGridUtil {
 		Set<Vector3i> visited = new HashSet<>();
 		int componentNumber = 0;
 		
-		for (int r = minBoundsInc.x; r < maxBoundsInc.x; r++) {
-			for (int c = minBoundsInc.y; c < maxBoundsInc.y; c++) {
-				for (int h = minBoundsInc.z; h < maxBoundsInc.z; h++) {
+		for (int r = minBoundsInc.x; r <= maxBoundsInc.x; r++) {
+			for (int c = minBoundsInc.y; c <= maxBoundsInc.y; c++) {
+				for (int h = minBoundsInc.z; h <= maxBoundsInc.z; h++) {
 					Set<Vector3i> componentVecs = new HashSet<>();
 					List<Vector3i> fringe = new ArrayList<>();
 					fringe.add(new Vector3i(r,c,h));

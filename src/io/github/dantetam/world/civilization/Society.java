@@ -42,7 +42,7 @@ public class Society {
 	
 	public List<War> warsInvolved;
 	
-	public Map<String, Ethos> dominantEthos;
+	public Map<String, Ethos> dominantEthos; TODO
 	public String dominantCultureStr;
 	
 	public JobMarket jobMarket;
