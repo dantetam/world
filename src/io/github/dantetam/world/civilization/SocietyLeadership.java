@@ -1,9 +1,11 @@
 package io.github.dantetam.world.civilization;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import io.github.dantetam.world.civhumanai.EthosSet;
 import io.github.dantetam.world.civhumanrelation.SocietySocietyRel;
 import io.github.dantetam.world.life.Human;
 
@@ -13,7 +15,10 @@ import io.github.dantetam.world.life.Human;
 
 public class SocietyLeadership {
 	
+	private Society society;
 	public List<Human> currentLeaders;
+	
+	public EthosSet societalEthosSet;
 	
 	//Evaluate all factors of society, its people, and its method of determining/selecting rulers,
 	//in order to figure out succession (or beginning, when societies emerge).
@@ -22,11 +27,32 @@ public class SocietyLeadership {
 	public SocKnowledgeEthosChange sociKnowledgeType;
 	
 	public SocietyLeadership(Society society) {
-		
+		this.society = society;
+		this.currentLeaders = new ArrayList<>();
+		societalEthosSet = new EthosSet();
+	}
+	
+	public void succeed() {
+		List<Human> newLeaders = SocietyLeadershipSuccession.determineSuccessors(society, 
+				this.sociPrefLeadership, this.sociSuccessionType);
+		this.currentLeaders = newLeaders;
+	}
+	
+	/**
+	 * Pick new leaders, affirm the society's knowledge base and ethos, 
+	 * assign societal task utility, and so on.
+	 */
+	public void workThroughSocietalPolitics() {
+		if (currentLeaders == null || currentLeaders.size() == 0) {
+			succeed();
+		}
 	}
 	
 	//TODO: SocietalEthos, political, in the technical impl. like that of a human
 		
+	//TODO: Note that various groups of people can seek to change the mode of societal leadership and succession,
+	//e.g. a group of strong warlords believes there is high utility in
+	
 	public enum SocietyLeadershipMode {
 		DICTATORSHIP,  //An absolute unchecked dictator rules
 		GROUP, 		   //A council rules, mirroring classical Roman consuls, or elder councils

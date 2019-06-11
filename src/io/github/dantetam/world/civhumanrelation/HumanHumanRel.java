@@ -5,10 +5,11 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map.Entry;
 
+import io.github.dantetam.world.civhumanai.Ethos;
+import io.github.dantetam.world.civhumanai.EthosSet;
 import io.github.dantetam.world.civilization.LocalExperience;
 import io.github.dantetam.world.civilization.Society;
 import io.github.dantetam.world.items.InventoryItem;
-import io.github.dantetam.world.life.Ethos;
 import io.github.dantetam.world.life.Human;
 import io.github.dantetam.world.life.HumanBrain;
 import io.github.dantetam.world.life.LivingEntity;
@@ -34,7 +35,7 @@ public class HumanHumanRel extends HumanRelationship {
 	@Override
 	public double reevaluateOpinion(Date date) {
 		double opinionSum = 0;
-		for (Entry<String, Ethos> entry: human.brain.greatEthos.entrySet()) {
+		for (Entry<String, Ethos> entry: human.brain.ethosSet.greatEthos.entrySet()) {
 			Ethos ethos = entry.getValue();
 			if (ethos.name.equals("Ethnocentrism")) {
 				double severityMulti = ethos.getLogisticVal(0, 2.5);
@@ -45,7 +46,7 @@ public class HumanHumanRel extends HumanRelationship {
 			}
 			if (ethos.name.equals("Open")) {
 				double severityMulti = ethos.getLogisticVal(-2.5, 2.5);
-				double totalEthosDiff = HumanBrain.getEthosDifference(human.brain, targetHuman.brain);
+				double totalEthosDiff = EthosSet.getEthosDifference(human.brain.ethosSet, targetHuman.brain.ethosSet);
 				opinionSum += -1 * severityMulti * totalEthosDiff * 10;
 			}
 		}

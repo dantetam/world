@@ -93,25 +93,92 @@ public class VecGridUtil {
 	 * @return A list of the maximal rectangular solids
 	 */
 	public static List<RectangularSolid> findMaximalRectSolids(LocalGrid grid) {
+		List<RectangularSolid> solids = new ArrayList<>();
 		int[][][] solidData = new int[grid.rows][grid.cols][grid.heights];
+		for (int r = 0; r < grid.rows; r++) {
+			for (int c = 0; c < grid.cols; c++) {
+				for (int h = 0; h < grid.heights; h++) {
+					solidData[r][c][h] = -1;
+				}
+			}
+		}
 		Vector3i minBoundsInc = new Vector3i(0,0,0);
 		Vector3i maxBoundsInc = new Vector3i(grid.rows, grid.cols, grid.heights);
+		int compNum = 0;
 		for (int r = minBoundsInc.x; r < maxBoundsInc.x; r++) {
 			for (int c = minBoundsInc.y; c < maxBoundsInc.y; c++) {
 				for (int h = minBoundsInc.z; h < maxBoundsInc.z; h++) {
 					Vector3i minPoint = new Vector3i(r,c,h);
-					int s0 = 1, s1 = 1, s2 = 1;
+					Vector3i dimensions = new Vector3i(1,1,1);
 					boolean rExp = true, cExp = true, hExp = true;
-					while (true) {
-						
+					while (rExp || cExp || hExp) {
+						if (rExp) {
+							if (canExpand(grid, minPoint, dimensions, 'r', solidData)) dimensions.x++;
+							else rExp = false;
+						}
+						if (cExp) {
+							if (canExpand(grid, minPoint, dimensions, 'c', solidData)) dimensions.y++;
+							else cExp = false;
+						}
+						if (hExp) {
+							if (canExpand(grid, minPoint, dimensions, 'h', solidData)) dimensions.z++;
+							else hExp = false;
+						}
+					}
+					int interiorNodes = (dimensions.x - 2) * (dimensions.y - 2) * (dimensions.z - 2);
+					if (interiorNodes > 1) {
+						RectangularSolid newSolid = new RectangularSolid(minPoint, dimensions);
+						solids.add(newSolid);
+						for (int d0 = minPoint.x; d0 < minPoint.x + dimensions.x; d0++) {
+							for (int d1 = minPoint.y; d1 < minPoint.y + dimensions.y; d1++) {
+								for (int d2 = minPoint.z; d2 < minPoint.z + dimensions.z; d2++) {
+									solidData[d0][d1][d2] = compNum;
+								}
+							}
+						}
+						compNum++;
 					}
 				}
 			}
 		}
+		return solids;
 	}
-	public static boolean canExpand(LocalGrid grid, Vector3i minPoint, 
-			Vector3i currentDimensions, char direction) {
-		
+	public static boolean canExpand(LocalGrid grid, Vector3i minPoint, Vector3i dimensions, char direction,
+			int[][][] solidData) {
+		Set<Vector3i> face = new HashSet<>();
+		if (direction == 'r') {
+			int newDim = minPoint.x + dimensions.x;
+			for (int d0 = minPoint.y; d0 < minPoint.y + dimensions.y; d0++) {
+				for (int d1 = minPoint.z; d1 < minPoint.z + dimensions.z; d1++) {
+					face.add(new Vector3i(newDim, d0, d1));
+				}
+			}
+		}
+		else if (direction == 'c') {
+			int newDim = minPoint.y + dimensions.y;
+			for (int d0 = minPoint.x; d0 < minPoint.x + dimensions.x; d0++) {
+				for (int d1 = minPoint.z; d1 < minPoint.z + dimensions.z; d1++) {
+					face.add(new Vector3i(d0, newDim, d1));
+				}
+			}
+		}
+		else if (direction == 'h') {
+			int newDim = minPoint.z + dimensions.z;
+			for (int d0 = minPoint.x; d0 < minPoint.x + dimensions.x; d0++) {
+				for (int d1 = minPoint.y; d1 < minPoint.y + dimensions.y; d1++) {
+					face.add(new Vector3i(d0, d1, newDim));
+				}
+			}
+		}
+		else {
+			throw new IllegalArgumentException("Direction parameter must be one of 'r','c','h', got: " + direction);
+		}
+		for (Vector3i vec: face) {
+			if (!grid.inBounds(vec) || !grid.tileIsAccessible(vec) || solidData[vec.x][vec.y][vec.z] != -1) {
+				return false;
+			}
+		}
+		return true;
 	}
 	
 	//Represents a single rectangular solid, for use in rectangular symmetry pathfinding 
@@ -123,6 +190,19 @@ public class VecGridUtil {
 		public RectangularSolid(Vector3i corner, Vector3i dim) {
 			this.topLeftCorner = corner;
 			this.solidDimensions = dim;
+		}
+		
+		/**
+		 * @return True if the given point is fully within this rect solid (does not include perimeter).
+		 */
+		public boolean insideInterior(Vector3i v) {
+			Vector3i minBounds = this.topLeftCorner.getSum(1,1,1);
+			Vector3i maxBounds = this.topLeftCorner.getSum(this.solidDimensions).getSum(-2,-2,-2);
+			return vecInBounds(minBounds, maxBounds, v);
+		}
+		
+		public String toString() {
+			return "RectSolid, Min-Corner: " + topLeftCorner.toString() + ", Sizes: " + solidDimensions.toString(); 
 		}
 	}
 	
@@ -223,7 +303,7 @@ public class VecGridUtil {
 							visited.add(first);
 							if (grid.tileIsAccessible(first)) {
 								componentVecs.add(first);
-								Set<Vector3i> neighbors = grid.getEveryNeighborUpDown(first);
+								Set<Vector3i> neighbors = grid.getAllNeighbors6(first);
 								for (Vector3i neighbor: neighbors) {
 									fringe.add(neighbor);
 								}
@@ -252,6 +332,12 @@ public class VecGridUtil {
 		return new Vector3i(newX, newY, newZ);
 	}
 	
+	/**
+	 * 
+	 * @param minBounds,maxBounds The min and max bounds, inclusive
+	 * @param coords              The coordinates in question
+	 * @return True if the given vector is contained within the inclusive bounds
+	 */
 	public static boolean vecInBounds(Vector3i minBounds, Vector3i maxBounds, Vector3i coords) {
 		List<Vector3i> pair = new ArrayList<>();
 		pair.add(minBounds); pair.add(maxBounds);

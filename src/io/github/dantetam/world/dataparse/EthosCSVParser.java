@@ -5,7 +5,7 @@ import java.util.List;
 import org.apache.commons.csv.CSVRecord;
 
 import io.github.dantetam.toolbox.MapUtil;
-import io.github.dantetam.world.life.Ethos;
+import io.github.dantetam.world.civhumanai.Ethos;
 
 public class EthosCSVParser extends WorldCsvParser {
 

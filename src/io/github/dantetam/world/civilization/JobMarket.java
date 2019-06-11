@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import io.github.dantetam.world.life.Ethos;
+import io.github.dantetam.world.civhumanai.Ethos;
 import io.github.dantetam.world.life.Human;
 import io.github.dantetam.world.process.LocalJob;
 import io.github.dantetam.world.process.LocalProcess;
@@ -22,7 +22,7 @@ public class JobMarket {
 		for (Human human: society.getAllPeople()) {
 			
 			double wagePercentageOfOutput = 0.25;
-			Ethos workPayEthos = human.brain.ethosEconomics.get("Worker Percentage Wages");
+			Ethos workPayEthos = human.brain.ethosSet.ethosEconomics.get("Worker Percentage Wages");
 			if (workPayEthos != null) {
 				wagePercentageOfOutput += workPayEthos.getLogisticVal(-0.2, 0.5);
 			}
@@ -41,6 +41,10 @@ public class JobMarket {
 				}
 			}
 		}
+	}
+	
+	public String toString() {
+		return this.allJobsAvailable.toString();
 	}
 	
 }

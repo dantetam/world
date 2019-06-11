@@ -7,8 +7,8 @@ import java.util.Map;
 import java.util.Set;
 
 import io.github.dantetam.toolbox.ListUtil;
-import io.github.dantetam.world.life.Ethos;
-import io.github.dantetam.world.life.HumanBrain.EthosModifier;
+import io.github.dantetam.world.civhumanai.Ethos;
+import io.github.dantetam.world.civhumanai.EthosModifier;
 
 public class EthosData {
 

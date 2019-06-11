@@ -16,6 +16,7 @@ import java.util.function.Supplier;
 
 import io.github.dantetam.toolbox.MapUtil;
 import io.github.dantetam.vector.Vector3i;
+import io.github.dantetam.world.civhumanai.Ethos;
 import io.github.dantetam.world.civhumansocietyai.SocietalHumansActionsCalc;
 import io.github.dantetam.world.combat.War;
 import io.github.dantetam.world.dataparse.ItemData;
@@ -25,7 +26,6 @@ import io.github.dantetam.world.grid.LocalBuilding;
 import io.github.dantetam.world.grid.LocalGrid;
 import io.github.dantetam.world.grid.LocalTile;
 import io.github.dantetam.world.items.InventoryItem;
-import io.github.dantetam.world.life.Ethos;
 import io.github.dantetam.world.life.Human;
 import io.github.dantetam.world.process.LocalJob;
 import io.github.dantetam.world.process.LocalProcess;
@@ -42,7 +42,6 @@ public class Society {
 	
 	public List<War> warsInvolved;
 	
-	public Map<String, Ethos> dominantEthos; TODO
 	public String dominantCultureStr;
 	
 	public JobMarket jobMarket;

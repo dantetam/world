@@ -74,6 +74,7 @@ public class LocalGridTimeExecution {
 		if (date.getSeconds() == 0) {
 			society.createJobOffers();
 			assignAllHumanJobs(society, date);
+			society.leadershipManager.workThroughSocietalPolitics();
 		}
 		
 		System.out.println("################");
@@ -414,7 +415,7 @@ public class LocalGridTimeExecution {
 			MoveTolDistOnePriority movePriority = (MoveTolDistOnePriority) priority;
 			
 			//Allow being to move to the actual space or any tile one distance unit away
-			Set<Vector3i> validSpace = grid.getAllFlatAdjAndDiag(movePriority.coords);
+			Set<Vector3i> validSpace = grid.getAllNeighbors8(movePriority.coords);
 			
 			for (Vector3i candidateDest: validSpace) {
 				ScoredPath scoredPath = grid.pathfinder.findPath(

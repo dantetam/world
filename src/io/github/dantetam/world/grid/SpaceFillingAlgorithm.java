@@ -108,7 +108,7 @@ public class SpaceFillingAlgorithm {
 							
 					visitedSet.add(fringeVec);
 					singleComponent.add(fringeVec);
-					Set<Vector3i> neighbors = grid.getAllNeighbors(fringeVec);
+					Set<Vector3i> neighbors = grid.getAllNeighbors6(fringeVec);
 					for (Vector3i neighborVec: neighbors) {
 						newFringe.add(neighborVec);
 					}

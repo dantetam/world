@@ -206,22 +206,22 @@ public class HierarchicalPathfinder extends Pathfinder {
 		
 		//Use a three dimensional flood fill (connected component search)
 		//to eliminate any impossible paths immediately
-		/*
 		Map<Vector3i, Integer> connectedCompsMap = VecGridUtil.connectedComponents3D(
 				block.minBound, block.maxBound, grid);
-		*/
 		
 		for (AbstractNode node: block.importantNodes.values()) {
 			for (AbstractNode otherNode: block.importantNodes.values()) {
-				/*
 				if (connectedCompsMap.containsKey(node.coords) &&
 						connectedCompsMap.containsKey(otherNode.coords)) {
 					if (connectedCompsMap.get(node.coords) == connectedCompsMap.get(otherNode.coords)) {
 						attemptConnectAbsNode(node, otherNode, block);
+						System.out.println("Connected in 3d component");
+						
+						System.out.println("Found path: " + 
+						(node.distToPathableNodes != null && 
+						node.distToPathableNodes.containsKey(otherNode)));
 					}
 				}
-				*/
-				attemptConnectAbsNode(node, otherNode, block);
 			}
 			if (node.mirrorConnections != null) { 
 				//System.out.println(node.coords + " connected " + node.mirrorConnection.coords);

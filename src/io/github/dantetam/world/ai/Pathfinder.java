@@ -53,27 +53,18 @@ public class Pathfinder {
 	 * x,y,z in each dimension respectively. If null, there are no restrictions in one direction
 	 * @return
 	 */
-	private Set<LocalTile> validNeighbors(LivingEntity being, LocalTile tile) {
+	protected Set<LocalTile> validNeighbors(LivingEntity being, LocalTile tile) {
 		Set<LocalTile> candidates = grid.getAccessibleNeighbors(tile);
-		/*
-		if (minRestrict == null && maxRestrict == null) return candidates;
-		Set<LocalTile> valid = new HashSet<>();
-		for (LocalTile candidate: candidates) {
-			if (minRestrict != null) {
-				if (candidate.coords.x < minRestrict.x) {
-					
-				}
-			}
-		}
-		*/
 		return candidates;
 	}
 	
 	//Generate distance between two neighboring tiles, assuming they're adjacent
-	private double getTileDist(LocalTile a, LocalTile b) {
+	protected double getTileDist(LocalTile a, LocalTile b) {
+		/*
 		if (a.coords.manhattanDist(b.coords) > 1) {
 			return 1.4;
 		}
+		*/
 		return 1.0;
 	}
 	
@@ -110,8 +101,9 @@ public class Pathfinder {
     		return null;
     	}
     	
-    	//System.out.println("Finding path between: " + start.coords + " -> " + end.coords + ",\n with bounds: "
-    			// + minRestrict + " <-> " + maxRestrict);
+    	System.out.println("-----------");
+    	System.out.println("Finding path between: " + start.coords + " -> " + end.coords + ",\n with bounds: "
+    			+ minRestrict + " <-> " + maxRestrict);
     	
     	List<LocalTile> results = new ArrayList<>();
         if (start.equals(end)) {
@@ -134,7 +126,7 @@ public class Pathfinder {
                 int accessScore2 = getTileAccessibilityPenalty(n2);
                 return (
                 		1 * (dist.get(n1) - dist.get(n2)) + 
-                		1.05 * (getTileDist(end, n1) - getTileDist(end, n2)) + 
+                		0.7 * (getTileDist(end, n1) - getTileDist(end, n2)) + 
                 		0.3 * (accessScore1 - accessScore2)
                 		) > 0 ? 1 : -1;
             }
@@ -173,7 +165,7 @@ public class Pathfinder {
             }
             for (LocalTile c : validNeighbors(being, v)) {
                 if ((!dist.containsKey(c)) || (dist.containsKey(c) && dist.get(c) > dist.get(v) + getTileDist(v, c))) {
-                    dist.put(c, 1*dist.get(v) + 0.7*getTileDist(v, c) + 0*getTileAccessibilityPenalty(c));
+                    dist.put(c, 1*dist.get(v) + 1.05*getTileDist(v, c)); //+ 0*getTileAccessibilityPenalty(c)
                     //c.queue = dist.get(v) + v.dist(c) + c.dist(end);
                     fringe.add(c);
                     prev.put(c, v);

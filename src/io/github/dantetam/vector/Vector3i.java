@@ -11,6 +11,13 @@ import kdtreegeo.KdPoint;
 
 /**
  * Conveniently wrap two three integers
+ * 
+ * TODO: Make this class 'parameter reflexive', i.e. we could do
+ * 
+ * Vector3i vec = new Vector3i(x,y,z);
+ * vec.get('xz') -> Pair(x, z)
+ * 
+ * This would reduce the code clutter around dimension-generic algorithms
  */
 public class Vector3i extends KdPoint {
 
@@ -61,6 +68,10 @@ public class Vector3i extends KdPoint {
 		return new Vector3f(x * f, y * f, z * f);
 	}
 
+	public Vector3i getSum(int a, int b, int c) {
+		return new Vector3i(x + a, y + b, z + c);
+	}
+	
 	public Vector3i getSum(Vector3i other) {
 		return new Vector3i(x + other.x, y + other.y, z + other.z);
 	}

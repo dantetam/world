@@ -40,7 +40,7 @@ public class Human extends LivingEntity {
 		skillBook = new SkillBook();
 		body = new Body("Human");
 		brain = new HumanBrain(this);
-		HumanBrainInitialize.initHumanBrain(brain);
+		EthosSetInitialize.initHumanBrain(brain.ethosSet);
 		dna = new DNAHuman("Human");
 		servants = new ArrayList<>();
 		workers = new ArrayList<>();

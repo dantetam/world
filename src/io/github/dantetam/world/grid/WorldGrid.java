@@ -14,6 +14,7 @@ import java.util.Set;
 import io.github.dantetam.toolbox.StringUtil;
 import io.github.dantetam.vector.Vector2i;
 import io.github.dantetam.vector.Vector3i;
+import io.github.dantetam.world.civhumanai.Ethos;
 import io.github.dantetam.world.civhumansocietyai.FreeActionsHousehold;
 import io.github.dantetam.world.civhumansocietyai.FreeActionsHumans;
 import io.github.dantetam.world.civhumansocietyai.FreeActionsSociety;
@@ -21,7 +22,6 @@ import io.github.dantetam.world.civilization.Household;
 import io.github.dantetam.world.civilization.Society;
 import io.github.dantetam.world.civilization.SocietyDiplomacy;
 import io.github.dantetam.world.dataparse.ItemData;
-import io.github.dantetam.world.life.Ethos;
 import io.github.dantetam.world.life.Human;
 import io.github.dantetam.world.life.LivingEntity;
 import io.github.dantetam.world.process.LocalProcess;
@@ -107,7 +107,7 @@ public class WorldGrid {
 							for (int i = 0; i < (int) (Math.random() * 8); i++) {
 								apparentCul = StringUtil.mutateAlphaNumStr(apparentCul);
 							}
-							human.brain.greatEthos.put("Culture", 
+							human.brain.ethosSet.greatEthos.put("Culture", 
 									new Ethos("Culture", 1.0, "MOD:" + apparentCul, ""));
 							for (int i = 0; i < tileData.languages.size(); i++) {
 								String language = tileData.languages.get(i);

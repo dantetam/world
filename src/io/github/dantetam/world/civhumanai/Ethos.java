@@ -1,9 +1,8 @@
-package io.github.dantetam.world.life;
+package io.github.dantetam.world.civhumanai;
 
 import org.apache.commons.math3.analysis.function.Sigmoid;
 
 import io.github.dantetam.world.dataparse.EthosData;
-import io.github.dantetam.world.life.HumanBrain.EthosModifier;
 
 /**
  * Represents a societal thought, personality trait, or other intellectual quirk

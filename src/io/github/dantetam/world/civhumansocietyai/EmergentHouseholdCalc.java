@@ -6,9 +6,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import io.github.dantetam.world.civhumanai.Ethos;
 import io.github.dantetam.world.civhumanrelation.HumanHumanRel;
 import io.github.dantetam.world.civilization.Household;
-import io.github.dantetam.world.life.Ethos;
 import io.github.dantetam.world.life.Human;
 
 /**
@@ -42,7 +42,7 @@ public class EmergentHouseholdCalc {
 		
 		if (bestHuman == null) {
 			for (Human candidate: household.householdMembers) {
-				Ethos ethosIndep = candidate.brain.ethosPersonalityTraits.get("Individualist");
+				Ethos ethosIndep = candidate.brain.ethosSet.ethosPersonalityTraits.get("Individualist");
 				double severity = ethosIndep != null ? Math.log(ethosIndep.severity) : 0;
 				if (severity > bestScore) {
 					bestScore = severity;

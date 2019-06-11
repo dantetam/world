@@ -113,7 +113,7 @@ public class LocalGrid {
 	public static final Set<Vector3i> directAdjOffsets6 = new HashSet<Vector3i>() {
 		{add(new Vector3i(1,0,0)); add(new Vector3i(-1,0,0)); add(new Vector3i(0,1,0));
 			add(new Vector3i(0,-1,0)); add(new Vector3i(0,0,1)); add(new Vector3i(0,0,-1));}};
-	public Set<Vector3i> getAllNeighbors(Vector3i coords) {
+	public Set<Vector3i> getAllNeighbors6(Vector3i coords) {
 		Set<Vector3i> candidates = new HashSet<>();
 		for (Vector3i adjOffset: directAdjOffsets6) {
 			Vector3i neighbor = coords.getSum(adjOffset);
@@ -123,23 +123,8 @@ public class LocalGrid {
 		}
 		return candidates;
 	}
-	
-	public static final Set<Vector3i> allAdjOffsets8 = new HashSet<Vector3i>() {
-		{add(new Vector3i(1,0,0)); add(new Vector3i(-1,0,0)); add(new Vector3i(0,1,0)); add(new Vector3i(0,-1,0)); 
-		add(new Vector3i(1,1,0)); add(new Vector3i(1,-1,0)); add(new Vector3i(-1,-1,0)); add(new Vector3i(-1,1,0));}};
-	public Set<Vector3i> getAllFlatAdjAndDiag(Vector3i coords) {
-		Set<Vector3i> candidates = new HashSet<>();
-		for (Vector3i adjOffset: allAdjOffsets8) {
-			Vector3i neighbor = coords.getSum(adjOffset);
-			if (inBounds(neighbor)) {
-				candidates.add(neighbor);
-			}
-		}
-		return candidates;
-	}
-
 	public Set<LocalTile> getAccessibleNeighbors(LocalTile tile) {
-		Set<Vector3i> neighbors = getAllFlatAdjAndDiag(tile.coords);
+		Set<Vector3i> neighbors = this.getAllNeighbors6(tile.coords);
 		Set<LocalTile> candidateTiles = new HashSet<>();
 		for (Vector3i neighbor: neighbors) {
 			if (inBounds(neighbor)) {
@@ -155,6 +140,20 @@ public class LocalGrid {
 	//TODO: Conditional access to local tiles based on actor biology
 	//public Set<LocalTile> getAccessibleNeighbors(LocalTile tile, LivingEntity being)
 	
+	public static final Set<Vector3i> allAdjOffsets8 = new HashSet<Vector3i>() {
+		{add(new Vector3i(1,0,0)); add(new Vector3i(-1,0,0)); add(new Vector3i(0,1,0)); add(new Vector3i(0,-1,0)); 
+		add(new Vector3i(1,1,0)); add(new Vector3i(1,-1,0)); add(new Vector3i(-1,-1,0)); add(new Vector3i(-1,1,0));}};
+	public Set<Vector3i> getAllNeighbors8(Vector3i coords) {
+		Set<Vector3i> candidates = new HashSet<>();
+		for (Vector3i adjOffset: allAdjOffsets8) {
+			Vector3i neighbor = coords.getSum(adjOffset);
+			if (inBounds(neighbor)) {
+				candidates.add(neighbor);
+			}
+		}
+		return candidates;
+	}
+	
 	public static final Set<Vector3i> allVertAdjOffsets26 = new HashSet<Vector3i>() {{
 		add(new Vector3i(1,0,0)); add(new Vector3i(-1,0,0)); add(new Vector3i(0,1,0)); add(new Vector3i(0,-1,0)); 
 		add(new Vector3i(1,1,0)); add(new Vector3i(1,-1,0)); add(new Vector3i(-1,-1,0)); add(new Vector3i(-1,1,0));
@@ -164,7 +163,7 @@ public class LocalGrid {
 		add(new Vector3i(1,1,-1)); add(new Vector3i(1,-1,-1)); add(new Vector3i(-1,-1,-1)); add(new Vector3i(-1,1,-1));
 		add(new Vector3i(0,0,1)); add(new Vector3i(0,0,-1));
 		}};
-	public Set<Vector3i> getEveryNeighborUpDown(Vector3i coords) {
+	public Set<Vector3i> getAllNeighbors26(Vector3i coords) {
 		Set<Vector3i> candidates = new HashSet<>();
 		for (Vector3i adjOffset: allVertAdjOffsets26) {
 			Vector3i neighbor = coords.getSum(adjOffset);
@@ -175,7 +174,7 @@ public class LocalGrid {
 		return candidates;
 	}
 	public void markAllAdjAsExposed(Vector3i coords) {
-		Set<Vector3i> neighbors = this.getEveryNeighborUpDown(coords);
+		Set<Vector3i> neighbors = this.getAllNeighbors26(coords);
 		neighbors.add(coords);
 		for (Vector3i neighbor: neighbors) {
 			LocalTile tile = getTile(neighbor);
