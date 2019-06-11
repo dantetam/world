@@ -33,15 +33,53 @@ import io.github.dantetam.world.worldgen.LocalGridTerrainInstantiate;
  */
 public class RSRPathfinder extends Pathfinder {
 
-	private Map<Vector3i, Set<Vector3i>> macroEdgeConnections;
-	private boolean[][][] prunedRectTiles;
-	private List<RectangularSolid> solids;
+	private Map<Vector3i, Set<Vector3i>> macroEdgeConnections; //Shortcuts represented as a one-way path
+	private boolean[][][] prunedRectTiles; //True iff the corresponding Vector3i in the grid, is in the interior of a rectangular solid
+	private List<RectangularSolid> solids; //List of all the maximal rect solids as determined by the alg. 
+		//(see VecGridUtil::findMaximalRectSolid())
+	Map<Vector3i, Integer> connectedCompsMap; //Mapping of all available vectors to a unique numbered space (a 3d volume)
 	
 	public RSRPathfinder(LocalGrid grid) {
 		super(grid);
 		prunedRectTiles = new boolean[grid.rows][grid.cols][grid.heights];
 		macroEdgeConnections = new HashMap<>();
 		fillMacroedgesWithBlocks();
+		//connectedCompsMap = VecGridUtil.connectedComponents3D(null, null, grid);
+	}
+	
+	/**
+	 * @param path  A list of tiles representing a path with possible straight shortcuts
+	 * @return A new path with the straight shortcuts replaced by individual tile movements
+	 */
+	private List<LocalTile> convertMacroedgeToPath(List<LocalTile> path) {
+		List<LocalTile> newPath = new ArrayList<>();
+		for (int i = 0; i < path.size(); i++) {
+			LocalTile tile = path.get(i);
+			LocalTile nextTile = null;
+			newPath.add(tile);
+			if (i != path.size() - 1) {
+				nextTile = path.get(i+1);
+				int distR = nextTile.coords.x - tile.coords.x;
+				int distC = nextTile.coords.y - tile.coords.y;
+				int distH = nextTile.coords.z - tile.coords.z;
+				if (Math.abs(distR) > 1) {
+					for (int d = tile.coords.x + 1; d <= nextTile.coords.x - 1; d += (int) Math.signum(distR)) {
+						newPath.add(grid.getTile(tile.coords.x(d)));
+					}
+				}
+				else if (Math.abs(distC) > 1) {
+					for (int d = tile.coords.y + 1; d <= nextTile.coords.y - 1; d += (int) Math.signum(distR)) {
+						newPath.add(grid.getTile(tile.coords.y(d)));
+					}
+				}
+				else if (Math.abs(distH) > 1) {
+					for (int d = tile.coords.z + 1; d <= nextTile.coords.z - 1; d += (int) Math.signum(distR)) {
+						newPath.add(grid.getTile(tile.coords.z(d)));
+					}
+				}
+			}
+		}
+		return newPath;
 	}
 	
 	private void fillMacroedgesWithBlocks() {
@@ -106,8 +144,44 @@ public class RSRPathfinder extends Pathfinder {
 	}
 	
 	//Connect a temporary node to its nearest perimeter
-	public void putTempNodeInRectSolid(RectangularSolid solid, Vector3i location) {
-		this.macroEdgeConnections
+	public void tempNodeInRectSolid(RectangularSolid solid, Vector3i location, boolean addingMode) {
+		this.prunedRectTiles[location.x][location.y][location.z] = false;
+		
+		Vector3i minR = location.clone().x(solid.topLeftCorner.x);
+		Vector3i minC = location.clone().y(solid.topLeftCorner.y);
+		Vector3i minH = location.clone().z(solid.topLeftCorner.z);
+		
+		Vector3i maxR = location.clone().x(solid.topLeftCorner.x + solid.solidDimensions.x - 1);
+		Vector3i maxC = location.clone().y(solid.topLeftCorner.y + solid.solidDimensions.y - 1);
+		Vector3i maxH = location.clone().z(solid.topLeftCorner.z + solid.solidDimensions.z - 1);
+		
+		List<Vector3i> connections = new ArrayList<>();
+		connections.add(minR); connections.add(minC); connections.add(minH);
+		connections.add(maxR); connections.add(maxC); connections.add(maxH);
+		
+		if (addingMode) {
+			for (Vector3i connection: connections) {
+				MapUtil.insertNestedSetMap(this.macroEdgeConnections, location, connection);
+				MapUtil.insertNestedSetMap(this.macroEdgeConnections, connection, location);
+			}
+		}
+		else {
+			for (Vector3i connection: connections) {
+				MapUtil.removeSafeNestSetMap(this.macroEdgeConnections, location, connection);
+				MapUtil.removeSafeNestSetMap(this.macroEdgeConnections, connection, location);
+			}
+		}
+	}
+	
+	public void tempAvailSolid(RectangularSolid solid, boolean pruned) {
+		Vector3i minPoint = solid.topLeftCorner;
+		for (int d0 = minPoint.x + 1; d0 <= minPoint.x + solid.solidDimensions.x - 1; d0++) {
+			for (int d1 = minPoint.y + 1; d1 <= minPoint.y + solid.solidDimensions.y - 1; d1++) {
+				for (int d2 = minPoint.z + 1; d2 <= minPoint.z + solid.solidDimensions.z - 1; d2++) {
+					this.prunedRectTiles[d0][d1][d2] = pruned;
+				}
+			}
+		}
 	}
 	
 	@Override
@@ -136,9 +210,23 @@ public class RSRPathfinder extends Pathfinder {
 		return a.coords.manhattanDist(b.coords);
 	}
 	
+	
+	
 	@Override
-	protected ScoredPath findPath(LivingEntity being, LocalTile start, LocalTile end,
+	public ScoredPath findPath(LivingEntity being, LocalTile start, LocalTile end,
     		Vector3i minRestrict, Vector3i maxRestrict) {	
+		//Do quick check if path is possible (i.e. in same connected component)
+		/*
+		if (connectedCompsMap.containsKey(start.coords) && connectedCompsMap.containsKey(end.coords)) {
+			if (connectedCompsMap.get(start.coords) != connectedCompsMap.get(end.coords)) {
+				return null;
+			}
+		}
+		else {
+			return null;
+		}
+		*/
+		
 		//Temporarily insert nodes and macro edges for the start and end as needed
 		RectangularSolid startSolid = null, endSolid = null;
 		for (RectangularSolid solid: solids) {
@@ -152,19 +240,28 @@ public class RSRPathfinder extends Pathfinder {
 			}
 		}
 		if (startSolid != null && startSolid == endSolid) { //If in the same rect solid
-			TODO
+			tempAvailSolid(startSolid, false);
 		}
 		if (startSolid != null) {
-			TODO
+			tempNodeInRectSolid(startSolid, start.coords, true);
 		}
-		if (endSolid != null) {
-			TODO
+		if (endSolid != null && startSolid != endSolid) {
+			tempNodeInRectSolid(endSolid, end.coords, true);
 		}
 		
 		ScoredPath path = super.findPath(being, start, end, minRestrict, maxRestrict);
+		path.path = convertMacroedgeToPath(path.path);
 		
 		//Remove the temporary data if it was created
-		TODO
+		if (startSolid != null && startSolid == endSolid) {
+			tempAvailSolid(startSolid, true);
+		}
+		else if (startSolid != null) {
+			tempNodeInRectSolid(startSolid, start.coords, false);
+		}
+		else if (endSolid != null) {
+			tempNodeInRectSolid(endSolid, end.coords, false);
+		}
 		
 		return path;
 	}
@@ -196,8 +293,6 @@ public class RSRPathfinder extends Pathfinder {
 		System.out.println("Start pathfinding time trial now");
 		
 		for (int i = 0; i < 10; i++) {
-			long startTime = Calendar.getInstance().getTimeInMillis();
-			
 			//int r = (int) (Math.random() * 95) + 5;
 			//int c = (int) (Math.random() * 95) + 5;
 			int r = i*5 + 5, c = i*5 + 5;
@@ -212,12 +307,17 @@ public class RSRPathfinder extends Pathfinder {
 			
 			System.out.println("Finding path from " + baseTile.coords + " to " + coords);
 			
+			long startTime = Calendar.getInstance().getTimeInMillis();
+			
 			ScoredPath path = pathfinder.findPath(people.get(0), 
 					baseTile, activeLocalGrid.getTile(coords));
 			
 			long endTime = Calendar.getInstance().getTimeInMillis();
 			
-			System.out.println(path.path);
+			if (path != null)
+				System.out.println(path.path);
+			else
+				System.out.println("No path found");
 			
 			System.out.println("Completed trials in " + (endTime - startTime) + "ms");
 		}

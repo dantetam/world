@@ -106,14 +106,17 @@ public class ForestGeneration {
 					if (tree.reproduceChance()) {
 						Set<Integer> neighbors = polygonNeighborMap.get(polygonIndex);
 						List<Integer> validSeedNeighbors = new ArrayList<>();
-						for (int candidate : neighbors) {
-							BiomeData biomeData = polygonBiomeData.get(candidate);
-							if (!polygonForestData.containsKey(candidate) && biomeData.biome != -1) {
-								validSeedNeighbors.add(candidate);
+						int numSeeds = 0;
+						if (neighbors != null) { 
+							for (int candidate : neighbors) {
+								BiomeData biomeData = polygonBiomeData.get(candidate);
+								if (!polygonForestData.containsKey(candidate) && biomeData.biome != -1) {
+									validSeedNeighbors.add(candidate);
+								}
 							}
+							numSeeds = (int) Math.round(neighbors.size() * Math.random());
+							numSeeds = Math.min(numSeeds, validSeedNeighbors.size());
 						}
-						int numSeeds = (int) Math.round(neighbors.size() * Math.random());
-						numSeeds = Math.min(numSeeds, validSeedNeighbors.size());
 						while (numSeeds > 0) {
 							int chosenRandomIndex = (int) (Math.random() * validSeedNeighbors.size());
 							int randomPolyIndex = validSeedNeighbors.get(chosenRandomIndex);

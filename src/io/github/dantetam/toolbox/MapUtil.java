@@ -75,6 +75,13 @@ public class MapUtil {
 		map.get(key).add(value);
 	}
 	
+	public static <K, V> void removeSafeNestSetMap(Map<K, Set<V>> map, K key, V value) {
+		if (map.containsKey(key)) {
+			map.get(key).remove(value);
+		}
+		map.get(key).add(value);
+	}
+	
 	public static <T, U extends Number> Map<T, Double> getNormalizedMap(Map<T, U> map) {
 		double sum = 0;
 		for (Entry<T, U> entry: map.entrySet()) {

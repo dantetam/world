@@ -17,6 +17,7 @@ import io.github.dantetam.lwjglEngine.terrain.RasterizeVoronoi;
 import io.github.dantetam.toolbox.MathUti;
 import io.github.dantetam.vector.Vector3i;
 import io.github.dantetam.world.ai.HierarchicalPathfinder;
+import io.github.dantetam.world.ai.RSRPathfinder;
 import io.github.dantetam.world.dataparse.ItemData;
 import io.github.dantetam.world.grid.LocalGrid;
 import io.github.dantetam.world.grid.LocalTile;
@@ -122,7 +123,7 @@ public class LocalGridTerrainInstantiate {
 		}
 		
 		if (setupAdvancedPathfinding)
-			localGrid.pathfinder = new HierarchicalPathfinder(localGrid);
+			localGrid.pathfinder = new RSRPathfinder(localGrid);
 		
 		System.out.println(localGrid.rows + " " + localGrid.cols + " " + localGrid.heights);
 		System.out.println(gridTrees.size());

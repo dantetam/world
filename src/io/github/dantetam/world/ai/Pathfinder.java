@@ -89,10 +89,13 @@ public class Pathfinder {
 	
 	//protected static final double 
 	
-	protected ScoredPath findPath(LivingEntity being, LocalTile start, LocalTile end) {
+	public ScoredPath findPath(LivingEntity being, Vector3i start, Vector3i end) {
+		return findPath(being, grid.getTile(start), grid.getTile(end), null, null);
+	}
+	public ScoredPath findPath(LivingEntity being, LocalTile start, LocalTile end) {
 		return findPath(being, start, end, null, null);
 	}
-	protected ScoredPath findPath(LivingEntity being, LocalTile start, LocalTile end,
+	public ScoredPath findPath(LivingEntity being, LocalTile start, LocalTile end,
     		Vector3i minRestrict, Vector3i maxRestrict) {	
         int nodesExpanded = 0;
     	

@@ -278,8 +278,8 @@ public class VecGridUtil {
 	
 	/**
 	 * 
-	 * @param minBoundsInc  The minimum bounds of the space to separate into components
-	 * @param maxBoundsInc  
+	 * @param minBoundsInc  The minimum bounds of the space to separate into components. If not given, the most minimum point in the grid.
+	 * @param maxBoundsInc  The maximum bounds of the space to separate into components. If not given, the most maximum point in the grid.
 	 * @param grid          The grid in question
 	 * @return A mapping of every vector into a numbered connected component
 	 */
@@ -288,6 +288,13 @@ public class VecGridUtil {
 		Map<Vector3i, Integer> results = new HashMap<>();
 		Set<Vector3i> visited = new HashSet<>();
 		int componentNumber = 0;
+		
+		if (minBoundsInc == null) {
+			minBoundsInc = new Vector3i(0,0,0);
+		}
+		if (maxBoundsInc == null) {
+			maxBoundsInc = new Vector3i(grid.rows - 1, grid.cols - 1, grid.heights - 1);
+		}
 		
 		for (int r = minBoundsInc.x; r <= maxBoundsInc.x; r++) {
 			for (int c = minBoundsInc.y; c <= maxBoundsInc.y; c++) {

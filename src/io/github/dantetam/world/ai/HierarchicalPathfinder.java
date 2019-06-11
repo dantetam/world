@@ -215,11 +215,12 @@ public class HierarchicalPathfinder extends Pathfinder {
 						connectedCompsMap.containsKey(otherNode.coords)) {
 					if (connectedCompsMap.get(node.coords) == connectedCompsMap.get(otherNode.coords)) {
 						attemptConnectAbsNode(node, otherNode, block);
-						System.out.println("Connected in 3d component");
-						
-						System.out.println("Found path: " + 
-						(node.distToPathableNodes != null && 
-						node.distToPathableNodes.containsKey(otherNode)));
+						boolean success = (node.distToPathableNodes != null && 
+								node.distToPathableNodes.containsKey(otherNode));
+						if (!success) {
+							System.out.println("Connected in 3d component");
+							System.out.println("Found path: " + success);
+						}
 					}
 				}
 			}
@@ -551,7 +552,13 @@ public class HierarchicalPathfinder extends Pathfinder {
     	
     	Vector3i sizes = new Vector3i(50,50,50);
 		int biome = 3;
+		
+		long startTime = Calendar.getInstance().getTimeInMillis();
+		
 		LocalGrid activeLocalGrid = new LocalGridTerrainInstantiate(sizes, biome).setupGrid(true);
+		
+		long endTime = Calendar.getInstance().getTimeInMillis();
+		System.out.println("Init hierarchical pathfinder in " + (endTime - startTime) + "ms");
 		
 		Society testSociety = new Society("TestSociety", activeLocalGrid);
 		testSociety.societyCenter = new Vector3i(10,10,10);
@@ -584,6 +591,7 @@ public class HierarchicalPathfinder extends Pathfinder {
 		}
 		*/
 		
+		/*
 		Vector3i randStartCoords, randEndCoords;
 		
 		//randEndCoords = randStartCoords.getSum(new Vector3i(1,1,1));
@@ -619,7 +627,13 @@ public class HierarchicalPathfinder extends Pathfinder {
 						break;
 			}
 			
+			startTime = Calendar.getInstance().getTimeInMillis();
+			
 			path = activeLocalGrid.pathfinder.findPath(null, startVec, endVec);
+			
+			endTime = Calendar.getInstance().getTimeInMillis();
+			System.out.println("Completed trials in " + (endTime - startTime) + "ms");
+			
 			if (path != null && path.path != null && path.path.size() > 0) {
 				System.out.println("Pathing: " + startVec + ", " + endVec + " ####################################");
 				
@@ -647,6 +661,7 @@ public class HierarchicalPathfinder extends Pathfinder {
 				continue;
 			}
 		}
+		*/
 	}
 	
 }

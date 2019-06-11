@@ -97,6 +97,19 @@ public class Vector3i extends KdPoint {
 		return new Vector3i(x, y, z);
 	}
 	
+	public Vector3i x(int a) {
+		x = a;
+		return this;
+	}
+	public Vector3i y(int a) {
+		y = a;
+		return this;
+	}
+	public Vector3i z(int a) {
+		z = a;
+		return this;
+	}
+	
 	public static List<Vector3i> getRange(Vector3i v1, Vector3i v2) {
 		List<Vector3i> data = new ArrayList<>();
 		Vector3i minVec = new Vector3i(Math.min(v1.x, v2.x), Math.min(v1.y, v2.y), Math.min(v1.z, v2.z));
