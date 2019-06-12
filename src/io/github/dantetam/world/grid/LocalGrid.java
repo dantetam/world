@@ -13,6 +13,7 @@ import io.github.dantetam.toolbox.VecGridUtil;
 import io.github.dantetam.vector.Vector2i;
 import io.github.dantetam.vector.Vector3i;
 import io.github.dantetam.world.ai.HierarchicalPathfinder;
+import io.github.dantetam.world.ai.Pathfinder;
 import io.github.dantetam.world.ai.RSRPathfinder;
 import io.github.dantetam.world.dataparse.ItemData;
 import io.github.dantetam.world.dataparse.WorldCsvParser;
@@ -47,7 +48,7 @@ public class LocalGrid {
 	
 	private KdTree<Vector3i> peopleLookup;
 	
-	public RSRPathfinder pathfinder;
+	public HierarchicalPathfinder pathfinder;
 	
 	public LocalGrid(Vector3i size) {
 		rows = size.x; cols = size.y; heights = size.z;
@@ -96,18 +97,26 @@ public class LocalGrid {
 	public boolean tileIsAccessible(Vector3i coords) {
 		LocalTile tile = getTile(coords);
 		if (tile == null) return false;
+		
+		if (tile.tileBlockId != ItemData.ITEM_EMPTY_ID) return false;
+		if (tile.building != null) {
+			if (tile.building.calculatedLocations != null) {
+				if (tile.building.calculatedLocations.contains(coords)) {
+					return false;
+				}
+			}
+		}
+		if (tile.tileFloorId != ItemData.ITEM_EMPTY_ID) {
+			return true;
+		}
+		
 		Vector3i belowCoords = new Vector3i(coords.x, coords.y, coords.z - 1);
 		if (inBounds(belowCoords)) {
-			if (!tileIsOccupied(coords)) {
+			if (!tileIsOccupied(belowCoords)) {
 				return false;
 			}
 		}
-		//if (tile.tileBlockId != ItemData.ITEM_EMPTY_ID) return false;
-		if (tile.building != null) {
-			if (tile.building.calculatedLocations != null) {
-				return !tile.building.calculatedLocations.contains(coords);
-			}
-		}
+		
 		return true;
 	}
 	
@@ -570,13 +579,10 @@ public class LocalGrid {
 	//Find an empty height at lowest possible level, i.e. an empty tile with ground right below it,
 	//so that a Human can be placed.
 	public int findHighestGroundHeight(int r, int c) {
-		Set<Integer> groundGroup = ItemData.getGroupIds("Ground");
+		//Set<Integer> groundGroup = ItemData.getGroupIds("Ground");
 		for (int h = heights - 1; h >= 0; h--) {
-			LocalTile tile = getTile(new Vector3i(r, c, h));
-			if (tile != null) {
-				if (groundGroup.contains(tile.tileBlockId) || groundGroup.contains(tile.tileFloorId)) {
-					return h+1;
-				}
+			if (this.tileIsAccessible(new Vector3i(r, c, h))) {
+				return h;
 			}
 		}
 		return 0;

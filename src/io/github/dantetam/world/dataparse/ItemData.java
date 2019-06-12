@@ -123,8 +123,6 @@ public class ItemData {
 		itemNamesToIds.put(name, id);
 		placeableBlock.put(id, placeable);
 		
-		System.out.println("Added item id: " + id);
-		
 		boolean isBuilding = false;
 		if (groups != null) {
 			for (String group: groups) {

@@ -125,7 +125,7 @@ public class VecGridUtil {
 							else hExp = false;
 						}
 					}
-					int interiorNodes = (dimensions.x - 2) * (dimensions.y - 2) * (dimensions.z - 2);
+					int interiorNodes = Math.max(0, dimensions.x - 2) * Math.max(0, dimensions.y - 2) * Math.max(0, dimensions.z - 2);
 					if (interiorNodes > 1) {
 						RectangularSolid newSolid = new RectangularSolid(minPoint, dimensions);
 						solids.add(newSolid);
@@ -318,11 +318,12 @@ public class VecGridUtil {
 						}
 					}
 					
-					for (Vector3i componentVec: componentVecs) {
-						results.put(componentVec, componentNumber);
+					if (componentVecs.size() > 0) {
+						for (Vector3i componentVec: componentVecs) {
+							results.put(componentVec, componentNumber);
+						}
+						componentNumber++;
 					}
-					
-					componentNumber++;
 				}
 			}
 		}

@@ -44,7 +44,10 @@ public class RSRPathfinder extends Pathfinder {
 		prunedRectTiles = new boolean[grid.rows][grid.cols][grid.heights];
 		macroEdgeConnections = new HashMap<>();
 		fillMacroedgesWithBlocks();
-		//connectedCompsMap = VecGridUtil.connectedComponents3D(null, null, grid);
+		
+		for (RectangularSolid solid: solids)
+			System.out.println(solid);
+		connectedCompsMap = VecGridUtil.connectedComponents3D(null, null, grid);
 	}
 	
 	/**
@@ -52,6 +55,7 @@ public class RSRPathfinder extends Pathfinder {
 	 * @return A new path with the straight shortcuts replaced by individual tile movements
 	 */
 	private List<LocalTile> convertMacroedgeToPath(List<LocalTile> path) {
+		if (path == null) return null;
 		List<LocalTile> newPath = new ArrayList<>();
 		for (int i = 0; i < path.size(); i++) {
 			LocalTile tile = path.get(i);
@@ -214,18 +218,19 @@ public class RSRPathfinder extends Pathfinder {
 	
 	@Override
 	public ScoredPath findPath(LivingEntity being, LocalTile start, LocalTile end,
-    		Vector3i minRestrict, Vector3i maxRestrict) {	
+    		Vector3i minRestrict, Vector3i maxRestrict) {
+		System.out.println("Start: " + start.coords + ", End: " + end.coords);
 		//Do quick check if path is possible (i.e. in same connected component)
-		/*
 		if (connectedCompsMap.containsKey(start.coords) && connectedCompsMap.containsKey(end.coords)) {
 			if (connectedCompsMap.get(start.coords) != connectedCompsMap.get(end.coords)) {
+				System.out.println("No match valid comp");
 				return null;
 			}
 		}
 		else {
+			System.out.println("Not in comp: " + connectedCompsMap.containsKey(start.coords) + "; " + connectedCompsMap.containsKey(end.coords));
 			return null;
 		}
-		*/
 		
 		//Temporarily insert nodes and macro edges for the start and end as needed
 		RectangularSolid startSolid = null, endSolid = null;
@@ -250,7 +255,8 @@ public class RSRPathfinder extends Pathfinder {
 		}
 		
 		ScoredPath path = super.findPath(being, start, end, minRestrict, maxRestrict);
-		path.path = convertMacroedgeToPath(path.path);
+		if (path != null)
+			path.path = convertMacroedgeToPath(path.path);
 		
 		//Remove the temporary data if it was created
 		if (startSolid != null && startSolid == endSolid) {
@@ -301,7 +307,7 @@ public class RSRPathfinder extends Pathfinder {
 			Vector3i coords = new Vector3i(
 					baseTile.coords.x + r, 
 					baseTile.coords.y + c, 
-					activeLocalGrid.findHighestGroundHeight(baseTile.coords.x + r, baseTile.coords.y + c) - 3
+					activeLocalGrid.findHighestGroundHeight(baseTile.coords.x + r, baseTile.coords.y + c)
 			);
 			activeLocalGrid.createTile(coords);
 			

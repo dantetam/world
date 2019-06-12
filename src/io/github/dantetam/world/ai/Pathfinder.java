@@ -129,8 +129,8 @@ public class Pathfinder {
                 int accessScore2 = getTileAccessibilityPenalty(n2);
                 return (
                 		1 * (dist.get(n1) - dist.get(n2)) + 
-                		0.7 * (getTileDist(end, n1) - getTileDist(end, n2)) + 
-                		0.3 * (accessScore1 - accessScore2)
+                		1.05 * (getTileDist(end, n1) - getTileDist(end, n2)) + 
+                		0 * (accessScore1 - accessScore2)
                 		) > 0 ? 1 : -1;
             }
         });

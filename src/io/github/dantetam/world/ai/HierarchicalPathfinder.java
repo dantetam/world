@@ -591,7 +591,6 @@ public class HierarchicalPathfinder extends Pathfinder {
 		}
 		*/
 		
-		/*
 		Vector3i randStartCoords, randEndCoords;
 		
 		//randEndCoords = randStartCoords.getSum(new Vector3i(1,1,1));
@@ -661,7 +660,6 @@ public class HierarchicalPathfinder extends Pathfinder {
 				continue;
 			}
 		}
-		*/
 	}
 	
 }
