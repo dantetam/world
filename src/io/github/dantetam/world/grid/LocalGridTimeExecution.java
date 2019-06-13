@@ -367,7 +367,7 @@ public class LocalGridTimeExecution {
 						tile.building == null) {
 					being.inventory.subtractItem(buildPriority.buildingItem);
 					LocalBuilding newBuilding = ItemData.building(buildPriority.buildingItem.itemId);
-					grid.addBuilding(newBuilding, buildPriority.coords, false);
+					grid.addBuilding(newBuilding, buildPriority.coords, false, buildPriority.owner);
 					return null;
 				}
 			}
@@ -513,7 +513,7 @@ public class LocalGridTimeExecution {
 			Human being, Human ownerProducts, LocalProcess process, ProcessStep step) {
 		Priority priority = null;
 		
-		System.out.println("Figuring out priority, for process: " + process);
+		//System.out.println("Figuring out priority, for process: " + process);
 		
 		if (process.name.equals("Build Basic Home")) {
 			int width = (int) Math.ceil(Math.sqrt(being.ownedBuildings.size() + being.inventory.size() + 8));
@@ -612,15 +612,16 @@ public class LocalGridTimeExecution {
 				
 				if (process.isCreatedAtSite) {
 					being.processTile = grid.getTile(nearOpenSpace);
-					if (being.location.coords.manhattanDist(primaryLocation) <= 1) {
+					if (being.location.coords.manhattanDist(targetLocation) <= 1) {
 						//continue
 					}
 					else {
 						return new MovePriority(primaryLocation);
 					}
 				}
-				else {
-					priority = new BuildingPlacePriority(nearOpenSpace, ItemData.createItem(buildingId, 1));
+				else { //implies process.requiredBuildNameOrGroup != null -> buildingId is valid
+					priority = new BuildingPlacePriority(nearOpenSpace, 
+							ItemData.createItem(buildingId, 1), ownerProducts);
 					return priority;
 				}
 			}
@@ -739,9 +740,9 @@ public class LocalGridTimeExecution {
 			}
 			
 			LocalBuilding building = ItemData.building(buildingItem.itemId);
-			building.owner = ownerProducts;
+			
 			System.out.println("Built building: " + building.name + " at place: " + itemMode);
-			grid.addBuilding(building, targetLocation, true);
+			grid.addBuilding(building, targetLocation, true, ownerProducts);
 			return new DonePriority();
 		}
 		
@@ -877,8 +878,11 @@ public class LocalGridTimeExecution {
 	
 		Map<Vector3i, Double> score = new HashMap<>();
 		for (Vector3i itemCoords: nearestCoords) {
-			int numItemsAtTile = grid.getTile(itemCoords).itemsOnFloor.findItemCount(firstItemNeeded);
-			numItemsAtTile += grid.getTile(itemCoords).building.inventory.findItemCount(firstItemNeeded);
+			LocalTile tile = grid.getTile(itemCoords);
+			int numItemsAtTile = tile.itemsOnFloor.findItemCount(firstItemNeeded);
+			if (tile.building != null) {
+				numItemsAtTile += tile.building.inventory.findItemCount(firstItemNeeded);
+			}
 			int distUtil = centerCoords.manhattanDist(itemCoords);
 			score.put(itemCoords, Math.min(numItemsAtTile, amountNeeded) / Math.pow(distUtil, 2));
 		}

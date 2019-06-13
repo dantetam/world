@@ -32,7 +32,7 @@ public class InventoryItem {
 	}
 	
 	public String toString() {
-		return "Item: [" + ItemData.getNameFromId(itemId) + ", " + quantity + "]"; 
+		return "I: [" + ItemData.getNameFromId(itemId) + ", " + quantity + "]"; 
 	}
 	
 }

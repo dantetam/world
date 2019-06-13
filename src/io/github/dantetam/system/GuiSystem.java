@@ -104,8 +104,13 @@ public class GuiSystem extends BaseSystem {
 					}
 					candidateHeight--;
 				}
-				if (candidateHeight != originalHeight) { //Air overlay for looking at lower heights with air on top
+				
+				Vector3i aboveCoords = new Vector3i(x,z,candidateHeight+1);
+				if (candidateHeight < originalHeight) { //Air overlay for looking at lower heights with air on top
 					listGuis.add(new GuiQuad(airTileTexture, guiPos, guiDim));
+				}
+				else if (activeGrid.tileIsOccupied(aboveCoords)) {
+					listGuis.add(new GuiQuad(darknessTexture, guiPos, guiDim));
 				}
 			}
 		}

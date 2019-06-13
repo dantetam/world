@@ -124,12 +124,9 @@ public class LocalGrid {
 		return true;
 	}
 	
-	public static final Set<Vector3i> directAdjOffsets6 = new HashSet<Vector3i>() {
-		{add(new Vector3i(1,0,0)); add(new Vector3i(-1,0,0)); add(new Vector3i(0,1,0));
-			add(new Vector3i(0,-1,0)); add(new Vector3i(0,0,1)); add(new Vector3i(0,0,-1));}};
-	public Set<Vector3i> getAllNeighbors6(Vector3i coords) {
+	private Set<Vector3i> getAllNeighbors(Vector3i coords, Set<Vector3i> vecNeighbors) {
 		Set<Vector3i> candidates = new HashSet<>();
-		for (Vector3i adjOffset: directAdjOffsets6) {
+		for (Vector3i adjOffset: vecNeighbors) {
 			Vector3i neighbor = coords.getSum(adjOffset);
 			if (inBounds(neighbor)) {
 				candidates.add(neighbor);
@@ -137,11 +134,39 @@ public class LocalGrid {
 		}
 		return candidates;
 	}
+	
+	public static final Set<Vector3i> directAdjOffsets6 = new HashSet<Vector3i>() {
+		{add(new Vector3i(1,0,0)); add(new Vector3i(-1,0,0)); add(new Vector3i(0,1,0));
+			add(new Vector3i(0,-1,0)); add(new Vector3i(0,0,1)); add(new Vector3i(0,0,-1));}};
+	public Set<Vector3i> getAllNeighbors6(Vector3i coords) {
+		return getAllNeighbors(coords, directAdjOffsets6);
+	}
+	
+	public static final Set<Vector3i> allAdjOffsets8 = new HashSet<Vector3i>() {
+		{add(new Vector3i(1,0,0)); add(new Vector3i(-1,0,0)); add(new Vector3i(0,1,0)); add(new Vector3i(0,-1,0)); 
+		add(new Vector3i(1,1,0)); add(new Vector3i(1,-1,0)); add(new Vector3i(-1,-1,0)); add(new Vector3i(-1,1,0));}};
+	public Set<Vector3i> getAllNeighbors8(Vector3i coords) {
+		return getAllNeighbors(coords, allAdjOffsets8);
+	}
+	
+	public static final Set<Vector3i> allAdjOffsets14 = new HashSet<Vector3i>() {
+		{add(new Vector3i(1,0,0)); add(new Vector3i(-1,0,0)); add(new Vector3i(0,1,0));
+			add(new Vector3i(0,-1,0)); add(new Vector3i(0,0,1)); add(new Vector3i(0,0,-1));
+			
+			add(new Vector3i(1,0,1)); add(new Vector3i(-1,0,1)); 
+			add(new Vector3i(0,1,1)); add(new Vector3i(0,-1,1));
+			
+			add(new Vector3i(1,0,-1)); add(new Vector3i(-1,0,-1)); 
+			add(new Vector3i(0,1,-1)); add(new Vector3i(0,-1,-1));
+		}};
+	public Set<Vector3i> getAllNeighbors14(Vector3i coords) {
+		return getAllNeighbors(coords, allAdjOffsets14);
+	}	
 	public Set<LocalTile> getAccessibleNeighbors(LocalTile tile) {
-		Set<Vector3i> neighbors = this.getAllNeighbors6(tile.coords);
+		Set<Vector3i> neighbors = this.getAllNeighbors14(tile.coords);
 		Set<LocalTile> candidateTiles = new HashSet<>();
 		for (Vector3i neighbor: neighbors) {
-			if (inBounds(neighbor)) {
+			if (this.tileIsAccessible(neighbor)) {
 				LocalTile neighborTile = getTile(neighbor);
 				if (neighborTile == null) {
 					neighborTile = createTile(neighbor);
@@ -154,20 +179,6 @@ public class LocalGrid {
 	//TODO: Conditional access to local tiles based on actor biology
 	//public Set<LocalTile> getAccessibleNeighbors(LocalTile tile, LivingEntity being)
 	
-	public static final Set<Vector3i> allAdjOffsets8 = new HashSet<Vector3i>() {
-		{add(new Vector3i(1,0,0)); add(new Vector3i(-1,0,0)); add(new Vector3i(0,1,0)); add(new Vector3i(0,-1,0)); 
-		add(new Vector3i(1,1,0)); add(new Vector3i(1,-1,0)); add(new Vector3i(-1,-1,0)); add(new Vector3i(-1,1,0));}};
-	public Set<Vector3i> getAllNeighbors8(Vector3i coords) {
-		Set<Vector3i> candidates = new HashSet<>();
-		for (Vector3i adjOffset: allAdjOffsets8) {
-			Vector3i neighbor = coords.getSum(adjOffset);
-			if (inBounds(neighbor)) {
-				candidates.add(neighbor);
-			}
-		}
-		return candidates;
-	}
-	
 	public static final Set<Vector3i> allVertAdjOffsets26 = new HashSet<Vector3i>() {{
 		add(new Vector3i(1,0,0)); add(new Vector3i(-1,0,0)); add(new Vector3i(0,1,0)); add(new Vector3i(0,-1,0)); 
 		add(new Vector3i(1,1,0)); add(new Vector3i(1,-1,0)); add(new Vector3i(-1,-1,0)); add(new Vector3i(-1,1,0));
@@ -178,14 +189,7 @@ public class LocalGrid {
 		add(new Vector3i(0,0,1)); add(new Vector3i(0,0,-1));
 		}};
 	public Set<Vector3i> getAllNeighbors26(Vector3i coords) {
-		Set<Vector3i> candidates = new HashSet<>();
-		for (Vector3i adjOffset: allVertAdjOffsets26) {
-			Vector3i neighbor = coords.getSum(adjOffset);
-			if (inBounds(neighbor)) {
-				candidates.add(neighbor);
-			}
-		}
-		return candidates;
+		return getAllNeighbors(coords, allVertAdjOffsets26);
 	}
 	public void markAllAdjAsExposed(Vector3i coords) {
 		Set<Vector3i> neighbors = this.getAllNeighbors26(coords);
@@ -394,7 +398,8 @@ public class LocalGrid {
 		return true;
 	}
 	
-	public void addBuilding(LocalBuilding building, Vector3i newPrimaryCoords, boolean overrideGrid) {
+	public void addBuilding(LocalBuilding building, Vector3i newPrimaryCoords, boolean overrideGrid,
+			LivingEntity owner) {
 		if (buildingCanFitAt(building, newPrimaryCoords, overrideGrid)) {
 			removeBuilding(building);
 			building.setPrimaryLocation(newPrimaryCoords);
@@ -412,6 +417,7 @@ public class LocalGrid {
 				if (this.pathfinder != null)
 					this.pathfinder.tempNodeInRectSolid(newAbsLocation, true);
 			} 
+			
 			allBuildings.add(building);
 			buildingLookup.add(newPrimaryCoords);
 			if (!buildIdQuickTileLookup.containsKey(building.buildingId)) {
@@ -419,6 +425,11 @@ public class LocalGrid {
 			}
 			buildIdQuickTileLookup.get(building.buildingId).add(building.getPrimaryLocation());
 			markAllAdjAsExposed(newPrimaryCoords);
+			
+			if (owner != null) {
+				building.owner = owner;
+				owner.ownedBuildings.add(building);
+			}
 		}
 	}
 	
@@ -713,7 +724,7 @@ public class LocalGrid {
 				});
 		LocalBuilding building = new LocalBuilding(10, "Test1", new Vector3i(25, 25, 35), listOffsets, listBlockIds);
 		
-		grid.addBuilding(building, new Vector3i(25,25,35), true);
+		grid.addBuilding(building, new Vector3i(25,25,35), true, null);
 		
 		System.out.println(Arrays.toString(building.calculatedLocations.toArray())); //[25 25 25, 26 25 25, 25 28 25]
 		System.out.println(grid.getTile(new Vector3i(26,25,45))); //This tile should have been created

@@ -7,6 +7,7 @@ import java.util.Map;
 
 import io.github.dantetam.localdata.ConstantData;
 import io.github.dantetam.lwjglEngine.fontRendering.TextMaster;
+import io.github.dantetam.lwjglEngine.gui.GuiQuad;
 import io.github.dantetam.lwjglEngine.render.DisplayManager;
 import io.github.dantetam.lwjglEngine.render.VBOLoader;
 import io.github.dantetam.render.Button;
@@ -57,7 +58,7 @@ public class MenuSystem extends BaseSystem {
 		float posX, posY, sizeX, sizeY;
 		float w = DisplayManager.width, h = DisplayManager.height;
 		
-		sizeX = w * 1 / 5; sizeY = 200;
+		sizeX = w * 1 / 5; sizeY = 300;
 		posX = w * 4 / 5; posY = h - sizeY;
 		textboxes.put("TileHint", GuiSystem.getDefaultTextButton(guiDefaultTexture, "", "", "", 
 				posX, posY, sizeX, sizeY));
@@ -65,6 +66,20 @@ public class MenuSystem extends BaseSystem {
 	
 	public void updateMenus() {
 		Vector3i highlightCoords = mousePicker.calculateWorldCoordsFromMouse();
+		
+		int candidateHeight = highlightCoords.z; //Find the highest height <= camera height, in the rendering style of DF
+		LocalTile tile = null;
+		while (candidateHeight > 0) {
+			tile = gameLauncher.worldGrid.activeLocalGrid.getTile(new Vector3i(highlightCoords.x,highlightCoords.y,candidateHeight));
+			if (tile != null) { //if (activeGrid.tileIsOccupied(tile.coords))
+				if (tile.tileBlockId != ItemData.ITEM_EMPTY_ID || tile.tileFloorId != ItemData.ITEM_EMPTY_ID || 
+						tile.itemsOnFloor.size() > 0 || (tile.getPeople() != null && tile.getPeople().size() > 0)) {
+					break;
+				}
+			}
+			candidateHeight--;
+		}
+		
 		this.mouseHighlighted = highlightCoords;
 		
 		List<String> texts;
@@ -72,7 +87,6 @@ public class MenuSystem extends BaseSystem {
 		texts = new ArrayList<>();
 		if (this.mouseHighlighted != null) {
 			texts.add(this.mouseHighlighted.toString());
-			LocalTile tile = gameLauncher.worldGrid.activeLocalGrid.getTile(this.mouseHighlighted);
 			
 			if (tile != null) {
 				texts.add("Block: " + ItemData.getNameFromId(tile.tileBlockId));
@@ -117,6 +131,29 @@ public class MenuSystem extends BaseSystem {
 						} else {
 							texts.add(being.name + ", no inventory / ");
 						}
+						
+						//texts.add("\n");
+						texts.add(" ");
+						texts.add("Process: " + being.processProgress != null ? being.processProgress.name : null);
+						if (being.jobProcessProgress != null) {
+							texts.add("Job: " + being.jobProcessProgress.jobWorkProcess.name + 
+									", under boss: " + being.jobProcessProgress.boss);
+						}
+						if (being.processBuilding != null)
+							texts.add("Used Proc Build: " + being.processBuilding.name + ", at " + being.processBuilding.getPrimaryLocation());
+						
+						if (being.targetTile != null) {
+							texts.add("Used Proc Tile (Target): " + ItemData.getNameFromId(being.targetTile.tileBlockId) + ", at " + being.targetTile.coords);
+						}
+						else if (being.processTile != null) {
+							texts.add("Used Proc Tile: " + ItemData.getNameFromId(being.processTile.tileBlockId) + ", at " + being.processTile.coords);
+						}
+						
+						if (being.activePriority != null)
+							texts.add("Current Priority: " + being.activePriority.getClass().getSimpleName());
+						
+						if (being.currentQueueTasks != null)
+							texts.add("Current Task: " + being.currentQueueTasks.toString()); 
 					}
 				}
 			}

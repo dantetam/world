@@ -44,9 +44,6 @@ public class RSRPathfinder extends Pathfinder {
 		prunedRectTiles = new boolean[grid.rows][grid.cols][grid.heights];
 		macroEdgeConnections = new HashMap<>();
 		fillMacroedgesWithBlocks();
-		
-		for (RectangularSolid solid: solids)
-			System.out.println(solid);
 		connectedCompsMap = VecGridUtil.connectedComponents3D(null, null, grid);
 	}
 	
@@ -336,7 +333,7 @@ public class RSRPathfinder extends Pathfinder {
 			
 			long endTime = Calendar.getInstance().getTimeInMillis();
 			
-			if (path != null)
+			if (path.isValid())
 				System.out.println(path.path);
 			else
 				System.out.println("No path found");

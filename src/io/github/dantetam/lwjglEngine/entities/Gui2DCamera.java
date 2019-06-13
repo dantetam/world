@@ -18,16 +18,14 @@ public class Gui2DCamera {
 
 	public Gui2DCamera() {
 		tileLocationPosition = new Vector3f(100,30,100);
-		numTilesX = 40;
-		numTilesZ = 25;
+		numTilesX = 32;
+		numTilesZ = 20;
 	}
 
 	/**
 	 * Move the camera with user key holds (from native JOGL bindings).
 	 */
 	public boolean move() {
-		float step = 1f;
-		
 		if (Keyboard.isKeyDown(GLFW.GLFW_KEY_I)) {
 			tileLocationPosition.y += tileHeightSpeed;
 		}

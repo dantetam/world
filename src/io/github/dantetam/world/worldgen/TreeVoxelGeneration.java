@@ -41,7 +41,7 @@ public class TreeVoxelGeneration {
 		
 		LocalBuilding treeBuilding = new LocalBuilding(ItemData.getIdFromName("Pine Tree"), 
 				"Pine Tree", startLocation, treeLocations, blockIds);
-		grid.addBuilding(treeBuilding, startLocation, true);
+		grid.addBuilding(treeBuilding, startLocation, true, null);
 	}
 	
 }
