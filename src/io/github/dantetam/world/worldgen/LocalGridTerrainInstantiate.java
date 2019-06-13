@@ -123,7 +123,7 @@ public class LocalGridTerrainInstantiate {
 		}
 		
 		if (setupAdvancedPathfinding)
-			localGrid.pathfinder = new HierarchicalPathfinder(localGrid);
+			localGrid.pathfinder = new RSRPathfinder(localGrid);
 		
 		System.out.println(localGrid.rows + " " + localGrid.cols + " " + localGrid.heights);
 		System.out.println(gridTrees.size());

@@ -5,6 +5,8 @@ import io.github.dantetam.world.items.Inventory;
 
 public class TileHarvestPriority extends Priority {
 	
+	
+	
 	public TileHarvestPriority(Vector3i coords) {
 		super(coords);
 	}

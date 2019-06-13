@@ -101,7 +101,7 @@ public class Pathfinder {
     	
     	if (start == null || end == null) {
         	//throw new IllegalArgumentException("Start or end null, start: " + start + ", end: " + end);
-    		return null;
+    		return new ScoredPath(null, 999);
     	}
     	
     	System.out.println("-----------");
@@ -177,7 +177,7 @@ public class Pathfinder {
         }
         
         System.out.println("Nodes expanded: " + nodesExpanded);
-        return null;
+        return new ScoredPath(null, 999);
     }
     
     public static class ScoredPath {
@@ -187,6 +187,9 @@ public class Pathfinder {
     		this.path = path;
     		this.score = score;
     	}
+    	/**
+    	 * @return Use this method to determine if a path exists and is valid (no null ambiguity)
+    	 */
     	public boolean isValid() {
     		return this.path != null && this.path.size() > 0;
     	}

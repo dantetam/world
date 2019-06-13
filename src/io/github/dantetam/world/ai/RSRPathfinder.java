@@ -147,6 +147,16 @@ public class RSRPathfinder extends Pathfinder {
 		}
 	}
 	
+	public void tempNodeInRectSolid(Vector3i location, boolean addingMode) {
+		for (RectangularSolid solid: this.solids) {
+			if (solid.insideInterior(location)) {
+				tempNodeInRectSolid(solid, location, addingMode);
+				tempAvailSolid(solid, addingMode);
+				return;
+			}
+		}
+	}
+	
 	//Connect a temporary node to its nearest perimeter
 	public void tempNodeInRectSolid(RectangularSolid solid, Vector3i location, boolean addingMode) {
 		this.prunedRectTiles[location.x][location.y][location.z] = false;
@@ -219,17 +229,21 @@ public class RSRPathfinder extends Pathfinder {
 	@Override
 	public ScoredPath findPath(LivingEntity being, LocalTile start, LocalTile end,
     		Vector3i minRestrict, Vector3i maxRestrict) {
-		System.out.println("Start: " + start.coords + ", End: " + end.coords);
+		if (start == null || end == null) {
+        	//System.out.println("Start or end null, start: " + start + ", end: " + end);
+    		return new ScoredPath(null, 999);
+    	}
+		
 		//Do quick check if path is possible (i.e. in same connected component)
 		if (connectedCompsMap.containsKey(start.coords) && connectedCompsMap.containsKey(end.coords)) {
 			if (connectedCompsMap.get(start.coords) != connectedCompsMap.get(end.coords)) {
-				System.out.println("No match valid comp");
-				return null;
+				//System.out.println("No match valid comp");
+				return new ScoredPath(null, 999);
 			}
 		}
 		else {
-			System.out.println("Not in comp: " + connectedCompsMap.containsKey(start.coords) + "; " + connectedCompsMap.containsKey(end.coords));
-			return null;
+			//System.out.println("Not in comp: " + connectedCompsMap.containsKey(start.coords) + "; " + connectedCompsMap.containsKey(end.coords));
+			return new ScoredPath(null, 999);
 		}
 		
 		//Temporarily insert nodes and macro edges for the start and end as needed
@@ -255,7 +269,7 @@ public class RSRPathfinder extends Pathfinder {
 		}
 		
 		ScoredPath path = super.findPath(being, start, end, minRestrict, maxRestrict);
-		if (path != null)
+		if (path.isValid())
 			path.path = convertMacroedgeToPath(path.path);
 		
 		//Remove the temporary data if it was created
@@ -284,7 +298,7 @@ public class RSRPathfinder extends Pathfinder {
 		testSociety.societyCenter = new Vector3i(20,20,10);
 		
 		List<Human> people = new ArrayList<>();
-		for (int j = 0; j < 1; j++) {
+		for (int j = 0; j < 20; j++) {
 			int r = (int) (Math.random() * 99), c = (int) (Math.random() * 99);
 			int h = activeLocalGrid.findHighestGroundHeight(r,c);
 			
@@ -298,12 +312,14 @@ public class RSRPathfinder extends Pathfinder {
 		
 		System.out.println("Start pathfinding time trial now");
 		
-		for (int i = 0; i < 10; i++) {
+		for (int i = 0; i < 20; i++) {
 			//int r = (int) (Math.random() * 95) + 5;
 			//int c = (int) (Math.random() * 95) + 5;
-			int r = i*5 + 5, c = i*5 + 5;
+			int r = i*2 + 5, c = i*2 + 5;
 			
-			LocalTile baseTile = people.get(0).location;
+			int randPersonIndex = (int) (Math.random() * people.size());
+			
+			LocalTile baseTile = people.get(randPersonIndex).location;
 			Vector3i coords = new Vector3i(
 					baseTile.coords.x + r, 
 					baseTile.coords.y + c, 

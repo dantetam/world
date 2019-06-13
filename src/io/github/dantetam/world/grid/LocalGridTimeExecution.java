@@ -14,6 +14,7 @@ import java.util.Set;
 
 import io.github.dantetam.toolbox.VecGridUtil;
 import io.github.dantetam.toolbox.MapUtil;
+import io.github.dantetam.toolbox.Pair;
 import io.github.dantetam.vector.Vector2i;
 import io.github.dantetam.vector.Vector3i;
 import io.github.dantetam.world.ai.Pathfinder;
@@ -155,15 +156,16 @@ public class LocalGridTimeExecution {
 				//Process has been completed, remove it from person
 				if (process.processSteps.size() == 0) { 
 					executeProcessResActions(grid, human, process.processResActions);
-					System.out.println(human.name + " COMPLETED process (as an employee for a job): " + process);
+					System.err.println(human.name + " COMPLETED process (as an employee for a job): " + process);
 					human.jobProcessProgress = null; //Reset all jobs and job fields to null
 					if (human.processBuilding != null) {
 						human.processBuilding.currentUser = null;
 						human.processBuilding = null;
 					}
-					if (human.processTile != null) {
+					if (human.processTile != null || human.targetTile != null) {
 						human.processTile.harvestInUse = false;
 						human.processTile = null;
+						human.targetTile = null;
 					}
 				}
 			}
@@ -202,16 +204,17 @@ public class LocalGridTimeExecution {
 				}
 				//Process has been completed, remove it from person
 				if (human.processProgress.processSteps.size() == 0) { 
-					System.out.println(human.name + " COMPLETED process: " + human.processProgress);
+					System.err.println(human.name + " COMPLETED process: " + human.processProgress);
 					executeProcessResActions(grid, human, human.processProgress.processResActions);
 					human.processProgress = null; //Reset all jobs and job fields to null
 					if (human.processBuilding != null) {
 						human.processBuilding.currentUser = null;
 						human.processBuilding = null;
 					}
-					if (human.processTile != null) {
+					if (human.processTile != null || human.targetTile != null) {
 						human.processTile.harvestInUse = false;
 						human.processTile = null;
+						human.targetTile = null;
 					}
 					assignSingleHumanJob(society, human, date);
 				}
@@ -229,13 +232,14 @@ public class LocalGridTimeExecution {
 	private static LocalBuilding assignBuilding(LocalGrid grid, LivingEntity being, 
 			List<LivingEntity> validOwners, String buildingName) {
 		int id = ItemData.getIdFromName(buildingName);
-		KdTree<Vector3i> nearestItemsTree = grid.getKdTreeForItemId(id);
+		KdTree<Vector3i> nearestItemsTree = grid.getKdTreeForBuildings(id);
 		if (nearestItemsTree == null || nearestItemsTree.size() == 0) return null;
 		int numCandidates = Math.min(nearestItemsTree.size(), 10);
 		Collection<Vector3i> nearestCoords = nearestItemsTree.nearestNeighbourListSearch(
 				numCandidates, being.location.coords);
 		for (Vector3i nearestCoord: nearestCoords) {
 			LocalBuilding building = grid.getTile(nearestCoord).building;
+			System.out.println(building);
 			if (building.owner == null || validOwners.contains(building.owner)) {
 				if (building.currentUser == null) {
 					building.currentUser = being;
@@ -247,32 +251,46 @@ public class LocalGridTimeExecution {
 		return being.processBuilding;
 	}
 	
-	private static LocalTile assignTile(LocalGrid grid, LivingEntity being, 
+	/**
+	 * @param grid
+	 * @param being
+	 * @param validOwners
+	 * @param tileName
+	 * @return The harvest tile, followed by the tile to move to (within <= 1 distance)
+	 */
+	private static Pair<LocalTile> assignTile(LocalGrid grid, LivingEntity being, 
 			List<LivingEntity> validOwners, String tileName) {
 		int tileId = ItemData.getIdFromName(tileName);
 		KdTree<Vector3i> items = grid.getKdTreeForTile(tileId);
 		if (items == null) return null;
 		Collection<Vector3i> candidates = items.nearestNeighbourListSearch(10, being.location.coords);
-		Map<LocalTile, Double> tileByPathScore = new HashMap<>();
+		Map<Pair<LocalTile>, Double> tileByPathScore = new HashMap<>();
 		for (Vector3i candidate: candidates) {
 			System.out.println("Calc path: " + being.location.coords + " to -> " + grid.getTile(candidate).coords);
 			LocalTile tile = grid.getTile(candidate);
 			if (tile.humanClaim == null || validOwners.contains(tile.humanClaim)) {
 				if (!tile.harvestInUse) {
-					ScoredPath scoredPath = grid.pathfinder.findPath(
-							being, being.location, grid.getTile(candidate));
-					ScoredPath hierScoredPath = grid.pathfinder.findPath(being, being.location, grid.getTile(candidate));
-					System.out.println(hierScoredPath.path);
-					tileByPathScore.put(tile, scoredPath.score);
+					Set<Vector3i> neighbors = grid.getAllNeighbors8(candidate);
+					neighbors.add(candidate);
+					for (Vector3i neighbor: neighbors) {
+						ScoredPath scoredPath = grid.pathfinder.findPath(
+								being, being.location, grid.getTile(neighbor));
+						if (scoredPath.isValid()) {
+							System.out.println(scoredPath.path);
+							Pair<LocalTile> pair = new Pair(grid.getTile(candidate), grid.getTile(neighbor));
+							tileByPathScore.put(pair, scoredPath.score);
+						}
+					}
 				}
 			}
 		}
 		tileByPathScore = MapUtil.getSortedMapByValueDesc(tileByPathScore);
 		for (Object obj: tileByPathScore.keySet().toArray()) {
-			LocalTile bestTile = (LocalTile) obj;
-			being.processTile = bestTile;
-			bestTile.harvestInUse = true;
-			return bestTile;
+			Pair<LocalTile> bestPair = (Pair) obj;
+			being.processTile = bestPair.second;
+			being.targetTile = bestPair.first;
+			bestPair.first.harvestInUse = true;
+			return bestPair;
 		}
 		return null;
 	}
@@ -404,11 +422,13 @@ public class LocalGridTimeExecution {
 			MovePriority movePriority = (MovePriority) priority;
 			ScoredPath scoredPath = grid.pathfinder.findPath(
 					being, being.location, grid.getTile(movePriority.coords));
-			List<LocalTile> path = scoredPath.path;
-			for (int i = 0; i < path.size() - 1; i++) {
-				Vector3i coordsFrom = path.get(i).coords;
-				Vector3i coordsTo = path.get(i+1).coords;
-				tasks.add(new MoveTask(1, coordsFrom, coordsTo));
+			if (scoredPath.isValid()) {
+				List<LocalTile> path = scoredPath.path;
+				for (int i = 0; i < path.size() - 1; i++) {
+					Vector3i coordsFrom = path.get(i).coords;
+					Vector3i coordsTo = path.get(i+1).coords;
+					tasks.add(new MoveTask(1, coordsFrom, coordsTo));
+				}
 			}
 		}
 		else if (priority instanceof MoveTolDistOnePriority) {
@@ -541,6 +561,10 @@ public class LocalGridTimeExecution {
 			return new ImpossiblePriority();
 		}
 		
+		Vector3i targetLocation = primaryLocation;
+		if (being.targetTile != null)
+			targetLocation = being.targetTile.coords;
+		
 		if ((primaryLocation == null && process.requiredBuildNameOrGroup != null)
 				|| process.isCreatedAtSite) {
 			System.out.println("Find status building case");
@@ -633,7 +657,7 @@ public class LocalGridTimeExecution {
 			}
 		}
 		else if (step.stepType.startsWith("S")) {
-			if (being.location.coords.manhattanDist(primaryLocation) <= 1) {
+			if (being.location.coords.manhattanDist(targetLocation) <= 1) {
 				step.timeTicks--;
 				if (step.timeTicks <= 0) {
 					return new DonePriority();
@@ -647,11 +671,11 @@ public class LocalGridTimeExecution {
 			}
 		}
 		else if (step.stepType.equals("HBuilding")) {
-			LocalTile tile = grid.getTile(primaryLocation);
+			LocalTile tile = grid.getTile(targetLocation);
 			if (tile.building == null) {
 				return new DonePriority();
 			}
-			if (being.location.coords.manhattanDist(primaryLocation) <= 1) {
+			if (being.location.coords.manhattanDist(targetLocation) <= 1) {
 				priority = new BuildingHarvestPriority(tile.coords, tile.building);
 			}
 			else {
@@ -659,11 +683,11 @@ public class LocalGridTimeExecution {
 			}
 		}
 		else if (step.stepType.equals("HTile")) {
-			LocalTile tile = grid.getTile(primaryLocation);
+			LocalTile tile = grid.getTile(targetLocation);
 			if (tile.tileBlockId == ItemData.ITEM_EMPTY_ID || step.timeTicks <= 0) {
 				return new DonePriority();
 			}
-			if (being.location.coords.manhattanDist(primaryLocation) <= 1) {
+			if (being.location.coords.manhattanDist(targetLocation) <= 1) {
 				priority = new TileHarvestPriority(tile.coords);
 			}
 			else {
@@ -695,11 +719,29 @@ public class LocalGridTimeExecution {
 			}
 			System.out.println("Dropped items: " + new Inventory(outputItems) + " at place: " + itemMode);
 			destinationInventory.addItems(outputItems);
-			if (!itemMode.equals("Personal")) { //Keep a record of this item in the 3d space
+			if (!itemMode.equals("Personal")) {
+				//Keep a record of this item in the 3d space (inventory has no scope/access to )
 				for (InventoryItem item: outputItems) {
 					grid.addItemRecordToWorld(primaryLocation, item);
 				}
 			}
+			return new DonePriority();
+		}
+		else if (step.stepType.equals("B")) {
+			List<InventoryItem> outputItems = process.outputItems.getOneItemDrop();
+			if (outputItems.size() == 0) {
+				return new DonePriority();
+			}
+			InventoryItem buildingItem = outputItems.get(0);
+			if (!ItemData.isBuildingId(buildingItem.itemId)) {
+				throw new IllegalArgumentException("Could not create building in process step, "
+						+ "given non-building id: " + buildingItem.itemId + ", process: " + process);
+			}
+			
+			LocalBuilding building = ItemData.building(buildingItem.itemId);
+			building.owner = ownerProducts;
+			System.out.println("Built building: " + building.name + " at place: " + itemMode);
+			grid.addBuilding(building, targetLocation, true);
 			return new DonePriority();
 		}
 		
@@ -801,12 +843,14 @@ public class LocalGridTimeExecution {
 			Vector3i bestLocation = null;
 			double bestScore = 0;
 			for (LocalProcess process: outputItemProcesses) {
+				System.out.println(process);
 				if (process.name.startsWith("Harvest ")) {
 					int inputTileId = ItemData.getIdFromName(process.requiredTileNameOrGroup);
 					double pickupTime = ItemData.getPickupTime(inputTileId);
 					double expectedNumItem = process.outputItems.itemExpectation().get(inputTileId);
 					
 					KdTree<Vector3i> itemTree = grid.getKdTreeForTile(inputTileId);
+					if (itemTree == null || itemTree.size() == 0) continue;
 					int numCandidates = Math.min(itemTree.size(), 10);
 					Collection<Vector3i> nearestCoords = itemTree.nearestNeighbourListSearch(
 							numCandidates, centerCoords);

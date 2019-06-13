@@ -555,7 +555,7 @@ public class HierarchicalPathfinder extends Pathfinder {
 		
 		long startTime = Calendar.getInstance().getTimeInMillis();
 		
-		LocalGrid activeLocalGrid = new LocalGridTerrainInstantiate(sizes, biome).setupGrid(true);
+		LocalGrid activeLocalGrid = new LocalGridTerrainInstantiate(sizes, biome).setupGrid(false);
 		
 		long endTime = Calendar.getInstance().getTimeInMillis();
 		System.out.println("Init hierarchical pathfinder in " + (endTime - startTime) + "ms");
@@ -563,7 +563,7 @@ public class HierarchicalPathfinder extends Pathfinder {
 		Society testSociety = new Society("TestSociety", activeLocalGrid);
 		testSociety.societyCenter = new Vector3i(10,10,10);
 		
-		//HierarchicalPathfinder hPath = new HierarchicalPathfinder(activeLocalGrid);
+		HierarchicalPathfinder hPath = new HierarchicalPathfinder(activeLocalGrid);
 		
 		List<Human> people = new ArrayList<>();
 		for (int j = 0; j < 1; j++) {
@@ -607,18 +607,18 @@ public class HierarchicalPathfinder extends Pathfinder {
 		while (numPathsTested < 10) {
 			while (true) {
 				randStartCoords = new Vector3i(
-						(int) (Math.random() * activeLocalGrid.pathfinder.abstractBlocks.length),
-						(int) (Math.random() * activeLocalGrid.pathfinder.abstractBlocks[0].length),
-						(int) (Math.random() * activeLocalGrid.pathfinder.abstractBlocks[0][0].length)
+						(int) (Math.random() * hPath.abstractBlocks.length),
+						(int) (Math.random() * hPath.abstractBlocks[0].length),
+						(int) (Math.random() * hPath.abstractBlocks[0][0].length)
 						);
 				randEndCoords = new Vector3i(
-						(int) (Math.random() * activeLocalGrid.pathfinder.abstractBlocks.length),
-						(int) (Math.random() * activeLocalGrid.pathfinder.abstractBlocks[0].length),
-						(int) (Math.random() * activeLocalGrid.pathfinder.abstractBlocks[0][0].length)
+						(int) (Math.random() * hPath.abstractBlocks.length),
+						(int) (Math.random() * hPath.abstractBlocks[0].length),
+						(int) (Math.random() * hPath.abstractBlocks[0][0].length)
 						);
 				
-				blockStart = activeLocalGrid.pathfinder.abstractBlocks[randStartCoords.x][randStartCoords.y][randStartCoords.z];
-				blockEnd = activeLocalGrid.pathfinder.abstractBlocks[randEndCoords.x][randEndCoords.y][randEndCoords.z];
+				blockStart = hPath.abstractBlocks[randStartCoords.x][randStartCoords.y][randStartCoords.z];
+				blockEnd = hPath.abstractBlocks[randEndCoords.x][randEndCoords.y][randEndCoords.z];
 				startVec = VecGridUtil.getRandVecInBounds(blockStart.minBound, blockStart.maxBound);
 				endVec = VecGridUtil.getRandVecInBounds(blockEnd.minBound, blockEnd.maxBound);
 				if (activeLocalGrid.tileIsAccessible(startVec) && activeLocalGrid.tileIsAccessible(endVec))
@@ -628,7 +628,7 @@ public class HierarchicalPathfinder extends Pathfinder {
 			
 			startTime = Calendar.getInstance().getTimeInMillis();
 			
-			path = activeLocalGrid.pathfinder.findPath(null, startVec, endVec);
+			path = hPath.findPath(null, startVec, endVec);
 			
 			endTime = Calendar.getInstance().getTimeInMillis();
 			System.out.println("Completed trials in " + (endTime - startTime) + "ms");

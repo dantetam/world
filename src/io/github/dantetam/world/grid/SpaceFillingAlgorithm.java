@@ -103,9 +103,8 @@ public class SpaceFillingAlgorithm {
 				Set<Vector3i> newFringe = new HashSet<>();
 				for (Vector3i fringeVec: fringe) {
 					if (visitedSet.contains(fringeVec) || !candidates.contains(fringeVec)) continue;
-					LocalTile tile = grid.getTile(fringeVec);
-					if (tile != null && tile.tileFloorId != ItemData.ITEM_EMPTY_ID) continue;
-							
+					if (!grid.tileIsAccessible(fringeVec)) continue;
+					
 					visitedSet.add(fringeVec);
 					singleComponent.add(fringeVec);
 					Set<Vector3i> neighbors = grid.getAllNeighbors6(fringeVec);
@@ -137,8 +136,10 @@ public class SpaceFillingAlgorithm {
 		return findContFreeTiles(grid, candidates);
 	}
 	
+	/*
 	private static int squareDistance(Vector3i a, Vector3i b) {
 		return Math.max(Math.abs(a.x - b.x), Math.abs(a.y - b.y));
 	}
+	*/
 	
 }

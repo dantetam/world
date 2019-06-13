@@ -31,7 +31,8 @@ public abstract class LivingEntity {
 	public LocalJob jobProcessProgress; //For activities mandated by a lord, employer, or society
 	
 	public LocalBuilding processBuilding;
-	public LocalTile processTile;
+	public LocalTile processTile; //Person should move directly to this tile
+	public LocalTile targetTile; //Person should target this tile for harvest, operations, etc.
 	
 	//Link to all items owned by this person, that can be stored in and out of the inventory,
 	//or in the game world.

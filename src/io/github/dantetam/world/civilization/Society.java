@@ -166,10 +166,12 @@ public class Society {
 		Map<LocalProcess, Double> processByPercentage = MapUtil.getNormalizedMap(processByUtil);
 		processByPercentage = MapUtil.getSortedMapByValueDesc(processByPercentage);
 		
+		/*
 		System.out.println("Ranked processes: #####");
 		for (Entry<LocalProcess, Double> entry: processByUtil.entrySet()) {
 			System.out.println(entry.getKey().name + "; ranking: " + entry.getValue());
 		}
+		*/
 		
 		return processByPercentage;
 	}
@@ -308,6 +310,7 @@ public class Society {
 		needWeights.put("Eat", 12.0);
 		needWeights.put("Rest", 3.0);
 		needWeights.put("Shelter", 1.0);
+		needWeights.put("Soldier", 0.3);
 		
 		//Used to normalize the values and determine 
 		Map<String, Double> totalNeedsUtility = new HashMap<>(); 

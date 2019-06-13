@@ -46,9 +46,11 @@ public class LocalGrid {
 	private Map<Integer, KdTree<Vector3i>> globalTileBlockLookup;
 	private KdTree<Vector3i> buildingLookup;
 	
+	private Map<Integer, KdTree<Vector3i>> buildIdQuickTileLookup;
+	
 	private KdTree<Vector3i> peopleLookup;
 	
-	public HierarchicalPathfinder pathfinder;
+	public RSRPathfinder pathfinder;
 	
 	public LocalGrid(Vector3i size) {
 		rows = size.x; cols = size.y; heights = size.z;
@@ -62,6 +64,8 @@ public class LocalGrid {
 		
 		globalTileBlockLookup = new HashMap<>();
 		buildingLookup = new KdTree<>();
+		
+		buildIdQuickTileLookup = new HashMap<>();
 		
 		peopleLookup = new KdTree<>();
 	}
@@ -373,6 +377,10 @@ public class LocalGrid {
 		return this.itemGroupTileLookup.get(groupName);
 	}
 	
+	public KdTree<Vector3i> getKdTreeForBuildings(Integer buildId) {
+		return this.buildIdQuickTileLookup.get(buildId);
+	}
+	
 	public boolean buildingCanFitAt(LocalBuilding building, Vector3i newPrimaryCoords, boolean overrideGrid) {
 		//Check to see if the building fits
 		List<Vector3i> offsets = building.getLocationOffsets();
@@ -400,9 +408,16 @@ public class LocalGrid {
 				absTile.building = building;
 				//absTile.tileBlockId = building.buildingBlockIds.get(buildingTileIndex);
 				buildingTileIndex++;
+				
+				if (this.pathfinder != null)
+					this.pathfinder.tempNodeInRectSolid(newAbsLocation, true);
 			} 
 			allBuildings.add(building);
 			buildingLookup.add(newPrimaryCoords);
+			if (!buildIdQuickTileLookup.containsKey(building.buildingId)) {
+				buildIdQuickTileLookup.put(building.buildingId, new KdTree<>());
+			}
+			buildIdQuickTileLookup.get(building.buildingId).add(building.getPrimaryLocation());
 			markAllAdjAsExposed(newPrimaryCoords);
 		}
 	}
@@ -417,6 +432,14 @@ public class LocalGrid {
 			}
 		}
 		buildingLookup.remove(building.getPrimaryLocation());
+		
+		if (buildIdQuickTileLookup.containsKey(building.buildingId)) {
+			buildIdQuickTileLookup.get(building.buildingId).remove(building.getPrimaryLocation());
+			if (buildIdQuickTileLookup.get(building.buildingId).size() == 0) {
+				buildIdQuickTileLookup.remove(building.buildingId);
+			}
+		}
+		
 		building.setPrimaryLocation(null);
 		allBuildings.remove(building);
 	}

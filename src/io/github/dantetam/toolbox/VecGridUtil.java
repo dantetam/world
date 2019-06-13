@@ -383,12 +383,14 @@ public class VecGridUtil {
 		}
 		
 		int[] zeroCenteredRect = findClosestSubRect(convertedOffsetVec, desiredR, desiredC);
+		/*
 		for (int r = 0; r < convertedOffsetVec.length; r++) {
 			for (int c = 0; c < convertedOffsetVec[0].length; c++) {
 				System.out.print(convertedOffsetVec[r][c] + " ");
 			}
 			System.out.println();
 		}
+		*/
 		
 		if (zeroCenteredRect != null) {
 			zeroCenteredRect[0] += topLeftBound.x;
