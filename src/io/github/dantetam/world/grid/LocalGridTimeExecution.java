@@ -110,6 +110,15 @@ public class LocalGridTimeExecution {
 			if (human.activePriority != null && //Assign tasks if there are none (do not overwrite existing tasks)
 					(human.currentQueueTasks == null || human.currentQueueTasks.size() == 0)) {
 				human.currentQueueTasks = getTasksFromPriority(grid, human, human.activePriority);
+				
+				if (human.currentQueueTasks != null) {
+					String firstTaskString = human.currentQueueTasks.size() > 0 ? human.currentQueueTasks.get(0).toString() : "tasks is empty";
+					System.out.println(human.name + " was assigned " + human.currentQueueTasks.size() + " tasks, first: " + firstTaskString); 
+				}
+				else {
+					System.out.println(human.name + " was assigned NULL tasks"); 
+				}
+				
 				if (human.currentQueueTasks != null && human.currentQueueTasks.size() > 0)
 					System.out.println(human.currentQueueTasks.get(0).getClass());
 				if (human.currentQueueTasks == null) {
@@ -150,7 +159,7 @@ public class LocalGridTimeExecution {
 						human.activePriority = null;
 					}
 					if (human.activePriority instanceof WaitPriority) {
-						human.activePriority = null;
+						human.activePriority = null; //Spend a frame and advance priority/step/etc.
 					}
 				}
 				//Process has been completed, remove it from person
@@ -195,11 +204,16 @@ public class LocalGridTimeExecution {
 					}
 					if (human.activePriority instanceof DonePriority || 
 							human.activePriority instanceof ImpossiblePriority) {
+						/*
+						if (human.activePriority instanceof ImpossiblePriority) {
+							System.err.println("Warning, impossible priority task was given, for process step: " + human.processProgress.processSteps.get(0));
+						}
+						*/
 						human.processProgress.processSteps.remove(0);
 						human.activePriority = null;
 					}
 					if (human.activePriority instanceof WaitPriority) {
-						human.activePriority = null;
+						human.activePriority = null; //Spend a frame and advance priority/step/etc.
 					}
 				}
 				//Process has been completed, remove it from person
@@ -242,9 +256,18 @@ public class LocalGridTimeExecution {
 			System.out.println(building);
 			if (building.owner == null || validOwners.contains(building.owner)) {
 				if (building.currentUser == null) {
-					building.currentUser = being;
-					being.processBuilding = building;
-					break;
+					
+					Set<Vector3i> neighbors = grid.getAllNeighbors14(nearestCoord);
+					neighbors.add(nearestCoord);
+					for (Vector3i neighbor: neighbors) {
+						ScoredPath scoredPath = grid.pathfinder.findPath(
+								being, being.location, grid.getTile(neighbor));
+						if (scoredPath.isValid()) {
+							building.currentUser = being;
+							being.processBuilding = building;
+						}
+					}
+					
 				}
 			}
 		}
@@ -270,7 +293,7 @@ public class LocalGridTimeExecution {
 			LocalTile tile = grid.getTile(candidate);
 			if (tile.humanClaim == null || validOwners.contains(tile.humanClaim)) {
 				if (!tile.harvestInUse) {
-					Set<Vector3i> neighbors = grid.getAllNeighbors8(candidate);
+					Set<Vector3i> neighbors = grid.getAllNeighbors14(candidate);
 					neighbors.add(candidate);
 					for (Vector3i neighbor: neighbors) {
 						ScoredPath scoredPath = grid.pathfinder.findPath(
@@ -430,12 +453,17 @@ public class LocalGridTimeExecution {
 					tasks.add(new MoveTask(1, coordsFrom, coordsTo));
 				}
 			}
+			else {
+				System.err.println("Warning, path was not valid from " + being.location + ", " + grid.getTile(movePriority.coords));
+				return null;
+			}
 		}
 		else if (priority instanceof MoveTolDistOnePriority) {
 			MoveTolDistOnePriority movePriority = (MoveTolDistOnePriority) priority;
 			
 			//Allow being to move to the actual space or any tile one distance unit away
-			Set<Vector3i> validSpace = grid.getAllNeighbors8(movePriority.coords);
+			Set<Vector3i> validSpace = grid.getAllNeighbors14(movePriority.coords);
+			validSpace.add(movePriority.coords);
 			
 			for (Vector3i candidateDest: validSpace) {
 				ScoredPath scoredPath = grid.pathfinder.findPath(
@@ -565,6 +593,7 @@ public class LocalGridTimeExecution {
 		if (being.targetTile != null)
 			targetLocation = being.targetTile.coords;
 		
+		//For the case where a person has not been assigned a building/space yet
 		if ((primaryLocation == null && process.requiredBuildNameOrGroup != null)
 				|| process.isCreatedAtSite) {
 			System.out.println("Find status building case");
@@ -642,7 +671,7 @@ public class LocalGridTimeExecution {
 					return new DonePriority();
 				}
 				else {
-					priority = new MovePriority(primaryLocation);
+					priority = new MoveTolDistOnePriority(primaryLocation);
 				}
 			}
 			else {
@@ -668,7 +697,7 @@ public class LocalGridTimeExecution {
 				}
 			}
 			else {
-				priority = new MovePriority(primaryLocation);
+				priority = new MoveTolDistOnePriority(targetLocation);
 			}
 		}
 		else if (step.stepType.equals("HBuilding")) {
@@ -680,7 +709,7 @@ public class LocalGridTimeExecution {
 				priority = new BuildingHarvestPriority(tile.coords, tile.building);
 			}
 			else {
-				priority = new MovePriority(primaryLocation);
+				priority = new MoveTolDistOnePriority(targetLocation);
 			}
 		}
 		else if (step.stepType.equals("HTile")) {
@@ -692,7 +721,7 @@ public class LocalGridTimeExecution {
 				priority = new TileHarvestPriority(tile.coords);
 			}
 			else {
-				priority = new MovePriority(primaryLocation);
+				priority = new MoveTolDistOnePriority(targetLocation);
 			}
 		}
 		else if (step.stepType.startsWith("Wait")) {
@@ -719,9 +748,12 @@ public class LocalGridTimeExecution {
 				item.owner = ownerProducts;
 			}
 			System.out.println("Dropped items: " + new Inventory(outputItems) + " at place: " + itemMode);
-			destinationInventory.addItems(outputItems);
-			if (!itemMode.equals("Personal")) {
-				//Keep a record of this item in the 3d space (inventory has no scope/access to )
+			if (being.inventory.canFitItems(outputItems) && (itemMode.equals("Personal") || itemMode.equals("Tile"))) {
+				being.inventory.addItems(outputItems);
+			}
+			else {
+				destinationInventory.addItems(outputItems);
+				//Keep a record of this item in the 3d space (inventory has no scope/access to world item records)
 				for (InventoryItem item: outputItems) {
 					grid.addItemRecordToWorld(primaryLocation, item);
 				}

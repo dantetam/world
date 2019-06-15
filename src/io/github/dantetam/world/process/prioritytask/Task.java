@@ -8,4 +8,8 @@ public class Task {
 		this.taskTime = time;
 	}
 	
+	public String toString() {
+		return this.getClass().getSimpleName() + "," + taskTime;
+	}
+	
 }

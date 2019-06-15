@@ -9,5 +9,9 @@ public abstract class Priority {
 	public Priority(Vector3i coords) {
 		this.coords = coords;
 	}
+	
+	public String toString() {
+		return this.getClass().getSimpleName();
+	}
 
 }

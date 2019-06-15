@@ -134,10 +134,10 @@ public class MenuSystem extends BaseSystem {
 						
 						//texts.add("\n");
 						texts.add(" ");
-						texts.add("Process: " + being.processProgress != null ? being.processProgress.name : null);
+						texts.add("Process: " + (being.processProgress != null ? being.processProgress.name : null));
 						if (being.jobProcessProgress != null) {
 							texts.add("Job: " + being.jobProcessProgress.jobWorkProcess.name + 
-									", under boss: " + being.jobProcessProgress.boss);
+									", under boss: " + being.jobProcessProgress.boss.name);
 						}
 						if (being.processBuilding != null)
 							texts.add("Used Proc Build: " + being.processBuilding.name + ", at " + being.processBuilding.getPrimaryLocation());
