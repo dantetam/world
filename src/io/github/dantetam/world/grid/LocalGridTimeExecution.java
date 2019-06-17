@@ -72,7 +72,7 @@ public class LocalGridTimeExecution {
 		Date date = world.getTime();
 		
 		System.out.println("<<<<>>>> Date: " + date);
-		if (date.getSeconds() == 0) {
+		if (date.getHours() == 0) { //Every day, assign new jobs
 			society.createJobOffers();
 			assignAllHumanJobs(society, date);
 			society.leadershipManager.workThroughSocietalPolitics();
@@ -150,11 +150,15 @@ public class LocalGridTimeExecution {
 						human.activePriority = getPriorityForStep(society, grid, 
 								human, human.jobProcessProgress.boss, process, step);
 						String priorityName = human.activePriority == null ? "null" : human.activePriority.getClass().getSimpleName();
-						System.out.println(human.name + ", for its process: " + process + ", ");
+						System.out.println(human.name + ", for its process: " + process + " (first step), ");
 								System.out.println("was given the PRIORITY: " + priorityName);
 					}
 					if (human.activePriority instanceof DonePriority || 
 							human.activePriority instanceof ImpossiblePriority) {
+						if (human.activePriority instanceof ImpossiblePriority) {
+							ImpossiblePriority iPrior = (ImpossiblePriority) human.activePriority;
+							System.err.println("Warning, impossible priority: " + iPrior.reason);
+						}
 						process.processSteps.remove(0);
 						human.activePriority = null;
 					}
@@ -345,7 +349,7 @@ public class LocalGridTimeExecution {
 				priority = new ConstructRoomPriority(borderRegion, bestBuildingMaterials);
 			}
 			else {
-				priority = new ImpossiblePriority();
+				priority = new ImpossiblePriority("Could not find open rectangular space");
 			}
 			return priority;
 		}
@@ -374,7 +378,7 @@ public class LocalGridTimeExecution {
 		else {
 			System.err.println("Warning, could not find case for process, "
 					+ "building and/or tile required: " + process.toString());
-			return new ImpossiblePriority();
+			return new ImpossiblePriority("Warning, could not find case for process. Tile/building may not be assigned");
 		}
 		
 		Vector3i targetLocation = primaryLocation;
@@ -416,7 +420,7 @@ public class LocalGridTimeExecution {
 				}
 				else {
 					System.out.println("Could not create building space of size: " + requiredSpace);
-					priority = new ImpossiblePriority();
+					priority = new ImpossiblePriority("Could not create building space of size: " + requiredSpace);
 				}
 				return priority;
 			}
@@ -429,7 +433,7 @@ public class LocalGridTimeExecution {
 				
 				if (process.isCreatedAtSite) {
 					being.processTile = grid.getTile(nearOpenSpace);
-					if (being.location.coords.manhattanDist(targetLocation) <= 1) {
+					if (being.location.coords.areAdjacent14(targetLocation)) {
 						//continue
 					}
 					else {
@@ -455,7 +459,7 @@ public class LocalGridTimeExecution {
 			}
 			else if (destinationInventory.hasItems(process.inputItems) && being.processTile != null) {
 				//priority = new ItemDeliveryPriority(primaryLocation, new Inventory(process.inputItems));
-				if (being.location.coords.manhattanDist(primaryLocation) <= 1) {
+				if (being.location.coords.areAdjacent14(primaryLocation)) {
 					return new DonePriority();
 				}
 				else {
@@ -475,7 +479,7 @@ public class LocalGridTimeExecution {
 			}
 		}
 		else if (step.stepType.startsWith("S")) {
-			if (being.location.coords.manhattanDist(targetLocation) <= 1) {
+			if (being.location.coords.areAdjacent14(targetLocation)) {
 				step.timeTicks--;
 				if (step.timeTicks <= 0) {
 					return new DonePriority();
@@ -493,7 +497,7 @@ public class LocalGridTimeExecution {
 			if (tile.building == null) {
 				return new DonePriority();
 			}
-			if (being.location.coords.manhattanDist(targetLocation) <= 1) {
+			if (being.location.coords.areAdjacent14(targetLocation)) {
 				priority = new BuildingHarvestPriority(tile.coords, tile.building);
 			}
 			else {
@@ -505,7 +509,7 @@ public class LocalGridTimeExecution {
 			if (tile.tileBlockId == ItemData.ITEM_EMPTY_ID || step.timeTicks <= 0) {
 				return new DonePriority();
 			}
-			if (being.location.coords.manhattanDist(targetLocation) <= 1) {
+			if (being.location.coords.areAdjacent14(targetLocation)) {
 				priority = new TileHarvestPriority(tile.coords);
 			}
 			else {
@@ -573,6 +577,9 @@ public class LocalGridTimeExecution {
 	
 	/**
 	 * The last step of process deconstruction, where priorities are given tasks, according to world states.
+	 * 
+	 * Use TaskListPlaceholders to have less ambiguous priority end conditions and signals.
+	 * 
 	 * @param grid
 	 * @param being
 	 * @param priority
@@ -583,7 +590,7 @@ public class LocalGridTimeExecution {
 		List<Task> tasks = new ArrayList<>();
 		if (priority instanceof ItemPickupPriority) {
 			ItemPickupPriority itemPriority = (ItemPickupPriority) priority;
-			if (itemPriority.coords.manhattanDist(being.location.coords) <= 1) {
+			if (itemPriority.coords.areAdjacent14(being.location.coords)) {
 				grid.getTile(itemPriority.coords).itemsOnFloor.subtractItem(itemPriority.item);
 				being.inventory.addItem(itemPriority.item);
 				grid.removeItemRecordToWorld(itemPriority.coords, itemPriority.item);
@@ -595,7 +602,7 @@ public class LocalGridTimeExecution {
 		}
 		else if (priority instanceof ItemDeliveryPriority) {
 			ItemDeliveryPriority itemPriority = (ItemDeliveryPriority) priority;
-			if (itemPriority.coords.manhattanDist(being.location.coords) <= 1) {
+			if (itemPriority.coords.areAdjacent14(being.location.coords)) {
 				List<InventoryItem> desiredItems = itemPriority.inventory.getItems();
 				being.inventory.subtractItems(desiredItems);
 				grid.getTile(itemPriority.coords).itemsOnFloor.addItems(desiredItems);
@@ -607,7 +614,7 @@ public class LocalGridTimeExecution {
 		}
 		else if (priority instanceof ItemPickupBuildingPriority) {
 			ItemPickupBuildingPriority itemPriority = (ItemPickupBuildingPriority) priority;
-			if (itemPriority.coords.manhattanDist(being.location.coords) <= 1) {
+			if (itemPriority.coords.areAdjacent14(being.location.coords)) {
 				grid.getTile(itemPriority.coords).building.inventory.subtractItem(itemPriority.item);
 				being.inventory.addItem(itemPriority.item);
 				
@@ -620,7 +627,7 @@ public class LocalGridTimeExecution {
 		}
 		else if (priority instanceof ItemDeliveryBuildingPriority) {
 			ItemDeliveryBuildingPriority itemPriority = (ItemDeliveryBuildingPriority) priority;
-			if (itemPriority.coords.manhattanDist(being.location.coords) <= 1) {
+			if (itemPriority.coords.areAdjacent14(being.location.coords)) {
 				List<InventoryItem> desiredItems = itemPriority.inventory.getItems();
 				being.inventory.subtractItems(desiredItems);
 				grid.getTile(itemPriority.coords).building.inventory.addItems(desiredItems);
@@ -634,8 +641,12 @@ public class LocalGridTimeExecution {
 		}
 		else if (priority instanceof TileHarvestPriority) {
 			TileHarvestPriority tilePriority = (TileHarvestPriority) priority;
-			if (tilePriority.coords.manhattanDist(being.location.coords) <= 1) {
-				int pickupTime = ItemData.getPickupTime(grid.getTile(tilePriority.coords).tileBlockId);
+			LocalTile hTile = grid.getTile(tilePriority.coords);
+			if (hTile == null || hTile.tileBlockId == ItemData.ITEM_EMPTY_ID) {
+				return null;
+			}
+			if (tilePriority.coords.areAdjacent14(being.location.coords)) {
+				int pickupTime = ItemData.getPickupTime(hTile.tileBlockId);
 				tasks.add(new HarvestBlockTileTask(pickupTime, tilePriority.coords));
 			}
 			else {
@@ -645,7 +656,7 @@ public class LocalGridTimeExecution {
 		else if (priority instanceof BuildingPlacePriority) {
 			BuildingPlacePriority buildPriority = (BuildingPlacePriority) priority;
 			
-			if (buildPriority.coords.manhattanDist(being.location.coords) <= 1) {
+			if (buildPriority.coords.areAdjacent14(being.location.coords)) {
 				LocalTile tile = grid.getTile(buildPriority.coords);
 				if (being.inventory.hasItem(buildPriority.buildingItem) &&
 						tile.building == null) {
@@ -661,9 +672,12 @@ public class LocalGridTimeExecution {
 		}
 		else if (priority instanceof BuildingHarvestPriority) {
 			BuildingHarvestPriority buildPriority = (BuildingHarvestPriority) priority;
+			LocalTile tile = grid.getTile(buildPriority.coords);
 			
-			if (buildPriority.coords.manhattanDist(being.location.coords) <= 1) {
-				LocalTile tile = grid.getTile(buildPriority.coords);
+			if (tile == null || tile.building == null) {
+				return null;
+			}
+			if (buildPriority.coords.areAdjacent14(being.location.coords)) {	
 				int pickupTime = ItemData.getPickupTime(tile.tileBlockId);
 				tasks.add(new HarvestBuildingTask(pickupTime, buildPriority.coords, tile.building));
 			}
@@ -700,6 +714,16 @@ public class LocalGridTimeExecution {
 					return getTasksFromPriority(grid, being, new TilePlacePriority(bestLocation, materialId));
 				}
 			}
+			
+			for (int materialId: rankedMaterials) {
+				Priority itemSearchPriority = progressToFindItem(grid, being.location.coords, materialId, 1);
+				if (!(itemSearchPriority instanceof ImpossiblePriority)) {
+					return getTasksFromPriority(
+							grid, being,
+							itemSearchPriority
+							);
+				}
+			}
 			return null;
 		}
 		else if (priority instanceof MovePriority) {
@@ -727,7 +751,7 @@ public class LocalGridTimeExecution {
 		else if (priority instanceof MoveTolDistOnePriority) {
 			MoveTolDistOnePriority movePriority = (MoveTolDistOnePriority) priority;
 			
-			if (movePriority.coords.manhattanDist(being.location.coords) <= 1) { 
+			if (movePriority.coords.areAdjacent14(being.location.coords)) { 
 				return null;
 			}
 			
@@ -785,14 +809,16 @@ public class LocalGridTimeExecution {
 				return null;
 			}
 			else {
-				int randIndex = (int) (Math.random() * locations.size());
-				Vector3i randomLocation = locations.get(randIndex);
-				if (randomLocation.manhattanDist(being.location.coords) <= 1) {
-					return null;
+				for (int randIndex = 0; randIndex < locations.size(); randIndex++) {
+					Vector3i randomLocation = locations.get(randIndex);
+					if (randomLocation.areAdjacent14(being.location.coords)) {
+						//return null;
+					}
+					else {
+						return getTasksFromPriority(grid, being, new MoveTolDistOnePriority(randomLocation));
+					}
 				}
-				else {
-					return getTasksFromPriority(grid, being, new MoveTolDistOnePriority(randomLocation));
-				}
+				return tasks;
 			}
 		}
 		else if (priority instanceof DonePriority) {
@@ -854,10 +880,10 @@ public class LocalGridTimeExecution {
 		Map<LocalJob, Double> bestJobs = society.prioritizeJobs(human, bestProcesses, date);
 		
 		Object potentialJob = MapUtil.randChoiceFromMaps(bestProcesses, bestJobs);
-		if (potentialJob instanceof LocalJob) {
+		if (potentialJob instanceof LocalJob && human.jobProcessProgress == null) {
 			human.jobProcessProgress = (LocalJob) potentialJob;
 		}
-		else if (potentialJob instanceof LocalProcess) {
+		else if (potentialJob instanceof LocalProcess && human.processProgress == null) {
 			human.processProgress = (LocalProcess) potentialJob;
 		}
 		//LocalProcess randBiasedChosenProcess = MapUtil.randChoiceFromWeightMap(bestProcesses);
@@ -918,7 +944,7 @@ public class LocalGridTimeExecution {
 				return new TileHarvestPriority(bestLocation);
 			}
 			else {
-				return new ImpossiblePriority();
+				return new ImpossiblePriority("Could not find items or processes that can output harvest");
 			}
 		}
 		
@@ -978,7 +1004,7 @@ public class LocalGridTimeExecution {
 				return new TileHarvestPriority(bestLocation);
 			}
 			else {
-				return new ImpossiblePriority();
+				return new ImpossiblePriority("Could not find item groups or processes that can output harvest groups");
 			}
 		}
 		

@@ -7,6 +7,7 @@ import java.util.Set;
 
 import org.lwjgl.util.vector.Vector3f;
 
+import io.github.dantetam.world.grid.LocalGrid;
 import kdtreegeo.KdPoint;
 
 /**
@@ -64,6 +65,12 @@ public class Vector3i extends KdPoint {
 		return Math.max(Math.abs(z - v.z), Math.max(Math.abs(x - v.x), Math.abs(y - v.y)));
 	}
 
+	public boolean areAdjacent14(Vector3i v) {
+		return this.equals(v) ||
+				LocalGrid.allAdjOffsets14.contains(this.getSubtractedBy(v)) ||
+				LocalGrid.allAdjOffsets14.contains(v.getSubtractedBy(this));
+	}
+	
 	public Vector3f getScaled(float f) {
 		return new Vector3f(x * f, y * f, z * f);
 	}

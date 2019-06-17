@@ -70,10 +70,10 @@ public class WorldGrid {
 		testSociety = new Society("TestSociety", activeLocalGrid);
 		testSociety.societyCenter = new Vector3i(50,50,30);
 		
-		int numHouses = 1; //15;
+		int numHouses = 20;
 		
 		for (int i = 0; i < numHouses; i++) {
-			int numPeopleHouse = 1; //(int)(Math.random() * 6) + 1;
+			int numPeopleHouse = (int)(Math.random() * 8) + 1;
 			List<Human> people = new ArrayList<>();
 			for (int j = 0; j < numPeopleHouse; j++) {
 				int r = (int) (Math.random() * activeLocalGrid.rows);
