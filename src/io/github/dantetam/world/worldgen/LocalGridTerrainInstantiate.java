@@ -21,13 +21,13 @@ import io.github.dantetam.world.ai.RSRPathfinder;
 import io.github.dantetam.world.dataparse.ItemData;
 import io.github.dantetam.world.grid.LocalGrid;
 import io.github.dantetam.world.grid.LocalTile;
+import io.github.dantetam.world.worldgen.oldnoiselib.BaseTerrain2D;
+import io.github.dantetam.world.worldgen.oldnoiselib.DiamondSquare2D;
 import kdtreegeo.KdTree;
 import kn.uni.voronoitreemap.convexHull.JVertex;
 import kn.uni.voronoitreemap.gui.JSite;
 import kn.uni.voronoitreemap.j2d.Point2D;
 import kn.uni.voronoitreemap.j2d.PolygonSimple;
-import terrain.BaseTerrain;
-import terrain.DiamondSquare;
 
 public class LocalGridTerrainInstantiate {
 
@@ -132,30 +132,30 @@ public class LocalGridTerrainInstantiate {
 	}
 	
 	public double[][] generateTerrain() {
-		double[][] temp = DiamondSquare.makeTable(30, 30, 30, 30, generatedTerrainLen + 1);
-		BaseTerrain map = new DiamondSquare(temp);
+		double[][] temp = DiamondSquare2D.makeTable(30, 30, 30, 30, generatedTerrainLen + 1);
+		BaseTerrain2D map = new DiamondSquare2D(temp);
 		double[][] terrain = map.generate(new double[] { 0, 0, generatedTerrainLen, 8, 0.5 });
 		return terrain;
 	}
 	
 	public double[][] generateSoilLevels() {
-		double[][] temp = DiamondSquare.makeTable(0, 0, 0, 0, generatedTerrainLen + 1);
-		BaseTerrain map = new DiamondSquare(temp);
+		double[][] temp = DiamondSquare2D.makeTable(0, 0, 0, 0, generatedTerrainLen + 1);
+		BaseTerrain2D map = new DiamondSquare2D(temp);
 		double[][] soilLevels = map.generate(new double[] { 0, 0, generatedTerrainLen, 5, 0.65 });
 		return soilLevels;
 	}
 	
 	public int[][] generateSoilCompositions() {
-		double[][] temp = DiamondSquare.makeTable(20, 20, 20, 20, generatedTerrainLen + 1);
-		BaseTerrain map = new DiamondSquare(temp);
+		double[][] temp = DiamondSquare2D.makeTable(20, 20, 20, 20, generatedTerrainLen + 1);
+		BaseTerrain2D map = new DiamondSquare2D(temp);
 		double[][] clayLevels = map.generate(new double[] { 0, 0, generatedTerrainLen, 5, 0.55 });
 		
-		temp = DiamondSquare.makeTable(30, 30, 30, 30, generatedTerrainLen + 1);
-		map = new DiamondSquare(temp);
+		temp = DiamondSquare2D.makeTable(30, 30, 30, 30, generatedTerrainLen + 1);
+		map = new DiamondSquare2D(temp);
 		double[][] sandLevels = map.generate(new double[] { 0, 0, generatedTerrainLen, 25, 0.45 });
 		
-		temp = DiamondSquare.makeTable(20, 20, 20, 20, generatedTerrainLen + 1);
-		map = new DiamondSquare(temp);
+		temp = DiamondSquare2D.makeTable(20, 20, 20, 20, generatedTerrainLen + 1);
+		map = new DiamondSquare2D(temp);
 		double[][] siltLevels = map.generate(new double[] { 0, 0, generatedTerrainLen, 10, 0.45 });
 
 		int[][] soilIdsForTiles = new int[generatedTerrainLen + 1][generatedTerrainLen + 1];

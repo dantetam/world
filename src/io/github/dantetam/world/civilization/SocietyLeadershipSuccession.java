@@ -20,15 +20,20 @@ public class SocietyLeadershipSuccession {
 
 	public static List<Human> determineSuccessors(Society society, 
 			SocietyLeadershipMode mode, SocSuccessionType successType) {
-		//TODO;
+		TODO;
 		List<Human> candidates = findCandidates(society, mode, successType);
+		
+		//Succession process, by the criteria and willingness of people to compete for power
+		
 		Human randHuman = candidates.get((int) (Math.random() * candidates.size()));
 		return new ArrayList<Human>() {{add(randHuman);}};
 	}
 	
 	public static List<Human> findCandidates(Society society, 
 			SocietyLeadershipMode mode, SocSuccessionType successType) {
-		//TODO;
+		TODO;
+		//Pick people based on the societal criteria for 
+		
 		Set<Integer> indices = new HashSet<>();
 		int numPeople = Math.min(10, society.getAllPeople().size());
 		while (indices.size() < numPeople) {

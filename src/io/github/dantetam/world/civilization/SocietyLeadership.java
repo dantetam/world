@@ -46,6 +46,19 @@ public class SocietyLeadership {
 		if (currentLeaders == null || currentLeaders.size() == 0) {
 			succeed();
 		}
+		TODO; //Pick societal tasks and jobs for benefit of all
+		
+		TODO; //Pick societal politics
+	}
+	
+	/**
+	 * Dynamically change the leadership and methods of determining societal leadership and policy,
+	 * through free actions. These free actions can be taken by anyone according to their power
+	 * and willingness to change the society's rules, 
+	 * @param society
+	 */
+	public static void freeActionMutateSocPoli() {
+		TODO
 	}
 	
 	//TODO: SocietalEthos, political, in the technical impl. like that of a human

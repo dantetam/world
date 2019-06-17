@@ -15,7 +15,6 @@
 	</classpathentry>
 	<classpathentry kind="lib" path="lib/slick-util.jar"/>
 	<classpathentry kind="lib" path="lib/slick.jar"/>
-	<classpathentry kind="lib" path="lib/danteterraingen.jar" sourcepath="/civgame"/>
 	<classpathentry kind="lib" path="lib/commons-csv-1.6.jar"/>
 	<classpathentry kind="lib" path="lib/commons-math3-3.6.1.jar"/>
 	<classpathentry kind="output" path="bin"/>
