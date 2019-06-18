@@ -17,7 +17,7 @@ import io.github.dantetam.world.ai.Pathfinder;
 import io.github.dantetam.world.dataparse.WorldCsvParser;
 import io.github.dantetam.world.grid.LocalGrid;
 import io.github.dantetam.world.grid.LocalTile;
-import io.github.dantetam.world.worldgen.LocalGridTerrainInstantiate;
+import io.github.dantetam.world.worldgen.LocalGridInstantiate;
 
 public class VecGridUtil {
 	
@@ -563,7 +563,7 @@ public class VecGridUtil {
     	
     	Vector3i sizes = new Vector3i(50,50,50);
 		int biome = 3;
-		LocalGrid activeLocalGrid = new LocalGridTerrainInstantiate(sizes, biome).setupGrid(false);
+		LocalGrid activeLocalGrid = new LocalGridInstantiate(sizes, biome).setupGrid(false);
 		
 		System.out.println("Start 3d component time trial now");
 		long startTime = Calendar.getInstance().getTimeInMillis();

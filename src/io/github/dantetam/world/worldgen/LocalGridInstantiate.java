@@ -29,13 +29,19 @@ import kn.uni.voronoitreemap.gui.JSite;
 import kn.uni.voronoitreemap.j2d.Point2D;
 import kn.uni.voronoitreemap.j2d.PolygonSimple;
 
-public class LocalGridTerrainInstantiate {
+/**
+ * For generating mostly everything in a local grid, except the 3D terrain (like Dwarf Fortress).
+ * This includes weather, local variations in 'biome', and multi-tile fixtures like trees and rocks.
+ * @author Dante
+ */
+
+public class LocalGridInstantiate {
 
 	private LocalGrid localGrid;
 	private int generatedTerrainLen;
 	private int localGridBiome;
 	
-	public LocalGridTerrainInstantiate(Vector3i sizes, int biome) {
+	public LocalGridInstantiate(Vector3i sizes, int biome) {
 		localGrid = new LocalGrid(sizes);
 		generatedTerrainLen = (int) MathUti.roundToPower2(Math.max(Math.max(sizes.x, sizes.y), sizes.z));
 		localGridBiome = biome;

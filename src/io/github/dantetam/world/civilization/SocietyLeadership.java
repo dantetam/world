@@ -46,9 +46,9 @@ public class SocietyLeadership {
 		if (currentLeaders == null || currentLeaders.size() == 0) {
 			succeed();
 		}
-		TODO; //Pick societal tasks and jobs for benefit of all
+		//TODO; //Pick societal tasks and jobs for benefit of all
 		
-		TODO; //Pick societal politics
+		//TODO; //Pick societal politics
 	}
 	
 	/**
@@ -58,7 +58,7 @@ public class SocietyLeadership {
 	 * @param society
 	 */
 	public static void freeActionMutateSocPoli() {
-		TODO
+		//TODO
 	}
 	
 	//TODO: SocietalEthos, political, in the technical impl. like that of a human

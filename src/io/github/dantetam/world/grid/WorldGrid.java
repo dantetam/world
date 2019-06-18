@@ -27,7 +27,7 @@ import io.github.dantetam.world.life.LivingEntity;
 import io.github.dantetam.world.process.LocalProcess;
 import io.github.dantetam.world.worldgen.DNAGridGeneration;
 import io.github.dantetam.world.worldgen.DNAGridGeneration.DNATileData;
-import io.github.dantetam.world.worldgen.LocalGridTerrainInstantiate;
+import io.github.dantetam.world.worldgen.LocalGridInstantiate;
 
 public class WorldGrid {
 
@@ -63,7 +63,7 @@ public class WorldGrid {
 		
 		Vector3i sizes = new Vector3i(200,200,50);
 		int biome = 3;
-		localGridTiles[2][2] = new LocalGridTerrainInstantiate(sizes, biome).setupGrid(true);
+		localGridTiles[2][2] = new LocalGridInstantiate(sizes, biome).setupGrid(true);
 		
 		activeLocalGrid = localGridTiles[2][2];
 		

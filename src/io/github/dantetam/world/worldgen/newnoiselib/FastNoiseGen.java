@@ -31,14 +31,16 @@ package io.github.dantetam.world.worldgen.newnoiselib;
 import org.lwjgl.util.vector.Vector2f;
 import org.lwjgl.util.vector.Vector3f;
 
-public class FastNoise {
+import io.github.dantetam.vector.Vector3i;
+
+public class FastNoiseGen {
 	public enum NoiseType {Value, ValueFractal, Perlin, PerlinFractal, Simplex, SimplexFractal, Cellular, WhiteNoise, Cubic, CubicFractal}
 	public enum Interp {Linear, Hermite, Quintic}
 	public enum FractalType {FBM, Billow, RigidMulti}
 	public enum CellularDistanceFunction {Euclidean, Manhattan, Natural}
 	public enum CellularReturnType {CellValue, NoiseLookup, Distance, Distance2, Distance2Add, Distance2Sub, Distance2Mul, Distance2Div}
 
-	private int m_seed = 1337;
+	private int m_seed;
 	private float m_frequency = (float) 0.01;
 	private Interp m_interp = Interp.Quintic;
 	private NoiseType m_noiseType = NoiseType.Simplex;
@@ -52,22 +54,18 @@ public class FastNoise {
 
 	private CellularDistanceFunction m_cellularDistanceFunction = CellularDistanceFunction.Euclidean;
 	private CellularReturnType m_cellularReturnType = CellularReturnType.CellValue;
-	private FastNoise m_cellularNoiseLookup = null;
+	private FastNoiseGen m_cellularNoiseLookup = null;
 
 	private float m_gradientPerturbAmp = (float) (1.0 / 0.45);
 
-	public FastNoise() {
-		this(1337);
+	public FastNoiseGen(NoiseType noiseType) {
+		this(noiseType, (int) System.currentTimeMillis());
 	}
 
-	public FastNoise(int seed) {
+	public FastNoiseGen(NoiseType noiseType, int seed) {
 		m_seed = seed;
+		this.SetNoiseType(noiseType);
 		CalculateFractalBounding();
-	}
-
-	// Returns a 0 float/double
-	public static float GetDecimalType() {
-		return 0;
 	}
 
 	// Returns the seed used by this object
@@ -76,7 +74,6 @@ public class FastNoise {
 	}
 
 	// Sets seed used for all noise types
-	// Default: 1337
 	public void SetSeed(int seed) {
 		m_seed = seed;
 	}
@@ -145,7 +142,7 @@ public class FastNoise {
 
 	// Noise used to calculate a cell value if cellular return type is NoiseLookup
 	// The lookup value is acquired through GetNoise() so ensure you SetNoiseType() on the noise lookup, value, gradient or simplex is recommended
-	public void SetCellularNoiseLookup(FastNoise noise) {
+	public void SetCellularNoiseLookup(FastNoiseGen noise) {
 		m_cellularNoiseLookup = noise;
 	}
 
@@ -155,6 +152,18 @@ public class FastNoise {
 		m_gradientPerturbAmp = gradientPerturbAmp / (float) 0.45;
 	}
 
+	public float[][][] getNoise(Vector3i dimensions) {
+		float[][][] data = new float[dimensions.x][dimensions.y][dimensions.z];
+		for (int x = 0; x < dimensions.x; x++) {
+			for (int y = 0; y < dimensions.y; y++) {
+				for (int z = 0; z < dimensions.z; z++) {
+					data[x][y][z] = this.GetNoise(x, y, z);
+				}
+			}
+		}
+		return data;
+	}
+	
 	private static class Float2 {
 		public final float x, y;
 
@@ -427,7 +436,7 @@ public class FastNoise {
 		return ((hash & 4) == 0 ? -a : a) + ((hash & 2) == 0 ? -b : b) + ((hash & 1) == 0 ? -c : c);
 	}
 
-	public float GetNoise(float x, float y, float z) {
+	private float GetNoise(float x, float y, float z) {
 		x *= m_frequency;
 		y *= m_frequency;
 		z *= m_frequency;
@@ -501,7 +510,7 @@ public class FastNoise {
 		}
 	}
 
-	public float GetNoise(float x, float y) {
+	private float GetNoise(float x, float y) {
 		x *= m_frequency;
 		y *= m_frequency;
 

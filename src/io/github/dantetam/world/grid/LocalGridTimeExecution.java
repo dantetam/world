@@ -594,7 +594,7 @@ public class LocalGridTimeExecution {
 				grid.getTile(itemPriority.coords).itemsOnFloor.subtractItem(itemPriority.item);
 				being.inventory.addItem(itemPriority.item);
 				grid.removeItemRecordToWorld(itemPriority.coords, itemPriority.item);
-				return null; TODO See ImpossibleTaskPlaceholder/DoneTaskPlaceholder;
+				return null; //TODO See ImpossibleTaskPlaceholder/DoneTaskPlaceholder;
 			}
 			else {
 				return getTasksFromPriority(grid, being, new MoveTolDistOnePriority(itemPriority.coords));

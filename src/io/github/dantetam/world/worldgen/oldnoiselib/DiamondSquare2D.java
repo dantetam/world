@@ -11,7 +11,7 @@ public class DiamondSquare2D extends BaseTerrain2D {
 		double[][] temp = makeTable(50, 50, 50, 50, 17);
 		DiamondSquare2D ds = new DiamondSquare2D(temp);
 		ds.generate(new double[] { 0, 0, 16, 15, 0.5 });
-		ds.printTable(ds.terrain);
+		//ds.printTable(ds.terrain);
 	}
 
 	public DiamondSquare2D() {
@@ -47,15 +47,6 @@ public class DiamondSquare2D extends BaseTerrain2D {
 		temp[width - 1][0] = botLeft;
 		temp[width - 1][width - 1] = botRight;
 		return temp;
-	}
-
-	public static void printTable(double[][] a) {
-		for (int i = 0; i < a.length; i++) {
-			for (int j = 0; j < a[0].length; j++) {
-				System.out.print((int) a[i][j] + " ");
-			}
-			System.out.println();
-		}
 	}
 
 	public static double[][] max(double[][] t, double maxHeight) {
