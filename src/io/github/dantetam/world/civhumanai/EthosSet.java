@@ -11,7 +11,7 @@ public class EthosSet {
 
 	//Relating to this person's general ethics and attitudes towards everyday decisions
 	public Map<String, Ethos> greatEthos;
-	public Map<String, Ethos> ethosPersonalityTraits;
+	public Map<String, Ethos> ethosPersonalityTraits; TODO Implement personality traits parse and effect
 	public Map<String, Ethos> ethosEconomics; //For certain inherent valuings or ideas of resources
 	
 	//Includes attitudes towards crafting, and human-human/human-item interactions

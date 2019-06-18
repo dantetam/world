@@ -7,6 +7,9 @@ import java.util.Map.Entry;
 
 import io.github.dantetam.world.civhumanai.Ethos;
 import io.github.dantetam.world.civhumanai.EthosSet;
+import io.github.dantetam.world.civhumanai.TODO;
+import io.github.dantetam.world.civhumanai.parse;
+import io.github.dantetam.world.civhumanai.personality;
 import io.github.dantetam.world.civilization.LocalExperience;
 import io.github.dantetam.world.civilization.Society;
 import io.github.dantetam.world.items.InventoryItem;
@@ -49,6 +52,8 @@ public class HumanHumanRel extends HumanRelationship {
 				double totalEthosDiff = EthosSet.getEthosDifference(human.brain.ethosSet, targetHuman.brain.ethosSet);
 				opinionSum += -1 * severityMulti * totalEthosDiff * 10;
 			}
+			TODO;
+			//TODO Implement personality traits effect on human relationships
 		}
 		for (LocalExperience experience: this.sharedExperiences) {
 			opinionSum += experience.opinion;

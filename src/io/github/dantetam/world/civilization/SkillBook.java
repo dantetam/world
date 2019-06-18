@@ -12,6 +12,9 @@ public class SkillBook {
 	
 	private Map<String, Skill> skillMapping;
 	
+	TODO //Use skill in implementing process efficiency/competency/quality,
+	//i.e. ability to do so, quality, time, wasted resources, etc.
+	
 	public static void init() {
 		double startingExperience = 100;
 		double levelingFactor = 1.2;
@@ -55,6 +58,10 @@ public class SkillBook {
 			this.name = name;
 			this.level = level;
 			this.allExp = (int) (0.5 * (experienceNeeded[level] + experienceNeeded[level + 1]));
+		}
+		
+		public String toString() {
+			
 		}
 	}
 	

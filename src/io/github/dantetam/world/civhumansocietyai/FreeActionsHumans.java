@@ -19,6 +19,10 @@ public class FreeActionsHumans {
 		put("formNewHouseMarriage", new FreeAction("formNewHouseMarriage", null, 10));
 	}};
 	
+	TODO
+	//Implement more human to human interactions, and for all interactions, take into account
+	//the situation, the relationships, and relevant personality traits.
+	
 	public static void considerAllFreeActionsHumans(WorldGrid world, 
 			List<Human> humans, Date date) {
 		for (Entry<String, FreeAction> entry: freeActionsListHuman.entrySet()) {

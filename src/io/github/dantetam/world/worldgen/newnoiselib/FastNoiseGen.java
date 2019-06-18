@@ -31,6 +31,7 @@ package io.github.dantetam.world.worldgen.newnoiselib;
 import org.lwjgl.util.vector.Vector2f;
 import org.lwjgl.util.vector.Vector3f;
 
+import io.github.dantetam.vector.Vector2i;
 import io.github.dantetam.vector.Vector3i;
 
 public class FastNoiseGen {
@@ -159,6 +160,16 @@ public class FastNoiseGen {
 				for (int z = 0; z < dimensions.z; z++) {
 					data[x][y][z] = this.GetNoise(x, y, z);
 				}
+			}
+		}
+		return data;
+	}
+	
+	public float[][] getNoise(Vector2i dimensions) {
+		float[][] data = new float[dimensions.x][dimensions.y];
+		for (int x = 0; x < dimensions.x; x++) {
+			for (int y = 0; y < dimensions.y; y++) {
+				data[x][y] = this.GetNoise(x, y);
 			}
 		}
 		return data;
