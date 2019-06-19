@@ -47,7 +47,7 @@ public class EthosData {
 	}
 	
 	public static Collection<Ethos> getAllEthos() {
-		return ListUtil.stream(greatEthos.values(), ethosPersonalityTraits.values());
+		return ListUtil.getColns(greatEthos.values(), ethosPersonalityTraits.values());
 	}
 	
 }

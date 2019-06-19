@@ -1,17 +1,19 @@
 package io.github.dantetam.world.civhumanai;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import io.github.dantetam.toolbox.ListUtil;
 import io.github.dantetam.world.process.LocalProcess;
 
 public class EthosSet {
 
 	//Relating to this person's general ethics and attitudes towards everyday decisions
 	public Map<String, Ethos> greatEthos;
-	public Map<String, Ethos> ethosPersonalityTraits; TODO Implement personality traits parse and effect
+	public Map<String, Ethos> ethosPersonalityTraits; //personality traits parse and effect on rel., etc.
 	public Map<String, Ethos> ethosEconomics; //For certain inherent valuings or ideas of resources
 	
 	//Includes attitudes towards crafting, and human-human/human-item interactions
@@ -55,6 +57,15 @@ public class EthosSet {
 		ethosTowardsProcesses = new HashMap<>();
 		ethosTowardsOtherEthos = new HashMap<>();
 		ethosTowardsItems = new HashMap<>();
+	}
+	
+	public Collection<Ethos> getAllHumanEthos() {
+		return ListUtil.getColns(
+				this.greatEthos.values(),
+				this.ethosPersonalityTraits.values(),
+				this.ethosTowardsItems.values(),
+				this.ethosTowardsProcesses.values()
+				);
 	}
 	
 }

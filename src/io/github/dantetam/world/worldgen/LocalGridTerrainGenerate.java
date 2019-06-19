@@ -65,11 +65,12 @@ public class LocalGridTerrainGenerate {
 					else if (z < surfaceLevel[x][y] * 8) {
 						//Use regular 2D noise like a regular height-map
 						terrain[x][y][z] = 1;
-						TODO
 					}
 				}
 			}
 		}
+		
+		terrain = createCaves(terrain);
 		
 		return terrain;
 	}
@@ -89,13 +90,23 @@ public class LocalGridTerrainGenerate {
 		noiseGenLib.SetFrequency(2);
 		float[][][] rigidMultiData = noiseGenLib.getNoise(
 				new Vector3i(terrain.length, terrain[0].length, terrain[0][0].length));
-		boolean[][][] caveOpenBool = NoiseUtil.arrFloatToBool(rigidMultiData, 0.5f, terrain[0][0].length / 2, 0.05f);
+		
+		FastNoiseGen noiseGenLibSecond = new FastNoiseGen(FastNoiseGen.NoiseType.SimplexFractal, 
+				(int) (System.currentTimeMillis() * Math.random()));
+		noiseGenLibSecond.SetFractalType(FastNoiseGen.FractalType.RigidMulti);
+		noiseGenLibSecond.SetInterp(FastNoiseGen.Interp.Quintic);
+		noiseGenLibSecond.SetFractalOctaves(8);
+		noiseGenLibSecond.SetFrequency(2);
+		float[][][] rigidMultiDataSecond = noiseGenLibSecond.getNoise(
+				new Vector3i(terrain.length, terrain[0].length, terrain[0][0].length));
 		
 		for (int z = 0; z < terrain[0][0].length; z++) {
+			float modCutoff = 0.8f + 0.2f * ((float) z / terrain[0][0].length);
 			for (int x = 0; x < terrain.length; x++) {
 				for (int y = 0; y < terrain[0].length; y++) {
-					if (caveOpenBool[x][y][z]) {
-						terrain[x][y][z] = 0;
+					float value = rigidMultiData[x][y][z] * rigidMultiDataSecond[x][y][z];
+					if (value >= modCutoff) {
+						terrain[x][y][z] = 0.0f;
 					}
 				}
 			}

@@ -88,6 +88,10 @@ public abstract class LivingEntity {
 		rest = Math.max(rest - LIVE_CONST_LOSS_TICK, 0);
 	}
 	
+	public double getTotalPowerPrestige() {
+		TODO: //Implement land claims at society level
+	}
+	
 	public double getTotalWealth() {
 		double sumWealth = 0;
 		sumWealth += inventory.getTotalWealth();

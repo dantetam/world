@@ -132,13 +132,6 @@ public class EthosSetInitialize {
 		}
 	}
 	
-	private static Collection<Ethos> getAllHumanEthos(EthosSet ethosSet) {
-		return ListUtil.stream(
-				ethosSet.greatEthos.values(),
-				ethosSet.ethosPersonalityTraits.values(),
-				ethosSet.ethosTowardsItems.values(),
-				ethosSet.ethosTowardsProcesses.values()
-				);
-	}
+	
 	
 }

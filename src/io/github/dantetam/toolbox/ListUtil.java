@@ -8,7 +8,7 @@ import java.util.stream.Stream;
 
 public class ListUtil {
 
-	public static <T> Collection<T> stream(Collection<T>... collections) {
+	public static <T> Collection<T> getColns(Collection<T>... collections) {
 	    List<T> items = new ArrayList<>();
 	    for (Collection<T> collection: collections) {
 	    	for (T item: collection) {
