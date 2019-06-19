@@ -74,6 +74,36 @@ public class LocalGridTerrainGenerate {
 		return terrain;
 	}
 	
+	/**
+	 * This technique of multiplying together two ridged multifractal 3D Perlin noise objects,
+	 * is described in the source below.  
+	 * 
+	 * JTippetts, "More Procedural Voxel World Generation", 2011
+	 * https://www.gamedev.net/blogs/entry/2227887-more-on-minecraft-type-world-gen/
+	 */
+	private static float[][][] createCaves(float[][][] terrain) {
+		FastNoiseGen noiseGenLib = new FastNoiseGen(FastNoiseGen.NoiseType.SimplexFractal);
+		noiseGenLib.SetFractalType(FastNoiseGen.FractalType.RigidMulti);
+		noiseGenLib.SetInterp(FastNoiseGen.Interp.Quintic);
+		noiseGenLib.SetFractalOctaves(8);
+		noiseGenLib.SetFrequency(2);
+		float[][][] rigidMultiData = noiseGenLib.getNoise(
+				new Vector3i(terrain.length, terrain[0].length, terrain[0][0].length));
+		boolean[][][] caveOpenBool = NoiseUtil.arrFloatToBool(rigidMultiData, 0.5f, terrain[0][0].length / 2, 0.05f);
+		
+		for (int z = 0; z < terrain[0][0].length; z++) {
+			for (int x = 0; x < terrain.length; x++) {
+				for (int y = 0; y < terrain[0].length; y++) {
+					if (caveOpenBool[x][y][z]) {
+						terrain[x][y][z] = 0;
+					}
+				}
+			}
+		}
+		
+		return terrain;
+	}
+	
 	public static void main(String[] args) {
 		float[][][] world = genTerrain(new Vector3i(200,200,50));
 		printTable(world[0]);
