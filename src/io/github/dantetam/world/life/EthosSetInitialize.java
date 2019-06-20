@@ -49,7 +49,7 @@ public class EthosSetInitialize {
 		ethosSet.ethosTowardsItems = mapItems;
 		
 		//Determine ethos towards other ethos, i.e. judgments  
-		for (Ethos ethos: getAllHumanEthos(ethosSet)) {
+		for (Ethos ethos: ethosSet.getAllHumanEthos()) {
 			String name = ethos.name;
 			Ethos newEthos = new Ethos(name, 0, "", "");
 			ethosSet.ethosTowardsOtherEthos.put(ethos, newEthos);

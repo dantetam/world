@@ -25,7 +25,7 @@ public class SkillSetInitialize {
 	 * 
 	 */
 	public static void initHumanSkills(SkillBook skillBook) {
-		TODO
+		//TODO
 	}
 
 	//Assign random, sensible values to skills

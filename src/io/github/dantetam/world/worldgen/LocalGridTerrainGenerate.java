@@ -4,6 +4,8 @@ import java.text.DecimalFormat;
 
 import io.github.dantetam.vector.Vector2i;
 import io.github.dantetam.vector.Vector3i;
+import io.github.dantetam.world.dataparse.ItemData;
+import io.github.dantetam.world.dataparse.WorldCsvParser;
 import io.github.dantetam.world.worldgen.newnoiselib.FastNoiseGen;
 import io.github.dantetam.world.worldgen.newnoiselib.NoiseUtil;
 import io.github.dantetam.world.worldgen.oldnoiselib.DiamondSquare2D;
@@ -14,8 +16,8 @@ public class LocalGridTerrainGenerate {
 	// https://www.gamedev.net/forums/topic/612655-3d-perlin-noise-map-ridges/
 	// https://www.gamedev.net/blogs/entry/2249106-more-procedural-voxel-world-generation/
 	
-	public static float[][][] genTerrain(Vector3i dimensions) {
-		float[][][] terrain = new float[dimensions.x][dimensions.y][dimensions.z];
+	public static int[][][] genTerrain(Vector3i dimensions) {
+		int[][][] terrain = new int[dimensions.x][dimensions.y][dimensions.z];
 		
 		FastNoiseGen noiseGenLib = new FastNoiseGen(FastNoiseGen.NoiseType.SimplexFractal);
 		boolean[][][] uncommonStone = NoiseUtil.arrFloatToBool(noiseGenLib.getNoise(dimensions), 0.7f);
@@ -30,19 +32,24 @@ public class LocalGridTerrainGenerate {
 		float[][][] dirtAmount = noiseGenLib.getNoise(dimensions);
 		
 		FastNoiseGen noiseGenLib2d = new FastNoiseGen(FastNoiseGen.NoiseType.SimplexFractal);
+		noiseGenLib2d.SetFractalType(FastNoiseGen.FractalType.RigidMulti);
 		float[][] surfaceLevel = noiseGenLib2d.getNoise(new Vector2i(dimensions.x, dimensions.y));
 		
-		for (int z = 0; z < dimensions.z; z++) {
-			for (int y = 0; y < dimensions.y; y++) {
-				for (int x = 0; x < dimensions.x; x++) {
-					if (rareStone[x][y][z]) {
-						terrain[x][y][z] = 10;
-					}
-					else if (uncommonStone[x][y][z]) {
-						terrain[x][y][z] = 8;
-					}
-					else {
-						terrain[x][y][z] = 0;
+		for (int y = 0; y < dimensions.y; y++) {
+			for (int x = 0; x < dimensions.x; x++) {
+				int realHeight = (int) Math.min(surfaceLevel[x][y] * 70, dimensions.z - 1);
+				for (int z = 0; z < dimensions.z; z++) {
+					terrain[x][y][z] = ItemData.ITEM_EMPTY_ID;
+					if (z <= realHeight) {
+						if (rareStone[x][y][z]) {
+							terrain[x][y][z] = ItemData.getIdFromName("Iron Sludge");
+						}
+						else if (uncommonStone[x][y][z]) {
+							terrain[x][y][z] = ItemData.getIdFromName("Marble");
+						}
+						else {
+							terrain[x][y][z] = ItemData.getIdFromName("Quartz");
+						}
 					}
 				}
 			}
@@ -53,18 +60,18 @@ public class LocalGridTerrainGenerate {
 			double perturbHeightGradientChance = 0.8 - (dimensions.z - z) * 0.1;
 			for (int y = 0; y < dimensions.y; y++) {
 				for (int x = 0; x < dimensions.x; x++) {
-					int realHeight = (int) Math.max(surfaceLevel[x][y] * 100, dimensions.z - 1);
+					int realHeight = (int) Math.min(surfaceLevel[x][y] * 70, dimensions.z - 1);
 					int heightPerturb = (int) Math.round(perturbSurfaceAmount[x][y][z] * 8);
 					if (perturbBinary[x][y][z] < perturbHeightGradientChance) {
 						//Use 3d noise and "perturbed" blocks i.e. blocks brought away from the surface baseline
 						if (perturbSurfaceBlocks[x][y][z]) {
 							int modHeight = Math.min(z + heightPerturb, dimensions.z - 1);
-							terrain[x][y][modHeight] = 1;
+							terrain[x][y][modHeight] = ItemData.getIdFromName("Pine Wood");
 						}
 					}
-					else if (z < surfaceLevel[x][y] * 8) {
+					if (z < realHeight) {
 						//Use regular 2D noise like a regular height-map
-						terrain[x][y][z] = 1;
+						terrain[x][y][z] = ItemData.getIdFromName("Quartz");
 					}
 				}
 			}
@@ -82,7 +89,7 @@ public class LocalGridTerrainGenerate {
 	 * JTippetts, "More Procedural Voxel World Generation", 2011
 	 * https://www.gamedev.net/blogs/entry/2227887-more-on-minecraft-type-world-gen/
 	 */
-	private static float[][][] createCaves(float[][][] terrain) {
+	private static int[][][] createCaves(int[][][] terrain) {
 		FastNoiseGen noiseGenLib = new FastNoiseGen(FastNoiseGen.NoiseType.SimplexFractal);
 		noiseGenLib.SetFractalType(FastNoiseGen.FractalType.RigidMulti);
 		noiseGenLib.SetInterp(FastNoiseGen.Interp.Quintic);
@@ -100,13 +107,15 @@ public class LocalGridTerrainGenerate {
 		float[][][] rigidMultiDataSecond = noiseGenLibSecond.getNoise(
 				new Vector3i(terrain.length, terrain[0].length, terrain[0][0].length));
 		
+		//TODO: Mod with 3d turbulence noise
+		
 		for (int z = 0; z < terrain[0][0].length; z++) {
 			float modCutoff = 0.8f + 0.2f * ((float) z / terrain[0][0].length);
 			for (int x = 0; x < terrain.length; x++) {
 				for (int y = 0; y < terrain[0].length; y++) {
 					float value = rigidMultiData[x][y][z] * rigidMultiDataSecond[x][y][z];
 					if (value >= modCutoff) {
-						terrain[x][y][z] = 0.0f;
+						terrain[x][y][z] = ItemData.getIdFromName("Coal");
 					}
 				}
 			}
@@ -116,11 +125,13 @@ public class LocalGridTerrainGenerate {
 	}
 	
 	public static void main(String[] args) {
-		float[][][] world = genTerrain(new Vector3i(200,200,50));
+		WorldCsvParser.init();
+		
+		int[][][] world = genTerrain(new Vector3i(200,200,50));
 		printTable(world[0]);
 	}
 	
-	public static void printTable(float[][] a) {
+	public static void printTable(int[][] a) {
 		DecimalFormat df = new DecimalFormat("#.00"); 
 		for (int i = 0; i < a.length; i++) {
 			for (int j = 0; j < a[0].length; j++) {

@@ -61,7 +61,7 @@ public class LocalTile {
 	}
 	
 	public String toString() {
-		return "Tile: " + this.coords.toString();
+		return "Tile: " + this.coords.toString() + ", block: " + ItemData.getNameFromId(this.tileBlockId);
 	}
 	
 	/*

@@ -10,9 +10,6 @@ import java.util.Map.Entry;
 import io.github.dantetam.toolbox.MapUtil;
 import io.github.dantetam.world.civhumanai.Ethos;
 import io.github.dantetam.world.civhumanai.EthosSet;
-import io.github.dantetam.world.civhumanai.TODO;
-import io.github.dantetam.world.civhumanai.parse;
-import io.github.dantetam.world.civhumanai.personality;
 import io.github.dantetam.world.civilization.LocalExperience;
 import io.github.dantetam.world.civilization.Society;
 import io.github.dantetam.world.items.InventoryItem;
@@ -41,7 +38,10 @@ public class HumanHumanRel extends HumanRelationship {
 	
 	@Override
 	public double reevaluateOpinion(Date date) {
-		Map<String, Double> emotionGamut = new HashMap<>();
+		Map<String, Double> emotionGamut = new HashMap<>(); 
+		//TODO; //Find dot product of this vector with current emotion range of person 
+		//to determine opinion sum.
+		
 		double opinionSum = 0;
 		
 		for (Ethos ethos: human.brain.ethosSet.getAllHumanEthos()) {
@@ -58,10 +58,10 @@ public class HumanHumanRel extends HumanRelationship {
 				MapUtil.addNumMap(emotionGamut, "Rationality", 10.0);
 			}
 			else if (ethos.name.equals("Honest")) {
-				MapUtil.addNumMap(emotionGamut, "Honor", 20.0);
+				MapUtil.addNumMap(emotionGamut, "Honor", 25.0);
 			}
 			else if (ethos.name.equals("Dishonest")) {
-				MapUtil.addNumMap(emotionGamut, "Honor", -20.0);
+				MapUtil.addNumMap(emotionGamut, "Honor", -25.0);
 				MapUtil.addNumMap(emotionGamut, "Rationality", 5.0);
 			}
 		}
@@ -92,7 +92,8 @@ public class HumanHumanRel extends HumanRelationship {
 			}
 			
 			else if (ethos.name.equals("Obedient")) {
-				TODO //Implement power and prestige measurements for this ethos
+				//TODO //Implement power and prestige measurements for this ethos
+				
 			}
 			else if (ethos.name.equals("Defiant")) {
 				
@@ -109,6 +110,7 @@ public class HumanHumanRel extends HumanRelationship {
 					MapUtil.addNumMap(emotionGamut, "Kindness", ethnoDiffUtil);
 					MapUtil.addNumMap(emotionGamut, "Hate", -ethnoDiffUtil);
 				}
+				MapUtil.addNumMap(emotionGamut, "Rationality", -5.0);
 			}
 			else if (ethos.name.equals("Open") || ethos.name.equals("Curious")) {
 				MapUtil.addNumMap(emotionGamut, "Rationality", 10.0);

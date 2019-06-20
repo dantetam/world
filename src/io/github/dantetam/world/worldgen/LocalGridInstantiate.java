@@ -48,6 +48,8 @@ public class LocalGridInstantiate {
 	}
 	
 	public LocalGrid setupGrid(boolean setupAdvancedPathfinding) {
+		int[][][] advTerrainData = LocalGridTerrainGenerate.genTerrain(new Vector3i(localGrid.rows, localGrid.cols, localGrid.heights));
+		
 		double[][] terrain = generateTerrain();
 		int[][] biomes = generateFlatTableInt(localGrid.rows, localGrid.cols, localGridBiome);
 		double[][] temperature = generateFlatTableDouble(localGrid.rows, localGrid.cols, 0);
@@ -66,59 +68,61 @@ public class LocalGridInstantiate {
 	    		terrain);
 		
 		double[][] soilLevels = generateSoilLevels();
-		int[][] soilCompositions = generateSoilCompositions();		
+		int[][] soilCompositions = generateSoilCompositions();	
+		
 		for (int r = 0; r < localGrid.rows; r++) {
 			for (int c = 0; c < localGrid.cols; c++) {
-				for (double h = terrain[r][c]; h >= terrain[r][c] - soilLevels[r][c]; h--) {
-					if (h < 0 || h >= localGrid.heights) break;
-					int height = (int) h;
-					Vector3i coords = new Vector3i(r,c,height);
-					LocalTile newTile = new LocalTile(coords);
-					newTile.tileBlockId = soilCompositions[r][c];
-					newTile.tileFloorId = soilCompositions[r][c];
-					localGrid.setTileInstantiate(coords, newTile);
-				}
-				
-				//Surface items and clusters of items
-				int grassHeight = (int) Math.floor(terrain[r][c]) + 1;
-				if (grassHeight < 0 || grassHeight >= localGrid.heights) break;
-				Vector3i topCoord = new Vector3i(r,c,grassHeight);
-				LocalTile topTile = new LocalTile(topCoord);
-				topTile.tileFloorId = soilCompositions[r][c];
-				if (gridGrasses[r][c] != 0) {
-					topTile.tileBlockId = grassId;
-				}
-				
-				int surfaceClusterItemId = surfaceClusters[r][c];
-				if (surfaceClusterItemId != ItemData.ITEM_EMPTY_ID) {
-					topTile.tileBlockId = surfaceClusterItemId;
-				}
-				localGrid.setTileInstantiate(topCoord, topTile);
-				
-				for (double h = terrain[r][c] - soilLevels[r][c]; h >= 0; h--) {
-					if (h < 0 || h >= localGrid.heights) break;
-					int height = (int) h;
-					Vector3i coords = new Vector3i(r,c,height);
-					LocalTile newTile = new LocalTile(coords);
-					newTile.tileBlockId = quartzId;
-					newTile.tileFloorId = quartzId;
-					localGrid.setTileInstantiate(coords, newTile);
-				}
-				
-				for (double h = grassHeight + 5; h > grassHeight - 1; h--) {
-					if (h < 0 || h >= localGrid.heights) break;
-					int height = (int) h;
-					Vector3i coords = new Vector3i(r,c,height);
+				for (int h = 0; h < localGrid.heights; h++) {
+					Vector3i coords = new Vector3i(r,c,h);
+					int advTerrain = advTerrainData[r][c][h];
+
 					LocalTile tile = localGrid.getTile(coords);
-					if (tile != null) {
-						tile.exposedToAir = true;
+					//if (blockId != airId) { //tile.tileBlockId == airId
+						if (tile == null) {
+							tile = new LocalTile(coords);
+							tile.tileBlockId = advTerrain;
+							tile.tileFloorId = advTerrain;
+							localGrid.setTileInstantiate(coords, tile);
+						}
+					//}
+				}
+			}
+		}
+		
+		for (int r = 0; r < localGrid.rows; r++) {
+			for (int c = 0; c < localGrid.cols; c++) {
+				int height = localGrid.findHighestGroundHeight(r, c);
+				int numTilesPassed = 0;
+				
+				Vector3i topCoord = new Vector3i(r, c, height + 1);
+				if (localGrid.inBounds(topCoord)) {
+					LocalTile topTile = localGrid.getTile(topCoord);
+					int surfaceClusterItemId = surfaceClusters[r][c];
+					if (surfaceClusterItemId != ItemData.ITEM_EMPTY_ID) {
+						topTile.tileBlockId = surfaceClusterItemId;
+					}
+					localGrid.setTileInstantiate(topCoord, topTile);
+				}
+				
+				while (height > 0 && numTilesPassed < (int) soilLevels[r][c]) {
+					Vector3i coords = new Vector3i(r,c,height);
+					
+					height--;
+					
+					LocalTile tile = localGrid.getTile(coords);
+					if (tile == null) continue;
+					
+					tile.exposedToAir = true;
+					
+					if (numTilesPassed == 0 && gridGrasses[r][c] != 0) {
+						tile.tileBlockId = grassId;
+						tile.tileFloorId = grassId;
 					}
 					else {
-						LocalTile newTile = new LocalTile(coords);
-						newTile.tileBlockId = airId;
-						newTile.tileFloorId = airId;
-						localGrid.setTileInstantiate(coords, newTile);
+						tile.tileBlockId = soilCompositions[r][c];
+						tile.tileFloorId = soilCompositions[r][c];
 					}
+					numTilesPassed++;
 				}
 			}
 		}
@@ -145,9 +149,9 @@ public class LocalGridInstantiate {
 	}
 	
 	public double[][] generateSoilLevels() {
-		double[][] temp = DiamondSquare2D.makeTable(0, 0, 0, 0, generatedTerrainLen + 1);
+		double[][] temp = DiamondSquare2D.makeTable(4, 4, 4, 4, generatedTerrainLen + 1);
 		BaseTerrain2D map = new DiamondSquare2D(temp);
-		double[][] soilLevels = map.generate(new double[] { 0, 0, generatedTerrainLen, 5, 0.65 });
+		double[][] soilLevels = map.generate(new double[] { 0, 0, generatedTerrainLen, 8, 0.65 });
 		return soilLevels;
 	}
 	

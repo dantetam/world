@@ -100,7 +100,17 @@ public class LocalGrid {
 	
 	public boolean tileIsAccessible(Vector3i coords) {
 		LocalTile tile = getTile(coords);
-		if (tile == null) return false;
+		
+		Vector3i belowCoords = new Vector3i(coords.x, coords.y, coords.z - 1);
+		
+		if (tile == null) {
+			if (inBounds(belowCoords)) {
+				return tileIsOccupied(belowCoords);
+			}
+			else {
+				return false;
+			}
+		}
 		
 		if (tile.tileBlockId != ItemData.ITEM_EMPTY_ID) return false;
 		if (tile.building != null) {
@@ -114,7 +124,6 @@ public class LocalGrid {
 			return true;
 		}
 		
-		Vector3i belowCoords = new Vector3i(coords.x, coords.y, coords.z - 1);
 		if (inBounds(belowCoords)) {
 			if (!tileIsOccupied(belowCoords)) {
 				return false;
@@ -619,7 +628,7 @@ public class LocalGrid {
 				return h;
 			}
 		}
-		return 0;
+		return heights - 1;
 	}
 	
 	public double averageBeauty(Vector3i coords) {
