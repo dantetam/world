@@ -46,7 +46,7 @@ public class FastNoiseGen {
 	private Interp m_interp = Interp.Quintic;
 	private NoiseType m_noiseType = NoiseType.Simplex;
 
-	private int m_octaves = 3;
+	private int m_octaves = 5;
 	private float m_lacunarity = (float) 2.0;
 	private float m_gain = (float) 0.5;
 	private FractalType m_fractalType = FractalType.FBM;
@@ -57,7 +57,7 @@ public class FastNoiseGen {
 	private CellularReturnType m_cellularReturnType = CellularReturnType.CellValue;
 	private FastNoiseGen m_cellularNoiseLookup = null;
 
-	private float m_gradientPerturbAmp = (float) (1.0 / 0.45);
+	private float m_gradientPerturbAmp = (float) 1.0;
 
 	public FastNoiseGen(NoiseType noiseType) {
 		this(noiseType, (int) System.currentTimeMillis());
@@ -164,12 +164,32 @@ public class FastNoiseGen {
 		}
 		return data;
 	}
+	public float[][][] getNoiseAbs(Vector3i dimensions) {
+		float[][][] data = new float[dimensions.x][dimensions.y][dimensions.z];
+		for (int x = 0; x < dimensions.x; x++) {
+			for (int y = 0; y < dimensions.y; y++) {
+				for (int z = 0; z < dimensions.z; z++) {
+					data[x][y][z] = Math.abs(this.GetNoise(x, y, z));
+				}
+			}
+		}
+		return data;
+	}
 	
-	public float[][] getNoise(Vector2i dimensions) {
+	public float[][] getNoise2d(Vector2i dimensions) {
 		float[][] data = new float[dimensions.x][dimensions.y];
 		for (int x = 0; x < dimensions.x; x++) {
 			for (int y = 0; y < dimensions.y; y++) {
 				data[x][y] = this.GetNoise(x, y);
+			}
+		}
+		return data;
+	}
+	public float[][] getNoise2dAbs(Vector2i dimensions) {
+		float[][] data = new float[dimensions.x][dimensions.y];
+		for (int x = 0; x < dimensions.x; x++) {
+			for (int y = 0; y < dimensions.y; y++) {
+				data[x][y] = Math.abs(this.GetNoise(x, y));
 			}
 		}
 		return data;

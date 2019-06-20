@@ -33,7 +33,9 @@ public class LocalGridTerrainGenerate {
 		
 		FastNoiseGen noiseGenLib2d = new FastNoiseGen(FastNoiseGen.NoiseType.SimplexFractal);
 		noiseGenLib2d.SetFractalType(FastNoiseGen.FractalType.RigidMulti);
-		float[][] surfaceLevel = noiseGenLib2d.getNoise(new Vector2i(dimensions.x, dimensions.y));
+		//noiseGenLib2d.SetFractalGain(0.8f);
+		noiseGenLib2d.SetFractalLacunarity(1.5f);
+		float[][] surfaceLevel = noiseGenLib2d.getNoise2dAbs(new Vector2i(dimensions.x, dimensions.y));
 		
 		for (int y = 0; y < dimensions.y; y++) {
 			for (int x = 0; x < dimensions.x; x++) {
@@ -60,7 +62,7 @@ public class LocalGridTerrainGenerate {
 			double perturbHeightGradientChance = 0.8 - (dimensions.z - z) * 0.1;
 			for (int y = 0; y < dimensions.y; y++) {
 				for (int x = 0; x < dimensions.x; x++) {
-					int realHeight = (int) Math.min(surfaceLevel[x][y] * 70, dimensions.z - 1);
+					int realHeight = (int) Math.min(surfaceLevel[x][y] * 50, dimensions.z - 1);
 					int heightPerturb = (int) Math.round(perturbSurfaceAmount[x][y][z] * 8);
 					if (perturbBinary[x][y][z] < perturbHeightGradientChance) {
 						//Use 3d noise and "perturbed" blocks i.e. blocks brought away from the surface baseline
@@ -95,7 +97,7 @@ public class LocalGridTerrainGenerate {
 		noiseGenLib.SetInterp(FastNoiseGen.Interp.Quintic);
 		noiseGenLib.SetFractalOctaves(8);
 		noiseGenLib.SetFrequency(2);
-		float[][][] rigidMultiData = noiseGenLib.getNoise(
+		float[][][] rigidMultiData = noiseGenLib.getNoiseAbs(
 				new Vector3i(terrain.length, terrain[0].length, terrain[0][0].length));
 		
 		FastNoiseGen noiseGenLibSecond = new FastNoiseGen(FastNoiseGen.NoiseType.SimplexFractal, 
@@ -104,13 +106,13 @@ public class LocalGridTerrainGenerate {
 		noiseGenLibSecond.SetInterp(FastNoiseGen.Interp.Quintic);
 		noiseGenLibSecond.SetFractalOctaves(8);
 		noiseGenLibSecond.SetFrequency(2);
-		float[][][] rigidMultiDataSecond = noiseGenLibSecond.getNoise(
+		float[][][] rigidMultiDataSecond = noiseGenLibSecond.getNoiseAbs(
 				new Vector3i(terrain.length, terrain[0].length, terrain[0][0].length));
 		
 		//TODO: Mod with 3d turbulence noise
 		
 		for (int z = 0; z < terrain[0][0].length; z++) {
-			float modCutoff = 0.8f + 0.2f * ((float) z / terrain[0][0].length);
+			float modCutoff = 0.3f + 0.2f * ((float) z / terrain[0][0].length);
 			for (int x = 0; x < terrain.length; x++) {
 				for (int y = 0; y < terrain[0].length; y++) {
 					float value = rigidMultiData[x][y][z] * rigidMultiDataSecond[x][y][z];
