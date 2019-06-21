@@ -21,4 +21,35 @@ public class NoiseUtil {
 		return boolData;
 	}
 	
+	public static float[][] normalizeFloat2d(float[][] data, float newMin, float newMax) {
+		float mean = 0;
+		for (int r = 0; r < data.length; r++) {
+			for (int c = 0; c < data[0].length; c++) {
+				mean += data[r][c];
+			}
+		}
+		mean /= (data.length * data[0].length);
+		
+		float sd = 0;
+		for (int r = 0; r < data.length; r++) {
+			for (int c = 0; c < data[0].length; c++) {
+				sd += Math.pow(data[r][c] - mean, 2);
+			}
+		}
+		sd /= (data.length * data[0].length);
+		
+		float newMean = (newMin + newMax) / 2.0f;
+		float newSd = (newMin + newMax) / 5.0f; //2.5 sd rule for 90ish% of data, assuming normality
+		
+		float[][] newData = new float[data.length][data[0].length];
+		for (int r = 0; r < data.length; r++) {
+			for (int c = 0; c < data[0].length; c++) {
+				float numSds = (data[r][c] - mean) / sd;
+				float newValue = newMean + newSd * numSds;
+				newData[r][c] = newValue;
+			}
+		}
+		return newData;
+	}
+	
 }

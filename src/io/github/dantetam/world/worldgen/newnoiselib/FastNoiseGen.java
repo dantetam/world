@@ -68,6 +68,13 @@ public class FastNoiseGen {
 		this.SetNoiseType(noiseType);
 		CalculateFractalBounding();
 	}
+	
+	public static void main(String[] args) {
+		FastNoiseGen noiseGenLib = new FastNoiseGen(NoiseType.SimplexFractal);
+		noiseGenLib.SetGradientPerturbAmp(0.25f);
+		float[][] data = noiseGenLib.getNoise2d(new Vector2i(200,200));
+		
+	}
 
 	// Returns the seed used by this object
 	public int GetSeed() {
@@ -154,22 +161,17 @@ public class FastNoiseGen {
 	}
 
 	public float[][][] getNoise(Vector3i dimensions) {
-		float[][][] data = new float[dimensions.x][dimensions.y][dimensions.z];
-		for (int x = 0; x < dimensions.x; x++) {
-			for (int y = 0; y < dimensions.y; y++) {
-				for (int z = 0; z < dimensions.z; z++) {
-					data[x][y][z] = this.GetNoise(x, y, z);
-				}
-			}
-		}
-		return data;
+		return this.getNoise(dimensions, false, 1, 0);
 	}
-	public float[][][] getNoiseAbs(Vector3i dimensions) {
+	public float[][][] getNoise(Vector3i dimensions, boolean absValue, float multiOffset, float addOffset) {
 		float[][][] data = new float[dimensions.x][dimensions.y][dimensions.z];
 		for (int x = 0; x < dimensions.x; x++) {
 			for (int y = 0; y < dimensions.y; y++) {
 				for (int z = 0; z < dimensions.z; z++) {
-					data[x][y][z] = Math.abs(this.GetNoise(x, y, z));
+					data[x][y][z] = this.GetNoise(x, y, z) * multiOffset + addOffset;
+					if (absValue) {
+						data[x][y][z] = Math.abs(data[x][y][z]);
+					}
 				}
 			}
 		}

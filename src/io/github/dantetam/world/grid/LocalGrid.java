@@ -342,7 +342,9 @@ public class LocalGrid {
 			}
 			else {
 				if (oldItemId != ItemData.ITEM_EMPTY_ID) {
-					globalTileBlockLookup.get(oldItemId).remove(coords);
+					if (globalTileBlockLookup.containsKey(blockId)) { //TODO: Unnecessary check, but errors (nullpointer)
+						globalTileBlockLookup.get(oldItemId).remove(coords);
+					}
 				}
 				markAllAdjAsExposed(coords);
 			}
