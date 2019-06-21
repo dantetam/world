@@ -29,7 +29,7 @@ import kdtreegeo.KdTree;
  *
  */
 
-//TODO: Different societies claim possibly overlapping tiles in a grid, use these claims
+TODO //Different societies claim possibly overlapping tiles in a grid, use these claims
 //as a basis for societal wealth, as well as part of larger border disputes.
 
 public class LocalGrid {
@@ -185,7 +185,7 @@ public class LocalGrid {
 		}
 		return candidateTiles;
 	}
-	//TODO: Conditional access to local tiles based on actor biology
+	TODO //Conditional access to local tiles based on actor biology
 	//public Set<LocalTile> getAccessibleNeighbors(LocalTile tile, LivingEntity being)
 	
 	public static final Set<Vector3i> allVertAdjOffsets26 = new HashSet<Vector3i>() {{
@@ -605,7 +605,7 @@ public class LocalGrid {
 	}
 	
 	public boolean personHasAccessTile(LivingEntity person, LocalTile tile) {
-		//TODO
+		TODO
 		return true;
 	}
 	

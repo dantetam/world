@@ -89,7 +89,7 @@ public abstract class LivingEntity {
 	}
 	
 	public double getTotalPowerPrestige() {
-		//TODO: //Implement land claims at society level
+		TODO //Implement land claims at society level
 		return getTotalWealth();
 	}
 	
@@ -116,7 +116,7 @@ public abstract class LivingEntity {
 	}
 	
 	public void wearItem(InventoryItem item) {
-		//TODO
+		TODO
 	}
 
 }

@@ -27,6 +27,7 @@ public class LocalGridTerrainGenerate {
 		boolean[][][] rareStone = NoiseUtil.arrFloatToBool(noiseGenLib.getNoise(dimensions), 0.50f, 0, 0.02f);
 		
 		noiseGenLib = new FastNoiseGen(FastNoiseGen.NoiseType.SimplexFractal);
+		noiseGenLib.SetFrequency(0.006f);
 		float[][][] perturbBinary = noiseGenLib.getNoise(dimensions);
 		boolean[][][] perturbSurfaceBlocks = NoiseUtil.arrFloatToBool(perturbBinary, 0.50f, 40, -0.08f);
 		float[][][] dirtAmount = noiseGenLib.getNoise(dimensions);
@@ -48,7 +49,7 @@ public class LocalGridTerrainGenerate {
 		
 		for (int y = 0; y < dimensions.y; y++) {
 			for (int x = 0; x < dimensions.x; x++) {
-				int realHeight = (int) Math.min(surfaceLevel[x][y] * 10 + 40, dimensions.z - 1);
+				int realHeight = (int) Math.min(surfaceLevel[x][y] * 5 + 40, dimensions.z - 1);
 				for (int z = 0; z < dimensions.z; z++) {
 					terrain[x][y][z] = ItemData.ITEM_EMPTY_ID;
 					if (z <= realHeight) {
@@ -71,7 +72,7 @@ public class LocalGridTerrainGenerate {
 			double perturbHeightGradientChance = 0.5 - (dimensions.z - z) * 0.02;
 			for (int y = 0; y < dimensions.y; y++) {
 				for (int x = 0; x < dimensions.x; x++) {
-					int realHeight = (int) Math.min(surfaceLevel[x][y] * 10 + 40, dimensions.z - 1);
+					int realHeight = (int) Math.min(surfaceLevel[x][y] * 5 + 40, dimensions.z - 1);
 					int heightPerturb = (int) Math.round(perturbSurfaceAmount[x][y][z] * 3);
 					if (perturbBinary[x][y][z] < perturbHeightGradientChance) {
 						//Use 3d noise and "perturbed" blocks i.e. blocks brought away from the surface baseline

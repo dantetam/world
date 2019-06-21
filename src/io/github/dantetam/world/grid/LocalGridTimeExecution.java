@@ -376,8 +376,8 @@ public class LocalGridTimeExecution {
 			itemMode = "Personal";
 		}
 		else {
-			System.err.println("Warning, could not find case for process, "
-					+ "building and/or tile required: " + process.toString());
+			System.err.println("Warning, building and/or tile required: " + 
+					process.toString() + ", tile/building may not be assigned");
 			return new ImpossiblePriority("Warning, could not find case for process. Tile/building may not be assigned");
 		}
 		
@@ -594,7 +594,7 @@ public class LocalGridTimeExecution {
 				grid.getTile(itemPriority.coords).itemsOnFloor.subtractItem(itemPriority.item);
 				being.inventory.addItem(itemPriority.item);
 				grid.removeItemRecordToWorld(itemPriority.coords, itemPriority.item);
-				return null; //TODO See ImpossibleTaskPlaceholder/DoneTaskPlaceholder;
+				return null; TODO //Implement/see ImpossibleTaskPlaceholder/DoneTaskPlaceholder;
 			}
 			else {
 				return getTasksFromPriority(grid, being, new MoveTolDistOnePriority(itemPriority.coords));
@@ -842,7 +842,7 @@ public class LocalGridTimeExecution {
 			being.rest(action.modifier);
 		}
 		else if (action.stepType.equals("Heal")) {
-			//TODO
+			TODO
 		}
 	}
 	

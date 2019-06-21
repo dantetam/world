@@ -21,6 +21,7 @@ public class LocalExperience {
 		for (LocalEvent event: events) {
 			opinion += event.opinion;
 		}
+		TODO //Implement usage into storing really big memories (extreme or important, like created art, or married someone)
 	}
 	
 }

@@ -11,6 +11,7 @@ import java.util.Set;
 import io.github.dantetam.toolbox.MapUtil;
 import io.github.dantetam.world.civhumanrelation.HumanHumanRel;
 import io.github.dantetam.world.civilization.Household;
+import io.github.dantetam.world.civilization.Society;
 import io.github.dantetam.world.life.Human;
 import io.github.dantetam.world.process.LocalJob;
 import io.github.dantetam.world.process.LocalProcess;
@@ -24,7 +25,7 @@ import io.github.dantetam.world.process.LocalProcess;
 public class SocietalHumansActionsCalc {
 	
 	//See EmergentSocietyCalc.java
-	//TODO; //Use societal/human ethos in calc. Add more unique actions with consequences.
+	TODO; //Use societal/human ethos in calc. Add more unique actions with consequences.
 	
 	public static double calcPropensityToMarry(Human human, Human otherHuman, Date date) {
 		HumanHumanRel oneWayRel = human.brain.getHumanRel(otherHuman);
@@ -67,6 +68,16 @@ public class SocietalHumansActionsCalc {
 			}
 		}
 		return pairs;
+	}
+	
+	/**
+	 * 
+	 * @param host    The society that is considering raiding/attacking other societies for war or plunder
+	 * @param humans  Humans in question from the host society
+	 * @return The possible raid party (groups of humans) for use in free actions
+	 */
+	public static List<Human[]> possibleRaidingParties(Society host, List<Human> humans) {
+		
 	}
 	
 	/**

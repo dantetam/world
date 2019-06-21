@@ -12,7 +12,7 @@ public class SkillBook {
 	
 	private Map<String, Skill> skillMapping;
 	
-	//TODO //Use skill in implementing process efficiency/competency/quality,
+	TODO //Use skill in implementing process efficiency/competency/quality,
 	//i.e. ability to do so, quality, time, wasted resources, etc.
 	
 	public static void init() {

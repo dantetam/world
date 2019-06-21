@@ -109,7 +109,7 @@ public class SocietyDiplomacy {
 	}
 	
 	public void initiateTrade(Society host, Society target) {
-		//TODO;
+		TODO;
 	}
 	
 	public boolean isObligatedInDefCall(Society caller, Society ally, Society target) {

@@ -46,9 +46,9 @@ public class SocietyLeadership {
 		if (currentLeaders == null || currentLeaders.size() == 0) {
 			succeed();
 		}
-		//TODO; //Pick societal tasks and jobs for benefit of all
+		TODO; //Pick societal tasks and jobs for benefit of all
 		
-		//TODO; //Pick societal politics
+		TODO; //Pick societal politics
 	}
 	
 	/**
@@ -61,9 +61,9 @@ public class SocietyLeadership {
 		//TODO
 	}
 	
-	//TODO: SocietalEthos, political, in the technical impl. like that of a human
+	TODO //SocietalEthos, political, in the technical impl. like that of a human
 		
-	//TODO: Note that various groups of people can seek to change the mode of societal leadership and succession,
+	TODO //Note that various groups of people can seek to change the mode of societal leadership and succession,
 	//e.g. a group of strong warlords believes there is high utility in
 	
 	public enum SocietyLeadershipMode {

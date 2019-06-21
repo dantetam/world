@@ -19,6 +19,8 @@ import kdtreegeo.KdPoint;
  * vec.get('xz') -> Pair(x, z)
  * 
  * This would reduce the code clutter around dimension-generic algorithms
+ * 
+ * //Syntax sugar for get any dimension programmatically?
  */
 public class Vector3i extends KdPoint {
 
@@ -129,6 +131,6 @@ public class Vector3i extends KdPoint {
 			}
 		}
 		return data;
-	} 
+	}
 
 }

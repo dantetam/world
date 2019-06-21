@@ -88,7 +88,7 @@ public class EthosSetInitialize {
 	 * @param human The human in question
 	 */
 	public static void calculateHumanEthosExp(Human human) {
-		//TODO
+		TODO
 	}
 
 	/**

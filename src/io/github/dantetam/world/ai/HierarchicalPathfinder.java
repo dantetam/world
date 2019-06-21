@@ -181,7 +181,6 @@ public class HierarchicalPathfinder extends Pathfinder {
 				for (int h = 0; h < abstractBlocks[0][0].length; h++) {
 					LocalGridBlock block = abstractBlocks[r][c][h];
 					
-					//TODO
 					//Make this process more efficient by not double using maximal door info
 					//Once the maximal 2d window has been calculated between two 3d blocks,
 					//use it for both sets of important points.

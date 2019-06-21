@@ -18,7 +18,9 @@ import io.github.dantetam.world.life.Human;
 
 public class FreeActionsSociety {
 
-	//TODO
+	TODO
+	//Use leadership, ethos of society, and ethos of people factoring into decisions
+	
 	public static double calcSocietalRelPros(WorldGrid world, Society host, Society otherSociety, 
 			Date date) {
 		SocietySocietyRel oneWayRel = world.societalDiplomacy.getInterSocietalRel(host, otherSociety);

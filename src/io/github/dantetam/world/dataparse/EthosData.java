@@ -17,7 +17,7 @@ public class EthosData {
 	//but cruel people are apathetic the other way.
 	public static Map<String, Set<String>> oppositeEthosMap = new HashMap<>();
 	
-	private static Map<String, Ethos> greatEthos = new HashMap<>(); //TODO
+	private static Map<String, Ethos> greatEthos = new HashMap<>();
 	private static Map<String, Ethos> ethosPersonalityTraits = new HashMap<>();
 	
 	public static Collection<Ethos> getMajorEthos() {

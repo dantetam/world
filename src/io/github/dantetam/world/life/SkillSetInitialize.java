@@ -25,12 +25,12 @@ public class SkillSetInitialize {
 	 * 
 	 */
 	public static void initHumanSkills(SkillBook skillBook) {
-		//TODO
+		TODO
 	}
 
 	//Assign random, sensible values to skills
 	private static void initValuesToHumanSkills(EthosSet ethosSet) {
-
+		TODO
 	}
 
 	

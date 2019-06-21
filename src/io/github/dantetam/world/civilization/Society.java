@@ -292,7 +292,7 @@ public class Society {
 			}
 		}
 			
-		//TODO: Check for required location and/or site
+		TODO //Check for required location and/or site
 		return true;
 	}
 	

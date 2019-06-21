@@ -25,7 +25,9 @@ public class HumanHumanRel extends HumanRelationship {
 	public HumanHumanRelType relationshipType;
 	
 	public enum HumanHumanRelType {
-		NEUTRAL, FAMILY, MARRIAGE, FRIEND //TODO: Initialize, implement, set to correct data field
+		NEUTRAL, FAMILY, MARRIAGE, FRIEND 
+		//TODO: Initialize, implement, set to correct data field 
+		TODO
 	}
 	
 	public HumanHumanRel(Human human, Human targetHuman, HumanHumanRelType relationshipType) {
@@ -39,7 +41,7 @@ public class HumanHumanRel extends HumanRelationship {
 	@Override
 	public double reevaluateOpinion(Date date) {
 		Map<String, Double> emotionGamut = new HashMap<>(); 
-		//TODO; //Find dot product of this vector with current emotion range of person 
+		TODO; //Find dot product of this vector with current emotion range of person 
 		//to determine opinion sum.
 		
 		double opinionSum = 0;
@@ -92,7 +94,7 @@ public class HumanHumanRel extends HumanRelationship {
 			}
 			
 			else if (ethos.name.equals("Obedient")) {
-				//TODO //Implement power and prestige measurements for this ethos
+				TODO //Implement power and prestige measurements for this ethos
 				
 			}
 			else if (ethos.name.equals("Defiant")) {
@@ -123,7 +125,7 @@ public class HumanHumanRel extends HumanRelationship {
 				MapUtil.addNumMap(emotionGamut, "Hate", feeling);
 				MapUtil.addNumMap(emotionGamut, "Rationality", -10.0);
 			}
-			//TODO Implement personality traits effect on human relationships
+			TODO //Implement personality traits effect on human relationships
 		}
 		for (LocalExperience experience: this.sharedExperiences) {
 			opinionSum += experience.opinion;

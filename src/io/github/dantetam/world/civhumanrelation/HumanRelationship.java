@@ -20,7 +20,7 @@ public abstract class HumanRelationship {
 	public List<LocalExperience> sharedExperiences;
 	
 	public double opinion;
-	//TODO: Feel multiple types of opinions towards others, such as love, friendship, superiority, etc.
+	TODO //Feel multiple types of opinions towards others, such as love, friendship, superiority, etc.
 	
 	public HumanRelationship() {
 		sharedExperiences = new ArrayList<>();

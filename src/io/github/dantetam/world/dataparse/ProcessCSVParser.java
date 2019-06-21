@@ -67,7 +67,7 @@ public class ProcessCSVParser extends WorldCsvParser {
 						}
 						
 						outputData = copyRecord.get("Output");
-						//TODO: Generalize for all functions
+						//TODO: Generalize for all functions parsed in CSV
 						String functionPattern = "(.*)(refine\\((.*)\\))(.*)";
 					    Matcher outputFuncMatcher = Pattern.compile(functionPattern).matcher(outputData);
 						if (outputFuncMatcher.find()) {

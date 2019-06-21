@@ -37,7 +37,7 @@ public class HumanBrain {
 		
 		indexedRelationships = new HashMap<>();
 		
-		languageCodesStrength = new HashMap<>(); //TODO
+		languageCodesStrength = new HashMap<>(); TODO
 	}
 	
 	public void addHumanRel(Human target) { 

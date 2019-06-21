@@ -267,6 +267,20 @@ public class LocalGridInstantiate {
 		return rasterizedGrass;
 	}
 	
+	/**
+	 * Use a combination of normal Gaussian distributions to simulate a multi-variate Gaussian.
+	 * This simulates a probabilistic clustering around a certain point, to simulate resource patches.
+	 * 
+	 * A random process uses the multi-variate Gaussian to lossely follow it when creating a cluster.
+	 * This random process creates a kind of 'forced' random covariance on this distribution.
+	 * 
+	 * 
+	 * 
+	 * @param clusterUbiquityMap  The mean number of clusters of this item
+	 * @param clusterSizesMap	  The mean radius of each cluster, in either 2d dimension
+	 * @param terrain
+	 * @return
+	 */
 	public int[][] generateSurfaceClusters(Map<Integer, Double> clusterUbiquityMap, 
 			Map<Integer, Double> clusterSizesMap, double[][] terrain) {
 		int[][] surfaceClusters = new int[terrain.length][terrain[0].length];
