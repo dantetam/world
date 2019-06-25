@@ -7,7 +7,6 @@ import java.util.Map;
 import java.util.Set;
 
 import io.github.dantetam.world.dataparse.ItemData;
-import io.github.dantetam.world.dataparse.AnatomyData.Body;
 import io.github.dantetam.world.grid.LocalBuilding;
 import io.github.dantetam.world.grid.LocalTile;
 import io.github.dantetam.world.items.Inventory;
@@ -89,7 +88,6 @@ public abstract class LivingEntity {
 	}
 	
 	public double getTotalPowerPrestige() {
-		TODO //Implement land claims at society level
 		return getTotalWealth();
 	}
 	
@@ -114,9 +112,6 @@ public abstract class LivingEntity {
 		
 		return sumWealth;
 	}
-	
-	public void wearItem(InventoryItem item) {
-		TODO
-	}
+
 
 }

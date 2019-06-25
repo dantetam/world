@@ -21,18 +21,6 @@ public class FreeActionsSociety {
 	TODO
 	//Use leadership, ethos of society, and ethos of people factoring into decisions
 	
-	public static double calcSocietalRelPros(WorldGrid world, Society host, Society otherSociety, 
-			Date date) {
-		SocietySocietyRel oneWayRel = world.societalDiplomacy.getInterSocietalRel(host, otherSociety);
-		double util = 0;
-		if (oneWayRel != null) {
-			oneWayRel.reevaluateOpinion(date);
-			double opinion = oneWayRel.opinion / 50;
-			util = PropensityUtil.nonlinearRelUtil(opinion);
-		}
-		return util;
-	}
-	
 	public static Map<String, FreeAction> freeActionsInterSociety = new HashMap<String, FreeAction>() {{
 		put("declareWar", new FreeAction("declareWar", null, 250));
 		put("tradeSession", new FreeAction("tradeSession", null, 30));
@@ -92,6 +80,18 @@ public class FreeActionsSociety {
 		else {
 			return util > -0.5;
 		}
+	}
+	
+	public static double calcSocietalRelPros(WorldGrid world, Society host, Society otherSociety, 
+			Date date) {
+		SocietySocietyRel oneWayRel = world.societalDiplomacy.getInterSocietalRel(host, otherSociety);
+		double util = 0;
+		if (oneWayRel != null) {
+			oneWayRel.reevaluateOpinion(date);
+			double opinion = oneWayRel.opinion / 50;
+			util = PropensityUtil.nonlinearRelUtil(opinion);
+		}
+		return util;
 	}
 	
 }

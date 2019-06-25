@@ -86,9 +86,12 @@ public class EthosSetInitialize {
 	 * Evaluate a person's thoughts based on their 'base' (ingrained opinions since birth),
 	 * and their experiences, to gradually evolve systems of thought over time.
 	 * @param human The human in question
+	 * 
+	 * TODO
+	 * Experiences can individually affect one's perception of world, in the short and long term.
 	 */
 	public static void calculateHumanEthosExp(Human human) {
-		TODO
+		//TODO
 	}
 
 	/**

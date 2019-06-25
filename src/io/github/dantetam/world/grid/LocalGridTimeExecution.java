@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.function.Function;
 
 import io.github.dantetam.toolbox.VecGridUtil;
 import io.github.dantetam.toolbox.MapUtil;
@@ -23,6 +24,7 @@ import io.github.dantetam.world.civhumansocietyai.EmergentSocietyCalc;
 import io.github.dantetam.world.civilization.Society;
 import io.github.dantetam.world.dataparse.ItemData;
 import io.github.dantetam.world.dataparse.ProcessData;
+import io.github.dantetam.world.grid.ItemMetricsUtil.ItemMetric;
 import io.github.dantetam.world.items.Inventory;
 import io.github.dantetam.world.items.InventoryItem;
 import io.github.dantetam.world.life.Human;
@@ -295,6 +297,7 @@ public class LocalGridTimeExecution {
 		for (Vector3i candidate: candidates) {
 			System.out.println("Calc path: " + being.location.coords + " to -> " + grid.getTile(candidate).coords);
 			LocalTile tile = grid.getTile(candidate);
+			
 			if (tile.humanClaim == null || validOwners.contains(tile.humanClaim)) {
 				if (!tile.harvestInUse) {
 					Set<Vector3i> neighbors = grid.getAllNeighbors14(candidate);
@@ -971,7 +974,8 @@ public class LocalGridTimeExecution {
 	}
 	
 	private static Priority progressToFindItemGroup(LocalGrid grid, Vector3i centerCoords,
-			String itemGroupName, int amountNeeded) { // Function<LocalTile, Double> scoringMetric
+			String itemGroupName, int amountNeeded,
+			ItemMetric scoringMetric) { 
 		KdTree<Vector3i> nearestItemsTree = grid.getKdTreeForItemGroup(itemGroupName);
 		
 		if (nearestItemsTree == null) {

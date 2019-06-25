@@ -4,7 +4,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import io.github.dantetam.toolbox.StringUtil;
-import io.github.dantetam.world.dataparse.AnatomyData.Body;
 
 public class DNAHuman extends DNALivingEntity {
 
@@ -54,9 +53,11 @@ public class DNAHuman extends DNALivingEntity {
 	}
 	
 	public String randomSex() {
+		/*
 		if (Math.random() < 0.005) {
 			return "nonbinary";
 		}
+		*/
 		return Math.random() < 0.5 ? "XX" : "XY";
 	}
 	
@@ -73,10 +74,10 @@ public class DNAHuman extends DNALivingEntity {
 	
 	public String randomSexualOri(String gender) {
 		double rand = Math.random();
-		if (rand < 0.04) {
+		if (rand < 0.05) {
 			return "all";
 		}
-		if (rand < 0.12) {
+		if (rand < 0.13) {
 			return gender;
 		}
 		return gender == "male" ? "female" : "male";

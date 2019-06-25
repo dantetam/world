@@ -24,10 +24,10 @@ public class HumanHumanRel extends HumanRelationship {
 	public boolean isPersonalHostileOneWay; //Note, this is only for personal disputes and fights, not for wars between societies
 	public HumanHumanRelType relationshipType;
 	
+	TODO;
 	public enum HumanHumanRelType {
 		NEUTRAL, FAMILY, MARRIAGE, FRIEND 
 		//TODO: Initialize, implement, set to correct data field 
-		TODO
 	}
 	
 	public HumanHumanRel(Human human, Human targetHuman, HumanHumanRelType relationshipType) {
@@ -40,33 +40,51 @@ public class HumanHumanRel extends HumanRelationship {
 	
 	@Override
 	public double reevaluateOpinion(Date date) {
-		Map<String, Double> emotionGamut = new HashMap<>(); 
-		TODO; //Find dot product of this vector with current emotion range of person 
-		//to determine opinion sum.
-		
+		emotionGamut = new EmotionGamut(); 
 		double opinionSum = 0;
 		
+		//Personality traits effect on human relationships
 		for (Ethos ethos: human.brain.ethosSet.getAllHumanEthos()) {
 			if (ethos.name.equals("Kind")) {
-				MapUtil.addNumMap(emotionGamut, "Kindness", 20.0);
-				MapUtil.addNumMap(emotionGamut, "Honor", 10.0);
+				emotionGamut.addEmotion("Kindness", 20.0);
+				emotionGamut.addEmotion("Honor", 10.0);
 			}
 			else if (ethos.name.equals("Mean")) {
-				MapUtil.addNumMap(emotionGamut, "Hate", 20.0);
-				MapUtil.addNumMap(emotionGamut, "Honor", -10.0);
+				emotionGamut.addEmotion("Hate", 20.0);
+				emotionGamut.addEmotion("Honor", -10.0);
 			}
 			else if (ethos.name.equals("Pacifistic")) {
-				MapUtil.addNumMap(emotionGamut, "Honor", 10.0);
-				MapUtil.addNumMap(emotionGamut, "Rationality", 10.0);
+				emotionGamut.addEmotion("Honor", 10.0);
+				emotionGamut.addEmotion("Rationality", 10.0);
 			}
 			else if (ethos.name.equals("Honest")) {
-				MapUtil.addNumMap(emotionGamut, "Honor", 25.0);
+				emotionGamut.addEmotion("Honor", 25.0);
 			}
 			else if (ethos.name.equals("Dishonest")) {
-				MapUtil.addNumMap(emotionGamut, "Honor", -25.0);
-				MapUtil.addNumMap(emotionGamut, "Rationality", 5.0);
+				emotionGamut.addEmotion("Honor", -25.0);
+				emotionGamut.addEmotion("Rationality", 5.0);
 			}
 		}
+		
+		//This is not intended as a cultural critique on real world sexuality,
+		//nor is it even an accurate modeling.
+		double baseAttraction = 10;
+		String attractGender = human.dna.getDnaMapping("sexualOri");
+		String otherPersonGender = human.dna.getDnaMapping("gender");
+		String otherPersonSex = human.dna.getDnaMapping("sex");
+		if (attractGender == "all") {
+			baseAttraction += 20;
+		}
+		else if (attractGender == otherPersonGender && attractGender == otherPersonSex) {
+			baseAttraction += 30;
+		}
+		else if (attractGender == otherPersonGender) {
+			baseAttraction += 10;
+		}
+		else {
+			baseAttraction -= 30;
+		}
+		emotionGamut.addEmotion("Attraction", baseAttraction);
 		
 		for (Ethos ethos: human.brain.ethosSet.getAllHumanEthos()) {
 			if (ethos.name.equals("Greedy") || ethos.name.equals("Ambitious")) {
@@ -74,18 +92,18 @@ public class HumanHumanRel extends HumanRelationship {
 				if (diffWealth > 0.75) {
 					double severityMulti = ethos.getLogisticVal(0, 2.5);
 					double feeling = severityMulti * diffWealth * 5;
-					MapUtil.addNumMap(emotionGamut, "Hate", feeling);
-					MapUtil.addNumMap(emotionGamut, "Admiration", feeling / 2);
+					emotionGamut.addEmotion("Hate", feeling);
+					emotionGamut.addEmotion("Admiration", feeling / 2);
 				}
-				MapUtil.addNumMap(emotionGamut, "Rationality", 10.0);
+				emotionGamut.addEmotion("Rationality", 10.0);
 			}
 			else if (ethos.name.equals("Charitable")) {
-				double diffWealth = targetHuman.getTotalWealth() / human.getTotalWealth();
+				double diffWealth = human.getTotalWealth() / targetHuman.getTotalWealth();
 				if (diffWealth > 0.75) {
 					double severityMulti = ethos.getLogisticVal(0, 2.5);
 					double feeling = severityMulti * diffWealth * 5;
-					MapUtil.addNumMap(emotionGamut, "Kindness", feeling);
-					MapUtil.addNumMap(emotionGamut, "Admiration", feeling / 3);
+					emotionGamut.addEmotion("Kindness", feeling);
+					emotionGamut.addEmotion("Admiration", feeling / 3);
 				}
 			}
 			
@@ -94,11 +112,22 @@ public class HumanHumanRel extends HumanRelationship {
 			}
 			
 			else if (ethos.name.equals("Obedient")) {
-				TODO //Implement power and prestige measurements for this ethos
-				
+				//Power and prestige measurements for this ethos
+				double diffWealth = human.getTotalPowerPrestige() / targetHuman.getTotalPowerPrestige();
+				if (diffWealth > 0.75) {
+					double severityMulti = ethos.getLogisticVal(0, 2.5);
+					double feeling = severityMulti * diffWealth * 5;
+					emotionGamut.addEmotion("Admiration", feeling / 3);
+				}
 			}
 			else if (ethos.name.equals("Defiant")) {
-				
+				//Power and prestige measurements for this ethos
+				double diffWealth = human.getTotalPowerPrestige() / targetHuman.getTotalPowerPrestige();
+				if (diffWealth > 1.25) {
+					double severityMulti = ethos.getLogisticVal(0, 2.5);
+					double feeling = severityMulti * (diffWealth - 1) * 8;
+					emotionGamut.addEmotion("Admiration", - feeling / 3);
+				}
 			}
 						
 			else if (ethos.name.equals("Ethnocentrism")) {
@@ -107,30 +136,31 @@ public class HumanHumanRel extends HumanRelationship {
 				double culSimilarityEmbed = human.dna.compareGenesDist(targetHuman.dna, "culture");
 				//double culSimilarityApparent = human.brain.greatEthos
 				double ethnoDiffUtil = severityMulti * (raceSimilarity + culSimilarityEmbed * 0.5 - 0.9) * 10;
-				opinionSum += ethnoDiffUtil; 
 				if (ethnoDiffUtil > 0) {
-					MapUtil.addNumMap(emotionGamut, "Kindness", ethnoDiffUtil);
-					MapUtil.addNumMap(emotionGamut, "Hate", -ethnoDiffUtil);
+					emotionGamut.addEmotion("Kindness", ethnoDiffUtil);
+					emotionGamut.addEmotion("Hate", -ethnoDiffUtil);
 				}
-				MapUtil.addNumMap(emotionGamut, "Rationality", -5.0);
+				emotionGamut.addEmotion("Rationality", -5.0);
 			}
 			else if (ethos.name.equals("Open") || ethos.name.equals("Curious")) {
-				MapUtil.addNumMap(emotionGamut, "Rationality", 10.0);
+				emotionGamut.addEmotion("Rationality", 10.0);
 			}
 			else if (ethos.name.equals("Closed") || ethos.name.equals("Racist") || ethos.name.equals("Belligerent")) {
 				double severityMulti = ethos.getLogisticVal(-2.5, 2.5);
 				double totalEthosDiff = EthosSet.getEthosDifference(human.brain.ethosSet, targetHuman.brain.ethosSet);
 				double feeling = severityMulti * totalEthosDiff * 10;
-				opinionSum -= feeling;
-				MapUtil.addNumMap(emotionGamut, "Hate", feeling);
-				MapUtil.addNumMap(emotionGamut, "Rationality", -10.0);
+				emotionGamut.addEmotion("Hate", feeling);
+				emotionGamut.addEmotion("Rationality", -10.0);
 			}
-			TODO //Implement personality traits effect on human relationships
 		}
 		for (LocalExperience experience: this.sharedExperiences) {
 			opinionSum += experience.opinion;
 		}
-		return opinionSum;
+		
+		//Find dot product of this vector with current emotion range of person 
+		//to determine opinion sum.
+		Map<String, Double> weights = human.brain.feelingGamutWeights;
+		return emotionGamut.dotProductWeights(weights);
 	}
 
 	public boolean equals(Object other) {

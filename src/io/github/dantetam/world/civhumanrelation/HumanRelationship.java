@@ -3,6 +3,7 @@ package io.github.dantetam.world.civhumanrelation;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 
 import io.github.dantetam.world.civilization.LocalExperience;
@@ -19,8 +20,9 @@ public abstract class HumanRelationship {
 	
 	public List<LocalExperience> sharedExperiences;
 	
+	public EmotionGamut emotionGamut;
 	public double opinion;
-	TODO //Feel multiple types of opinions towards others, such as love, friendship, superiority, etc.
+	//TODO: Feel multiple types of opinions towards others, such as love, friendship, superiority, etc.
 	
 	public HumanRelationship() {
 		sharedExperiences = new ArrayList<>();

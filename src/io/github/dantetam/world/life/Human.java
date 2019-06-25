@@ -6,23 +6,29 @@ import java.util.List;
 import java.util.Set;
 
 import io.github.dantetam.vector.Vector3i;
+import io.github.dantetam.world.civhumanrelation.HumanHumanRel;
+import io.github.dantetam.world.civhumanrelation.HumanHumanRel.HumanHumanRelType;
 import io.github.dantetam.world.civilization.Household;
+import io.github.dantetam.world.civilization.LocalExperience;
 import io.github.dantetam.world.civilization.SkillBook;
 import io.github.dantetam.world.civilization.Society;
-import io.github.dantetam.world.dataparse.AnatomyData.Body;
+import io.github.dantetam.world.dataparse.ItemData;
 import io.github.dantetam.world.grid.LocalBuilding;
+import io.github.dantetam.world.grid.LocalGridLandClaim;
+import io.github.dantetam.world.grid.LocalGridTimeExecution;
 
 public class Human extends LivingEntity {
 	
 	public Society society;
 	public LocalBuilding home;
-	public Set<Vector3i> allClaims;
+	public Set<LocalGridLandClaim> allClaims;
 	public SkillBook skillBook;
 	public String familyName;
 	
 	public HumanBrain brain;
 	public DNAHuman dna;
 	
+	//Used for convenient storage; all humans have relationships stored in HumanBrain::indexedRelationships
 	public Human lord;
 	public List<Human> servants;
 	public List<Human> workers;
@@ -66,5 +72,69 @@ public class Human extends LivingEntity {
 	public double raceSimilarityScore(Human human) {
 		return this.dna.compareGenesDist(human.dna, "race");
 	}
+	
+	@Override
+	public double getTotalPowerPrestige() {
+		double basePrestige = super.getTotalPowerPrestige();
+		if (household != null) { //Count the prestige of other house members
+			double housePrestigeExtra = 0;
+			for (Human houseMember: household.householdMembers) {
+				if (houseMember.equals(this)) continue;
+				housePrestigeExtra += houseMember.getTotalPowerPrestige();
+			}
+			if (!this.equals(household.headOfHousehold)) {
+				housePrestigeExtra *= 0.3;
+			}
+			basePrestige += housePrestigeExtra;
+		}
+		
+		for (Human worker: workers) {
+			basePrestige += worker.getTotalPowerPrestige() * 0.3;
+		}
+		for (Human servant: servants) {
+			basePrestige += servant.getTotalPowerPrestige();
+		}
+		
+		return basePrestige;
+	}
+	
+	@Override
+	public double getTotalWealth() {
+		double baseWealth = super.getTotalWealth();
+		
+		for (Human servant: servants) {
+			baseWealth += servant.getTotalWealth();
+		}
+		
+		int landClaimId = ItemData.getIdFromName("Land Claim");
+		double landVal = 10;
+		if (LocalGridTimeExecution.calcUtility != null && LocalGridTimeExecution.calcUtility.containsKey(landClaimId)) {
+			landVal = LocalGridTimeExecution.calcUtility.get(landClaimId) / 10.0;
+		}
+		
+		for (LocalGridLandClaim claim: this.allClaims) {
+			baseWealth += claim.boundary.get2dSize() * landVal;
+		}
+		
+		return baseWealth;
+	}
 
+	public void addServant(Human candidate) {
+		//TODO: Check for circular references for lord-servant relations 
+	}
+	
+	public void getMarried(Human fiance) {
+		LocalExperience marriageExp = new LocalExperience("Marriage");
+		
+		HumanHumanRel rel = this.brain.getHumanRel(fiance);
+		rel.relationshipType = HumanHumanRelType.MARRIAGE;
+		rel.sharedExperiences.add(marriageExp);
+		
+		rel = fiance.brain.getHumanRel(this);
+		rel.relationshipType = HumanHumanRelType.MARRIAGE;
+		rel.sharedExperiences.add(marriageExp);
+		
+		brain.experiences.add(marriageExp);
+	}
+	
 }

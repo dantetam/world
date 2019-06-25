@@ -16,7 +16,8 @@ import io.github.dantetam.world.life.Human;
 public class FreeActionsHumans {
 
 	public static Map<String, FreeAction> freeActionsListHuman = new HashMap<String, FreeAction>() {{
-		put("formNewHouseMarriage", new FreeAction("formNewHouseMarriage", null, 10));
+		put("formNewHouseMarriage", new FreeAction("formNewHouseMarriage", null, 30));
+		put("tryToHaveChild", new FreeAction("tryToHaveChild", null, 15));
 	}};
 	
 	TODO
@@ -37,6 +38,8 @@ public class FreeActionsHumans {
 				//Try a marriage attempt between these two people, such that these two people
 				//form a new household.
 				if (SocietalHumansActionsCalc.proposeMarriage(proposer, target)) {
+					proposer.getMarried(target);
+					
 					Household houseA = proposer.household;
 					Household houseB = target.household;
 					

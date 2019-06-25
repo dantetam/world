@@ -52,6 +52,8 @@ public class LocalGrid {
 	
 	public RSRPathfinder pathfinder;
 	
+	public List<LocalGridLandClaim> localLandClaims;
+	
 	public LocalGrid(Vector3i size) {
 		rows = size.x; cols = size.y; heights = size.z;
 		grid = new LocalTile[rows][cols][heights];
@@ -68,6 +70,8 @@ public class LocalGrid {
 		buildIdQuickTileLookup = new HashMap<>();
 		
 		peopleLookup = new KdTree<>();
+		
+		localLandClaims = new ArrayList<>();
 	}
 	
 	/**
@@ -185,7 +189,7 @@ public class LocalGrid {
 		}
 		return candidateTiles;
 	}
-	TODO //Conditional access to local tiles based on actor biology
+	//Conditional access to local tiles based on actor biology
 	//public Set<LocalTile> getAccessibleNeighbors(LocalTile tile, LivingEntity being)
 	
 	public static final Set<Vector3i> allVertAdjOffsets26 = new HashSet<Vector3i>() {{
@@ -698,25 +702,26 @@ public class LocalGrid {
 	}
 	
 	//Claim is equivalent to actual human ownership and full rights, as opposed to being in use
-	public void claimTile(Human human, Vector3i coords, boolean override) {
-		LocalTile tile = getTile(coords);
-		if (tile != null) {
-			if (tile.humanClaim == null || override) {
-				unclaimTile(coords);
-				tile.humanClaim = human;
-				human.allClaims.add(coords);
-			}
-		}
+	public void claimTile(Human human, Vector3i start, Vector3i end) {
+		LocalGridLandClaim newLandClaim = new LocalGridLandClaim(human, start, end);
+		localLandClaims.add(newLandClaim);
+		human.allClaims.add(newLandClaim);
 	}
 	
-	public void unclaimTile(Vector3i coords) {
-		LocalTile tile = getTile(coords);
-		if (tile != null) {
-			if (tile.humanClaim != null) {
-				tile.humanClaim.allClaims.remove(coords);
-				tile.humanClaim = null;
+	public void unclaimTile(LocalGridLandClaim claim) {
+		claim.claimant.allClaims.remove(claim);
+		localLandClaims.remove(claim);
+	}
+	
+	TODO impl;
+	public List<Human> findClaimantToTile(GridRectInterval gridSpace) {
+		List<Human> allClaimants = new ArrayList<>();
+		for (LocalGridLandClaim claim: localLandClaims) {
+			if (gridSpace.intersectsInterval(claim.boundary)) {
+				allClaimants.add(claim.claimant);
 			}
 		}
+		return allClaimants;
 	}
 	
 	public static void main(String[] args) {

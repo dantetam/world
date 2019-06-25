@@ -40,7 +40,7 @@ public class CombatData {
 		itemCombatMods.put(id, combatMods);
 	}
 	
-	TODO //use csv data, not hardcoded data, add content
+	//use csv data, not hardcoded data, add content
 	public static Set<String> initBeingName(String name) {
 		if (name.equals("Human")) {
 			return new HashSet<String>() {{

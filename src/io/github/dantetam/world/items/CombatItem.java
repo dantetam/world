@@ -1,11 +1,10 @@
-package io.github.dantetam.world.dataparse;
+package io.github.dantetam.world.items;
 
 import java.util.List;
 import java.util.Set;
 
 import io.github.dantetam.world.combat.CombatData;
 import io.github.dantetam.world.combat.CombatMod;
-import io.github.dantetam.world.items.InventoryItem;
 
 public class CombatItem {
 	

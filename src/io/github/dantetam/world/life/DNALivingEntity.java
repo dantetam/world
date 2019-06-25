@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Map;
 
 import io.github.dantetam.toolbox.StringUtil;
-import io.github.dantetam.world.dataparse.AnatomyData.Body;
 
 /**
  * Used for a storage of inherited technical true DNA inside, as well as 

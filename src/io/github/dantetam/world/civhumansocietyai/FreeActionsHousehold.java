@@ -7,7 +7,10 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.HashMap;
 
+import io.github.dantetam.world.civhumanrelation.HumanHumanRel;
+import io.github.dantetam.world.civhumanrelation.HumanHumanRel.HumanHumanRelType;
 import io.github.dantetam.world.civilization.Household;
+import io.github.dantetam.world.civilization.LocalExperience;
 import io.github.dantetam.world.civilization.Society;
 import io.github.dantetam.world.grid.LocalGrid;
 import io.github.dantetam.world.grid.WorldGrid;
@@ -77,6 +80,11 @@ public class FreeActionsHousehold {
 				Household newHouse = new Household(housePeopleB);
 				house.removePeopleOutHouse(housePeopleB);
 				society.addHousehold(newHouse);
+				
+				LocalExperience newHouseExp = new LocalExperience("New Household");
+				for (Human human: housePeopleB) {
+					human.brain.experiences.add(newHouseExp);
+				}
 			}
 		}
 	}

@@ -1,5 +1,6 @@
 package io.github.dantetam.world.life;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -10,6 +11,7 @@ import io.github.dantetam.world.civhumanai.EthosSet;
 import io.github.dantetam.world.civhumanrelation.HumanHumanRel;
 import io.github.dantetam.world.civhumanrelation.HumanHumanRel.HumanHumanRelType;
 import io.github.dantetam.world.civhumanrelation.HumanRelationship;
+import io.github.dantetam.world.civilization.LocalExperience;
 import io.github.dantetam.world.items.InventoryItem;
 import io.github.dantetam.world.process.LocalProcess;
 
@@ -27,17 +29,23 @@ public class HumanBrain {
 	//Relating to this person's general ethics and attitudes towards everyday decisions
 	public EthosSet ethosSet;
 	
+	public List<LocalExperience> experiences;
+	
 	public Map<Human, HumanRelationship> indexedRelationships;
 	public Map<String, Double> languageCodesStrength;
 	
+	public Map<String, Double> feelingGamutWeights;
+	
 	public HumanBrain(Human host) {
 		this.host = host;
-		
 		this.ethosSet = new EthosSet();
 		
 		indexedRelationships = new HashMap<>();
+		languageCodesStrength = new HashMap<>();
 		
-		languageCodesStrength = new HashMap<>(); TODO
+		experiences = new ArrayList<>();
+		
+		initFeelingWeights();
 	}
 	
 	public void addHumanRel(Human target) { 
@@ -52,6 +60,14 @@ public class HumanBrain {
 			return (HumanHumanRel) indexedRelationships.get(target);
 		}
 		return null;
+	}
+	
+	private void initFeelingWeights() {
+		feelingGamutWeights = new HashMap<>();
+		feelingGamutWeights.put("Kindness", 1.5);
+		feelingGamutWeights.put("Admiration", 0.3);
+		feelingGamutWeights.put("Honor", 0.3);
+		feelingGamutWeights.put("Hate", -1.5);
 	}
 	
 }

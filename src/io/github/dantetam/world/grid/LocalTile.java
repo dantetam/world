@@ -13,8 +13,7 @@ import io.github.dantetam.world.life.LivingEntity;
 public class LocalTile {
 	
 	public Vector3i coords;
-	
-	public Human humanClaim;
+
 	public LocalBuilding building;
 	private List<LivingEntity> people;
 	

@@ -10,7 +10,7 @@ public class Household {
 
 	public Society society;
 	public Human headOfHousehold;
-	public List<Human> householdMembers;
+	public List<Human> householdMembers; //Includes the head of the household as well
 	
 	public Household(List<Human> householdMembers) {
 		this.householdMembers = householdMembers;

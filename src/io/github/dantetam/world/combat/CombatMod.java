@@ -8,7 +8,6 @@ import java.util.Set;
 
 import io.github.dantetam.toolbox.MapUtil;
 import io.github.dantetam.world.combat.CombatMod.CombatCondition;
-import io.github.dantetam.world.dataparse.AnatomyData.Body;
 
 public class CombatMod {
 

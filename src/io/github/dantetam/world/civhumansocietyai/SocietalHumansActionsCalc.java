@@ -12,6 +12,8 @@ import io.github.dantetam.toolbox.MapUtil;
 import io.github.dantetam.world.civhumanrelation.HumanHumanRel;
 import io.github.dantetam.world.civilization.Household;
 import io.github.dantetam.world.civilization.Society;
+import io.github.dantetam.world.grid.GridRectInterval;
+import io.github.dantetam.world.grid.LocalGrid;
 import io.github.dantetam.world.life.Human;
 import io.github.dantetam.world.process.LocalJob;
 import io.github.dantetam.world.process.LocalProcess;
@@ -25,20 +27,38 @@ import io.github.dantetam.world.process.LocalProcess;
 public class SocietalHumansActionsCalc {
 	
 	//See EmergentSocietyCalc.java
-	TODO; //Use societal/human ethos in calc. Add more unique actions with consequences.
+	//Use societal/human ethos in calc. Add more unique actions with consequences.
 	
 	public static double calcPropensityToMarry(Human human, Human otherHuman, Date date) {
 		HumanHumanRel oneWayRel = human.brain.getHumanRel(otherHuman);
 		if (oneWayRel != null) {
 			oneWayRel.reevaluateOpinion(date);
 			double opinion = oneWayRel.opinion / 50;
-			return PropensityUtil.nonlinearRelUtil(opinion);
+			
+			double attraction = oneWayRel.emotionGamut.getEmotion("Attraction") / 20;
+			
+			return PropensityUtil.nonlinearRelUtil(opinion + attraction);
 		}
 		return 0;
 	}
 	
+	/**
+	 * @param proposer
+	 * @param target
+	 * @return True if the marriage proposal went successfully for these people
+	 */
 	public static boolean proposeMarriage(Human proposer, Human target) {
 		return true;
+	}
+	
+	public static double calcPropensityToChat(Human human, Human otherHuman, Date date) {
+		HumanHumanRel oneWayRel = human.brain.getHumanRel(otherHuman);
+		if (oneWayRel != null) {
+			oneWayRel.reevaluateOpinion(date);
+			if (oneWayRel.opinion <= -30) return 0;
+			return PropensityUtil.nonlinearRelUtil((oneWayRel.opinion - (-30)) / 30);
+		}
+		return 0;
 	}
 	
 	//Intended to be calculated on all members of a society
@@ -70,6 +90,10 @@ public class SocietalHumansActionsCalc {
 		return pairs;
 	}
 	
+	public static Map<Human, GridRectInterval> possibleNewLandClaims(LocalGrid grid, List<Human> humans) {
+		TODO
+	}
+	
 	/**
 	 * 
 	 * @param host    The society that is considering raiding/attacking other societies for war or plunder
@@ -77,7 +101,7 @@ public class SocietalHumansActionsCalc {
 	 * @return The possible raid party (groups of humans) for use in free actions
 	 */
 	public static List<Human[]> possibleRaidingParties(Society host, List<Human> humans) {
-		
+		TODO
 	}
 	
 	/**
