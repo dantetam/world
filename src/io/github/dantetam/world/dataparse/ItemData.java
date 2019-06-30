@@ -267,6 +267,16 @@ public class ItemData {
 		return itemPropertiesById.get(id);
 	}
 	
+	public static double confirmItemActions(Integer id, String name) {
+		List<ProcessStep> listActions = itemActionsById.get(id);
+		for (ProcessStep action: listActions) {
+			if (action.stepType.equals(name)) {
+				return action.modifier;
+			}
+		}
+		return -1;
+	}
+	
 	public static Set<Integer> getItemsWithItemAction(String name) {
 		return itemActionsNamed.get(name);
 	}

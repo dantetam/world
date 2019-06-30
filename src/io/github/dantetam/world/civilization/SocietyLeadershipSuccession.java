@@ -31,7 +31,7 @@ public class SocietyLeadershipSuccession {
 	
 	public static List<Human> findCandidates(Society society, 
 			SocietyLeadershipMode mode, SocSuccessionType successType) {
-		TODO
+		//TODO
 		//Pick people based on the societal criteria for new people to rule
 		//Use people traits as well
 		

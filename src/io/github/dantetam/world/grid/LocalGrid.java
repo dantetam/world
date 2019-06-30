@@ -29,8 +29,6 @@ import kdtreegeo.KdTree;
  *
  */
 
-TODO //Different societies claim possibly overlapping tiles in a grid, use these claims
-//as a basis for societal wealth, as well as part of larger border disputes.
 
 public class LocalGrid {
 
@@ -609,7 +607,6 @@ public class LocalGrid {
 	}
 	
 	public boolean personHasAccessTile(LivingEntity person, LocalTile tile) {
-		TODO
 		return true;
 	}
 	
@@ -713,7 +710,9 @@ public class LocalGrid {
 		localLandClaims.remove(claim);
 	}
 	
-	TODO impl;
+
+	//TODO Different societies claim possibly overlapping tiles in a grid, use these claims
+	//as a basis for societal wealth, as well as part of larger border disputes.
 	public List<Human> findClaimantToTile(GridRectInterval gridSpace) {
 		List<Human> allClaimants = new ArrayList<>();
 		for (LocalGridLandClaim claim: localLandClaims) {

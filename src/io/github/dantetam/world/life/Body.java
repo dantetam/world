@@ -9,12 +9,14 @@ import java.util.Set;
 import java.util.Map.Entry;
 
 import io.github.dantetam.toolbox.MapUtil;
+import io.github.dantetam.world.combat.CombatData;
 import io.github.dantetam.world.combat.CombatEngine;
 import io.github.dantetam.world.combat.CombatMod;
 import io.github.dantetam.world.dataparse.AnatomyData;
 import io.github.dantetam.world.dataparse.AnatomyData.BodyTrait;
 import io.github.dantetam.world.dataparse.AnatomyData.MainBodyPart;
 import io.github.dantetam.world.items.CombatItem;
+import io.github.dantetam.world.items.InventoryItem;
 
 public class Body {
 	private Map<String, BodyPart> bodyParts = new HashMap<>();
@@ -84,6 +86,31 @@ public class Body {
 			}
 		}
 		return totalParts - armoredParts;
+	}
+	
+	public int getNumMainBodyParts() {
+		int totalParts = 0;
+		for (BodyPart bodyPart: getAllBodyParts()) {
+			if (bodyPart instanceof MainBodyPart) {
+				totalParts++;
+			}
+		}
+		return totalParts;
+	}
+	
+	public boolean canWearClothes(InventoryItem clothing) {
+		Set<String> bodyParts = CombatData.getBodyPartsCover(clothing.itemId);
+		return canWearClothes(bodyParts, new CombatItem(clothing));
+	}
+	
+	public void equipCombatItem(InventoryItem invItem) {
+		Set<String> bodyParts = CombatData.getBodyPartsCover(invItem.itemId);
+		equipCombatItem(bodyParts, new CombatItem(invItem));
+	}
+	
+	public void takeOffCombatItem(InventoryItem invItem) {
+		Set<String> bodyParts = CombatData.getBodyPartsCover(invItem.itemId); 
+		takeOffCombatItem(bodyParts, new CombatItem(invItem));
 	}
 	
 	private boolean canWearClothes(Set<String> bodyPartsStrs, CombatItem clothing) {

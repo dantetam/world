@@ -59,13 +59,22 @@ public class EthosSet {
 		ethosTowardsItems = new HashMap<>();
 	}
 	
-	public Collection<Ethos> getAllHumanEthos() {
+	public Collection<Ethos> getAllEthos() {
 		return ListUtil.getColns(
 				this.greatEthos.values(),
 				this.ethosPersonalityTraits.values(),
 				this.ethosTowardsItems.values(),
 				this.ethosTowardsProcesses.values()
 				);
+	}
+	
+	public Map<String, Ethos> getEthosMapping() {
+		Collection<Ethos> allEthos = this.getAllEthos();
+		Map<String, Ethos> ethosMap = new HashMap<>();
+		for (Ethos ethos: allEthos) {
+			ethosMap.put(ethos.name, ethos);
+		}
+		return ethosMap;
 	}
 	
 }

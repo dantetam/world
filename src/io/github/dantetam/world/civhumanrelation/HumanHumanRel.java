@@ -24,7 +24,6 @@ public class HumanHumanRel extends HumanRelationship {
 	public boolean isPersonalHostileOneWay; //Note, this is only for personal disputes and fights, not for wars between societies
 	public HumanHumanRelType relationshipType;
 	
-	TODO;
 	public enum HumanHumanRelType {
 		NEUTRAL, FAMILY, MARRIAGE, FRIEND 
 		//TODO: Initialize, implement, set to correct data field 
@@ -44,7 +43,7 @@ public class HumanHumanRel extends HumanRelationship {
 		double opinionSum = 0;
 		
 		//Personality traits effect on human relationships
-		for (Ethos ethos: human.brain.ethosSet.getAllHumanEthos()) {
+		for (Ethos ethos: human.brain.ethosSet.getAllEthos()) {
 			if (ethos.name.equals("Kind")) {
 				emotionGamut.addEmotion("Kindness", 20.0);
 				emotionGamut.addEmotion("Honor", 10.0);
@@ -86,7 +85,7 @@ public class HumanHumanRel extends HumanRelationship {
 		}
 		emotionGamut.addEmotion("Attraction", baseAttraction);
 		
-		for (Ethos ethos: human.brain.ethosSet.getAllHumanEthos()) {
+		for (Ethos ethos: human.brain.ethosSet.getAllEthos()) {
 			if (ethos.name.equals("Greedy") || ethos.name.equals("Ambitious")) {
 				double diffWealth = targetHuman.getTotalWealth() / human.getTotalWealth();
 				if (diffWealth > 0.75) {

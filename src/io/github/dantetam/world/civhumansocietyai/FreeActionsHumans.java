@@ -4,9 +4,11 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.Map.Entry;
 import java.util.HashMap;
 
+import io.github.dantetam.vector.Vector3i;
 import io.github.dantetam.world.civilization.Household;
 import io.github.dantetam.world.civilization.Society;
 import io.github.dantetam.world.grid.LocalGrid;
@@ -18,13 +20,13 @@ public class FreeActionsHumans {
 	public static Map<String, FreeAction> freeActionsListHuman = new HashMap<String, FreeAction>() {{
 		put("formNewHouseMarriage", new FreeAction("formNewHouseMarriage", null, 30));
 		put("tryToHaveChild", new FreeAction("tryToHaveChild", null, 15));
+		put("claimNewLand", new FreeAction("claimNewLand", null, 15));
 	}};
 	
-	TODO
 	//Implement more human to human interactions, and for all interactions, take into account
 	//the situation, the relationships, and relevant personality traits.
 	
-	public static void considerAllFreeActionsHumans(WorldGrid world, 
+	public static void considerAllFreeActionsHumans(WorldGrid world, LocalGrid grid,
 			List<Human> humans, Date date) {
 		for (Entry<String, FreeAction> entry: freeActionsListHuman.entrySet()) {
 			if (!entry.getValue().fireChanceExecute()) continue;
@@ -64,6 +66,10 @@ public class FreeActionsHumans {
 						host.addHousehold(houseC);
 					}
 				}
+			}
+			else if (name.equals("claimNewLand")) {
+				Map<Human, Set<Vector3i>> humanClaimUtil = SocietalHumansActionsCalc
+						.possibleNewLandClaims(grid, humans);
 			}
 		}
 	}

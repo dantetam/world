@@ -49,9 +49,15 @@ public class Ethos {
 		this.ethosLifetimeHappiness = 0;
 	}
 	
+	/**
+	 * @return A value between low and high on the sigmoid graph, at value severity
+	 */
 	public double getLogisticVal(double low, double high) {
 		return new Sigmoid(low, high).value(severity);
 	}
+	/**
+	 * @return A value between 0 and 1 on the sigmoid graph, such that returned value = sigmoid(severity)
+	 */
 	public double getNormLogisticVal() {
 		return new Sigmoid().value(severity);
 	}

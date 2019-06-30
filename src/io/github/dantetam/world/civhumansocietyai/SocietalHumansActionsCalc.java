@@ -9,6 +9,8 @@ import java.util.Map;
 import java.util.Set;
 
 import io.github.dantetam.toolbox.MapUtil;
+import io.github.dantetam.vector.Vector3i;
+import io.github.dantetam.world.civhumanai.Ethos;
 import io.github.dantetam.world.civhumanrelation.HumanHumanRel;
 import io.github.dantetam.world.civilization.Household;
 import io.github.dantetam.world.civilization.Society;
@@ -17,6 +19,7 @@ import io.github.dantetam.world.grid.LocalGrid;
 import io.github.dantetam.world.life.Human;
 import io.github.dantetam.world.process.LocalJob;
 import io.github.dantetam.world.process.LocalProcess;
+import io.github.dantetam.world.process.priority.SoldierPriority;
 
 /**
  * 
@@ -90,8 +93,13 @@ public class SocietalHumansActionsCalc {
 		return pairs;
 	}
 	
-	public static Map<Human, GridRectInterval> possibleNewLandClaims(LocalGrid grid, List<Human> humans) {
-		TODO
+	//Figure out a system for people claiming land in a world
+	//More powerful people get first choice? Followed by those who desparately want land and have the power
+	//to obtain/maintain land
+	public static Map<Human, Set<Vector3i>> possibleNewLandClaims(LocalGrid grid, List<Human> humans) {
+		Map<Human, Set<Vector3i>> humanClaimUtil = new HashMap<>();
+		//TODO;
+		return humanClaimUtil;
 	}
 	
 	/**
@@ -100,8 +108,24 @@ public class SocietalHumansActionsCalc {
 	 * @param humans  Humans in question from the host society
 	 * @return The possible raid party (groups of humans) for use in free actions
 	 */
-	public static List<Human[]> possibleRaidingParties(Society host, List<Human> humans) {
-		TODO
+	public static Map<Human, Double> possibleRaidingPartyUtil(Society host, List<Human> humans) {
+		Map<Human, Double> fightMilitaryUtil = new HashMap<>();
+		for (Human human: humans) {
+			double util = 0;
+			
+			double baseEquipScore = human.body.getNumMainBodyParts() * 2;
+			double weaponReq = SoldierPriority.weaponAmtRequired(human);
+			double armorReq = SoldierPriority.armorAmtRequired(human);
+			util += (baseEquipScore - weaponReq - armorReq) / baseEquipScore;
+			
+			double ethosScore = 0;
+			Ethos warEthos = human.brain.ethosSet.getEthosMapping().get("Belligerent");
+			ethosScore += warEthos.getNormLogisticVal();
+			util += ethosScore;
+			
+			fightMilitaryUtil.put(human, util);
+		}
+		return fightMilitaryUtil;
 	}
 	
 	/**

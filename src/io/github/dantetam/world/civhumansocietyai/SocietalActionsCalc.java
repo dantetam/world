@@ -9,6 +9,6 @@ package io.github.dantetam.world.civhumansocietyai;
 public class SocietalActionsCalc {
 	
 	//See EmergentSocietyCalc.java
-	TODO //Use societal/human ethos in calc. Add more unique actions with consequences.
+	//TODO //Use societal/human ethos in calc. Add more unique actions with consequences.
 	
 }

@@ -142,9 +142,9 @@ public class WorldGrid {
 				if (grid != null) {
 					List<Household> households = getFreeHouseholds(new Vector2i(r,c));
 					FreeActionsHousehold.considerAllFreeActionsHouseholds(
-							this, activeLocalGrid, households, getTime());
+							this, grid, households, getTime());
 					
-					FreeActionsHumans.considerAllFreeActionsHumans(this, 
+					FreeActionsHumans.considerAllFreeActionsHumans(this, grid,
 							testSociety.getAllPeople(), getTime());
 					
 					//TODO //Tick for every society involved in this grid

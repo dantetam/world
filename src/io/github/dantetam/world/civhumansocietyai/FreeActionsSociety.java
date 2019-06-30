@@ -18,7 +18,7 @@ import io.github.dantetam.world.life.Human;
 
 public class FreeActionsSociety {
 
-	TODO
+	//TODO
 	//Use leadership, ethos of society, and ethos of people factoring into decisions
 	
 	public static Map<String, FreeAction> freeActionsInterSociety = new HashMap<String, FreeAction>() {{

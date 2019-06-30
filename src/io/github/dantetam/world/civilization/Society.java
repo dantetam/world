@@ -24,6 +24,8 @@ import io.github.dantetam.world.dataparse.ItemTotalDrops;
 import io.github.dantetam.world.dataparse.ProcessData;
 import io.github.dantetam.world.grid.LocalBuilding;
 import io.github.dantetam.world.grid.LocalGrid;
+import io.github.dantetam.world.grid.LocalGridLandClaim;
+import io.github.dantetam.world.grid.LocalGridTimeExecution;
 import io.github.dantetam.world.grid.LocalTile;
 import io.github.dantetam.world.items.InventoryItem;
 import io.github.dantetam.world.life.Human;
@@ -273,6 +275,12 @@ public class Society {
 				//System.out.println("No input");
 				return false;
 			}
+			
+			/*
+			if (LocalGridTimeExecution.progressToFindItem(grid, being, owners, itemsAmtNeeded, scoringMetric)) {
+				
+			}
+			*/
 		}
 		
 		//Check for buildings
@@ -292,7 +300,7 @@ public class Society {
 			}
 		}
 			
-		TODO //Check for required location and/or site
+		//TODO //Check for required location and/or site
 		return true;
 	}
 	
@@ -618,7 +626,11 @@ public class Society {
 			//MathUti.addNumMap(societalNeed, "Drink", thirstScore);
 			
 			int shelterScore = 0;
-			for (Vector3i coords: human.allClaims) {
+			for (LocalGridLandClaim claim: human.allClaims) {
+				//TODO
+				//Calculate shelter score based on number of claims and amount of covered blocks
+				
+				/*
 				LocalTile tile = grid.getTile(coords);
 				if (tile != null) {
 					LocalTile aboveTile = grid.getTile(coords);
@@ -628,6 +640,7 @@ public class Society {
 						shelterScore++;
 					}
 				}
+				*/
 			}
 			
 			int minShelter = 20;

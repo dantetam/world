@@ -6,7 +6,7 @@ import java.util.Map;
 public class LocalGridBiome {
 
 	//TODO
-	Use this architecture
+	//Use this architecture
 	
 	public BiomeType biomeType;
 	
@@ -27,7 +27,7 @@ public class LocalGridBiome {
 	}
 	
 	public enum BiomeType {
-		TEST
+		TEST_DESERT, TEST_FOREST
 	}
 	
 }

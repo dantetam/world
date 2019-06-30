@@ -5,14 +5,14 @@ import java.util.Map;
 
 public class SkillBook {
 	
-	private static final int MAX_LEVEL = 30;
+	public static final int MAX_LEVEL = 30;
 	private static int[] experienceNeeded = new int[MAX_LEVEL+2]; 
 	public static String[] allSkills = {"build", "cook", "cloth", "craft", "farm", 
 			"fight", "process", "smelt", "stone", "woodcut"};
 	
 	private Map<String, Skill> skillMapping;
 	
-	TODO //Use skill in implementing process efficiency/competency/quality,
+	//Use skill in implementing process efficiency/competency/quality,
 	//i.e. ability to do so, quality, time, wasted resources, etc.
 	
 	public static void init() {
@@ -48,6 +48,12 @@ public class SkillBook {
 				skill.level++;
 			}
 		}
+	}
+	
+	public void setSkillLevel(String skillName, int level) {
+		Skill skill = skillMapping.get(skillName);
+		skill.level = level;
+		skill.allExp = experienceNeeded[level + 1];
 	}
 	
 	private static class Skill {

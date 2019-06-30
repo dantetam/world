@@ -27,4 +27,37 @@ public class ListUtil {
 		return data;
 	}
 	
+	public static <T> Collection<T> colnsIntersection(Collection<T>... collections) {
+		if (collections == null || collections.length <= 1) {
+			throw new IllegalArgumentException("Collection intersection not defined for empty/null amount of collections");
+		}
+			
+		Collection<T> minSizeColn = null;
+		for (Collection<T> coln: collections) {
+			if (minSizeColn == null || coln.size() < minSizeColn.size()) {
+				minSizeColn = coln;
+			}
+		}
+		
+		Collection<T> intersection = new ArrayList<>();
+		for (T item: minSizeColn) {
+			boolean itemFoundAll = true;
+			for (Collection coln: collections) {
+				if (coln.equals(minSizeColn)) continue;
+				if (!minSizeColn.contains(item)) {
+					itemFoundAll = false; 
+					break;
+				}
+			}
+			if (itemFoundAll) {
+				intersection.add(item);
+			}
+		}
+		return intersection;
+	}
+	
+	public static <T> boolean colnsHasIntersect(Collection<T>... collections) {
+		return colnsIntersection(collections).size() > 0;
+	}
+	
 }

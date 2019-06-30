@@ -8,6 +8,7 @@ import java.util.Set;
 
 import io.github.dantetam.toolbox.MapUtil;
 import io.github.dantetam.world.dataparse.ItemData;
+import io.github.dantetam.world.life.LivingEntity;
 
 public class Inventory {
 
@@ -58,23 +59,35 @@ public class Inventory {
 	}
 	
 	public int findItemCount(int itemId) {
+		return findItemCount(itemId, null);
+	}
+	
+	public int findItemCountGroup(String groupName) {
+		return findItemCountGroup(groupName, null);
+	}
+	
+	public int findItemCount(int itemId, Set<LivingEntity> possibleUsers) {
 		if (items == null) return 0;
 		int sum = 0;
 		for (InventoryItem item: items) {
-			if (item.itemId == itemId) {
-				sum += item.quantity;
+			if (possibleUsers == null || possibleUsers.contains(item.owner)) {
+				if (item.itemId == itemId) {
+					sum += item.quantity;
+				}
 			}
 		}
 		return sum;
 	}
 	
-	public int findItemCountGroup(String groupName) {
+	public int findItemCountGroup(String groupName, Set<LivingEntity> possibleUsers) {
 		if (items == null) return 0;
 		int sum = 0;
 		Set<Integer> groupIds = ItemData.getGroupIds(groupName);
 		for (InventoryItem item: items) {
-			if (groupIds.contains(item.itemId)) {
-				sum += item.quantity;
+			if (possibleUsers == null || possibleUsers.contains(item.owner)) {
+				if (groupIds.contains(item.itemId)) {
+					sum += item.quantity;
+				}
 			}
 		}
 		return sum;
