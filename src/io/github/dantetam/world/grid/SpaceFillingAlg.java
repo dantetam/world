@@ -11,12 +11,14 @@ import java.util.Map;
 import java.util.Set;
 
 import io.github.dantetam.toolbox.VecGridUtil;
+import io.github.dantetam.toolbox.ListUtil;
 import io.github.dantetam.toolbox.MapUtil;
 import io.github.dantetam.vector.Vector2i;
 import io.github.dantetam.vector.Vector3i;
 import io.github.dantetam.world.dataparse.ItemData;
+import io.github.dantetam.world.life.Human;
 
-public class SpaceFillingAlgorithm {
+public class SpaceFillingAlg {
 
 	public static Set<Vector3i> fillSpacesIntoGrid(LocalGrid grid, Vector3i center, 
 			List<Vector2i> sizes, boolean sameLevel) {
@@ -24,12 +26,39 @@ public class SpaceFillingAlgorithm {
 	}
 	
 	/**
+	 * Intended for finding space within a group's own existing land claims.
+	 * 
+	 * @return
+	 */
+	public static Set<Vector3i> findAvailableSpaceWithinClaims(LocalGrid grid, 
+			int desiredR, int desiredC, boolean sameLevel, Set<Human> validLandOwners) {
+		Set<Vector3i> bestSpace = null;
+		int minScore = 0;
+		for (Human landOwner: validLandOwners) {
+			for (LocalGridLandClaim claim: landOwner.allClaims) {
+				Set<Vector3i> space = findAvailableSpace(grid, claim.boundary.avgVec(), 
+						desiredR, desiredC, sameLevel, validLandOwners);
+				int reverseScore = Math.abs(space.size() - (desiredR * desiredC)); 
+				if (reverseScore < minScore || bestSpace == null) {
+					bestSpace = space;
+					minScore = reverseScore;
+				}
+			}
+		}
+		return bestSpace;
+	}
+	
+	/**
+	 * Intended for finding land (free or occupied by correct owners) near coords center
+	 * When given no owners, it is intended to find new land claims, chunks of new unoccupied land.
+	 * 
+	 * @param validLandOwners  The owners of the land that can be used for finding this space
 	 * 
 	 * @return The maximum rectangle closest to center, with minimum dimensions (desiredR, desiredC),
 	 * if one exists within maxDistFlat * trials distance (square dist) away from center.
 	 */
 	public static Set<Vector3i> findAvailableSpace(LocalGrid grid, Vector3i center, 
-			int desiredR, int desiredC, boolean sameLevel) {
+			int desiredR, int desiredC, boolean sameLevel, Set<Human> validLandOwners) {
 		//int minDistFlat = 0;
 		int maxDistFlat = 10;
 		int trials = 0;
@@ -41,8 +70,12 @@ public class SpaceFillingAlgorithm {
 					int h = grid.findHighestGroundHeight(r, c) + 1;
 					Vector3i candidate = center.getSum(new Vector3i(r,c,0));
 					candidate.z = h;
+					
 					if (grid.inBounds(candidate)) {
-						candidates.add(candidate);
+						List<Human> claimants = grid.findClaimantToTile(candidate);
+						if (claimants.size() == 0 || ListUtil.colnsHasIntersect(claimants, validLandOwners)) {
+							candidates.add(candidate);
+						}
 					}
 				}
 			}

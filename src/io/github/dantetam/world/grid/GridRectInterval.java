@@ -1,5 +1,7 @@
 package io.github.dantetam.world.grid;
 
+import org.lwjgl.util.vector.Vector3f;
+
 import io.github.dantetam.toolbox.VecGridUtil;
 import io.github.dantetam.vector.Vector3i;
 
@@ -35,6 +37,11 @@ public class GridRectInterval {
 		int x = end.x - start.x;
 		int y = end.y - start.y;
 		return x * y;
+	}
+	
+	public Vector3i avgVec() {
+		Vector3f avg = this.start.getSum(this.end).getScaled(0.5f);
+		return new Vector3i((int) avg.x, (int) avg.y, (int) avg.z);
 	}
 	
 }

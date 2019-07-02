@@ -319,13 +319,17 @@ public class LocalGridTimeExecution {
 			Human being, Human ownerProducts, LocalProcess process, ProcessStep step) {
 		Priority priority = null;
 		
+		Set<Human> validLandOwners = new HashSet<>();
+		validLandOwners.add(being); validLandOwners.add(ownerProducts);
+		
 		//System.out.println("Figuring out priority, for process: " + process);
 		
 		if (process.name.equals("Build Basic Home")) {
 			int width = (int) Math.ceil(Math.sqrt(being.ownedBuildings.size() + being.inventory.size() + 8));
 			Vector2i requiredSpace = new Vector2i(width, width);
 			
-			List<Vector3i> bestRectangle = findBestOpenRectSpace(grid, being.location.coords, requiredSpace);
+			List<Vector3i> bestRectangle = findBestOpenRectSpace(
+					grid, validLandOwners, being.location.coords, requiredSpace);
 			List<Vector3i> borderRegion = VecGridUtil.getBorderRegionFromCoords(bestRectangle);
 			
 			Set<Integer> bestBuildingMaterials = society.getBestBuildingMaterials(calcUtility, 
@@ -395,7 +399,7 @@ public class LocalGridTimeExecution {
 			Object[] boundsData = grid.getNearestViableRoom(being.location.coords, requiredSpace);
 
 			if (boundsData == null) { //No available rooms to use
-				List<Vector3i> bestRectangle = findBestOpenRectSpace(grid, being.location.coords, requiredSpace);
+				List<Vector3i> bestRectangle = findBestOpenRectSpace(grid, validLandOwners, being.location.coords, requiredSpace);
 			
 				if (bestRectangle != null) {
 					System.out.println("Create building space: " + Arrays.toString(VecGridUtil.findCoordBounds(bestRectangle)));
@@ -878,6 +882,10 @@ public class LocalGridTimeExecution {
 		Map<LocalProcess, Double> bestProcesses = society.prioritizeProcesses(calcUtility, human, 20, null);
 		Map<LocalJob, Double> bestJobs = society.prioritizeJobs(human, bestProcesses, date);
 		
+		for (Entry<LocalProcess, Double> entry: bestProcesses.entrySet()) {
+			System.err.println(entry.getKey().name + " " + entry.getValue());
+		}
+		
 		Object potentialJob = MapUtil.randChoiceFromMaps(bestProcesses, bestJobs);
 		if (potentialJob instanceof LocalJob && human.jobProcessProgress == null) {
 			human.jobProcessProgress = (LocalJob) potentialJob;
@@ -1067,9 +1075,10 @@ public class LocalGridTimeExecution {
 		return new ImpossiblePriority("Could not find item groups or processes that can output harvest groups: " + itemGroupsAmtNeeded.keySet());
 	}
 	
-	private static List<Vector3i> findBestOpenRectSpace(LocalGrid grid, Vector3i coords, Vector2i requiredSpace) {
-		Set<Vector3i> openSpace = SpaceFillingAlgorithm.findAvailableSpace(grid, coords, 
-				requiredSpace.x + 2, requiredSpace.y + 2, true);
+	private static List<Vector3i> findBestOpenRectSpace(LocalGrid grid, Set<Human> validLandOwners, 
+			Vector3i coords, Vector2i requiredSpace) {
+		Set<Vector3i> openSpace = SpaceFillingAlg.findAvailableSpaceWithinClaims(grid, 
+				requiredSpace.x + 2, requiredSpace.y + 2, true, validLandOwners);
 		
 		if (openSpace != null) {
 			int height = openSpace.iterator().next().z;

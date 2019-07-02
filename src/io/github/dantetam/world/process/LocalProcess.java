@@ -57,6 +57,16 @@ public class LocalProcess {
 		return sum;
 	}
 	
+	public int totalSupervisedTime() {
+		int sum = 0;
+		for (ProcessStep step: processSteps) {
+			if (step.stepType.startsWith("S")) {
+				sum += step.timeTicks;
+			}
+		}
+		return sum;
+	}
+	
 	public List<Integer> heurCapitalInputs() {
 		List<Integer> itemIds = new ArrayList<>();
 		for (InventoryItem item: inputItems) {

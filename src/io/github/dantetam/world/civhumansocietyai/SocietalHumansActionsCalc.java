@@ -16,6 +16,8 @@ import io.github.dantetam.world.civilization.Household;
 import io.github.dantetam.world.civilization.Society;
 import io.github.dantetam.world.grid.GridRectInterval;
 import io.github.dantetam.world.grid.LocalGrid;
+import io.github.dantetam.world.grid.LocalGridLandClaim;
+import io.github.dantetam.world.grid.SpaceFillingAlg;
 import io.github.dantetam.world.life.Human;
 import io.github.dantetam.world.process.LocalJob;
 import io.github.dantetam.world.process.LocalProcess;
@@ -98,7 +100,35 @@ public class SocietalHumansActionsCalc {
 	//to obtain/maintain land
 	public static Map<Human, Set<Vector3i>> possibleNewLandClaims(LocalGrid grid, List<Human> humans) {
 		Map<Human, Set<Vector3i>> humanClaimUtil = new HashMap<>();
-		//TODO;
+		
+		
+		
+		for (Human human: humans) {
+			Map<Set<Vector3i>, Double> spaceScoring = new HashMap<>();
+			
+			int claimedLandArea = 0;
+			for (LocalGridLandClaim claim: human.allClaims) {
+				claimedLandArea += claim.boundary.get2dSize();
+			}
+			int optimalLandArea = (int) human.getTotalPowerPrestige();
+			int landValueTile = 10;
+			int landNeed = Math.max(400, (optimalLandArea - claimedLandArea) / landValueTile);
+			int dimension = (int) Math.sqrt(landNeed);
+			
+			if (landNeed > 0) {
+				for (Set<Vector3i> cluster: grid.clustersList) {
+					Vector3i firstVec = cluster.iterator().next();
+					Set<Vector3i> space = SpaceFillingAlg.findAvailableSpace(
+							grid, firstVec, dimension, dimension, false, null);
+					
+					int size = (int) Math.abs(space.size() - dimension * dimension);
+					int dist = human.location.coords.manhattanDist(firstVec);
+					double score = size + dist - dimension;
+					spaceScoring.put(cluster, score);
+				}
+			}
+		}
+		
 		return humanClaimUtil;
 	}
 	

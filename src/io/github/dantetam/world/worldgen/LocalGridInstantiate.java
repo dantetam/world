@@ -15,6 +15,7 @@ import io.github.dantetam.lwjglEngine.terrain.ForestGeneration.BiomeData;
 import io.github.dantetam.lwjglEngine.terrain.ForestGeneration.ProceduralTree;
 import io.github.dantetam.lwjglEngine.terrain.RasterizeVoronoi;
 import io.github.dantetam.toolbox.MathUti;
+import io.github.dantetam.toolbox.VecGridUtil;
 import io.github.dantetam.vector.Vector3i;
 import io.github.dantetam.world.ai.HierarchicalPathfinder;
 import io.github.dantetam.world.ai.RSRPathfinder;
@@ -137,6 +138,9 @@ public class LocalGridInstantiate {
 		
 		System.out.println(localGrid.rows + " " + localGrid.cols + " " + localGrid.heights);
 		System.out.println(gridTrees.size());
+		
+		localGrid.connectedCompsMap = VecGridUtil.contComponent3dSolids(null, null, localGrid);
+		localGrid.clustersList = VecGridUtil.contComp3dSolidsClustersSpec(null, null, localGrid);
 		
 		return localGrid;
 	}

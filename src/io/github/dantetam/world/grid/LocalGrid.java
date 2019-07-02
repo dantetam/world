@@ -52,6 +52,9 @@ public class LocalGrid {
 	
 	public List<LocalGridLandClaim> localLandClaims;
 	
+	public Map<Vector3i, Integer> connectedCompsMap; //Mapping of all available vectors to a unique numbered space (a 3d volume)
+	public List<Set<Vector3i>> clustersList;
+	
 	public LocalGrid(Vector3i size) {
 		rows = size.x; cols = size.y; heights = size.z;
 		grid = new LocalTile[rows][cols][heights];
@@ -330,21 +333,20 @@ public class LocalGrid {
 	}
 	*/
 	
-	public void putBlockIntoTile(Vector3i coords, int blockId) {
-		//globalTileBlockLookup
+	public void putBlockIntoTile(Vector3i coords, int newBlockId) {
 		LocalTile tile = getTile(coords);
 		int oldItemId = tile.tileBlockId;
 		if (tile != null) {
-			tile.tileBlockId = blockId;
+			tile.tileBlockId = newBlockId;
 			if (tile.tileBlockId != ItemData.ITEM_EMPTY_ID) {
-				if (!(globalTileBlockLookup.containsKey(blockId))) {
-					globalTileBlockLookup.put(blockId, new KdTree<Vector3i>());
+				if (!(globalTileBlockLookup.containsKey(newBlockId))) {
+					globalTileBlockLookup.put(newBlockId, new KdTree<Vector3i>());
 				}
-				globalTileBlockLookup.get(blockId).add(coords);
+				globalTileBlockLookup.get(newBlockId).add(coords);
 			}
 			else {
 				if (oldItemId != ItemData.ITEM_EMPTY_ID) {
-					if (globalTileBlockLookup.containsKey(blockId)) { //TODO: Unnecessary check, but errors (nullpointer)
+					if (globalTileBlockLookup.containsKey(oldItemId)) {
 						globalTileBlockLookup.get(oldItemId).remove(coords);
 					}
 				}
@@ -721,6 +723,9 @@ public class LocalGrid {
 			}
 		}
 		return allClaimants;
+	}
+	public List<Human> findClaimantToTile(Vector3i coords) {
+		return this.findClaimantToTile(new GridRectInterval(coords, coords));
 	}
 	
 	public static void main(String[] args) {

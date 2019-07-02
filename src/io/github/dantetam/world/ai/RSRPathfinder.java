@@ -37,14 +37,12 @@ public class RSRPathfinder extends Pathfinder {
 	private boolean[][][] prunedRectTiles; //True iff the corresponding Vector3i in the grid, is in the interior of a rectangular solid
 	private List<RectangularSolid> solids; //List of all the maximal rect solids as determined by the alg. 
 		//(see VecGridUtil::findMaximalRectSolid())
-	Map<Vector3i, Integer> connectedCompsMap; //Mapping of all available vectors to a unique numbered space (a 3d volume)
 	
 	public RSRPathfinder(LocalGrid grid) {
 		super(grid);
 		prunedRectTiles = new boolean[grid.rows][grid.cols][grid.heights];
 		macroEdgeConnections = new HashMap<>();
 		fillMacroedgesWithBlocks();
-		connectedCompsMap = VecGridUtil.connectedComponents3D(null, null, grid);
 	}
 	
 	/**
@@ -197,6 +195,10 @@ public class RSRPathfinder extends Pathfinder {
 	
 	@Override
 	protected Set<LocalTile> validNeighbors(LivingEntity being, LocalTile tile) {
+		//TODO
+		//Implement the ability to traverse tiles that need to be dug (add accessibility penalty)
+		//Also try to improve height and diagonal height walking across terrain
+		
 		Set<LocalTile> candidates = grid.getAccessibleNeighbors(tile);
 		if (macroEdgeConnections.containsKey(tile.coords)) {
 			Set<Vector3i> coords = macroEdgeConnections.get(tile.coords);
@@ -232,8 +234,8 @@ public class RSRPathfinder extends Pathfinder {
     	}
 		
 		//Do quick check if path is possible (i.e. in same connected component)
-		if (connectedCompsMap.containsKey(start.coords) && connectedCompsMap.containsKey(end.coords)) {
-			if (connectedCompsMap.get(start.coords) != connectedCompsMap.get(end.coords)) {
+		if (grid.connectedCompsMap.containsKey(start.coords) && grid.connectedCompsMap.containsKey(end.coords)) {
+			if (grid.connectedCompsMap.get(start.coords) != grid.connectedCompsMap.get(end.coords)) {
 				//System.out.println("No match valid comp");
 				return new ScoredPath(null, 999);
 			}

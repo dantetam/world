@@ -277,6 +277,7 @@ public class Society {
 			}
 			
 			/*
+			 * TODO
 			if (LocalGridTimeExecution.progressToFindItem(grid, being, owners, itemsAmtNeeded, scoringMetric)) {
 				
 			}
@@ -619,7 +620,7 @@ public class Society {
 	private Map<String, Double> findAllNeedsIntensity() {
 		Map<String, Double> societalNeed = new HashMap<>();
 		for (Human human : this.getAllPeople()) {
-			double hungerScore = 1.0 - human.nutrition / human.maxNutrition;
+			double hungerScore = 2.0 - human.nutrition / human.maxNutrition;
 			MapUtil.addNumMap(societalNeed, "Eat", hungerScore);
 		
 			//double thirstScore = 1.0 - human.hydration / human.maxHydration;
@@ -679,7 +680,7 @@ public class Society {
 			double beautyScore = grid.averageBeauty(human.location.coords);
 			MapUtil.addNumMap(societalNeed, "Beauty", 1.0 - beautyScore);
 			
-			MapUtil.addNumMap(societalNeed, "Soldier", 0.7);
+			MapUtil.addNumMap(societalNeed, "Soldier", 0.1);
 		}
 		return societalNeed;
 	}

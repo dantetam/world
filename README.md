@@ -13,6 +13,7 @@ Rectangle space optimization: maximal/perfect size rectangle search, 2d grid set
 
 Pathfinding: hierarchical pathfinding (HPA*), extended to 3D and corners of 3D perimeters (maximal windows); rectangular symmetry reduction, also extended into 3D
 
+Procedural Generation: 
 
 ## Code/Game Accomplishments
 Process, priority, and task deconstruction: create fine tasks as simple one-time commands from people's larger goals

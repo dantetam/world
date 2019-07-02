@@ -27,6 +27,14 @@ public class ListUtil {
 		return data;
 	}
 	
+	/**
+	 * 
+	 * @param collections
+	 * @return A collection containing elements found at least once in all collections
+	 * 		   If a collection is null or empty, the intersection is empty.
+	 * 		e.g. (1, 2, 3) intersect (2, 3) intersect (1, 3, 4) = (3)
+	 * 			 () intersect ... = ()
+ 	 */
 	public static <T> Collection<T> colnsIntersection(Collection<T>... collections) {
 		if (collections == null || collections.length <= 1) {
 			throw new IllegalArgumentException("Collection intersection not defined for empty/null amount of collections");
@@ -34,6 +42,9 @@ public class ListUtil {
 			
 		Collection<T> minSizeColn = null;
 		for (Collection<T> coln: collections) {
+			if (coln == null) {
+				return new ArrayList<>();
+			}
 			if (minSizeColn == null || coln.size() < minSizeColn.size()) {
 				minSizeColn = coln;
 			}
@@ -42,7 +53,7 @@ public class ListUtil {
 		Collection<T> intersection = new ArrayList<>();
 		for (T item: minSizeColn) {
 			boolean itemFoundAll = true;
-			for (Collection coln: collections) {
+			for (Collection<T> coln: collections) {
 				if (coln.equals(minSizeColn)) continue;
 				if (!minSizeColn.contains(item)) {
 					itemFoundAll = false; 

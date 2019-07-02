@@ -281,13 +281,27 @@ public class VecGridUtil {
 	 * @param minBoundsInc  The minimum bounds of the space to separate into components. If not given, the most minimum point in the grid.
 	 * @param maxBoundsInc  The maximum bounds of the space to separate into components. If not given, the most maximum point in the grid.
 	 * @param grid          The grid in question
-	 * @return A mapping of every vector into a numbered connected component
+	 * @return A mapping of every vector into a numbered connected component,
+	 * 		   where all pairs of vectors in a component, 
+	 * 	       are 14-traversable (a path can be created from one to the other using 14-neighbors).
+	 *         See LocalGrid::getAllNeighbors14()
 	 */
-	public static Map<Vector3i, Integer> connectedComponents3D(Vector3i minBoundsInc,
+	public static Map<Vector3i, Integer> contComponent3dSolids(Vector3i minBoundsInc,
 			Vector3i maxBoundsInc, LocalGrid grid) {
 		Map<Vector3i, Integer> results = new HashMap<>();
+		List<Set<Vector3i>> clusters = contComp3dSolidsClustersSpec(minBoundsInc, maxBoundsInc, grid);
+		for (int clusterNum = 0; clusterNum < clusters.size(); clusterNum++) {
+			Set<Vector3i> cluster = clusters.get(clusterNum);
+			for (Vector3i vec: cluster) {
+				results.put(vec, clusterNum);
+			}
+		}
+		return results;
+	}
+	public static List<Set<Vector3i>> contComp3dSolidsClustersSpec(Vector3i minBoundsInc,
+			Vector3i maxBoundsInc, LocalGrid grid) {
+		List<Set<Vector3i>> results = new ArrayList<>();
 		Set<Vector3i> visited = new HashSet<>();
-		int componentNumber = 0;
 		
 		if (minBoundsInc == null) {
 			minBoundsInc = new Vector3i(0,0,0);
@@ -310,7 +324,7 @@ public class VecGridUtil {
 							visited.add(first);
 							if (grid.tileIsAccessible(first)) {
 								componentVecs.add(first);
-								Set<Vector3i> neighbors = grid.getAllNeighbors6(first);
+								Set<Vector3i> neighbors = grid.getAllNeighbors14(first);
 								for (Vector3i neighbor: neighbors) {
 									fringe.add(neighbor);
 								}
@@ -319,10 +333,7 @@ public class VecGridUtil {
 					}
 					
 					if (componentVecs.size() > 0) {
-						for (Vector3i componentVec: componentVecs) {
-							results.put(componentVec, componentNumber);
-						}
-						componentNumber++;
+						results.add(componentVecs);
 					}
 				}
 			}
@@ -568,7 +579,7 @@ public class VecGridUtil {
 		System.out.println("Start 3d component time trial now");
 		long startTime = Calendar.getInstance().getTimeInMillis();
 		
-		Map<Vector3i, Integer> components = connectedComponents3D(
+		Map<Vector3i, Integer> components = contComponent3dSolids(
 				new Vector3i(0,0,0),
 				new Vector3i(199,199,49),
 				activeLocalGrid

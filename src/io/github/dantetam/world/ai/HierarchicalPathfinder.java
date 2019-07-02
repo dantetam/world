@@ -205,7 +205,7 @@ public class HierarchicalPathfinder extends Pathfinder {
 		
 		//Use a three dimensional flood fill (connected component search)
 		//to eliminate any impossible paths immediately
-		Map<Vector3i, Integer> connectedCompsMap = VecGridUtil.connectedComponents3D(
+		Map<Vector3i, Integer> connectedCompsMap = VecGridUtil.contComponent3dSolids(
 				block.minBound, block.maxBound, grid);
 		
 		for (AbstractNode node: block.importantNodes.values()) {

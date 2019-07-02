@@ -33,12 +33,13 @@ Oak Tree Acid Extract,1 Glass Jug,,Oak Tree,,,"Sprocess, 60 / O",Glass of Wood A
 ,Potato,,,,,"I / Sfarm, 15 / O",Potato Stems,,5
 ,Cotton,,,,,"I / Sfarm, 15 / O",Cotton Seeds,,5
 ,Flax,,,,,"I / Sfarm, 15 / O",Flax Seeds,,5
-,,,,,,,,,
+,Hemp,,,,,"I / Sfarm, 15 / O",Hemp Seeds,,
 ,,,,,,,,,
 ,,,,,,,,,
 Composting,10 <OrganicMaterial>,,Composter,,,"I / Ufarm, U(2880, 4320) / O","Compost, 1, 3",,
 ,,,,,,,,,
 ,,,,,,,,,
+Earthen Blocks,"3 Sand, 1 Clay / 4 Soil (Clay)",,,,,"I / Sbuild, 60 / Ubuild, 720 / O","Earthen Block, 10",,
 Smelter Building,20 <Stone> Block / 20 Brick,,,Y,,"I / Sbuild, 300 / B",Smelter,,
 Basic Smelting,1 <RawOre>,,Smelter,,,"I / Ssmelt, 60 / O",refine(<RawOre>),,5
 Anvil,4 Iron Bar,,Smelter,,,"I / Ssmelt, 180 / O",Anvil,,
@@ -63,6 +64,7 @@ Distillery,"12 <Wood>, 4 Glass, 2 Iron Bar",,,Y,,"I / Sbuild, 300 / B",Distiller
 Basic Wooden Wall,5 <ProcessedWood>,,,,,"I / Sbuild, 15 / O",Wooden Wall,,
 Basic Wooden Floor,3 <ProcessedWood>,,,,,"I / Sbuild, 15 / O",Wooden Floor,,
 ,,,,,,, ,,
+,10 Earthen Block,,,,,"I / Sbuild, 15 / O",Earthen Wall,,
 ,,,,,,,,,
 ,,,,,,,,,
 ,,,,,,,,,
@@ -100,7 +102,8 @@ Basic Ale,"1 <Bucket>, 5 Barley",,Brewery,,,"I / Scook, 30 / Ucook, U(1440, 2880
 Basic Food Canning,"1 <Bucket>, 5 <Food>, 1 Salt",,Oven,,,"I / Scook, 60 / O",Preserved Food (<Bucket>),,5
 Basic Meat Preservation,"1 <Bucket>, 5 <RawMeat>, 2 Salt",,Oven,,,"I / Scook, 60 / O",Preserved Meat (<Bucket>),,5
 ,,,,,,,,,
-Basic Cooking,6 <RawFood>,,Oven,,,"I / Scook, 60 / O",Cooked Veggies,,3
+Gruel,3 Wheat Flour / 3 Barley Grain,,,,,"I / Scook, 30 / O",Gruel,,
+Basic Cooking,6 <RawFood>,,Oven,,,"I / Scook, 60 / O",Cooked Meal,,3
 Basic Meat Cooking,"3 <RawMeat>, 4 <RawFood>",,Oven,,,"I / Scook, 60 / O",Cooked Meat Dish,,3
 ,,,,,,,,,
 Leather Tanning,"1 Glass of Wood Acid, 1 <RawLeather>",,,,,"I / Srefine, 60 / O",refine(<RawLeather>) / Glass Jug,,
@@ -129,9 +132,9 @@ Basic Wooden Bow,5 <ProcessedWood>,,<Artisan>,,,"I / Scraft, 120 / O",Wooden Bow
 ,,,,,,,,,
 Basic Cloth Spinning,5 Cotton,,<Loom>,,,"I / Scloth, 60 / O",Cloth,,
 Basic Linen Spinning,5 Flax,,<Loom>,,,"I / Scloth, 60 / O",Linen,,
-,8 Cotton / 5 Linen,,<Loom>,,,"I / Scloth, 60 / O","Rope, 2, 4",,
+,8 Cotton / 5 Linen / 12 Hemp Leaves,,<Loom>,,,"I / Scloth, 60 / O","Rope, 2, 4",,
 ,3 Rope,,<Loom>,,,"I / Scloth, 60 / O",Woven Net,,
-,,,,,,,,,
+,5 Hemp Leaves,,<Loom>,,,"I / Scloth, 60 / O",Hemp Fabric,,
 ,,,,,,,,,
 ,,,,,,,,,
 ,,,,,,,,,
@@ -173,3 +176,12 @@ Local Soldier Duty,,,,,,W,,"Soldier, 0, 1.0",
 ,,,,,,,,,
 ,,,,,,,,,
 ,5 Palm Wax,,<Press>,,,"I / Sprocess, 60 / O",Wax Block,,
+,,,,,,,,,
+,,,,,,,,,
+,,,,,,,,,
+,,,,,,,,,
+,,,,,,,,,
+,,,,,,,,,
+,,,,,,,,,
+Create Currency,1 Gold Bar,,Coin Mint,,,"I / Ssmith, 120 / O","Imperial Coin, 10",,
+Debase Currency,"5 Imperial Coin, 1 Iron Bar",,Coin Mint,,,"I / Ssmith, 120 / O","Imperial Coin, 5 / Gold Ore, 1, 2",,
