@@ -18,6 +18,7 @@ import io.github.dantetam.toolbox.VecGridUtil;
 import io.github.dantetam.toolbox.ListUtil;
 import io.github.dantetam.toolbox.MapUtil;
 import io.github.dantetam.toolbox.Pair;
+import io.github.dantetam.toolbox.StringUtil;
 import io.github.dantetam.vector.Vector2i;
 import io.github.dantetam.vector.Vector3i;
 import io.github.dantetam.world.ai.Pathfinder;
@@ -29,6 +30,8 @@ import io.github.dantetam.world.dataparse.ProcessData;
 import io.github.dantetam.world.grid.ItemMetricsUtil.*;
 import io.github.dantetam.world.items.Inventory;
 import io.github.dantetam.world.items.InventoryItem;
+import io.github.dantetam.world.items.InventoryItem.ItemQuality;
+import io.github.dantetam.world.items.ItemSpecialProperty;
 import io.github.dantetam.world.life.Human;
 import io.github.dantetam.world.life.LivingEntity;
 import io.github.dantetam.world.process.LocalJob;
@@ -508,6 +511,18 @@ public class LocalGridTimeExecution {
 				priority = new MoveTolDistOnePriority(targetLocation);
 			}
 		}
+		else if (step.stepType.startsWith("Fish")) {
+			if (being.location.coords.areAdjacent14(primaryLocation)) {
+				List<InventoryItem> outputItems = process.outputItems.getOneItemDrop();
+				for (InventoryItem item: outputItems) {
+					item.owner = ownerProducts;
+				}
+				return new WaitPriority();
+			}
+			else {
+				priority = new MoveTolDistOnePriority(primaryLocation);
+			}
+		}
 		else if (step.stepType.startsWith("Wait")) {
 			step.timeTicks--;
 			if (step.timeTicks <= 0) {
@@ -526,12 +541,21 @@ public class LocalGridTimeExecution {
 				
 			}
 		}
-		else if (step.stepType.equals("O")) {
+		else if (step.stepType.equals("O") || step.stepType.equals("OArtwork")) {
 			List<InventoryItem> outputItems = process.outputItems.getOneItemDrop();
 			for (InventoryItem item: outputItems) {
 				item.owner = ownerProducts;
 			}
+			if (step.stepType.equals("OArtwork")) { //All output items are given art status and memory
+				for (InventoryItem item: outputItems) {
+					item.addSpecItemProp(new ItemSpecialProperty.ItemArtProperty(
+							StringUtil.genAlphaNumericStr(20), being, StringUtil.genAlphaNumericStr(20), 
+							ItemQuality.NORMAL));
+				}
+			}
+			
 			System.out.println("Dropped items: " + new Inventory(outputItems) + " at place: " + itemMode);
+			
 			if (being.inventory.canFitItems(outputItems) && (itemMode.equals("Personal") || itemMode.equals("Tile"))) {
 				being.inventory.addItems(outputItems);
 			}
@@ -650,12 +674,25 @@ public class LocalGridTimeExecution {
 			
 			if (buildPriority.coords.areAdjacent14(being.location.coords)) {
 				LocalTile tile = grid.getTile(buildPriority.coords);
+				if (tile.building != null) {
+					System.err.println("Warning, was given command to place building where one already exists");
+					return new ImpossibleTaskPlaceholder();
+				}
+				
 				if (being.inventory.hasItem(buildPriority.buildingItem) &&
 						tile.building == null) {
 					being.inventory.subtractItem(buildPriority.buildingItem);
 					LocalBuilding newBuilding = ItemData.building(buildPriority.buildingItem.itemId);
 					grid.addBuilding(newBuilding, buildPriority.coords, false, buildPriority.owner);
 					return new DoneTaskPlaceholder();
+				}
+				else {
+					Priority itemSearchPriority = progressToFindItem(grid, being, new HashSet<LivingEntity>() {{add(being);}}, 
+							new HashMap<Integer, Integer>() {{
+								put(buildPriority.buildingItem.itemId, 1);
+							}}, 
+							new DefaultItemMetric());
+					return getTasksFromPriority(grid, being, itemSearchPriority);
 				}
 			}
 			else {
@@ -846,6 +883,9 @@ public class LocalGridTimeExecution {
 		}
 		else if (action.stepType.equals("Heal")) {
 			//TODO
+		}
+		else if (action.stepType.equals("Artwork")) {
+			
 		}
 	}
 	

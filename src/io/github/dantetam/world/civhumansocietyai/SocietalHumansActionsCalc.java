@@ -1,6 +1,7 @@
 package io.github.dantetam.world.civhumansocietyai;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -101,9 +102,17 @@ public class SocietalHumansActionsCalc {
 	public static Map<Human, Set<Vector3i>> possibleNewLandClaims(LocalGrid grid, List<Human> humans) {
 		Map<Human, Set<Vector3i>> humanClaimUtil = new HashMap<>();
 		
+		Set<Vector3i> claimedFirstVec = new HashSet<>();
 		
+		List<Human> humansSortedByPrestige = new ArrayList<>(humans);
+		humansSortedByPrestige.sort(new Comparator<Human>() { //Descending sort
+			@Override
+			public int compare(Human o1, Human o2) {
+				return (int) (o2.getTotalPowerPrestige() - o1.getTotalPowerPrestige());
+			}
+		});
 		
-		for (Human human: humans) {
+		for (Human human: humansSortedByPrestige) {
 			Map<Set<Vector3i>, Double> spaceScoring = new HashMap<>();
 			
 			int claimedLandArea = 0;
@@ -125,6 +134,17 @@ public class SocietalHumansActionsCalc {
 					int dist = human.location.coords.manhattanDist(firstVec);
 					double score = size + dist - dimension;
 					spaceScoring.put(cluster, score);
+				}
+			}
+			
+			//Do something in future with human ranking of different land parcels
+			spaceScoring = MapUtil.getSortedMapByValueDesc(spaceScoring);
+			for (Object object: spaceScoring.keySet().toArray()) {
+				Set<Vector3i> cluster = (Set<Vector3i>) object;
+				Vector3i firstVec = cluster.iterator().next();
+				if (!claimedFirstVec.contains(firstVec)) {
+					claimedFirstVec.add(firstVec);
+					humanClaimUtil.put(human, cluster);
 				}
 			}
 		}

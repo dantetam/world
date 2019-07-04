@@ -67,9 +67,18 @@ public class FreeActionsHumans {
 					}
 				}
 			}
+			else if (name.equals("tryToHaveChild")) {
+				
+			}
 			else if (name.equals("claimNewLand")) {
 				Map<Human, Set<Vector3i>> humanClaimUtil = SocietalHumansActionsCalc
 						.possibleNewLandClaims(grid, humans);
+				for (Entry<Human, Set<Vector3i>> claimEntry: humanClaimUtil.entrySet()) {
+					Human human = claimEntry.getKey();
+					Set<Vector3i> cluster = claimEntry.getValue();
+					
+					TODO
+				}
 			}
 		}
 	}

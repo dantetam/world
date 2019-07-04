@@ -13,7 +13,9 @@ Rectangle space optimization: maximal/perfect size rectangle search, 2d grid set
 
 Pathfinding: hierarchical pathfinding (HPA*), extended to 3D and corners of 3D perimeters (maximal windows); rectangular symmetry reduction, also extended into 3D
 
-Procedural Generation: 
+Procedural Generation: 2D/3D Perlin and fractal noise, with custom parameters and thresholds, and surface topology operations. 
+
+Multivariate approximation: combination of normal distributions to create clusters of resources, organisms, etc.
 
 ## Code/Game Accomplishments
 Process, priority, and task deconstruction: create fine tasks as simple one-time commands from people's larger goals
