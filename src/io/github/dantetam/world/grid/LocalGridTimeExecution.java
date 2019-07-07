@@ -15,7 +15,7 @@ import java.util.Set;
 import java.util.function.Function;
 
 import io.github.dantetam.toolbox.VecGridUtil;
-import io.github.dantetam.toolbox.ListUtil;
+import io.github.dantetam.toolbox.CollectionUtil;
 import io.github.dantetam.toolbox.MapUtil;
 import io.github.dantetam.toolbox.Pair;
 import io.github.dantetam.toolbox.StringUtil;
@@ -124,7 +124,7 @@ public class LocalGridTimeExecution {
 					assignBuilding(grid, human, capitalOwners, process.requiredBuildNameOrGroup);
 				}
 				else if (process.requiredTileNameOrGroup != null && human.processTile == null) {
-					assignTile(grid, human, capitalOwners, process.requiredTileNameOrGroup);
+					assignTile(grid, human, capitalOwners, process);
 				}
 				
 				//Follow through with one step, deconstruct into a priority, and get its status back.
@@ -178,7 +178,7 @@ public class LocalGridTimeExecution {
 					assignBuilding(grid, human, capitalOwners, human.processProgress.requiredBuildNameOrGroup);
 				}
 				else if (human.processProgress.requiredTileNameOrGroup != null && human.processTile == null) {
-					assignTile(grid, human, capitalOwners, human.processProgress.requiredTileNameOrGroup);
+					assignTile(grid, human, capitalOwners, human.processProgress);
 				}
 				
 				//Follow through with one step, deconstruct into a priority, and get its status back.
@@ -263,28 +263,42 @@ public class LocalGridTimeExecution {
 	}
 	
 	/**
-	 * @param grid
-	 * @param being
-	 * @param validOwners
-	 * @param tileName
+	 * 
+	 * The reason why useAboveTileOverride exists, is because of the two cases in required tile:
+	 * 
+	 * the user is directly harvesting the tile (point directly at needed tile);
+	 * the user needs to complete a process on top of a tile (point at one above tile, like in farming).
+	 * 
+	 * 
+	 * 
 	 * @return The harvest tile, followed by the tile to move to (within <= 1 distance)
 	 */
 	private static Pair<LocalTile> assignTile(LocalGrid grid, LivingEntity being, 
-			Set<Human> validOwners, String tileName) {
+			Set<Human> validOwners, LocalProcess process) {
+		
+		String tileName = process.requiredTileNameOrGroup;
+		boolean useAboveTileOverride = !process.name.contains("Harvest Tile ");
+		
 		int tileId = ItemData.getIdFromName(tileName);
 		KdTree<Vector3i> items = grid.getKdTreeForTile(tileId);
 		if (items == null) return null;
+		
 		Collection<Vector3i> candidates = items.nearestNeighbourListSearch(10, being.location.coords);
 		Map<Pair<LocalTile>, Double> tileByPathScore = new HashMap<>();
+		
+		//Collect pair objects: the actual location of interest, followed by an accessible neighbor
 		for (Vector3i candidate: candidates) {
-			System.out.println("Calc path: " + being.location.coords + " to -> " + grid.getTile(candidate).coords);
+			
+			if (useAboveTileOverride) {
+				candidate = candidate.getSum(0, 1, 0);
+			}
+			
+			//System.out.println("Calc path: " + being.location.coords + " to -> " + grid.getTile(candidate).coords);
 			LocalTile tile = grid.getTile(candidate);
 			
-			List<Human> claimants = grid.findClaimantToTile(new GridRectInterval(
-					candidate, candidate
-			));
+			List<Human> claimants = grid.findClaimantToTile(candidate);
 			
-			if (claimants == null || ListUtil.colnsHasIntersect(claimants, validOwners)) {
+			if (claimants == null || CollectionUtil.colnsHasIntersect(claimants, validOwners)) {
 				if (!tile.harvestInUse) {
 					Set<Vector3i> neighbors = grid.getAllNeighbors14(candidate);
 					neighbors.add(candidate);
@@ -300,6 +314,7 @@ public class LocalGridTimeExecution {
 				}
 			}
 		}
+		
 		tileByPathScore = MapUtil.getSortedMapByValueDesc(tileByPathScore);
 		for (Object obj: tileByPathScore.keySet().toArray()) {
 			Pair<LocalTile> bestPair = (Pair) obj;
@@ -582,8 +597,15 @@ public class LocalGridTimeExecution {
 			LocalBuilding building = ItemData.building(buildingItem.itemId);
 			
 			System.out.println("Built building: " + building.name + " at place: " + itemMode);
-			grid.addBuilding(building, targetLocation, true, ownerProducts);
-			return new DonePriority();
+			
+			Vector3i aboveTargetLocation = targetLocation.getSum(0, 1, 0);
+			if (grid.inBounds(aboveTargetLocation) || grid.tileIsAccessible(aboveTargetLocation)) {
+				grid.addBuilding(building, targetLocation, true, ownerProducts);
+				return new DonePriority();
+			}
+			else {
+				return new ImpossiblePriority("Above target tile not in bounds or accessible");
+			}
 		}
 		
 		if (!step.stepType.startsWith("U") && priority == null)

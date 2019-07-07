@@ -11,7 +11,7 @@ import java.util.Map;
 import java.util.Set;
 
 import io.github.dantetam.toolbox.VecGridUtil;
-import io.github.dantetam.toolbox.ListUtil;
+import io.github.dantetam.toolbox.CollectionUtil;
 import io.github.dantetam.toolbox.MapUtil;
 import io.github.dantetam.vector.Vector2i;
 import io.github.dantetam.vector.Vector3i;
@@ -73,7 +73,7 @@ public class SpaceFillingAlg {
 					
 					if (grid.inBounds(candidate)) {
 						List<Human> claimants = grid.findClaimantToTile(candidate);
-						if (claimants.size() == 0 || ListUtil.colnsHasIntersect(claimants, validLandOwners)) {
+						if (claimants.size() == 0 || CollectionUtil.colnsHasIntersect(claimants, validLandOwners)) {
 							candidates.add(candidate);
 						}
 					}

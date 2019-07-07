@@ -6,10 +6,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import io.github.dantetam.toolbox.ListUtil;
+import io.github.dantetam.toolbox.CollectionUtil;
 import io.github.dantetam.toolbox.MapUtil;
 import io.github.dantetam.world.civhumanai.Ethos;
 import io.github.dantetam.world.civhumanai.EthosSet;
+import io.github.dantetam.world.civhumansocietyai.FreeAction;
+import io.github.dantetam.world.civhumansocietyai.FreeActionsHousehold;
+import io.github.dantetam.world.civhumansocietyai.FreeActionsHumans;
+import io.github.dantetam.world.civhumansocietyai.FreeActionsSociety;
 import io.github.dantetam.world.civilization.Society;
 import io.github.dantetam.world.dataparse.EthosData;
 import io.github.dantetam.world.dataparse.ItemData;
@@ -47,6 +51,21 @@ public class EthosSetInitialize {
 			mapItems.put(item.itemId, new Ethos("Item " + item.name, 0, "", ""));
 		}
 		ethosSet.ethosTowardsItems = mapItems;
+		
+		Map<String, Ethos> mapFreeActions = new HashMap<>();
+		for (Entry<String, FreeAction> entry: FreeActionsHumans.freeActionsListHuman.entrySet()) {
+			TODO
+		}
+		for (Entry<String, FreeAction> entry: FreeActionsHousehold.freeActionsListHuman.entrySet()) {
+			TODO
+		}
+		for (Entry<String, FreeAction> entry: FreeActionsHousehold.freeActionsListHousehold.entrySet()) {
+			TODO
+		}
+		for (Entry<String, FreeAction> entry: FreeActionsSociety.freeActionsInterSociety.entrySet()) {
+			TODO
+		}
+		ethosSet.ethosTowardsFreeActions = mapFreeActions;
 		
 		//Determine ethos towards other ethos, i.e. judgments  
 		for (Ethos ethos: ethosSet.getAllEthos()) {

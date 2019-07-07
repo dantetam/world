@@ -6,7 +6,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import io.github.dantetam.toolbox.ListUtil;
+import io.github.dantetam.toolbox.CollectionUtil;
 import io.github.dantetam.world.process.LocalProcess;
 
 public class EthosSet {
@@ -24,6 +24,8 @@ public class EthosSet {
 	public Map<Ethos, Ethos> ethosTowardsOtherEthos;
 	
 	public Map<Integer, Ethos> ethosTowardsItems; //Indexed by item id
+	
+	public Map<String, Ethos> ethosTowardsFreeActions;
 	
 	//Relating to choice of career and object preferences, like for food
 	public Map<String, Ethos> personalBias; 
@@ -60,7 +62,7 @@ public class EthosSet {
 	}
 	
 	public Collection<Ethos> getAllEthos() {
-		return ListUtil.getColns(
+		return CollectionUtil.getColns(
 				this.greatEthos.values(),
 				this.ethosPersonalityTraits.values(),
 				this.ethosTowardsItems.values(),

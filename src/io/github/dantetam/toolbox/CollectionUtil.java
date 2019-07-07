@@ -3,10 +3,12 @@ package io.github.dantetam.toolbox;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
 
-public class ListUtil {
+public class CollectionUtil {
 
 	public static <T> Collection<T> getColns(Collection<T>... collections) {
 	    List<T> items = new ArrayList<>();
@@ -69,6 +71,14 @@ public class ListUtil {
 	
 	public static <T> boolean colnsHasIntersect(Collection<T>... collections) {
 		return colnsIntersection(collections).size() > 0;
+	}
+	
+	public static <T> Set<T> newSet(T... elements) {
+		Set<T> set = new HashSet<T>();
+		for (T element: elements) {
+			set.add(element);
+		}
+		return set;
 	}
 	
 }

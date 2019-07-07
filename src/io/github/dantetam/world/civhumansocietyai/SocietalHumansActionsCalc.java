@@ -12,6 +12,7 @@ import java.util.Set;
 import io.github.dantetam.toolbox.MapUtil;
 import io.github.dantetam.vector.Vector3i;
 import io.github.dantetam.world.civhumanai.Ethos;
+import io.github.dantetam.world.civhumanai.EthosSet;
 import io.github.dantetam.world.civhumanrelation.HumanHumanRel;
 import io.github.dantetam.world.civilization.Household;
 import io.github.dantetam.world.civilization.Society;
@@ -62,6 +63,10 @@ public class SocietalHumansActionsCalc {
 		if (oneWayRel != null) {
 			oneWayRel.reevaluateOpinion(date);
 			if (oneWayRel.opinion <= -30) return 0;
+			
+			TODO;
+			//Use gregariousness/openness ethos to factor into this utility (one and two way)
+			
 			return PropensityUtil.nonlinearRelUtil((oneWayRel.opinion - (-30)) / 30);
 		}
 		return 0;
@@ -75,13 +80,12 @@ public class SocietalHumansActionsCalc {
 			Human bestHumanToMarry = null;
 			Human human = humans.get(i);
 			for (int j = 0; j < humans.size(); j++) {
-				if (i <= j) continue;
 				Human otherHuman = humans.get(j);
 				if (human.equals(otherHuman)) {
 					continue;
 				}
 				double prosA = calcPropensityToMarry(human, otherHuman, date);
-				double prosB = calcPropensityToMarry(human, otherHuman, date);
+				double prosB = calcPropensityToMarry(otherHuman, human, date);
 				if (prosA + prosB > 6 && prosA > 1.5 && prosB > 1.5) {
 					if (prosA + prosB > maxPros || bestHumanToMarry == null) {
 						maxPros = prosA + prosB;
@@ -91,6 +95,60 @@ public class SocietalHumansActionsCalc {
 			}
 			if (bestHumanToMarry != null) {
 				pairs.add(new Human[] {human, bestHumanToMarry});
+			}
+		}
+		return pairs;
+	}
+	
+	public static List<Human[]> possibleCordialPairs(List<Human> humans, Date date) {
+		List<Human[]> pairs = new ArrayList<>();
+		for (int i = 0; i < humans.size(); i++) {
+			Human human = humans.get(i);
+			for (int j = 0; j < humans.size(); j++) {
+				Human otherHuman = humans.get(j);
+				if (human.equals(otherHuman)) {
+					continue;
+				}
+				HumanHumanRel rel = human.brain.getHumanRel(otherHuman);
+				if (rel == null || rel.opinion < 0) {
+					continue;
+				}
+				double prosA = calcPropensityToChat(human, otherHuman, date);
+				double prosB = calcPropensityToChat(otherHuman, human, date);
+				if (prosA + prosB > 3) {
+					pairs.add(new Human[] {human, otherHuman});
+				}
+			}
+		}
+		return pairs;
+	}
+	
+	public static List<Human[]> getIdeoEthosDebatePairs(List<Human> humans, Date date) {
+		List<Human[]> pairs = new ArrayList<>();
+		for (int i = 0; i < humans.size(); i++) {
+			Human human = humans.get(i);
+			for (int j = 0; j < humans.size(); j++) {
+				Human otherHuman = humans.get(j);
+				if (human.equals(otherHuman)) {
+					continue;
+				}
+				HumanHumanRel rel = human.brain.getHumanRel(otherHuman);
+				if (rel == null || rel.opinion < 0) {
+					continue;
+				}
+				double prosA = calcPropensityToChat(human, otherHuman, date);
+				double prosB = calcPropensityToChat(otherHuman, human, date);
+				
+				double ideoDivide = EthosSet.getEthosDifference(human.brain.ethosSet, otherHuman.brain.ethosSet);
+				
+				//Function that scales up with respect to high relations or lukewarm relations and significant ideological divide
+				//People want to convert others to their ideology,
+				//but also talk to others of their ideology.
+				double util = prosA + prosB 
+				
+				if (prosA + prosB > 3) {
+					pairs.add(new Human[] {human, otherHuman});
+				}
 			}
 		}
 		return pairs;

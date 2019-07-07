@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import io.github.dantetam.toolbox.CollectionUtil;
 import io.github.dantetam.vector.Vector3i;
 import io.github.dantetam.world.civhumanrelation.HumanHumanRel;
 import io.github.dantetam.world.civhumanrelation.HumanHumanRel.HumanHumanRelType;
@@ -125,6 +126,8 @@ public class Human extends LivingEntity {
 	
 	public void getMarried(Human fiance) {
 		LocalExperience marriageExp = new LocalExperience("Marriage");
+		marriageExp.beingRoles.put(this, CollectionUtil.newSet("suitor"));
+		marriageExp.beingRoles.put(fiance, CollectionUtil.newSet("fiance"));
 		
 		HumanHumanRel rel = this.brain.getHumanRel(fiance);
 		rel.relationshipType = HumanHumanRelType.MARRIAGE;

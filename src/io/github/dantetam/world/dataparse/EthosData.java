@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import io.github.dantetam.toolbox.ListUtil;
+import io.github.dantetam.toolbox.CollectionUtil;
 import io.github.dantetam.world.civhumanai.Ethos;
 import io.github.dantetam.world.civhumanai.EthosModifier;
 
@@ -47,7 +47,7 @@ public class EthosData {
 	}
 	
 	public static Collection<Ethos> getAllEthos() {
-		return ListUtil.getColns(greatEthos.values(), ethosPersonalityTraits.values());
+		return CollectionUtil.getColns(greatEthos.values(), ethosPersonalityTraits.values());
 	}
 	
 }

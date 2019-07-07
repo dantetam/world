@@ -8,8 +8,12 @@ import java.util.Set;
 import java.util.Map.Entry;
 import java.util.HashMap;
 
+import io.github.dantetam.toolbox.CollectionUtil;
 import io.github.dantetam.vector.Vector3i;
+import io.github.dantetam.world.civhumanrelation.HumanHumanRel;
+import io.github.dantetam.world.civhumanrelation.HumanHumanRel.HumanHumanRelType;
 import io.github.dantetam.world.civilization.Household;
+import io.github.dantetam.world.civilization.LocalExperience;
 import io.github.dantetam.world.civilization.Society;
 import io.github.dantetam.world.grid.LocalGrid;
 import io.github.dantetam.world.grid.WorldGrid;
@@ -21,6 +25,9 @@ public class FreeActionsHumans {
 		put("formNewHouseMarriage", new FreeAction("formNewHouseMarriage", null, 30));
 		put("tryToHaveChild", new FreeAction("tryToHaveChild", null, 15));
 		put("claimNewLand", new FreeAction("claimNewLand", null, 15));
+		
+		put("chat", new FreeAction("chat", null, 1));
+		put("ideologicalEthosDebate", new FreeAction("ideologicalEthosDebate", null, 5));
 	}};
 	
 	//Implement more human to human interactions, and for all interactions, take into account
@@ -68,7 +75,7 @@ public class FreeActionsHumans {
 				}
 			}
 			else if (name.equals("tryToHaveChild")) {
-				
+				TODO;
 			}
 			else if (name.equals("claimNewLand")) {
 				Map<Human, Set<Vector3i>> humanClaimUtil = SocietalHumansActionsCalc
@@ -77,8 +84,33 @@ public class FreeActionsHumans {
 					Human human = claimEntry.getKey();
 					Set<Vector3i> cluster = claimEntry.getValue();
 					
-					TODO
+					TODO;
 				}
+			}
+			else if (name.equals("chat")) { //Temporarily represent chatting as an instaneous free action
+				List<Human[]> chatPairs = SocietalHumansActionsCalc.possibleCordialPairs(humans, date);
+				for (Human[] chatPair: chatPairs) {
+					Human humanA = chatPair[0];
+					Human humanB = chatPair[1];
+					
+					LocalExperience exp = new LocalExperience("Chat");
+					exp.beingRoles.put(humanA, CollectionUtil.newSet("chatInitiate"));
+					exp.beingRoles.put(humanB, CollectionUtil.newSet("chat"));
+					
+					HumanHumanRel rel = humanA.brain.getHumanRel(humanB);
+					rel.sharedExperiences.add(exp);
+					
+					rel = humanB.brain.getHumanRel(humanA);
+					rel.sharedExperiences.add(exp);
+				}
+			}
+			else if (name.equals("ideologicalEthosDebate")) {
+				//People in good relationships talk about both common and differing beliefs
+				//(reinforcement and rational debate, respectively).
+				
+				//People in bad relationships talk about differing beliefs only (non-civil debate)
+				
+				TODO
 			}
 		}
 	}

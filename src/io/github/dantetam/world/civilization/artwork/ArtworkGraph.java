@@ -37,7 +37,7 @@ public class ArtworkGraph {
 	}
 	
 	public static ArtworkGraph generateRandArtGraph(Human artist, LocalExperience experience) {
-		TODO
+		TODO; //Use in art creation events
 		
 		ArtworkGraph art = new ArtworkGraph();
 		

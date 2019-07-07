@@ -23,6 +23,11 @@ public abstract class LivingEntity {
 	public LocalTile location;
 	public String name;
 
+	TODO;
+	//An economic queue paradigm where the human keeps track of multiple viable process,
+	//as well as queued other 'free processes'/free actions (like, chat to this human sometime soon)
+	//and switch between them while no process is assigned.
+	
 	//A cloned Process object which keeps track of the remaining steps in the process cycle
 	public LocalProcess processProgress;
 	public Priority activePriority;
