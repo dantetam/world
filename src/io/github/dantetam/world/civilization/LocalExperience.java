@@ -27,6 +27,9 @@ public class LocalExperience {
 	public String type;
 	public Map<LivingEntity, Set<String>> beingRoles;
 	
+	public List<String> modifiers; //Extra words to describe this event
+	public Map<String, Double> valueModifiers; //Extra key value pairs for data
+	
 	public LocalExperience(String type) {
 		this(type, new ArrayList<LocalEvent>());
 	}

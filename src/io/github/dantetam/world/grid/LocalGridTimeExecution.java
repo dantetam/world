@@ -25,6 +25,7 @@ import io.github.dantetam.world.ai.Pathfinder;
 import io.github.dantetam.world.ai.Pathfinder.ScoredPath;
 import io.github.dantetam.world.civhumansocietyai.EmergentSocietyCalc;
 import io.github.dantetam.world.civilization.Society;
+import io.github.dantetam.world.civilization.artwork.ArtworkGraph;
 import io.github.dantetam.world.dataparse.ItemData;
 import io.github.dantetam.world.dataparse.ProcessData;
 import io.github.dantetam.world.grid.ItemMetricsUtil.*;
@@ -128,14 +129,14 @@ public class LocalGridTimeExecution {
 				}
 				
 				//Follow through with one step, deconstruct into a priority, and get its status back.
-				if (process.processSteps.size() > 0) {
-					ProcessStep step = process.processSteps.get(0);
+				if (process.processStepIndex >= 0 && process.processStepIndex < process.processSteps.size()) {
+					ProcessStep step = process.processSteps.get(process.processStepIndex);
 					if (human.activePriority == null) {
 						human.activePriority = getPriorityForStep(society, grid, 
 								human, human.jobProcessProgress.boss, process, step);
 						String priorityName = human.activePriority == null ? "null" : human.activePriority.getClass().getSimpleName();
-						System.out.println(human.name + ", for its process: " + process + " (first step), ");
-								System.out.println("was given the PRIORITY: " + priorityName);
+						System.out.println(human.name + ", for its process: " + process + ", " +
+								"was given the PRIORITY: " + priorityName);
 					}
 					if (human.activePriority instanceof DonePriority || 
 							human.activePriority instanceof ImpossiblePriority) {
@@ -143,30 +144,38 @@ public class LocalGridTimeExecution {
 							ImpossiblePriority iPrior = (ImpossiblePriority) human.activePriority;
 							System.err.println("Warning, impossible priority: " + iPrior.reason);
 						}
-						process.processSteps.remove(0);
+						process.processStepIndex++;
 						human.activePriority = null;
 					}
 					if (human.activePriority instanceof WaitPriority) {
 						human.activePriority = null; //Spend a frame and advance priority/step/etc.
 					}
 				}
+				
 				//Process has been completed, remove it from person
-				if (process.processSteps.size() == 0) { 
-					executeProcessResActions(grid, human, process.processResActions);
-					System.err.println(human.name + " COMPLETED process (as an employee for a job): " + process);
-					human.jobProcessProgress = null; //Reset all jobs and job fields to null
-					if (human.processBuilding != null) {
-						human.processBuilding.currentUser = null;
-						human.processBuilding = null;
+				if (process.processStepIndex < 0 || process.processStepIndex >= process.processSteps.size()) { 
+					process.recRepeats--;
+					if (process.recRepeats <= 0) {
+						executeProcessResActions(grid, human, process.processResActions);
+						System.err.println(human.name + " COMPLETED process (as an employee for a job): " + process);
+						human.jobProcessProgress = null; //Reset all jobs and job fields to null
+						if (human.processBuilding != null) {
+							human.processBuilding.currentUser = null;
+							human.processBuilding = null;
+						}
+						if (human.processTile != null || human.targetTile != null) {
+							human.processTile.harvestInUse = false;
+							human.processTile = null;
+							human.targetTile = null;
+						}
 					}
-					if (human.processTile != null || human.targetTile != null) {
-						human.processTile.harvestInUse = false;
-						human.processTile = null;
-						human.targetTile = null;
+					else {
+						process.processStepIndex = 0;
 					}
 				}
 			}
 			else if (human.processProgress != null) { 
+				LocalProcess process = human.processProgress;
 				Set<Human> capitalOwners = new HashSet<Human>() {{
 					add(human);
 					if (human.household != null) {
@@ -182,8 +191,8 @@ public class LocalGridTimeExecution {
 				}
 				
 				//Follow through with one step, deconstruct into a priority, and get its status back.
-				if (human.processProgress.processSteps.size() > 0) {
-					ProcessStep step = human.processProgress.processSteps.get(0);
+				if (process.processStepIndex >= 0 && process.processStepIndex < process.processSteps.size()) {
+					ProcessStep step = process.processSteps.get(process.processStepIndex);
 					if (human.activePriority == null) {
 						human.activePriority = getPriorityForStep(society, grid, human, human, human.processProgress, step);
 						String priorityName = human.activePriority == null ? "null" : human.activePriority.getClass().getSimpleName();
@@ -197,7 +206,7 @@ public class LocalGridTimeExecution {
 							System.err.println("Warning, impossible priority task was given, for process step: " + human.processProgress.processSteps.get(0));
 						}
 						*/
-						human.processProgress.processSteps.remove(0);
+						human.processProgress.processStepIndex++;
 						human.activePriority = null;
 					}
 					if (human.activePriority instanceof WaitPriority) {
@@ -205,20 +214,26 @@ public class LocalGridTimeExecution {
 					}
 				}
 				//Process has been completed, remove it from person
-				if (human.processProgress.processSteps.size() == 0) { 
-					System.err.println(human.name + " COMPLETED process: " + human.processProgress);
-					executeProcessResActions(grid, human, human.processProgress.processResActions);
-					human.processProgress = null; //Reset all jobs and job fields to null
-					if (human.processBuilding != null) {
-						human.processBuilding.currentUser = null;
-						human.processBuilding = null;
+				if (process.processStepIndex < 0 || process.processStepIndex >= process.processSteps.size()) {
+					process.recRepeats--;
+					if (process.recRepeats <= 0) {
+						System.err.println(human.name + " COMPLETED process: " + human.processProgress);
+						executeProcessResActions(grid, human, human.processProgress.processResActions);
+						human.processProgress = null; //Reset all jobs and job fields to null
+						if (human.processBuilding != null) {
+							human.processBuilding.currentUser = null;
+							human.processBuilding = null;
+						}
+						if (human.processTile != null || human.targetTile != null) {
+							human.processTile.harvestInUse = false;
+							human.processTile = null;
+							human.targetTile = null;
+						}
+						assignSingleHumanJob(society, human, date);
 					}
-					if (human.processTile != null || human.targetTile != null) {
-						human.processTile.harvestInUse = false;
-						human.processTile = null;
-						human.targetTile = null;
+					else {
+						process.processStepIndex = 0;
 					}
-					assignSingleHumanJob(society, human, date);
 				}
 			}
 			
@@ -268,8 +283,6 @@ public class LocalGridTimeExecution {
 	 * 
 	 * the user is directly harvesting the tile (point directly at needed tile);
 	 * the user needs to complete a process on top of a tile (point at one above tile, like in farming).
-	 * 
-	 * 
 	 * 
 	 * @return The harvest tile, followed by the tile to move to (within <= 1 distance)
 	 */
@@ -563,9 +576,10 @@ public class LocalGridTimeExecution {
 			}
 			if (step.stepType.equals("OArtwork")) { //All output items are given art status and memory
 				for (InventoryItem item: outputItems) {
+					ArtworkGraph artGraph = ArtworkGraph.generateRandArtGraph(being, null);
 					item.addSpecItemProp(new ItemSpecialProperty.ItemArtProperty(
 							StringUtil.genAlphaNumericStr(20), being, StringUtil.genAlphaNumericStr(20), 
-							ItemQuality.NORMAL));
+							ItemQuality.NORMAL, artGraph));
 				}
 			}
 			
@@ -1025,7 +1039,7 @@ public class LocalGridTimeExecution {
 				if (process.name.startsWith("Harvest ")) {
 					int inputTileId = ItemData.getIdFromName(process.requiredTileNameOrGroup);
 					//double pickupTime = ItemData.getPickupTime(inputTileId);
-					double expectedNumItem = process.outputItems.itemExpectation().get(inputTileId);
+					double expectedNumItem = process.outputItems.itemExpectation().get(firstItemNeeded);
 					double effectiveNum = Math.min(amountNeeded, expectedNumItem);
 					
 					KdTree<Vector3i> itemTree = grid.getKdTreeForTile(inputTileId);

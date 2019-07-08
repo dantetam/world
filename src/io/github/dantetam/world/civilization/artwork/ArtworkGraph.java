@@ -37,8 +37,7 @@ public class ArtworkGraph {
 	}
 	
 	public static ArtworkGraph generateRandArtGraph(Human artist, LocalExperience experience) {
-		TODO; //Use in art creation events
-		
+		//Use in art creation events
 		ArtworkGraph art = new ArtworkGraph();
 		
 		List<ArtworkMotif> allMotifs = new ArrayList<>();

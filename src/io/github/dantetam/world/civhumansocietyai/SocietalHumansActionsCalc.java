@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Set;
 
 import io.github.dantetam.toolbox.MapUtil;
+import io.github.dantetam.toolbox.MathUti;
 import io.github.dantetam.vector.Vector3i;
 import io.github.dantetam.world.civhumanai.Ethos;
 import io.github.dantetam.world.civhumanai.EthosSet;
@@ -64,10 +65,14 @@ public class SocietalHumansActionsCalc {
 			oneWayRel.reevaluateOpinion(date);
 			if (oneWayRel.opinion <= -30) return 0;
 			
-			TODO;
 			//Use gregariousness/openness ethos to factor into this utility (one and two way)
+			Ethos ethosA = human.brain.ethosSet.greatEthos.get("Extroverted");
+			Ethos ethosB = otherHuman.brain.ethosSet.greatEthos.get("Extroverted");
 			
-			return PropensityUtil.nonlinearRelUtil((oneWayRel.opinion - (-30)) / 30);
+			double util = PropensityUtil.nonlinearRelUtil((oneWayRel.opinion - (-30)) / 30);
+			util += ethosA.getLogisticVal(-2, 6);
+			util += ethosB.getLogisticVal(-1, 2);
+			return util;
 		}
 		return 0;
 	}
@@ -139,14 +144,17 @@ public class SocietalHumansActionsCalc {
 				double prosA = calcPropensityToChat(human, otherHuman, date);
 				double prosB = calcPropensityToChat(otherHuman, human, date);
 				
-				double ideoDivide = EthosSet.getEthosDifference(human.brain.ethosSet, otherHuman.brain.ethosSet);
+				double ideoDivide = EthosSet.getTotalEthosDifference(human.brain.ethosSet, otherHuman.brain.ethosSet);
 				
 				//Function that scales up with respect to high relations or lukewarm relations and significant ideological divide
 				//People want to convert others to their ideology,
 				//but also talk to others of their ideology.
-				double util = prosA + prosB 
+				double utilGood = prosA + prosB;
 				
-				if (prosA + prosB > 3) {
+				double possNegRel = Math.min(MathUti.relu(-prosA - prosB), Math.max(prosA, prosB));
+				double utilDivide = possNegRel * 0.3 + ideoDivide;
+				
+				if (utilGood > 3 || utilDivide > 3) {
 					pairs.add(new Human[] {human, otherHuman});
 				}
 			}
@@ -188,10 +196,12 @@ public class SocietalHumansActionsCalc {
 					Set<Vector3i> space = SpaceFillingAlg.findAvailableSpace(
 							grid, firstVec, dimension, dimension, false, null);
 					
-					int size = (int) Math.abs(space.size() - dimension * dimension);
-					int dist = human.location.coords.manhattanDist(firstVec);
-					double score = size + dist - dimension;
-					spaceScoring.put(cluster, score);
+					if (space != null) {
+						int size = (int) Math.abs(space.size() - dimension * dimension);
+						int dist = human.location.coords.manhattanDist(firstVec);
+						double score = size + dist - dimension;
+						spaceScoring.put(cluster, score);
+					}
 				}
 			}
 			

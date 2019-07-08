@@ -54,18 +54,28 @@ public class EthosSetInitialize {
 		
 		Map<String, Ethos> mapFreeActions = new HashMap<>();
 		for (Entry<String, FreeAction> entry: FreeActionsHumans.freeActionsListHuman.entrySet()) {
-			TODO
+			String name = "FreeActionsHumans " + entry.getKey();
+			Ethos newEthos = new Ethos(name, 0, "", "");
+			mapFreeActions.put(name, newEthos);
 		}
 		for (Entry<String, FreeAction> entry: FreeActionsHousehold.freeActionsListHuman.entrySet()) {
-			TODO
+			String name = "FreeActionsHousehold " + entry.getKey();
+			Ethos newEthos = new Ethos(name, 0, "", "");
+			mapFreeActions.put(name, newEthos);
 		}
 		for (Entry<String, FreeAction> entry: FreeActionsHousehold.freeActionsListHousehold.entrySet()) {
-			TODO
+			String name = "FreeActionsHousehold " + entry.getKey();
+			Ethos newEthos = new Ethos(name, 0, "", "");
+			mapFreeActions.put(name, newEthos);
 		}
 		for (Entry<String, FreeAction> entry: FreeActionsSociety.freeActionsInterSociety.entrySet()) {
-			TODO
+			String name = "FreeActionsSociety " + entry.getKey();
+			Ethos newEthos = new Ethos(name, 0, "", "");
+			mapFreeActions.put(name, newEthos);
 		}
 		ethosSet.ethosTowardsFreeActions = mapFreeActions;
+		
+		ethosSet.initAllEthosSaved();
 		
 		//Determine ethos towards other ethos, i.e. judgments  
 		for (Ethos ethos: ethosSet.getAllEthos()) {

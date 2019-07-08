@@ -164,8 +164,14 @@ public class ProcessCSVParser extends WorldCsvParser {
 			processResActions = getProcessingSteps(record.get("Result Action"));
 		}
 		
+		String recRepeatStr = record.get("RecRepeats");
+		int recRepeat = 1;
+		if (!recRepeatStr.isBlank()) {
+			recRepeat = Integer.parseInt(recRepeatStr);
+		}
+		
 		ProcessData.addProcess(processName, inputItems, processOutput, 
-				buildingNamesString, site, tileFloorId, steps, processResActions);
+				buildingNamesString, site, tileFloorId, steps, processResActions, recRepeat);
 	}
 	
 	static List<ProcessStep> getProcessingSteps(String processString) {		

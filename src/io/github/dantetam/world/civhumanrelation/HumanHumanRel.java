@@ -146,7 +146,7 @@ public class HumanHumanRel extends HumanRelationship {
 			}
 			else if (ethos.name.equals("Closed") || ethos.name.equals("Racist") || ethos.name.equals("Belligerent")) {
 				double severityMulti = ethos.getLogisticVal(-2.5, 2.5);
-				double totalEthosDiff = EthosSet.getEthosDifference(human.brain.ethosSet, targetHuman.brain.ethosSet);
+				double totalEthosDiff = EthosSet.getTotalEthosDifference(human.brain.ethosSet, targetHuman.brain.ethosSet);
 				double feeling = severityMulti * totalEthosDiff * 10;
 				emotionGamut.addEmotion("Hate", feeling);
 				emotionGamut.addEmotion("Rationality", -10.0);

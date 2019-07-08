@@ -5,11 +5,17 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import org.apache.commons.math3.distribution.NormalDistribution;
+
 import java.util.Map.Entry;
 import java.util.HashMap;
 
 import io.github.dantetam.toolbox.CollectionUtil;
+import io.github.dantetam.toolbox.Pair;
 import io.github.dantetam.vector.Vector3i;
+import io.github.dantetam.world.civhumanai.Ethos;
+import io.github.dantetam.world.civhumanai.EthosSet;
 import io.github.dantetam.world.civhumanrelation.HumanHumanRel;
 import io.github.dantetam.world.civhumanrelation.HumanHumanRel.HumanHumanRelType;
 import io.github.dantetam.world.civilization.Household;
@@ -75,7 +81,7 @@ public class FreeActionsHumans {
 				}
 			}
 			else if (name.equals("tryToHaveChild")) {
-				TODO;
+				//TODO;
 			}
 			else if (name.equals("claimNewLand")) {
 				Map<Human, Set<Vector3i>> humanClaimUtil = SocietalHumansActionsCalc
@@ -84,7 +90,7 @@ public class FreeActionsHumans {
 					Human human = claimEntry.getKey();
 					Set<Vector3i> cluster = claimEntry.getValue();
 					
-					TODO;
+					//TODO;
 				}
 			}
 			else if (name.equals("chat")) { //Temporarily represent chatting as an instaneous free action
@@ -110,7 +116,36 @@ public class FreeActionsHumans {
 				
 				//People in bad relationships talk about differing beliefs only (non-civil debate)
 				
-				TODO
+				List<Human[]> chatPairs = SocietalHumansActionsCalc.getIdeoEthosDebatePairs(humans, date);
+				for (Human[] chatPair: chatPairs) {
+					Human humanA = chatPair[0];
+					Human humanB = chatPair[1];
+					
+					HumanHumanRel relA = humanA.brain.getHumanRel(humanB);
+					HumanHumanRel relB = humanB.brain.getHumanRel(humanA);
+					double effRel = Math.min(relA.opinion, relB.opinion);
+					
+					double differingBoundLeft = Math.pow(Math.abs(effRel - 30) / 30, 1.25);
+					double similarBoundRight = (effRel - 30) / 30 * 5;
+					
+					double mean = (differingBoundLeft + similarBoundRight) / 2.0;
+					double sd = (similarBoundRight - mean) / 2.3;
+					NormalDistribution distr = new NormalDistribution(mean, sd);
+					double getDiffRating = distr.sample();
+					
+					Pair<Ethos> debatingEthos = EthosSet.getClosestEthosWithDiffVal(
+							humanA.brain.ethosSet, humanB.brain.ethosSet, getDiffRating);
+					double conviction = Math.log(debatingEthos.first.severity);
+					double civility = 0.5 * (relA.opinion + relB.opinion) / 30;
+					
+					LocalExperience exp = new LocalExperience("EthosDebate");
+					exp.modifiers = new ArrayList<String>() {{add(debatingEthos.first.name);}};
+					exp.valueModifiers = new HashMap<String, Double>() {{put("conviction", conviction);}};
+					exp.valueModifiers = new HashMap<String, Double>() {{put("civility", civility);}};
+					exp.beingRoles.put(humanA, CollectionUtil.newSet("chatInitiate"));
+					exp.beingRoles.put(humanB, CollectionUtil.newSet("chat"));
+				}
+				
 			}
 		}
 	}

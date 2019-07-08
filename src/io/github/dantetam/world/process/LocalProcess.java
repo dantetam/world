@@ -27,9 +27,13 @@ public class LocalProcess {
 	public List<ProcessStep> processSteps; //The linear set of actions done by humans to achieve this goal
 	public List<ProcessStep> processResActions; //The set of actions that occurs when this process is finished
 	
+	public int recRepeats; //Recommended number of times to repeat the sequence of this process
+	public int processStepIndex; //Keep track of which step the human is completing
+	
 	public LocalProcess(String name, List<InventoryItem> input, ItemTotalDrops output, 
 			String buildingName, boolean site, String tileFloorId, 
-			List<ProcessStep> steps, List<ProcessStep> processResActions) {
+			List<ProcessStep> steps, List<ProcessStep> processResActions,
+			int recRepeats) {
 		this.name = name;
 		this.inputItems = input;
 		this.outputItems = output;
@@ -38,6 +42,8 @@ public class LocalProcess {
 		this.requiredTileNameOrGroup = tileFloorId;
 		this.processSteps = steps;
 		this.processResActions = processResActions;
+		this.recRepeats = recRepeats;
+		processStepIndex = 0;
 	}
 	
 	public ProcessStep findStepName(String stepType) {
@@ -120,7 +126,7 @@ public class LocalProcess {
 		}
 		LocalProcess clone = new LocalProcess(this.name, this.inputItems, this.outputItems, 
 				this.requiredBuildNameOrGroup, this.isCreatedAtSite, this.requiredTileNameOrGroup,
-				new ArrayList<>(steps), processResActions);
+				new ArrayList<>(steps), this.processResActions, this.recRepeats);
 		return clone;
 	}
 	

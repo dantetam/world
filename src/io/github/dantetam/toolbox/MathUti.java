@@ -23,4 +23,8 @@ public class MathUti {
 		return (int) (Math.random() * range) + a;
 	}
 
+	public static double relu(double a) {
+		return a > 0 ? a : 0;
+	}
+	
 }

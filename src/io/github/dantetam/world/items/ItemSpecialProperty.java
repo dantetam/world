@@ -15,11 +15,13 @@ public abstract class ItemSpecialProperty {
 		
 		public ArtworkGraph artGraph;
 		
-		public ItemArtProperty(String artworkName, Human author, String artworkGeneralStyle, ItemQuality quality) {
+		public ItemArtProperty(String artworkName, Human author, String artworkGeneralStyle, ItemQuality quality,
+				ArtworkGraph artGraph) {
 			this.artworkName = artworkName;
 			this.author = author;
 			this.artworkGeneralStyle = artworkGeneralStyle;
 			this.quality = quality;
+			this.artGraph = artGraph;
 		}
 		
 		public static String generateArtName() {

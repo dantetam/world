@@ -115,7 +115,7 @@ public class ItemCSVParser extends WorldCsvParser {
 				List<ProcessStep> steps = new ArrayList<>();
 				steps.add(new ProcessStep("Wait", pickupTime));
 				ProcessData.addProcess("Consume Item " + name, singleItem, null, null, false, 
-						null, steps, itemActions);
+						null, steps, itemActions, 1);
 			}
 		}
 		
@@ -160,14 +160,14 @@ public class ItemCSVParser extends WorldCsvParser {
 				steps.add(new ProcessStep("HBuilding", pickupTime));
 				steps.add(new ProcessStep("O", 0));
 				ProcessData.addProcess("Harvest Building " + name, new ArrayList<>(), itemDrops, name, false, 
-						null, steps, null);
+						null, steps, null, 1);
 			}
 			else {
 				List<ProcessStep> steps = new ArrayList<>();
 				steps.add(new ProcessStep("HTile", pickupTime));
 				steps.add(new ProcessStep("O", 0));
 				ProcessData.addProcess("Harvest Tile " + name, new ArrayList<>(), itemDrops, null, false, 
-						name, steps, null);
+						name, steps, null, 1);
 			}
 		}
 	}

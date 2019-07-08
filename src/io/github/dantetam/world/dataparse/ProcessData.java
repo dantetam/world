@@ -18,9 +18,11 @@ public class ProcessData {
 	
 	public static void addProcess(String name, List<InventoryItem> input, ItemTotalDrops output, 
 			String buildingName, boolean site, String tileFloor, 
-			List<ProcessStep> steps, List<ProcessStep> processResActions) {
+			List<ProcessStep> steps, List<ProcessStep> processResActions,
+			int recRepeats) {
 		int index = processes.size();
-		processes.add(new LocalProcess(name, input, output, buildingName, site, tileFloor, steps, processResActions));
+		processes.add(new LocalProcess(name, input, output, buildingName, 
+				site, tileFloor, steps, processResActions, recRepeats));
 		if (input != null) {
 			for (InventoryItem inputItem: input) {
 				if (!recipesByInput.containsKey(inputItem.itemId)) {
