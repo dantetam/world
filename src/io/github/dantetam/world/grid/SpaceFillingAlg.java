@@ -31,13 +31,14 @@ public class SpaceFillingAlg {
 	 * @return
 	 */
 	public static Set<Vector3i> findAvailableSpaceWithinClaims(LocalGrid grid, 
-			int desiredR, int desiredC, boolean sameLevel, Set<Human> validLandOwners) {
+			int desiredR, int desiredC, boolean sameLevel, Set<Human> validLandOwners,
+			LocalTileCond tileCond) {
 		Set<Vector3i> bestSpace = null;
 		int minScore = 0;
 		for (Human landOwner: validLandOwners) {
 			for (LocalGridLandClaim claim: landOwner.allClaims) {
 				Set<Vector3i> space = findAvailableSpace(grid, claim.boundary.avgVec(), 
-						desiredR, desiredC, sameLevel, validLandOwners);
+						desiredR, desiredC, sameLevel, validLandOwners, tileCond);
 				int reverseScore = Math.abs(space.size() - (desiredR * desiredC)); 
 				if (reverseScore < minScore || bestSpace == null) {
 					bestSpace = space;
@@ -58,7 +59,7 @@ public class SpaceFillingAlg {
 	 * if one exists within maxDistFlat * trials distance (square dist) away from center.
 	 */
 	public static Set<Vector3i> findAvailableSpace(LocalGrid grid, Vector3i center, 
-			int desiredR, int desiredC, boolean sameLevel, Set<Human> validLandOwners) {
+			int desiredR, int desiredC, boolean sameLevel, Set<Human> validLandOwners, LocalTileCond tileCond) {
 		//int minDistFlat = 0;
 		int maxDistFlat = 10;
 		int trials = 0;
@@ -71,7 +72,8 @@ public class SpaceFillingAlg {
 					Vector3i candidate = center.getSum(new Vector3i(r,c,0));
 					candidate.z = h;
 					
-					if (grid.inBounds(candidate)) {
+					if (grid.inBounds(candidate) && 
+							(tileCond == null || tileCond.isDesiredTile(grid, candidate))) {
 						List<Human> claimants = grid.findClaimantToTile(candidate);
 						if (claimants.size() == 0 || CollectionUtil.colnsHasIntersect(claimants, validLandOwners)) {
 							candidates.add(candidate);

@@ -194,7 +194,7 @@ public class SocietalHumansActionsCalc {
 				for (Set<Vector3i> cluster: grid.clustersList) {
 					Vector3i firstVec = cluster.iterator().next();
 					Set<Vector3i> space = SpaceFillingAlg.findAvailableSpace(
-							grid, firstVec, dimension, dimension, false, null);
+							grid, firstVec, dimension, dimension, false, null, null);
 					
 					if (space != null) {
 						int size = (int) Math.abs(space.size() - dimension * dimension);

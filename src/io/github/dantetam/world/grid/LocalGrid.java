@@ -505,7 +505,10 @@ public class LocalGrid {
 	 * @return An array of two vectors, representing the 3d coords of the top left corner (min r and min c)
 	 * of the bounds, and then 2d rectangular dimensions of the bounds.
 	 */
-	public Object[] getNearestViableRoom(Vector3i coords, Vector2i requiredSpace) {
+	/*
+	public Object[] getNearestViableRoom(Set<Human> validLandOwners, Vector3i coords, Vector2i requiredSpace) {
+		TODO;
+		
 		Collection<Vector3i> nearestBuildingCoords = this.buildingLookup.nearestNeighbourListSearch(50, coords);
 		for (Vector3i nearestBuildingCoord: nearestBuildingCoords) {
 			LocalBuilding building = getTile(nearestBuildingCoord).building;
@@ -525,6 +528,13 @@ public class LocalGrid {
 			}
 		}
 		return null;
+	}
+	*/
+	public Set<Vector3i> getNearestViableRoom(Set<Human> validLandOwners, Vector3i coords, Vector2i requiredSpace) {
+		Set<Vector3i> bestAvailSpace = SpaceFillingAlg.findAvailableSpaceWithinClaims(this, 
+				requiredSpace.x, requiredSpace.y, true, 
+				validLandOwners, new LocalTileCond.IsBuildingTileCond());
+		return bestAvailSpace;
 	}
 	
 	public boolean checkIfUseRoomSpace(Vector3i nearOpenSpace, Vector2i bounds2d) {
@@ -547,7 +557,6 @@ public class LocalGrid {
 			}
 		}
 	}
-	
 	public void setInUseRoomSpace(Collection<Vector3i> coords, boolean inUse) {
 		for (Vector3i coord: coords) {
 			LocalTile tile = getTile(coord);
@@ -561,9 +570,8 @@ public class LocalGrid {
 	public Set<Vector3i> getFreeSpace(LocalBuilding building) {
 		Set<Vector3i> emptySpaces = new HashSet<>();
 		for (Vector3i location: building.calculatedLocations) {
-			LocalTile buildingTile = getTile(location);
-			if (buildingTile.tileBlockId == ItemData.ITEM_EMPTY_ID) {
-				emptySpaces.add(buildingTile.coords);
+			if (this.tileIsAccessible(location)) {
+				emptySpaces.add(location);
 			}
 		}
 		return emptySpaces;

@@ -316,8 +316,8 @@ public class Society {
 		Map<String, Double> needsIntensity = findAllNeedsIntensity();
 		
 		Map<String, Double> needWeights = new HashMap<>();
-		needWeights.put("Eat", 12.0);
-		needWeights.put("Rest", 3.0);
+		needWeights.put("Eat", 5.0);
+		needWeights.put("Rest", 2.5);
 		needWeights.put("Shelter", 1.0);
 		needWeights.put("Soldier", 0.3);
 		
@@ -344,8 +344,8 @@ public class Society {
 				
 				double tempMultiplier = needWeights.containsKey("Wealth") ? needWeights.get("Wealth") : 0.5;
 				
-				//return (e.getValue() * intensity * needWeight) - (itemRarity * economicRarity);
-				return tempMultiplier * e.getValue() * needWeight;
+				return (e.getValue() * intensity * needWeight) - (itemRarity * economicRarity);
+				//return tempMultiplier * e.getValue() * needWeight;
 			};
 			
 			//Develop a basic utility value: item use * need for item use / rareness
@@ -597,6 +597,8 @@ public class Society {
 						
 						double avgUtil = (outputUtil + provisionalUtil) / 2.0;
 						avgUtil -= inputCosts;
+						if (process.totalSupervisedTime() > 0)
+							avgUtil /= process.totalSupervisedTime();
 						
 						MapUtil.insertKeepMaxMap(newFinalUtility, item.itemId, percentage * avgUtil);
 						

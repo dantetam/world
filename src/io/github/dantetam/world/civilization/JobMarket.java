@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import io.github.dantetam.world.civhumanai.Ethos;
+import io.github.dantetam.world.grid.LocalGridTimeExecution;
 import io.github.dantetam.world.life.Human;
 import io.github.dantetam.world.process.LocalJob;
 import io.github.dantetam.world.process.LocalProcess;
@@ -28,7 +29,8 @@ public class JobMarket {
 			}
 			
 			Map<Integer, Double> calcUtility = society.findCompleteUtilityAllItems(human);
-			Map<LocalProcess, Double> bestProcesses = society.prioritizeProcesses(calcUtility, human, 20, null);
+			Map<LocalProcess, Double> bestProcesses = society.prioritizeProcesses(calcUtility, human, 
+					LocalGridTimeExecution.NUM_JOBPROCESS_CONSIDER, null);
 			double wealth = human.getTotalWealth();
 			for (Entry<LocalProcess, Double> entry: bestProcesses.entrySet()) {
 				double util = wealth / (entry.getValue() * (1 - wagePercentageOfOutput));

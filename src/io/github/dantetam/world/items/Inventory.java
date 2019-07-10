@@ -149,12 +149,12 @@ public class Inventory {
 						regularItemNeeds.remove(itemId);
 				}
 			}
-		}
-		
-		for (int itemIndex = items.size() - 1; itemIndex >= 0; itemIndex--) {
-			InventoryItem item = items.get(itemIndex);
-			if (item.quantity <= 0) {
-				items.remove(itemIndex);
+			
+			for (int itemIndex = items.size() - 1; itemIndex >= 0; itemIndex--) {
+				InventoryItem item = items.get(itemIndex);
+				if (item.quantity <= 0) {
+					items.remove(itemIndex);
+				}
 			}
 		}
 		
@@ -191,7 +191,7 @@ public class Inventory {
 	}
 	
 	public List<InventoryItem> getItems() {
-		return items;
+		return items == null ? new ArrayList<>() : items;
 	}
 	
 	public boolean canFitItems(List<InventoryItem> items) {
@@ -235,8 +235,10 @@ public class Inventory {
 	
 	public Map<String, Integer> toUniqueItemsMap() {
 		Map<String, Integer> uniqueCounts = new HashMap<>();
-		for (InventoryItem item: items) {
-			MapUtil.addNumMap(uniqueCounts, ItemData.getNameFromId(item.itemId), item.quantity);
+		if (items != null) {
+			for (InventoryItem item: items) {
+				MapUtil.addNumMap(uniqueCounts, ItemData.getNameFromId(item.itemId), item.quantity);
+			}
 		}
 		return uniqueCounts;
 	}

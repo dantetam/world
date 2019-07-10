@@ -44,7 +44,7 @@ public class CollectionUtil {
 			
 		Collection<T> minSizeColn = null;
 		for (Collection<T> coln: collections) {
-			if (coln == null) {
+			if (coln == null) { //Strictly define intersection with an empty/null set as none
 				return new ArrayList<>();
 			}
 			if (minSizeColn == null || coln.size() < minSizeColn.size()) {

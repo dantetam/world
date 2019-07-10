@@ -11,6 +11,7 @@ import java.util.PriorityQueue;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import io.github.dantetam.toolbox.Pair;
 import io.github.dantetam.toolbox.VecGridUtil;
 import io.github.dantetam.vector.Vector2i;
 import io.github.dantetam.vector.Vector3i;
@@ -643,7 +644,7 @@ public class HierarchicalPathfinder extends Pathfinder {
 				
 				List<Vector3i> vecs = new ArrayList<>();
 				vecs.add(startVec); vecs.add(endVec);
-				Vector3i[] tempBounds = VecGridUtil.findCoordBounds(
+				Pair<Vector3i> tempBounds = VecGridUtil.findCoordBounds(
 						vecs
 					);
 				
@@ -651,7 +652,7 @@ public class HierarchicalPathfinder extends Pathfinder {
 				Pathfinder regPather = new Pathfinder(activeLocalGrid);
 				ScoredPath oldStylePath = regPather.findPath(people.get(0), 
 						activeLocalGrid.getTile(startVec), activeLocalGrid.getTile(endVec), 
-						tempBounds[0], tempBounds[1]);
+						tempBounds.first, tempBounds.second);
 				System.out.println(oldStylePath.path);
 				System.out.println("Score (high means longer): " + oldStylePath.score);
 			}

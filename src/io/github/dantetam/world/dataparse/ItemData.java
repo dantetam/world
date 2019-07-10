@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Set;
 
 import io.github.dantetam.lwjglEngine.render.VBOLoader;
+import io.github.dantetam.toolbox.Pair;
 import io.github.dantetam.toolbox.VecGridUtil;
 import io.github.dantetam.vector.Vector2i;
 import io.github.dantetam.vector.Vector3i;
@@ -113,6 +114,17 @@ public class ItemData {
 		return createItem(id, oneStackQuantity);
 	}
 	
+	public static InventoryItem randomBaseItem() {
+		InventoryItem item;
+		while (true) {
+			item = randomItem();
+			double value = getBaseItemValue(item.itemId);
+			if (value <= 8) {
+				return item;
+			}
+		}
+	}
+	
 	public static void addItemToDatabase(int id, String name, boolean placeable, 
 			String[] groups, Integer stackable, int refinedForm, ItemTotalDrops itemTotalDrops,
 			int time, double baseValue, double beautyValue, 
@@ -177,8 +189,8 @@ public class ItemData {
 		if (isBuilding) {
 			if (specBuildOffsets != null && specBuildOffsets.size() > 0) {
 				specialBuildingOffsets.put(id, specBuildOffsets);
-				Vector3i[] pointBounds = VecGridUtil.findCoordBounds(specBuildOffsets);
-				Vector3i bounds = pointBounds[1].getSubtractedBy(pointBounds[0]);
+				Pair<Vector3i> pointBounds = VecGridUtil.findCoordBounds(specBuildOffsets);
+				Vector3i bounds = pointBounds.second.getSubtractedBy(pointBounds.first);
 				buildingSizes.put(id, new Vector2i(bounds.x, bounds.y));
 			}
 			else {

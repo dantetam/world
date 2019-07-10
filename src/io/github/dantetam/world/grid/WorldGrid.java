@@ -84,9 +84,10 @@ public class WorldGrid {
 				people.add(human);
 				activeLocalGrid.addHuman(human, new Vector3i(r,c,h));
 				
-				human.inventory.addItem(ItemData.randomItem());
-				human.inventory.addItem(ItemData.randomItem());
-				human.inventory.addItem(ItemData.randomItem());
+				human.inventory.addItem(ItemData.randomBaseItem());
+				human.inventory.addItem(ItemData.randomBaseItem());
+				human.inventory.addItem(ItemData.randomBaseItem());
+				human.inventory.addItem(ItemData.randomBaseItem());
 				human.inventory.addItem(ItemData.randomItem());
 				human.inventory.addItem(ItemData.item("Wheat Seeds", 50));
 				human.inventory.addItem(ItemData.item("Pine Wood", 50));

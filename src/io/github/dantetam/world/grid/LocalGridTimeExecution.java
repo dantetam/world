@@ -48,6 +48,8 @@ public class LocalGridTimeExecution {
 	public static Map<String, Double> groupItemRarity;
 	public static List<Vector3i> importantLocations;
 	
+	public static int NUM_JOBPROCESS_CONSIDER = 40;
+	
 	public static void tick(WorldGrid world, LocalGrid grid, Society society) {
 		calcUtility = society.findCompleteUtilityAllItems(null);
 		groupItemRarity = society.findRawGroupsResRarity(null);
@@ -427,13 +429,13 @@ public class LocalGridTimeExecution {
 			
 			//If available building, use it, 
 			//otherwise find space needed for building, allocate it, and start allocating a room
-			Object[] boundsData = grid.getNearestViableRoom(being.location.coords, requiredSpace);
+			Set<Vector3i> nearOpenSpace = grid.getNearestViableRoom(validLandOwners, being.location.coords, requiredSpace);
 
-			if (boundsData == null) { //No available rooms to use
+			if (nearOpenSpace == null) { //No available rooms to use
 				List<Vector3i> bestRectangle = findBestOpenRectSpace(grid, validLandOwners, being.location.coords, requiredSpace);
 			
 				if (bestRectangle != null) {
-					System.out.println("Create building space: " + Arrays.toString(VecGridUtil.findCoordBounds(bestRectangle)));
+					System.out.println("Create building space: " + VecGridUtil.findCoordBounds(bestRectangle).toString());
 					Set<Integer> bestBuildingMaterials = society.getBestBuildingMaterials(calcUtility, 
 							being, (requiredSpace.x + requiredSpace.y) * 2);
 					grid.setInUseRoomSpace(bestRectangle, true);
@@ -446,14 +448,12 @@ public class LocalGridTimeExecution {
 				return priority;
 			}
 			else {
-				Vector3i nearOpenSpace = (Vector3i) boundsData[0]; // = grid.getNearOpenSpace(society.societyCenter);
-				Vector2i bounds2d = (Vector2i) boundsData[1];
+				System.out.println("Assigned building space: " + VecGridUtil.findCoordBounds(nearOpenSpace).toString());
+				grid.setInUseRoomSpace(nearOpenSpace, true);
 				
-				System.out.println("Assigned building space: " + nearOpenSpace.toString());
-				grid.setInUseRoomSpace(nearOpenSpace, bounds2d, true);
-				
+				Vector3i newBuildCoords = nearOpenSpace.iterator().next();
 				if (process.isCreatedAtSite) {
-					being.processTile = grid.getTile(nearOpenSpace);
+					being.processTile = grid.getTile(newBuildCoords);
 					if (being.location.coords.areAdjacent14(targetLocation)) {
 						//continue
 					}
@@ -462,7 +462,7 @@ public class LocalGridTimeExecution {
 					}
 				}
 				else { //implies process.requiredBuildNameOrGroup != null -> buildingId is valid
-					priority = new BuildingPlacePriority(nearOpenSpace, 
+					priority = new BuildingPlacePriority(newBuildCoords, 
 							ItemData.createItem(buildingId, 1), ownerProducts);
 					return priority;
 				}
@@ -705,6 +705,12 @@ public class LocalGridTimeExecution {
 				return getTasksFromPriority(grid, being, new MoveTolDistOnePriority(tilePriority.coords));
 			}
 		}
+		else if (priority instanceof TilePlacePriority) {
+			TilePlacePriority tilePriority = (TilePlacePriority) priority;
+			
+			int placeTime = 10;
+			tasks.add(new PlaceBlockTileTask(placeTime, tilePriority.coords, tilePriority.materialId));
+		}
 		else if (priority instanceof BuildingPlacePriority) {
 			BuildingPlacePriority buildPriority = (BuildingPlacePriority) priority;
 			
@@ -944,6 +950,10 @@ public class LocalGridTimeExecution {
 			HarvestBuildingTask harvestBuildTask = (HarvestBuildingTask) task;
 			grid.removeBuilding(harvestBuildTask.buildingTarget);
 		}
+		else if (task instanceof PlaceBlockTileTask) {
+			PlaceBlockTileTask tileTask = (PlaceBlockTileTask) task;
+			grid.putBlockIntoTile(tileTask.placeCoords, tileTask.tileId);
+		}
 	}
 	
 	private static void assignAllHumanJobs(Society society, Date date) {
@@ -955,7 +965,7 @@ public class LocalGridTimeExecution {
 	private static void assignSingleHumanJob(Society society, Human human, Date date) {
 		Map<Integer, Double> calcUtility = society.findCompleteUtilityAllItems(human);
 		
-		Map<LocalProcess, Double> bestProcesses = society.prioritizeProcesses(calcUtility, human, 20, null);
+		Map<LocalProcess, Double> bestProcesses = society.prioritizeProcesses(calcUtility, human, NUM_JOBPROCESS_CONSIDER, null);
 		Map<LocalJob, Double> bestJobs = society.prioritizeJobs(human, bestProcesses, date);
 		
 		for (Entry<LocalProcess, Double> entry: bestProcesses.entrySet()) {
@@ -975,7 +985,7 @@ public class LocalGridTimeExecution {
 	
 	private static void collectivelyAssignJobsSociety(Society society) {
 		Map<Integer, Double> calcUtility = society.findCompleteUtilityAllItems(null);
-		Map<LocalProcess, Double> bestProcesses = society.prioritizeProcesses(calcUtility, null, 20, null);
+		Map<LocalProcess, Double> bestProcesses = society.prioritizeProcesses(calcUtility, null, NUM_JOBPROCESS_CONSIDER, null);
 		List<Human> humans = society.getAllPeople();
 		
 		int humanIndex = 0;
@@ -1036,23 +1046,33 @@ public class LocalGridTimeExecution {
 			
 			List<LocalProcess> outputItemProcesses = ProcessData.getProcessesByOutput(firstItemNeeded);
 			for (LocalProcess process: outputItemProcesses) {
-				if (process.name.startsWith("Harvest ")) {
+				KdTree<Vector3i> itemTree = null;
+				double effectiveNum = 0;
+				
+				//double pickupTime = ItemData.getPickupTime(inputTileId);
+				double expectedNumItem = process.outputItems.itemExpectation().get(firstItemNeeded);
+				
+				if (process.name.startsWith("Harvest Tile ")) {
+					System.out.println(process);
 					int inputTileId = ItemData.getIdFromName(process.requiredTileNameOrGroup);
-					//double pickupTime = ItemData.getPickupTime(inputTileId);
-					double expectedNumItem = process.outputItems.itemExpectation().get(firstItemNeeded);
-					double effectiveNum = Math.min(amountNeeded, expectedNumItem);
-					
-					KdTree<Vector3i> itemTree = grid.getKdTreeForTile(inputTileId);
-					if (itemTree == null || itemTree.size() == 0) continue;
-					int numCandidates = Math.min(itemTree.size(), 10);
-					Collection<Vector3i> nearestCoords = itemTree.nearestNeighbourListSearch(
-							numCandidates, being.location.coords);
-					for (Vector3i itemCoords: nearestCoords) {
-						int distUtil = being.location.coords.manhattanDist(itemCoords);
-						if (bestLocation == null || distUtil < bestScore) {
-							bestLocation = itemCoords;
-							bestScore = distUtil - effectiveNum;
-						}
+					effectiveNum = Math.min(amountNeeded, expectedNumItem);
+					itemTree = grid.getKdTreeForTile(inputTileId);
+				}
+				else if (process.name.startsWith("Harvest Building ")) {
+					int buildId = ItemData.getIdFromName(process.requiredBuildNameOrGroup);
+					effectiveNum = Math.min(amountNeeded, expectedNumItem);
+					itemTree = grid.getKdTreeForBuildings(buildId);
+				}
+				
+				if (itemTree == null || itemTree.size() == 0 || effectiveNum == 0) continue;
+				int numCandidates = Math.min(itemTree.size(), 10);
+				Collection<Vector3i> nearestCoords = itemTree.nearestNeighbourListSearch(
+						numCandidates, being.location.coords);
+				for (Vector3i itemCoords: nearestCoords) {
+					int distUtil = being.location.coords.manhattanDist(itemCoords);
+					if (bestLocation == null || distUtil < bestScore) {
+						bestLocation = itemCoords;
+						bestScore = distUtil - effectiveNum;
 					}
 				}
 			}
@@ -1154,7 +1174,7 @@ public class LocalGridTimeExecution {
 	private static List<Vector3i> findBestOpenRectSpace(LocalGrid grid, Set<Human> validLandOwners, 
 			Vector3i coords, Vector2i requiredSpace) {
 		Set<Vector3i> openSpace = SpaceFillingAlg.findAvailableSpaceWithinClaims(grid, 
-				requiredSpace.x + 2, requiredSpace.y + 2, true, validLandOwners);
+				requiredSpace.x + 2, requiredSpace.y + 2, true, validLandOwners, null);
 		
 		if (openSpace != null) {
 			int height = openSpace.iterator().next().z;

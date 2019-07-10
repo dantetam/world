@@ -25,7 +25,7 @@ public class VecGridUtil {
 	 * @return The minimum and maximum bounds of the set of coords in three dimensions,
 	 * formatted as two Vector3i objects.
 	 */
-	public static Vector3i[] findCoordBounds(Collection<Vector3i> coords) {
+	public static Pair<Vector3i> findCoordBounds(Collection<Vector3i> coords) {
 		if (coords.size() == 0) {
 			throw new IllegalArgumentException("Attempted to find the bounds of an empty set of coords");
 		}
@@ -56,7 +56,7 @@ public class VecGridUtil {
 				}
 			}
 		}
-		return new Vector3i[] {minBounds, maxBounds};
+		return new Pair<Vector3i>(minBounds, maxBounds);
 	}
 	
 	/**
@@ -64,8 +64,8 @@ public class VecGridUtil {
 	 * @return        The maximal rectangle within the set of vectors
 	 */
 	public static int[] findMaxRect(Set<Vector3i> coords) {
-		Vector3i[] bounds = findCoordBounds(coords);
-		Vector3i topLeftBound = bounds[0], bottomRightBound = bounds[1];
+		Pair<Vector3i> bounds = findCoordBounds(coords);
+		Vector3i topLeftBound = bounds.first, bottomRightBound = bounds.second;
 		int rows = bottomRightBound.x - topLeftBound.x + 1;
 		int cols = bottomRightBound.z - topLeftBound.z + 1;
 		int[][] convertedOffsetVec = new int[rows][cols];
@@ -360,8 +360,8 @@ public class VecGridUtil {
 	public static boolean vecInBounds(Vector3i minBounds, Vector3i maxBounds, Vector3i coords) {
 		List<Vector3i> pair = new ArrayList<>();
 		pair.add(minBounds); pair.add(maxBounds);
-		Vector3i[] bounds = findCoordBounds(pair);
-		Vector3i topLeftBound = bounds[0], bottomRightBound = bounds[1];
+		Pair<Vector3i> bounds = findCoordBounds(pair);
+		Vector3i topLeftBound = bounds.first, bottomRightBound = bounds.second;
 		if (minBounds != null) {
         	if (coords.x < topLeftBound.x || 
         		coords.y < topLeftBound.y ||
@@ -380,8 +380,8 @@ public class VecGridUtil {
 	}
 	
 	public static int[] findBestRect(Set<Vector3i> coords, int desiredR, int desiredC) {
-		Vector3i[] bounds = findCoordBounds(coords);
-		Vector3i topLeftBound = bounds[0], bottomRightBound = bounds[1];
+		Pair<Vector3i> bounds = findCoordBounds(coords);
+		Vector3i topLeftBound = bounds.first, bottomRightBound = bounds.second;
 		int rows = bottomRightBound.x - topLeftBound.x + 1;
 		int cols = bottomRightBound.y - topLeftBound.y + 1;
 		int[][] convertedOffsetVec = new int[rows][cols];
@@ -614,7 +614,7 @@ public class VecGridUtil {
 		coords.add(new Vector3i(1,1,1));
 		coords.add(new Vector3i(5,-1,1));
 		coords.add(new Vector3i(2,1,4));
-		System.out.println(Arrays.toString(VecGridUtil.findCoordBounds(coords)));
+		System.out.println(VecGridUtil.findCoordBounds(coords).toString());
 		
 		
 		Set<Vector2i> cornerCoordsTest = new HashSet<>();
