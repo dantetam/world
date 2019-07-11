@@ -137,7 +137,7 @@ public class LocalGridTimeExecution {
 						human.activePriority = getPriorityForStep(society, grid, 
 								human, human.jobProcessProgress.boss, process, step);
 						String priorityName = human.activePriority == null ? "null" : human.activePriority.getClass().getSimpleName();
-						System.out.println(human.name + ", for its process: " + process + ", " +
+						System.out.println(human.name + ", for its job process: " + process + ", " +
 								"was given the PRIORITY: " + priorityName);
 					}
 					if (human.activePriority instanceof DonePriority || 
@@ -203,11 +203,11 @@ public class LocalGridTimeExecution {
 					}
 					if (human.activePriority instanceof DonePriority || 
 							human.activePriority instanceof ImpossiblePriority) {
-						/*
 						if (human.activePriority instanceof ImpossiblePriority) {
-							System.err.println("Warning, impossible priority task was given, for process step: " + human.processProgress.processSteps.get(0));
+							System.err.println("Warning, impossible for process step: " + human.processProgress.processSteps.get(0));
+							ImpossiblePriority iPrior = (ImpossiblePriority) human.activePriority;
+							System.err.println("Warning, impossible priority: " + iPrior.reason);
 						}
-						*/
 						human.processProgress.processStepIndex++;
 						human.activePriority = null;
 					}

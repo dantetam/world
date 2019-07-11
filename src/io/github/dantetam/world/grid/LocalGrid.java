@@ -334,6 +334,10 @@ public class LocalGrid {
 	*/
 	
 	public void putBlockIntoTile(Vector3i coords, int newBlockId) {
+		if (!ItemData.isPlaceable(newBlockId)) {
+			throw new IllegalArgumentException("Cannot place down block id: " + newBlockId);
+		}
+		
 		LocalTile tile = getTile(coords);
 		int oldItemId = tile.tileBlockId;
 		if (tile != null) {

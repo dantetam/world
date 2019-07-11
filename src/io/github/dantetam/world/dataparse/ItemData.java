@@ -233,6 +233,7 @@ public class ItemData {
 	}
 	
 	public static boolean isPlaceable(int id) {
+		if (id == ITEM_EMPTY_ID) return true;
 		if (!allItemsById.containsKey(id)) {
 			throw new IllegalArgumentException("Could not find item id: " + id);
 		}

@@ -79,7 +79,7 @@ public class LocalGridTerrainGenerate {
 						if (perturbSurfaceBlocks[x][y][z]) {
 							int modHeight = Math.min(z + heightPerturb, dimensions.z - 1);
 							if (modHeight >= 0)
-								terrain[x][y][modHeight] = ItemData.getIdFromName("Pine Wood");
+								terrain[x][y][modHeight] = terrain[x][y][z];
 						}
 					}
 					if (z < realHeight) {

@@ -316,66 +316,54 @@ public class Society {
 		Map<String, Double> needsIntensity = findAllNeedsIntensity();
 		
 		Map<String, Double> needWeights = new HashMap<>();
-		needWeights.put("Eat", 5.0);
+		needWeights.put("Eat", 2.0);
 		needWeights.put("Rest", 2.5);
 		needWeights.put("Shelter", 1.0);
 		needWeights.put("Soldier", 0.3);
 		
 		//Used to normalize the values and determine 
 		Map<String, Double> totalNeedsUtility = new HashMap<>(); 
-		
 		Map<Integer, Double> finalOutputUtility = new HashMap<>();
 		
-		Map<Integer, Double> combinedRarityMap = new HashMap<>();
-		
 		for (int itemId : availableItemIds) {
-			double itemRarity = allRarity.containsKey(itemId) ? new Double(Math.log10(allRarity.get(itemId))) : 0;
-			double economicRarity = new Double(Math.log10(economicRarityMap.get(itemId)));
+			double itemRarity = allRarity.containsKey(itemId) ? new Double(Math.log(allRarity.get(itemId))) : -10;
+			double economicRarity = new Double(Math.log(economicRarityMap.get(itemId)));
 			
-			combinedRarityMap.put(itemId, (itemRarity + economicRarity) / 2.0);
+			itemRarity = Math.min(itemRarity, 1);
+			economicRarity = Math.min(economicRarity, 1);
+					
+			//Develop a basic utility value: item use * need for item use / rareness
+			Map<String, Double> needsUtilityFromItems = findUtilityByNeed(itemId);
 			
-			Function<Entry<String, Double>, Double> utilCalcBalance = e -> {
+			for (Entry<String, Double> e: needsUtilityFromItems.entrySet()) {
 				Double intensity = needsIntensity.get(e.getKey());
 				if (intensity == null) {
 					intensity = new Double(0.5);
 				}
-				
-				double needWeight = needWeights.containsKey(e.getKey()) ? needWeights.get(e.getKey()) : 1.0;
-				
-				double tempMultiplier = needWeights.containsKey("Wealth") ? needWeights.get("Wealth") : 0.5;
-				
-				return (e.getValue() * intensity * needWeight) - (itemRarity * economicRarity);
-				//return tempMultiplier * e.getValue() * needWeight;
-			};
-			
-			//Develop a basic utility value: item use * need for item use / rareness
-			Map<String, Double> needsUtilityFromItems = findUtilityByNeed(itemId);
-			needsUtilityFromItems.entrySet().stream().collect(Collectors.toMap(Entry::getKey,
-					utilCalcBalance
-					));
+				double needWeight = needWeights.containsKey(e.getKey()) ? needWeights.get(e.getKey()) : 0.5;
+				double util = (e.getValue() * intensity * needWeight) - (itemRarity * economicRarity);
+				needsUtilityFromItems.put(e.getKey(), util);
+			}
 			
 			double sumWeightsUtility = 0;
-			
 			for (Entry<String, Double> entry: needsUtilityFromItems.entrySet()) {
 				MapUtil.addNumMap(totalNeedsUtility, entry.getKey(), entry.getValue());
 				sumWeightsUtility += entry.getValue();
 			}
 			
-			finalOutputUtility.put(itemId, sumWeightsUtility);
+			double itemEthosAdj = 1;
+			if (human != null) {
+				Ethos itemEthos = human.brain.ethosSet.ethosTowardsItems.get(itemId);
+				itemEthosAdj = itemEthos.getLogisticVal(0, 3.5);
+			}
+			sumWeightsUtility *= itemEthosAdj;
 			
-			/*
-			Map<String, Double> needsUtilityFromItems = findUtilityByNeed(itemId);
-			needsUtilityFromItems.entrySet().stream().collect(Collectors.toMap(Entry::getKey,
-					e -> e.getValue() * needsIntensity.get(e.getKey()) / itemRarity
-					));
-			*/
+			finalOutputUtility.put(itemId, sumWeightsUtility);
 		}
 		
-		Map<Integer, Double> propogatedFinalUtil = backpropUtilToComponents(finalOutputUtility, availableItemIds);
+		Map<Integer, Double> propogatedFinalUtil = backpropUtilToComponents(
+				finalOutputUtility, availableItemIds, human);
 		propogatedFinalUtil = MapUtil.getSortedMapByValue(propogatedFinalUtil);
-		
-		//Map<String, Double> sortedNeedUtility = MathUti.getSortedMapByValue(totalNeedsUtility); 
-		
 		return propogatedFinalUtil;
 	}
 	
@@ -547,14 +535,14 @@ public class Society {
 			fringe = newFringe;
 		}
 		
-		itemRarity.entrySet().stream().collect(Collectors.toMap(Entry::getKey,
-				e -> e.getValue() * ItemData.getBaseItemValue(e.getKey())));
+		//itemRarity.entrySet().stream().collect(Collectors.toMap(Entry::getKey,
+				//e -> e.getValue() * ItemData.getBaseItemValue(e.getKey())));
 		
 		return itemRarity;
 	}
 	
 	private Map<Integer, Double> backpropUtilToComponents(Map<Integer, Double> finalOutputUtility, 
-			Set<Integer> availableItemIds) {
+			Set<Integer> availableItemIds, Human human) {
 		Map<Integer, Double> newFinalUtility = new HashMap<>(finalOutputUtility);
 
 		Set<Integer> expandedItemIds = new HashSet<>();
@@ -579,6 +567,12 @@ public class Society {
 						}
 					}
 					
+					double processWeight = 1;
+					if (human != null) {
+						Ethos processEthos = human.brain.ethosSet.ethosTowardsProcesses.get(process);
+						processWeight = processEthos.getLogisticVal(0, 3.5);
+					}
+					
 					double totalItems = 0;
 					for (InventoryItem item: inputs) {
 						totalItems += item.quantity;
@@ -589,7 +583,7 @@ public class Society {
 						if (newFinalUtility.containsKey(item.itemId)) {
 							provisionalUtil = newFinalUtility.get(item.itemId);
 						}
-						double percentage = item.quantity / totalItems; // * provisionalUtil;
+						double percentage = item.quantity / totalItems;
 						
 						//System.out.println("Sub-item: " + ItemData.getNameFromId(item.itemId));
 						//System.out.println((int) (percentage * 100) + "%, " + (int) provisionalUtil + " util, " + (int) (percentage * (outputUtil + provisionalUtil) / 2.0) + " frac. util");
@@ -600,7 +594,7 @@ public class Society {
 						if (process.totalSupervisedTime() > 0)
 							avgUtil /= process.totalSupervisedTime();
 						
-						MapUtil.insertKeepMaxMap(newFinalUtility, item.itemId, percentage * avgUtil);
+						MapUtil.insertKeepMaxMap(newFinalUtility, item.itemId, percentage * avgUtil * processWeight);
 						
 						if (!expandedItemIds.contains(item.itemId)) {
 							expandedItemIds.add(item.itemId);
