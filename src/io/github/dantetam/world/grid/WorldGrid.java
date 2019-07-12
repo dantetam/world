@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import io.github.dantetam.toolbox.MapUtil;
 import io.github.dantetam.toolbox.StringUtil;
 import io.github.dantetam.vector.Vector2i;
 import io.github.dantetam.vector.Vector3i;
@@ -84,11 +85,13 @@ public class WorldGrid {
 				people.add(human);
 				activeLocalGrid.addHuman(human, new Vector3i(r,c,h));
 				
+				/*
 				human.inventory.addItem(ItemData.randomBaseItem());
 				human.inventory.addItem(ItemData.randomBaseItem());
 				human.inventory.addItem(ItemData.randomBaseItem());
 				human.inventory.addItem(ItemData.randomBaseItem());
 				human.inventory.addItem(ItemData.randomItem());
+				*/
 				human.inventory.addItem(ItemData.item("Wheat Seeds", 50));
 				human.inventory.addItem(ItemData.item("Pine Wood", 50));
 			}
@@ -126,7 +129,17 @@ public class WorldGrid {
 		
 		DecimalFormat df = new DecimalFormat("#.##");
 		
+		System.out.println("-----Calculated adjusted full economic utility-----");
 		for (Entry<Integer, Double> entry: calcUtility.entrySet()) {
+			if (entry.getValue() > 0)
+				System.out.println(ItemData.getNameFromId(entry.getKey()) + ": " + df.format(entry.getValue()));
+		}
+		
+		Map<Integer, Double> rawUtility = testSociety.findRawResourcesRarity(null);
+		rawUtility = MapUtil.getSortedMapByValueDesc(rawUtility);
+		
+		System.out.println("-----Raw utility-----");
+		for (Entry<Integer, Double> entry: rawUtility.entrySet()) {
 			if (entry.getValue() > 0)
 				System.out.println(ItemData.getNameFromId(entry.getKey()) + ": " + df.format(entry.getValue()));
 		}

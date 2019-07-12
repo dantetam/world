@@ -118,5 +118,8 @@ public abstract class LivingEntity {
 		return sumWealth;
 	}
 
+	public String toString() {
+		return "Life: " + this.getClass().getSimpleName() + ", name: " + name;
+	}
 
 }

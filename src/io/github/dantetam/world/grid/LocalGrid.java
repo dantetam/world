@@ -337,6 +337,9 @@ public class LocalGrid {
 		if (!ItemData.isPlaceable(newBlockId)) {
 			throw new IllegalArgumentException("Cannot place down block id: " + newBlockId);
 		}
+		if (!this.inBounds(coords)) {
+			throw new IllegalArgumentException("Invalid tile added to coords: " + coords.toString());
+		}
 		
 		LocalTile tile = getTile(coords);
 		int oldItemId = tile.tileBlockId;

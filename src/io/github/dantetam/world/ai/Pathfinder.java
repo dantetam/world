@@ -104,9 +104,11 @@ public class Pathfinder {
     		return new ScoredPath(null, 999);
     	}
     	
+    	/*
     	System.out.println("-----------");
     	System.out.println("Finding path between: " + start.coords + " -> " + end.coords + ",\n with bounds: "
     			+ minRestrict + " <-> " + maxRestrict);
+    	*/
     	
     	List<LocalTile> results = new ArrayList<>();
         if (start.equals(end)) {
@@ -163,7 +165,7 @@ public class Pathfinder {
                     results.add(0, v);
                     v = prev.get(v);
                 } while (v != null);
-                System.out.println("Nodes expanded: " + nodesExpanded);
+                //System.out.println("Nodes expanded: " + nodesExpanded);
                 return new ScoredPath(results, dist.get(end).doubleValue());
             }
             for (LocalTile c : validNeighbors(being, v)) {
@@ -176,7 +178,7 @@ public class Pathfinder {
             }
         }
         
-        System.out.println("Nodes expanded: " + nodesExpanded);
+        //System.out.println("Nodes expanded: " + nodesExpanded);
         return new ScoredPath(null, 999);
     }
     

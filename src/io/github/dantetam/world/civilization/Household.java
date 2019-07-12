@@ -11,9 +11,11 @@ public class Household {
 	public Society society;
 	public Human headOfHousehold;
 	public List<Human> householdMembers; //Includes the head of the household as well
+	public HouseholdCoatOfArms coatOfArms;
 	
 	public Household(List<Human> householdMembers) {
 		this.householdMembers = householdMembers;
+		coatOfArms = new HouseholdCoatOfArms();
 	}
 	
 	public HumanHumanRel householdGetHumanRel(Human target) {

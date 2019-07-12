@@ -298,12 +298,11 @@ public class LocalGridTimeExecution {
 		KdTree<Vector3i> items = grid.getKdTreeForTile(tileId);
 		if (items == null) return null;
 		
-		Collection<Vector3i> candidates = items.nearestNeighbourListSearch(10, being.location.coords);
+		Collection<Vector3i> candidates = items.nearestNeighbourListSearch(30, being.location.coords);
 		Map<Pair<LocalTile>, Double> tileByPathScore = new HashMap<>();
 		
 		//Collect pair objects: the actual location of interest, followed by an accessible neighbor
 		for (Vector3i candidate: candidates) {
-			
 			if (useAboveTileOverride) {
 				candidate = candidate.getSum(0, 1, 0);
 			}
@@ -313,7 +312,8 @@ public class LocalGridTimeExecution {
 			
 			List<Human> claimants = grid.findClaimantToTile(candidate);
 			
-			if (claimants == null || CollectionUtil.colnsHasIntersect(claimants, validOwners)) {
+			if (claimants == null || claimants.size() == 0 || 
+					CollectionUtil.colnsHasIntersect(claimants, validOwners)) {
 				if (!tile.harvestInUse) {
 					Set<Vector3i> neighbors = grid.getAllNeighbors14(candidate);
 					neighbors.add(candidate);
@@ -321,7 +321,7 @@ public class LocalGridTimeExecution {
 						ScoredPath scoredPath = grid.pathfinder.findPath(
 								being, being.location, grid.getTile(neighbor));
 						if (scoredPath.isValid()) {
-							System.out.println(scoredPath.path);
+							//System.out.println(scoredPath.path);
 							Pair<LocalTile> pair = new Pair(grid.getTile(candidate), grid.getTile(neighbor));
 							tileByPathScore.put(pair, scoredPath.score);
 						}
@@ -338,6 +338,7 @@ public class LocalGridTimeExecution {
 			bestPair.first.harvestInUse = true;
 			return bestPair;
 		}
+		
 		return null;
 	}
 	

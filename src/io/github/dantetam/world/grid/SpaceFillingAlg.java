@@ -75,7 +75,8 @@ public class SpaceFillingAlg {
 					if (grid.inBounds(candidate) && 
 							(tileCond == null || tileCond.isDesiredTile(grid, candidate))) {
 						List<Human> claimants = grid.findClaimantToTile(candidate);
-						if (claimants.size() == 0 || CollectionUtil.colnsHasIntersect(claimants, validLandOwners)) {
+						if (claimants == null || claimants.size() == 0 || 
+								CollectionUtil.colnsHasIntersect(claimants, validLandOwners)) {
 							candidates.add(candidate);
 						}
 					}

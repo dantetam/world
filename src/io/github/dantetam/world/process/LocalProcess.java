@@ -88,7 +88,7 @@ public class LocalProcess {
 	}
 	
 	public String toString() {
-		String result = "Process: " + name + "/ Input: ";
+		String result = "Process: " + name + " (" + this.recRepeats + ")/ Input: ";
 		
 		result += new Inventory(inputItems).toUniqueItemsMap();
 		

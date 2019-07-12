@@ -15,6 +15,7 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 import io.github.dantetam.toolbox.MapUtil;
+import io.github.dantetam.toolbox.MathUti;
 import io.github.dantetam.vector.Vector3i;
 import io.github.dantetam.world.civhumanai.Ethos;
 import io.github.dantetam.world.civhumansocietyai.SocietalHumansActionsCalc;
@@ -326,8 +327,8 @@ public class Society {
 		Map<Integer, Double> finalOutputUtility = new HashMap<>();
 		
 		for (int itemId : availableItemIds) {
-			double itemRarity = allRarity.containsKey(itemId) ? new Double(Math.log(allRarity.get(itemId))) : -10;
-			double economicRarity = new Double(Math.log(economicRarityMap.get(itemId)));
+			double itemRarity = allRarity.containsKey(itemId) ? new Double(Math.log10(allRarity.get(itemId))) : -10;
+			double economicRarity = new Double(Math.log10(economicRarityMap.get(itemId)));
 			
 			itemRarity = Math.min(itemRarity, 1);
 			economicRarity = Math.min(economicRarity, 1);
@@ -370,7 +371,7 @@ public class Society {
 	/**
 	 * Directly count the physical rarity and presence of all items available on the map
 	 */
-	private Map<Integer, Double> findRawResourcesRarity(Human human) {
+	public Map<Integer, Double> findRawResourcesRarity(Human human) {
 		Map<Integer, Double> itemRarity = new HashMap<>();
 		for (int r = 0; r < grid.rows; r++) {
 			for (int c = 0; c < grid.cols; c++) {
@@ -391,15 +392,15 @@ public class Society {
 					if (tile.tileBlockId != ItemData.ITEM_EMPTY_ID) {
 						MapUtil.addNumMap(itemRarity, tile.tileBlockId, 1.0);
 					}
-					/*
+
 					if (tile.tileBlockId != ItemData.ITEM_EMPTY_ID) {
 						ItemTotalDrops drops = ItemData.getOnBlockItemDrops(tile.tileBlockId);
 						Map<Integer, Double> itemExpectations = drops.itemExpectation();
 						for (Entry<Integer, Double> entry: itemExpectations.entrySet()) {
-							MathUti.addNumMap(itemRarity, entry.getKey(), entry.getValue());
+							MapUtil.addNumMap(itemRarity, entry.getKey(), entry.getValue());
 						}
 					}
-					*/
+					
 				}
 			}
 		}
