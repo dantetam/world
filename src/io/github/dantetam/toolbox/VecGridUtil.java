@@ -15,6 +15,7 @@ import io.github.dantetam.vector.Vector2i;
 import io.github.dantetam.vector.Vector3i;
 import io.github.dantetam.world.ai.Pathfinder;
 import io.github.dantetam.world.dataparse.WorldCsvParser;
+import io.github.dantetam.world.grid.ClusterVector3i;
 import io.github.dantetam.world.grid.LocalGrid;
 import io.github.dantetam.world.grid.LocalTile;
 import io.github.dantetam.world.worldgen.LocalGridInstantiate;
@@ -63,7 +64,7 @@ public class VecGridUtil {
 	 * @param coords  The available coords that a rectangle could occupy
 	 * @return        The maximal rectangle within the set of vectors
 	 */
-	public static int[] findMaxRect(Set<Vector3i> coords) {
+	public static Pair<Vector2i> findMaxRect(Set<Vector3i> coords) {
 		Pair<Vector3i> bounds = findCoordBounds(coords);
 		Vector3i topLeftBound = bounds.first, bottomRightBound = bounds.second;
 		int rows = bottomRightBound.x - topLeftBound.x + 1;
@@ -76,11 +77,15 @@ public class VecGridUtil {
 				}
 			}
 		}
-		int[] zeroCenteredRect = findMaxSubRect(convertedOffsetVec);
-		zeroCenteredRect[0] += topLeftBound.x;
-		zeroCenteredRect[1] += topLeftBound.y;
+		Pair<Vector2i> zeroCenteredRect = findMaxSubRect(convertedOffsetVec);
+		zeroCenteredRect.first.x += topLeftBound.x;
+		zeroCenteredRect.first.y += topLeftBound.y;
 		return zeroCenteredRect;
 	}
+	
+	
+	//TODO generalize algorithm to finding maximal rects (for land claims?)
+	
 	
 	/**
 	 * ("Breaking Path Symmetries on 4-Connected Grid Maps", Harabor and Botea, 2010)
@@ -289,18 +294,18 @@ public class VecGridUtil {
 	public static Map<Vector3i, Integer> contComponent3dSolids(Vector3i minBoundsInc,
 			Vector3i maxBoundsInc, LocalGrid grid) {
 		Map<Vector3i, Integer> results = new HashMap<>();
-		List<Set<Vector3i>> clusters = contComp3dSolidsClustersSpec(minBoundsInc, maxBoundsInc, grid);
+		List<ClusterVector3i> clusters = contComp3dSolidsClustersSpec(minBoundsInc, maxBoundsInc, grid);
 		for (int clusterNum = 0; clusterNum < clusters.size(); clusterNum++) {
-			Set<Vector3i> cluster = clusters.get(clusterNum);
+			Set<Vector3i> cluster = clusters.get(clusterNum).clusterData;
 			for (Vector3i vec: cluster) {
 				results.put(vec, clusterNum);
 			}
 		}
 		return results;
 	}
-	public static List<Set<Vector3i>> contComp3dSolidsClustersSpec(Vector3i minBoundsInc,
+	public static List<ClusterVector3i> contComp3dSolidsClustersSpec(Vector3i minBoundsInc,
 			Vector3i maxBoundsInc, LocalGrid grid) {
-		List<Set<Vector3i>> results = new ArrayList<>();
+		List<ClusterVector3i> results = new ArrayList<>();
 		Set<Vector3i> visited = new HashSet<>();
 		
 		if (minBoundsInc == null) {
@@ -333,7 +338,8 @@ public class VecGridUtil {
 					}
 					
 					if (componentVecs.size() > 0) {
-						results.add(componentVecs);
+						Vector3i singleVec = componentVecs.iterator().next();
+						results.add(new ClusterVector3i(singleVec, componentVecs));
 					}
 				}
 			}
@@ -379,7 +385,7 @@ public class VecGridUtil {
         return true;
 	}
 	
-	public static int[] findBestRect(Set<Vector3i> coords, int desiredR, int desiredC) {
+	public static Pair<Vector2i> findBestRect(Set<Vector3i> coords, int desiredR, int desiredC) {
 		Pair<Vector3i> bounds = findCoordBounds(coords);
 		Vector3i topLeftBound = bounds.first, bottomRightBound = bounds.second;
 		int rows = bottomRightBound.x - topLeftBound.x + 1;
@@ -393,19 +399,10 @@ public class VecGridUtil {
 			}
 		}
 		
-		int[] zeroCenteredRect = findClosestSubRect(convertedOffsetVec, desiredR, desiredC);
-		/*
-		for (int r = 0; r < convertedOffsetVec.length; r++) {
-			for (int c = 0; c < convertedOffsetVec[0].length; c++) {
-				System.out.print(convertedOffsetVec[r][c] + " ");
-			}
-			System.out.println();
-		}
-		*/
-		
+		Pair<Vector2i> zeroCenteredRect = findClosestSubRect(convertedOffsetVec, desiredR, desiredC);
 		if (zeroCenteredRect != null) {
-			zeroCenteredRect[0] += topLeftBound.x;
-			zeroCenteredRect[1] += topLeftBound.y;
+			zeroCenteredRect.first.x += topLeftBound.x;
+			zeroCenteredRect.first.y += topLeftBound.y;
 		}
 		return zeroCenteredRect;
 	}
@@ -415,7 +412,7 @@ public class VecGridUtil {
 	 * @return The maximum rectangle containing all true, 
 	 * at top-left starting location (r,c) and sizes (rows, cols)
 	 */
-	public static int[] findMaxSubRect(int M[][]) { 
+	public static Pair<Vector2i> findMaxSubRect(int M[][]) { 
         int i,j; 
         int R = M.length;         //no of rows in M[][] 
         int C = M[0].length;     //no of columns in M[][] 
@@ -461,7 +458,10 @@ public class VecGridUtil {
         		}
         	}
         }  
-        return new int[] {maxR - rows + 1, maxC - cols + 1, rows, cols};
+        return new Pair<Vector2i>(
+        		new Vector2i(maxR - rows + 1, maxC - cols + 1),
+        		new Vector2i(rows, cols)
+        		);
     }  
 	
 	/**
@@ -469,7 +469,7 @@ public class VecGridUtil {
 	 * @return The smallest rectangle greater than dimensions (targetR, targetC) containing all true, 
 	 * at top-left starting location (r,c) and sizes (rows, cols)
 	 */
-	public static int[] findClosestSubRect(int M[][], int targetR, int targetC) 
+	public static Pair<Vector2i> findClosestSubRect(int M[][], int targetR, int targetC) 
     { 
         int i,j; 
         int R = M.length;         //no of rows in M[][] 
@@ -520,7 +520,10 @@ public class VecGridUtil {
         }
          
         if (maxR == -1 || maxC == -1) return null;
-        return new int[] {maxR - rows + 1, maxC - cols + 1, rows, cols};
+        return new Pair<Vector2i>(
+        		new Vector2i(maxR - rows + 1, maxC - cols + 1),
+        		new Vector2i(rows, cols)
+        		);
     }  
 	
 	public static List<Set<Vector2i>> getConnectedComponents(boolean[][] data, boolean target) {
@@ -606,9 +609,9 @@ public class VecGridUtil {
                 {1, 1, 1, 1}, 
                 {0, 1, 0, 0}, 
               }; 
-		System.out.println(Arrays.toString(findMaxSubRect(A)));
+		System.out.println(findMaxSubRect(A).toString());
 		
-		System.out.println(Arrays.toString(findClosestSubRect(A, 2, 2)));
+		System.out.println(findClosestSubRect(A, 2, 2).toString());
 		
 		List<Vector3i> coords = new ArrayList<>();
 		coords.add(new Vector3i(1,1,1));

@@ -2,6 +2,7 @@ package io.github.dantetam.world.grid;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -13,6 +14,7 @@ import java.util.Set;
 import io.github.dantetam.toolbox.VecGridUtil;
 import io.github.dantetam.toolbox.CollectionUtil;
 import io.github.dantetam.toolbox.MapUtil;
+import io.github.dantetam.toolbox.Pair;
 import io.github.dantetam.vector.Vector2i;
 import io.github.dantetam.vector.Vector3i;
 import io.github.dantetam.world.dataparse.ItemData;
@@ -30,16 +32,16 @@ public class SpaceFillingAlg {
 	 * 
 	 * @return
 	 */
-	public static Set<Vector3i> findAvailableSpaceWithinClaims(LocalGrid grid, 
+	public static GridRectInterval findAvailableSpaceWithinClaims(LocalGrid grid, 
 			int desiredR, int desiredC, boolean sameLevel, Set<Human> validLandOwners,
 			LocalTileCond tileCond) {
-		Set<Vector3i> bestSpace = null;
+		GridRectInterval bestSpace = null;
 		int minScore = 0;
 		for (Human landOwner: validLandOwners) {
 			for (LocalGridLandClaim claim: landOwner.allClaims) {
-				Set<Vector3i> space = findAvailableSpace(grid, claim.boundary.avgVec(), 
+				GridRectInterval space = findAvailableSpaceExact(grid, claim.boundary.avgVec(), 
 						desiredR, desiredC, sameLevel, validLandOwners, tileCond);
-				int reverseScore = Math.abs(space.size() - (desiredR * desiredC)); 
+				int reverseScore = Math.abs(space.get2dSize() - (desiredR * desiredC)); 
 				if (reverseScore < minScore || bestSpace == null) {
 					bestSpace = space;
 					minScore = reverseScore;
@@ -58,8 +60,9 @@ public class SpaceFillingAlg {
 	 * @return The maximum rectangle closest to center, with minimum dimensions (desiredR, desiredC),
 	 * if one exists within maxDistFlat * trials distance (square dist) away from center.
 	 */
-	public static Set<Vector3i> findAvailableSpace(LocalGrid grid, Vector3i center, 
-			int desiredR, int desiredC, boolean sameLevel, Set<Human> validLandOwners, LocalTileCond tileCond) {
+	public static GridRectInterval findAvailableSpaceExact(LocalGrid grid, Vector3i center, 
+			int desiredR, int desiredC, boolean sameLevel, 
+			Set<Human> validLandOwners, LocalTileCond tileCond) {
 		//int minDistFlat = 0;
 		int maxDistFlat = 10;
 		int trials = 0;
@@ -84,37 +87,40 @@ public class SpaceFillingAlg {
 			}
 
 			List<Set<Vector3i>> components = findContFreeTiles(grid, candidates);
-			List<int[]> componentMaxSubRect = new ArrayList<>();
+			List<GridRectInterval> componentMaxSubRect = new ArrayList<>();
 			Map<Integer, Integer> componentScore = new HashMap<>();
 			
 			int componentIndex = 0;
 			for (Set<Vector3i> component: components) {
 				
+				int height = component.iterator().next().z;
+				
 				//int[] maxSubRect = AlgUtil.findMaxRect(component);
-				int[] maxSubRect = VecGridUtil.findBestRect(component, desiredR, desiredC);
+				Pair<Vector2i> maxSubRect = VecGridUtil.findBestRect(component, desiredR, desiredC);
 				
-				if (maxSubRect == null || maxSubRect[2] < desiredR || maxSubRect[3] < desiredC) continue; 
+				if (maxSubRect == null || maxSubRect.second.x < desiredR || maxSubRect.second.y < desiredC) 
+					continue; 
 				
-				componentMaxSubRect.add(maxSubRect);
+				Vector3i start = new Vector3i(maxSubRect.first.x, maxSubRect.first.y, height);
+				Vector3i end = new Vector3i(
+						maxSubRect.first.x + maxSubRect.second.x, 
+						maxSubRect.first.y + maxSubRect.second.y, 
+						height);
+				GridRectInterval interval = new GridRectInterval(start, end);
+				componentMaxSubRect.add(interval);
 				
-				Vector3i centerRectSpace = new Vector3i(
-						maxSubRect[0] + maxSubRect[2] / 2,
-						maxSubRect[1] + maxSubRect[3] / 2,
-						center.z
-				);
+				Vector3i centerRectSpace = interval.avgVec();
 				int dist = (int) Math.ceil(centerRectSpace.dist(center));
-				int verticalDist = (center.z - component.iterator().next().z) * 5;
+				int verticalDist = Math.abs(center.z - height) * 5;
 				
-				int maxRectArea = maxSubRect[2] * maxSubRect[3];
-				
-				componentScore.put(componentIndex, maxRectArea - dist - verticalDist);
+				componentScore.put(componentIndex, interval.get2dSize() - dist - verticalDist);
 				componentIndex++;
 			}
 			
 			if (componentScore.size() > 0) {
 				componentScore = MapUtil.getSortedMapByValueDesc(componentScore);
 				Integer bestSpaceIndex = (Integer) componentScore.keySet().toArray()[0];
-				Set<Vector3i> bestSpace = components.get(bestSpaceIndex);
+				GridRectInterval bestSpace = componentMaxSubRect.get(bestSpaceIndex);
 				return bestSpace;
 			}
 			else {
@@ -126,6 +132,31 @@ public class SpaceFillingAlg {
 			}
 		}
 	}
+	
+	/**
+	 * Like SpaceFillingAlg::findAvailableSpace(...) but without the center coords restriction
+	 * This is used to find available space near but not always exactly at certain coords.
+	 * @return
+	 */
+	public static GridRectInterval findAvailableSpaceNear(LocalGrid grid, Vector3i coords,
+			int desiredR, int desiredC, boolean sameLevel, 
+			Set<Human> validLandOwners, LocalTileCond tileCond) {
+		Map<GridRectInterval, Double> bestMinScoring = new HashMap<>();
+		
+		Collection<ClusterVector3i> nearestFreeClusters = grid.clustersList.nearestNeighbourListSearch(
+				20, new ClusterVector3i(coords, null));
+		for (ClusterVector3i cluster: nearestFreeClusters) {
+			GridRectInterval bestInterval = findAvailableSpaceExact(grid, cluster.center, 
+					desiredR, desiredC, sameLevel, validLandOwners, tileCond);
+			double util = cluster.center.dist(coords) - bestInterval.get2dSize();
+			bestMinScoring.put(bestInterval, util);
+		}
+		bestMinScoring = MapUtil.getSortedMapByValueDesc(bestMinScoring);
+		
+		GridRectInterval interval = bestMinScoring.keySet().iterator().next();
+		return interval;
+	}
+	
 	
 	public static List<Set<Vector3i>> findContFreeTiles(
 			LocalGrid grid, Set<Vector3i> candidates) {

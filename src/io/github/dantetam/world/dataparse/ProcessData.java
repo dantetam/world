@@ -50,7 +50,7 @@ public class ProcessData {
 		if (recipesByInput.containsKey(itemId)) {
 			List<Integer> indices = recipesByInput.get(itemId);
 			for (int index: indices) {
-				subsetProcesses.add(processes.get(index));
+				subsetProcesses.add(processes.get(index).clone());
 			}
 		}
 		return subsetProcesses;
@@ -64,7 +64,7 @@ public class ProcessData {
 		if (recipesByOutput.containsKey(itemId)) {
 			List<Integer> indices = recipesByOutput.get(itemId);
 			for (int index: indices) {
-				subsetProcesses.add(processes.get(index));
+				subsetProcesses.add(processes.get(index).clone());
 			}
 		}
 		return subsetProcesses;
@@ -72,11 +72,15 @@ public class ProcessData {
 	
 	public static LocalProcess getProcessByName(String name) {
 		if (recipesByName.containsKey(name)) {
-			return processes.get(recipesByName.get(name));
+			return processes.get(recipesByName.get(name)).clone();
 		}
 		return null;
 	}
 	
+	/**
+	 * For information access only
+	 * @return
+	 */
 	public static List<LocalProcess> getAllProcesses() {
 		return processes;
 	}

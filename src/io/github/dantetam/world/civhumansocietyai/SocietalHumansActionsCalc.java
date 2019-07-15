@@ -17,6 +17,7 @@ import io.github.dantetam.world.civhumanai.EthosSet;
 import io.github.dantetam.world.civhumanrelation.HumanHumanRel;
 import io.github.dantetam.world.civilization.Household;
 import io.github.dantetam.world.civilization.Society;
+import io.github.dantetam.world.grid.ClusterVector3i;
 import io.github.dantetam.world.grid.GridRectInterval;
 import io.github.dantetam.world.grid.LocalGrid;
 import io.github.dantetam.world.grid.LocalGridLandClaim;
@@ -165,8 +166,8 @@ public class SocietalHumansActionsCalc {
 	//Figure out a system for people claiming land in a world
 	//More powerful people get first choice? Followed by those who desparately want land and have the power
 	//to obtain/maintain land
-	public static Map<Human, Set<Vector3i>> possibleNewLandClaims(LocalGrid grid, List<Human> humans) {
-		Map<Human, Set<Vector3i>> humanClaimUtil = new HashMap<>();
+	public static Map<Human, GridRectInterval> possibleNewLandClaims(LocalGrid grid, List<Human> humans) {
+		Map<Human, GridRectInterval> humanClaimUtil = new HashMap<>();
 		
 		Set<Vector3i> claimedFirstVec = new HashSet<>();
 		
@@ -179,7 +180,7 @@ public class SocietalHumansActionsCalc {
 		});
 		
 		for (Human human: humansSortedByPrestige) {
-			Map<Set<Vector3i>, Double> spaceScoring = new HashMap<>();
+			Map<GridRectInterval, Double> spaceScoring = new HashMap<>();
 			
 			int claimedLandArea = 0;
 			for (LocalGridLandClaim claim: human.allClaims) {
@@ -191,16 +192,16 @@ public class SocietalHumansActionsCalc {
 			int dimension = (int) Math.sqrt(landNeed);
 			
 			if (landNeed > 0) {
-				for (Set<Vector3i> cluster: grid.clustersList) {
-					Vector3i firstVec = cluster.iterator().next();
-					Set<Vector3i> space = SpaceFillingAlg.findAvailableSpace(
+				for (ClusterVector3i clusterObj: grid.clustersList) {
+					Vector3i firstVec = clusterObj.clusterData.iterator().next();
+					GridRectInterval space = SpaceFillingAlg.findAvailableSpaceExact(
 							grid, firstVec, dimension, dimension, false, null, null);
 					
 					if (space != null) {
-						int size = (int) Math.abs(space.size() - dimension * dimension);
+						int size = (int) Math.abs(space.get2dSize() - dimension * dimension);
 						int dist = human.location.coords.manhattanDist(firstVec);
 						double score = size + dist - dimension;
-						spaceScoring.put(cluster, score);
+						spaceScoring.put(space, score);
 					}
 				}
 			}
@@ -208,8 +209,8 @@ public class SocietalHumansActionsCalc {
 			//Do something in future with human ranking of different land parcels
 			spaceScoring = MapUtil.getSortedMapByValueDesc(spaceScoring);
 			for (Object object: spaceScoring.keySet().toArray()) {
-				Set<Vector3i> cluster = (Set<Vector3i>) object;
-				Vector3i firstVec = cluster.iterator().next();
+				GridRectInterval cluster = (GridRectInterval) object;
+				Vector3i firstVec = cluster.avgVec();
 				if (!claimedFirstVec.contains(firstVec)) {
 					claimedFirstVec.add(firstVec);
 					humanClaimUtil.put(human, cluster);

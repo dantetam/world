@@ -21,7 +21,9 @@ import io.github.dantetam.world.civhumanrelation.HumanHumanRel.HumanHumanRelType
 import io.github.dantetam.world.civilization.Household;
 import io.github.dantetam.world.civilization.LocalExperience;
 import io.github.dantetam.world.civilization.Society;
+import io.github.dantetam.world.grid.GridRectInterval;
 import io.github.dantetam.world.grid.LocalGrid;
+import io.github.dantetam.world.grid.LocalGridLandClaim;
 import io.github.dantetam.world.grid.WorldGrid;
 import io.github.dantetam.world.life.Human;
 
@@ -84,13 +86,19 @@ public class FreeActionsHumans {
 				//TODO;
 			}
 			else if (name.equals("claimNewLand")) {
-				Map<Human, Set<Vector3i>> humanClaimUtil = SocietalHumansActionsCalc
+				Map<Human, GridRectInterval> humanClaimUtil = SocietalHumansActionsCalc
 						.possibleNewLandClaims(grid, humans);
-				for (Entry<Human, Set<Vector3i>> claimEntry: humanClaimUtil.entrySet()) {
+				for (Entry<Human, GridRectInterval> claimEntry: humanClaimUtil.entrySet()) {
 					Human human = claimEntry.getKey();
-					Set<Vector3i> cluster = claimEntry.getValue();
+					GridRectInterval interval = claimEntry.getValue();
 					
-					//TODO;
+					//for (GridRectInterval interval: cluster) {
+						List<Human> claimants = grid.findClaimantToTiles(interval);
+						if (claimants != null && claimants.size() > 0) {
+							continue;
+						}
+						grid.claimTile(human, interval.start, interval.end);
+					//}
 				}
 			}
 			else if (name.equals("chat")) { //Temporarily represent chatting as an instaneous free action

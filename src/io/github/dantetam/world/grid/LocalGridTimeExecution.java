@@ -157,6 +157,19 @@ public class LocalGridTimeExecution {
 				//Process has been completed, remove it from person
 				if (process.processStepIndex < 0 || process.processStepIndex >= process.processSteps.size()) { 
 					process.recRepeats--;
+					
+					if (human.targetTile != null) {
+						if (human.processTile.tileBlockId == ItemData.ITEM_EMPTY_ID) {
+							human.targetTile = null;
+							human.processTile = null;
+						}
+					}
+					if (human.processTile != null) {
+						if (human.processTile.tileBlockId == ItemData.ITEM_EMPTY_ID) {
+							human.processTile = null;
+						}
+					}
+					
 					if (process.recRepeats <= 0) {
 						executeProcessResActions(grid, human, process.processResActions);
 						System.err.println(human.name + " COMPLETED process (as an employee for a job): " + process);
@@ -218,6 +231,19 @@ public class LocalGridTimeExecution {
 				//Process has been completed, remove it from person
 				if (process.processStepIndex < 0 || process.processStepIndex >= process.processSteps.size()) {
 					process.recRepeats--;
+					
+					if (human.targetTile != null) {
+						if (human.processTile.tileBlockId == ItemData.ITEM_EMPTY_ID) {
+							human.targetTile = null;
+							human.processTile = null;
+						}
+					}
+					if (human.processTile != null) {
+						if (human.processTile.tileBlockId == ItemData.ITEM_EMPTY_ID) {
+							human.processTile = null;
+						}
+					}
+					
 					if (process.recRepeats <= 0) {
 						System.err.println(human.name + " COMPLETED process: " + human.processProgress);
 						executeProcessResActions(grid, human, human.processProgress.processResActions);
@@ -428,9 +454,11 @@ public class LocalGridTimeExecution {
 				requiredSpace = new Vector2i(1, 1);
 			}
 			
+			requiredSpace = requiredSpace.getSum(2,2);
+			
 			//If available building, use it, 
 			//otherwise find space needed for building, allocate it, and start allocating a room
-			Set<Vector3i> nearOpenSpace = grid.getNearestViableRoom(validLandOwners, being.location.coords, requiredSpace);
+			GridRectInterval nearOpenSpace = grid.getNearestViableRoom(validLandOwners, being.location.coords, requiredSpace);
 
 			if (nearOpenSpace == null) { //No available rooms to use
 				List<Vector3i> bestRectangle = findBestOpenRectSpace(grid, validLandOwners, being.location.coords, requiredSpace);
@@ -449,10 +477,10 @@ public class LocalGridTimeExecution {
 				return priority;
 			}
 			else {
-				System.out.println("Assigned building space: " + VecGridUtil.findCoordBounds(nearOpenSpace).toString());
+				System.out.println("Assigned building space: " + nearOpenSpace.toString());
 				grid.setInUseRoomSpace(nearOpenSpace, true);
 				
-				Vector3i newBuildCoords = nearOpenSpace.iterator().next();
+				Vector3i newBuildCoords = nearOpenSpace.avgVec();
 				if (process.isCreatedAtSite) {
 					being.processTile = grid.getTile(newBuildCoords);
 					if (being.location.coords.areAdjacent14(targetLocation)) {
@@ -1172,19 +1200,25 @@ public class LocalGridTimeExecution {
 		return new ImpossiblePriority("Could not find item groups or processes that can output harvest groups: " + itemGroupsAmtNeeded.keySet());
 	}
 	
+	/**
+	 * @return A list of vector coords representing the space. This is a list
+	 * 		   because we need an indexed ordering to the  
+	 */
 	private static List<Vector3i> findBestOpenRectSpace(LocalGrid grid, Set<Human> validLandOwners, 
 			Vector3i coords, Vector2i requiredSpace) {
-		Set<Vector3i> openSpace = SpaceFillingAlg.findAvailableSpaceWithinClaims(grid, 
-				requiredSpace.x + 2, requiredSpace.y + 2, true, validLandOwners, null);
+		GridRectInterval openSpace = SpaceFillingAlg.findAvailableSpaceWithinClaims(grid, 
+				requiredSpace.x, requiredSpace.y, true, validLandOwners, null);
 		
 		if (openSpace != null) {
-			int height = openSpace.iterator().next().z;
-			int[] maxSubRect = VecGridUtil.findMaxRect(openSpace);
-			int bestR = maxSubRect[0], bestC = maxSubRect[1],
-					rectR = maxSubRect[2], rectC = maxSubRect[3];
+			/*
+			int height = openSpace.avgVec().z;
+			Pair<Vector2i> maxSubRect = VecGridUtil.findMaxRect(openSpace);
+			int bestR = maxSubRect.first.x, bestC = maxSubRect.first.y,
+					rectR = maxSubRect.second.x, rectC = maxSubRect.second.y;
 				
 			List<Vector3i> bestRectangle = Vector3i.getRange(
-					new Vector3i(bestR, bestC, height), new Vector3i(bestR + rectR - 1, bestC + rectC - 1, height));
+					new Vector3i(bestR, bestC, height), 
+					new Vector3i(bestR + rectR - 1, bestC + rectC - 1, height));
 			Collections.sort(bestRectangle, new Comparator<Vector3i>() {
 				@Override
 				public int compare(Vector3i o1, Vector3i o2) {
@@ -1192,10 +1226,18 @@ public class LocalGridTimeExecution {
 				}
 			});
 			return bestRectangle; 
+			*/
+			return openSpace.getRange();
 		}
-		else {
-			return null;
+
+		//Make user claim new land
+		openSpace = SpaceFillingAlg.findAvailableSpaceNear(grid, coords,
+				requiredSpace.x, requiredSpace.y, true, validLandOwners, null);
+		if (openSpace != null) {
+			return openSpace.getRange();
 		}
+	
+		return null;
 	}
 	
 	/*

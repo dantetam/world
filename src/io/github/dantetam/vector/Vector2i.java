@@ -49,6 +49,10 @@ public class Vector2i {
 		return new Vector2i(x + other.x, y + other.y);
 	}
 	
+	public Vector2i getSum(int a, int b) {
+		return new Vector2i(x + a, y + b);
+	}
+	
 	public float magnitude() {
 		return (float) Math.sqrt(x * x + y * y);
 	}

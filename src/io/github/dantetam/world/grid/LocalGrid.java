@@ -53,7 +53,7 @@ public class LocalGrid {
 	public List<LocalGridLandClaim> localLandClaims;
 	
 	public Map<Vector3i, Integer> connectedCompsMap; //Mapping of all available vectors to a unique numbered space (a 3d volume)
-	public List<Set<Vector3i>> clustersList;
+	public KdTree<ClusterVector3i> clustersList;
 	
 	public LocalGrid(Vector3i size) {
 		rows = size.x; cols = size.y; heights = size.z;
@@ -537,8 +537,8 @@ public class LocalGrid {
 		return null;
 	}
 	*/
-	public Set<Vector3i> getNearestViableRoom(Set<Human> validLandOwners, Vector3i coords, Vector2i requiredSpace) {
-		Set<Vector3i> bestAvailSpace = SpaceFillingAlg.findAvailableSpaceWithinClaims(this, 
+	public GridRectInterval getNearestViableRoom(Set<Human> validLandOwners, Vector3i coords, Vector2i requiredSpace) {
+		GridRectInterval bestAvailSpace = SpaceFillingAlg.findAvailableSpaceWithinClaims(this, 
 				requiredSpace.x, requiredSpace.y, true, 
 				validLandOwners, new LocalTileCond.IsBuildingTileCond());
 		return bestAvailSpace;
@@ -556,6 +556,13 @@ public class LocalGrid {
 		return false;
 	}
 	
+	public void setInUseRoomSpace(GridRectInterval interval, boolean inUse) {
+		setInUseRoomSpace(
+				interval.start, 
+				interval.end.getSubtractedBy(interval.start).getSum(1, 1, 1).getXY(), 
+				true
+		);
+	}
 	public void setInUseRoomSpace(Vector3i nearOpenSpace, Vector2i bounds2d, boolean inUse) {
 		for (int r = nearOpenSpace.x; r < nearOpenSpace.x + bounds2d.x; r++) {
 			for (int c = nearOpenSpace.y; c < nearOpenSpace.y + bounds2d.y; c++) {
@@ -730,7 +737,7 @@ public class LocalGrid {
 
 	//TODO Different societies claim possibly overlapping tiles in a grid, use these claims
 	//as a basis for societal wealth, as well as part of larger border disputes.
-	public List<Human> findClaimantToTile(GridRectInterval gridSpace) {
+	public List<Human> findClaimantToTiles(GridRectInterval gridSpace) {
 		List<Human> allClaimants = new ArrayList<>();
 		for (LocalGridLandClaim claim: localLandClaims) {
 			if (gridSpace.intersectsInterval(claim.boundary)) {
@@ -740,7 +747,7 @@ public class LocalGrid {
 		return allClaimants;
 	}
 	public List<Human> findClaimantToTile(Vector3i coords) {
-		return this.findClaimantToTile(new GridRectInterval(coords, coords));
+		return this.findClaimantToTiles(new GridRectInterval(coords, coords));
 	}
 	
 	public static void main(String[] args) {

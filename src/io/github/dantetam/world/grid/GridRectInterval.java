@@ -1,9 +1,19 @@
 package io.github.dantetam.world.grid;
 
+import java.util.List;
+
 import org.lwjgl.util.vector.Vector3f;
 
 import io.github.dantetam.toolbox.VecGridUtil;
 import io.github.dantetam.vector.Vector3i;
+
+/**
+ * 
+ * Represent an inclusive 3d vector coords bound
+ * 
+ * @author Dante
+ *
+ */
 
 public class GridRectInterval {
 	
@@ -42,6 +52,10 @@ public class GridRectInterval {
 	public Vector3i avgVec() {
 		Vector3f avg = this.start.getSum(this.end).getScaled(0.5f);
 		return new Vector3i((int) avg.x, (int) avg.y, (int) avg.z);
+	}
+	
+	public List<Vector3i> getRange() {
+		return Vector3i.getRange(start, end);
 	}
 	
 }

@@ -140,7 +140,7 @@ public class LocalGridInstantiate {
 		System.out.println(gridTrees.size());
 		
 		localGrid.connectedCompsMap = VecGridUtil.contComponent3dSolids(null, null, localGrid);
-		localGrid.clustersList = VecGridUtil.contComp3dSolidsClustersSpec(null, null, localGrid);
+		localGrid.clustersList = new KdTree(VecGridUtil.contComp3dSolidsClustersSpec(null, null, localGrid));
 		
 		return localGrid;
 	}
