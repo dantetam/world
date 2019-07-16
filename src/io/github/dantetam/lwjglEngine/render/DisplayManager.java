@@ -68,7 +68,7 @@ public class DisplayManager {
 		glfwShowWindow(window);
 
 		setCursorPosCallback();
-		setMouseCallback();
+		setMouseClickCallback();
 		setKeyCallback();
 
 		if (window == 0) {
@@ -90,7 +90,7 @@ public class DisplayManager {
 	}
 
 	// For mouse clicks and releases only
-	public static void setMouseCallback() {
+	public static void setMouseClickCallback() {
 		GLFW.glfwSetMouseButtonCallback(DisplayManager.window,
 				(DisplayManager.mouseButtonCallback = new GLFWMouseButtonCallback() {
 					public void invoke(long window, int button, int action, int mods) {
@@ -108,7 +108,7 @@ public class DisplayManager {
 					}
 				}));
 	}
-
+	
 	public static void setKeyCallback() {
 		GLFW.glfwSetKeyCallback(DisplayManager.window, (DisplayManager.keyCallback = new GLFWKeyCallback() {
 			public void invoke(long window, int key, int scancode, int action, int mods) {

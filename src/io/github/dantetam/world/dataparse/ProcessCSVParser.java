@@ -108,6 +108,17 @@ public class ProcessCSVParser extends WorldCsvParser {
 					System.err.println("Could not find group name: " + groupName);
 				}
 				else {
+					/*
+					 * No group overriding/preprocessing
+					 * Use the group name moving forward to keep the recipe together
+					 */
+					
+					/*
+					Map<String, String> copyRecord = new HashMap<>(record);
+					copyRecord.put("Required Location", groupName);
+					preprocessExpandingRecipe(copyRecord);
+					*/
+					
 					for (String groupItemName: groupNames) {
 						Map<String, String> copyRecord = new HashMap<>(record);
 						String newBuildingName = requiredLocation.replaceFirst("\\<(.*?)\\>", groupItemName);

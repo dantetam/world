@@ -69,6 +69,7 @@ public class MainGameLoop {
 			
 			if (main.worldGrid.currentlyTicking) {
 				main.worldGrid.tick();
+				main.menuSystem.forceFullUIUpdate();
 			}
 			
 			for (int i = 0; i < main.systems.size(); i++) {

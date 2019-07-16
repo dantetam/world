@@ -144,17 +144,22 @@ public class SpaceFillingAlg {
 		Map<GridRectInterval, Double> bestMinScoring = new HashMap<>();
 		
 		Collection<ClusterVector3i> nearestFreeClusters = grid.clustersList.nearestNeighbourListSearch(
-				20, new ClusterVector3i(coords, null));
+				50, new ClusterVector3i(coords, null));
 		for (ClusterVector3i cluster: nearestFreeClusters) {
 			GridRectInterval bestInterval = findAvailableSpaceExact(grid, cluster.center, 
 					desiredR, desiredC, sameLevel, validLandOwners, tileCond);
-			double util = cluster.center.dist(coords) - bestInterval.get2dSize();
-			bestMinScoring.put(bestInterval, util);
+			if (bestInterval != null) {
+				double util = cluster.center.dist(coords) - bestInterval.get2dSize();
+				bestMinScoring.put(bestInterval, util);
+			}
 		}
 		bestMinScoring = MapUtil.getSortedMapByValueDesc(bestMinScoring);
 		
-		GridRectInterval interval = bestMinScoring.keySet().iterator().next();
-		return interval;
+		if (bestMinScoring.size() > 0) {
+			GridRectInterval interval = bestMinScoring.keySet().iterator().next();
+			return interval;
+		}
+		return null;
 	}
 	
 	

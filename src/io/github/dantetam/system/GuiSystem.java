@@ -20,6 +20,7 @@ import io.github.dantetam.world.dataparse.ItemData;
 import io.github.dantetam.world.grid.LocalBuilding;
 import io.github.dantetam.world.grid.LocalGrid;
 import io.github.dantetam.world.grid.LocalTile;
+import io.github.dantetam.world.life.Human;
 
 public class GuiSystem extends BaseSystem {
 
@@ -63,6 +64,8 @@ public class GuiSystem extends BaseSystem {
 		int airTileTexture = ItemData.getTextureFromItemId(ItemData.getIdFromName("Air"));
 		
 		int darknessTexture = ItemData.getTextureFromItemId("Darkness");
+		
+		int landClaimOverlay = ItemData.getTextureFromItemId("Territory");
 		
 		for (int x = minX; x <= maxX; x++) {
 			for (int z = minZ; z <= maxZ; z++) {
@@ -111,6 +114,14 @@ public class GuiSystem extends BaseSystem {
 				}
 				else if (activeGrid.tileIsOccupied(aboveCoords)) {
 					listGuis.add(new GuiQuad(darknessTexture, guiPos, guiDim));
+				}
+				
+				//Vector3i coords = new Vector3i(x,z,candidateHeight);
+				if (activeGrid.inBounds(aboveCoords)) {
+					List<Human> claimants = activeGrid.findClaimantToTile(aboveCoords);
+					if (claimants != null && claimants.size() > 0) {
+						listGuis.add(new GuiQuad(landClaimOverlay, guiPos, guiDim));
+					}
 				}
 			}
 		}

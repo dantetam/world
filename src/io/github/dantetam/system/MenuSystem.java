@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import io.github.dantetam.localdata.ConstantData;
 import io.github.dantetam.lwjglEngine.fontRendering.TextMaster;
@@ -18,7 +19,10 @@ import io.github.dantetam.toolbox.MapUtil;
 import io.github.dantetam.toolbox.MousePicker;
 import io.github.dantetam.vector.Vector3i;
 import io.github.dantetam.world.dataparse.ItemData;
+import io.github.dantetam.world.grid.LocalGrid;
 import io.github.dantetam.world.grid.LocalTile;
+import io.github.dantetam.world.grid.WorldGrid;
+import io.github.dantetam.world.life.Human;
 import io.github.dantetam.world.life.LivingEntity;
 
 public class MenuSystem extends BaseSystem {
@@ -65,12 +69,15 @@ public class MenuSystem extends BaseSystem {
 	}
 	
 	public void updateMenus() {
+		WorldGrid world = gameLauncher.worldGrid;
+		LocalGrid grid = world.activeLocalGrid;
+		
 		Vector3i highlightCoords = mousePicker.calculateWorldCoordsFromMouse();
 		
 		int candidateHeight = highlightCoords.z; //Find the highest height <= camera height, in the rendering style of DF
 		LocalTile tile = null;
 		while (candidateHeight > 0) {
-			tile = gameLauncher.worldGrid.activeLocalGrid.getTile(new Vector3i(highlightCoords.x,highlightCoords.y,candidateHeight));
+			tile = grid.getTile(new Vector3i(highlightCoords.x,highlightCoords.y,candidateHeight));
 			if (tile != null) { //if (activeGrid.tileIsOccupied(tile.coords))
 				if (tile.tileBlockId != ItemData.ITEM_EMPTY_ID || tile.tileFloorId != ItemData.ITEM_EMPTY_ID || 
 						tile.itemsOnFloor.size() > 0 || (tile.getPeople() != null && tile.getPeople().size() > 0)) {
@@ -86,6 +93,8 @@ public class MenuSystem extends BaseSystem {
 		
 		texts = new ArrayList<>();
 		if (this.mouseHighlighted != null) {
+			texts.add(world.getTime().toLocaleString() + ", S: " + world.worldStartTime.toLocaleString());
+			
 			texts.add(this.mouseHighlighted.toString());
 			
 			if (tile != null) {
@@ -117,6 +126,14 @@ public class MenuSystem extends BaseSystem {
 					} else {
 						texts.add("No building items");
 					}
+				}
+				
+				List<Human> claimants = grid.findClaimantToTile(tile.coords);
+				if (claimants == null || claimants.size() == 0) {
+					texts.add("No land claimants");
+				}
+				else {
+					texts.add(claimants.toString());
 				}
 				
 				if (tile.getPeople() == null || tile.getPeople().size() == 0) {

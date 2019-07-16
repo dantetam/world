@@ -320,8 +320,8 @@ public class LocalGridTimeExecution {
 		String tileName = process.requiredTileNameOrGroup;
 		boolean useAboveTileOverride = !process.name.contains("Harvest Tile ");
 		
-		int tileId = ItemData.getIdFromName(tileName);
-		KdTree<Vector3i> items = grid.getKdTreeForTile(tileId);
+		//int tileId = ItemData.getIdFromName(tileName);
+		KdTree<Vector3i> items = grid.getKdTreeForItemGroup(tileName);
 		if (items == null) return null;
 		
 		Collection<Vector3i> candidates = items.nearestNeighbourListSearch(30, being.location.coords);

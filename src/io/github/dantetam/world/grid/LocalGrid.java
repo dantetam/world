@@ -400,7 +400,9 @@ public class LocalGrid {
 	}
 	
 	public KdTree<Vector3i> getKdTreeForItemGroup(String groupName) {
-		return this.itemGroupTileLookup.get(groupName);
+		if (ItemData.isGroup(groupName))
+			return this.itemGroupTileLookup.get(groupName);
+		return this.getKdTreeForTile(ItemData.getIdFromName(groupName));
 	}
 	
 	public KdTree<Vector3i> getKdTreeForBuildings(Integer buildId) {
@@ -573,6 +575,11 @@ public class LocalGrid {
 	}
 	public void setInUseRoomSpace(Collection<Vector3i> coords, boolean inUse) {
 		for (Vector3i coord: coords) {
+			if (!this.inBounds(coord)) {
+				throw new IllegalArgumentException("Could not set in use grid coords: " + coord + 
+						" of collection of coords...: " + coords.toString());
+			}
+			
 			LocalTile tile = getTile(coord);
 			if (tile == null) {
 				tile = createTile(coord);

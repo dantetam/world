@@ -32,6 +32,7 @@ import io.github.dantetam.world.worldgen.LocalGridInstantiate;
 
 public class WorldGrid {
 
+	public Date worldStartTime;
 	private Calendar currentWorldTime;
 	public LocalGrid activeLocalGrid;
 	public Society testSociety;
@@ -49,6 +50,7 @@ public class WorldGrid {
 	
 	public WorldGrid() {
 		currentWorldTime = Calendar.getInstance();
+		worldStartTime = getTime();
 		worldRows = 50;
 		worldCols = 50;
 		Vector2i worldSize = new Vector2i(worldRows, worldCols);
@@ -138,7 +140,7 @@ public class WorldGrid {
 		Map<Integer, Double> rawUtility = testSociety.findRawResourcesRarity(null);
 		rawUtility = MapUtil.getSortedMapByValueDesc(rawUtility);
 		
-		System.out.println("-----Raw utility-----");
+		System.out.println("-----Commonness of Resources (higher means more common)-----");
 		for (Entry<Integer, Double> entry: rawUtility.entrySet()) {
 			if (entry.getValue() > 0)
 				System.out.println(ItemData.getNameFromId(entry.getKey()) + ": " + df.format(entry.getValue()));
