@@ -219,7 +219,7 @@ public class VecGridUtil {
 	 * This returns a list as a solution to create an ordered set for use in calculations,
 	 * involving human distance travelling and priority. 
 	 */
-	public static List<Vector3i> getBorderRegionFromCoords(List<Vector3i> coords) {
+	public static List<Vector3i> getBorderRegionFromCoords(Collection<Vector3i> coords) {
 		Set<Vector3i> vecSet = new HashSet<>();
 		for (Vector3i coord: coords) {
 			vecSet.add(coord);

@@ -81,4 +81,12 @@ public class CollectionUtil {
 		return set;
 	}
 	
+	public static <T> List<T> newList(T... elements) {
+		List<T> set = new ArrayList<T>();
+		for (T element: elements) {
+			set.add(element);
+		}
+		return set;
+	}
+	
 }

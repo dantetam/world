@@ -17,6 +17,7 @@ import io.github.dantetam.world.civhumanai.EthosSet;
 import io.github.dantetam.world.civhumanrelation.HumanHumanRel;
 import io.github.dantetam.world.civilization.Household;
 import io.github.dantetam.world.civilization.Society;
+import io.github.dantetam.world.dataparse.SkillData;
 import io.github.dantetam.world.grid.ClusterVector3i;
 import io.github.dantetam.world.grid.GridRectInterval;
 import io.github.dantetam.world.grid.LocalGrid;
@@ -264,6 +265,17 @@ public class SocietalHumansActionsCalc {
 	//TODO
 	public static double possibleEmployeeUtil(Human employee, Human boss, LocalJob job, Date date) {
 		double emplBossRelUtil = calcPropensityToMarry(employee, boss, date);
+		
+		double leadLevel = boss.skillBook.getSkillLevel("Leadership");
+		double leadershipCap = SkillData.leadershipCapPeople((int) leadLevel);
+		double distToCap = leadershipCap - boss.workers.size();
+		double numUtil = Math.min(distToCap / 10, 5.0);
+		
+		Ethos obedEthos = employee.brain.ethosSet.getEthosMapping().get("Obedient");
+		double obedUtil = obedEthos.getLogisticVal(-2.0, 2.0);
+		
+		emplBossRelUtil += numUtil + obedUtil; 
+		
 		return emplBossRelUtil;
 	}
 	

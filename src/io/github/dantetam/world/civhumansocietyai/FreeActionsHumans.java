@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.math3.distribution.GeometricDistribution;
 import org.apache.commons.math3.distribution.NormalDistribution;
 
 import java.util.Map.Entry;
@@ -21,6 +22,7 @@ import io.github.dantetam.world.civhumanrelation.HumanHumanRel.HumanHumanRelType
 import io.github.dantetam.world.civilization.Household;
 import io.github.dantetam.world.civilization.LocalExperience;
 import io.github.dantetam.world.civilization.Society;
+import io.github.dantetam.world.dataparse.SkillData;
 import io.github.dantetam.world.grid.GridRectInterval;
 import io.github.dantetam.world.grid.LocalGrid;
 import io.github.dantetam.world.grid.LocalGridLandClaim;
@@ -97,7 +99,7 @@ public class FreeActionsHumans {
 						if (claimants != null && claimants.size() > 0) {
 							continue;
 						}
-						grid.claimTile(human, interval.start, interval.end);
+						grid.claimTiles(human, interval.start, interval.end);
 					//}
 				}
 			}
@@ -143,12 +145,23 @@ public class FreeActionsHumans {
 					
 					Pair<Ethos> debatingEthos = EthosSet.getClosestEthosWithDiffVal(
 							humanA.brain.ethosSet, humanB.brain.ethosSet, getDiffRating);
-					double conviction = Math.log(debatingEthos.first.severity);
+					double convictionA = Math.log(debatingEthos.first.severity);
+					double convictionB = Math.log(debatingEthos.first.severity);
 					double civility = 0.5 * (relA.opinion + relB.opinion) / 30;
+					
+					double rheSkillA = humanA.skillBook.getSkillLevel("Rhetoric");
+					double rheSkillB = humanB.skillBook.getSkillLevel("Rhetoric");
+					double argumentScoreA = SkillData.rhetoricArgumentScore((int) (rheSkillA + rheSkillB / 4)) * convictionA;
+					double argumentScoreB = SkillData.rhetoricArgumentScore((int) (rheSkillB + rheSkillA / 4)) * convictionB;
+					
+					double directionFirst = Math.signum(debatingEthos.second.severity - debatingEthos.first.severity);
+					double directionSecond = Math.signum(debatingEthos.first.severity - debatingEthos.second.severity);
+					debatingEthos.first.severity += directionFirst * argumentScoreB * civility;
+					debatingEthos.second.severity += directionSecond * argumentScoreA * civility;
 					
 					LocalExperience exp = new LocalExperience("EthosDebate");
 					exp.modifiers = new ArrayList<String>() {{add(debatingEthos.first.name);}};
-					exp.valueModifiers = new HashMap<String, Double>() {{put("conviction", conviction);}};
+					exp.valueModifiers = new HashMap<String, Double>() {{put("conviction", (convictionA + convictionB) / 2);}};
 					exp.valueModifiers = new HashMap<String, Double>() {{put("civility", civility);}};
 					exp.beingRoles.put(humanA, CollectionUtil.newSet("chatInitiate"));
 					exp.beingRoles.put(humanB, CollectionUtil.newSet("chat"));

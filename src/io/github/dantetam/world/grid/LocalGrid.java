@@ -409,13 +409,13 @@ public class LocalGrid {
 		return this.buildIdQuickTileLookup.get(buildId);
 	}
 	
-	public boolean buildingCanFitAt(LocalBuilding building, Vector3i newPrimaryCoords, boolean overrideGrid) {
+	public boolean buildingCanFitAt(LocalBuilding building, Vector3i newPrimaryCoords) {
 		//Check to see if the building fits
 		List<Vector3i> offsets = building.getLocationOffsets();
 		for (Vector3i offset: offsets) {
 			Vector3i candidate = newPrimaryCoords.getSum(offset);
 			LocalTile candidateTile = this.getTile(candidate);
-			if (!inBounds(candidate) || (candidateTile != null && candidateTile.building != null && !overrideGrid)) {
+			if (!inBounds(candidate) || (candidateTile != null && candidateTile.building != null)) {
 				return false;
 			}
 		}
@@ -424,22 +424,23 @@ public class LocalGrid {
 	
 	public void addBuilding(LocalBuilding building, Vector3i newPrimaryCoords, boolean overrideGrid,
 			LivingEntity owner) {
-		if (buildingCanFitAt(building, newPrimaryCoords, overrideGrid)) {
+		if (buildingCanFitAt(building, newPrimaryCoords) || overrideGrid) {
 			removeBuilding(building);
 			building.setPrimaryLocation(newPrimaryCoords);
 			Set<Vector3i> newAbsLocations = building.calculatedLocations;
-			int buildingTileIndex = 0;
+
 			for (Vector3i newAbsLocation: newAbsLocations) {
 				LocalTile absTile = getTile(newAbsLocation);
-				if (absTile == null) {
+				if (absTile == null && this.inBounds(newAbsLocation)) {
 					absTile = createTile(newAbsLocation);
+					
+					absTile.building = building;
+					//absTile.tileBlockId = building.buildingBlockIds.get(buildingTileIndex);
+					
+					//TODO Update pathfinder correctly, use neighboring tiles
+					if (this.pathfinder != null)
+						this.pathfinder.tempNodeInRectSolid(newAbsLocation, true);
 				}
-				absTile.building = building;
-				//absTile.tileBlockId = building.buildingBlockIds.get(buildingTileIndex);
-				buildingTileIndex++;
-				
-				if (this.pathfinder != null)
-					this.pathfinder.tempNodeInRectSolid(newAbsLocation, true);
 			} 
 			
 			allBuildings.add(building);
@@ -641,7 +642,7 @@ public class LocalGrid {
 		return true;
 	}
 	
-	public int findLowestEmptyHeight(int r, int c) {
+	public int findHighestEmptyHeight(int r, int c) {
 		for (int h = heights - 1; h >= 0; h--) {
 			if (getTile(new Vector3i(r,c,h)) == null) {
 				continue;
@@ -651,6 +652,16 @@ public class LocalGrid {
 			}
 		}
 		return 0;
+	}
+	
+	public Vector3i findLowestAccessibleHeight(int r, int c) {
+		for (int h = 0; h < heights; h++) {
+			Vector3i coords = new Vector3i(r,c,h);
+			if (this.tileIsAccessible(coords)) {
+				return coords;
+			}
+		}
+		return null;
 	}
 	
 	//Find an empty height at lowest possible level, i.e. an empty tile with ground right below it,
@@ -673,7 +684,7 @@ public class LocalGrid {
 		
 		for (Vector3i spiralCoord: spiralCoords) {
 			int groundHeight = this.findHighestGroundHeight(spiralCoord.x, spiralCoord.y);
-			int emptyHeight = this.findLowestEmptyHeight(spiralCoord.x, spiralCoord.y);
+			int emptyHeight = this.findHighestEmptyHeight(spiralCoord.x, spiralCoord.y);
 			if (emptyHeight != spiralCoord.z) {
 				spiralCoord.z = groundHeight;
 			}
@@ -730,15 +741,17 @@ public class LocalGrid {
 	}
 	
 	//Claim is equivalent to actual human ownership and full rights, as opposed to being in use
-	public void claimTile(Human human, Vector3i start, Vector3i end) {
+	public void claimTiles(Human human, Vector3i start, Vector3i end) {
 		LocalGridLandClaim newLandClaim = new LocalGridLandClaim(human, start, end);
 		localLandClaims.add(newLandClaim);
 		human.allClaims.add(newLandClaim);
 	}
 	
-	public void unclaimTile(LocalGridLandClaim claim) {
+	public void unclaimTiles(LocalGridLandClaim claim) {
 		claim.claimant.allClaims.remove(claim);
 		localLandClaims.remove(claim);
+		claim.boundary = null;
+		claim.claimant = null;
 	}
 	
 

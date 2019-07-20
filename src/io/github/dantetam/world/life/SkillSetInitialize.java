@@ -1,5 +1,6 @@
 package io.github.dantetam.world.life;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -13,6 +14,7 @@ import io.github.dantetam.toolbox.CollectionUtil;
 import io.github.dantetam.toolbox.MapUtil;
 import io.github.dantetam.world.civhumanai.Ethos;
 import io.github.dantetam.world.civhumanai.EthosSet;
+import io.github.dantetam.world.civilization.Skill;
 import io.github.dantetam.world.civilization.SkillBook;
 import io.github.dantetam.world.civilization.Society;
 import io.github.dantetam.world.dataparse.EthosData;
@@ -34,29 +36,41 @@ public class SkillSetInitialize {
 	 * 
 	 */
 	public static void initHumanSkills(SkillBook skillBook) {
-		List<String> allSkills = SkillData.getAllSkills();
+		List<Skill> allSkills = new ArrayList<>(SkillData.getAllSkills().values());
+		
+		for (Skill skill: allSkills) {
+			if (skill.isCoreSkill) {
+				allSkills.remove(skill);
+				
+				int baseSkillVal = (int) (SkillBook.MAX_LEVEL / 3.0);
+				GeometricDistribution distr = new GeometricDistribution(0.8);
+				int level = baseSkillVal + distr.sample();
+				skillBook.setSkillLevel(skill.name, level);
+			}
+		}
+		
 		for (int i = 0; i < NUM_START_SKILL_GOOD; i++) {
-			String randSkill = allSkills.remove((int) (Math.random() * allSkills.size()));
+			Skill randSkill = allSkills.remove((int) (Math.random() * allSkills.size()));
 			int baseSkillVal = (int) (SkillBook.MAX_LEVEL / 3.0);
 			GeometricDistribution distr = new GeometricDistribution(0.8);
 			int level = baseSkillVal + distr.sample();
-			skillBook.setSkillLevel(randSkill, level);
+			skillBook.setSkillLevel(randSkill.name, level);
 		}
 		
 		for (int i = 0; i < NUM_START_SKILL_AVG; i++) {
-			String randSkill = allSkills.remove((int) (Math.random() * allSkills.size()));
+			Skill randSkill = allSkills.remove((int) (Math.random() * allSkills.size()));
 			int baseSkillVal = (int) (SkillBook.MAX_LEVEL / 5.0);
 			GeometricDistribution distr = new GeometricDistribution(0.7);
 			int level = baseSkillVal + distr.sample();
-			skillBook.setSkillLevel(randSkill, level);
+			skillBook.setSkillLevel(randSkill.name, level);
 		}
 		
 		for (int i = 0; i < NUM_START_SKILL_BASIC; i++) {
-			String randSkill = allSkills.remove((int) (Math.random() * allSkills.size()));
+			Skill randSkill = allSkills.remove((int) (Math.random() * allSkills.size()));
 			int baseSkillVal = (int) (SkillBook.MAX_LEVEL / 6.0);
 			GeometricDistribution distr = new GeometricDistribution(0.5);
 			int level = baseSkillVal + distr.sample();
-			skillBook.setSkillLevel(randSkill, level);
+			skillBook.setSkillLevel(randSkill.name, level);
 		}
 	}
 	

@@ -80,7 +80,7 @@ public class LocalGridTimeExecution {
 				Task task = human.currentQueueTasks.get(0);
 				System.out.println(human.name + " has " + human.currentQueueTasks.size() + " tasks."); 
 				if (task.taskTime <= 0) {
-					System.out.println(human.name + " FINISHED task: " + task.getClass().getSimpleName());
+					System.out.println(human.name + " FINISHED task: " + task.toString());
 					human.currentQueueTasks.remove(0);
 					executeTask(grid, human, task);
 					if (human.currentQueueTasks.size() == 0) {
@@ -136,7 +136,7 @@ public class LocalGridTimeExecution {
 					if (human.activePriority == null) {
 						human.activePriority = getPriorityForStep(society, grid, 
 								human, human.jobProcessProgress.boss, process, step);
-						String priorityName = human.activePriority == null ? "null" : human.activePriority.getClass().getSimpleName();
+						String priorityName = human.activePriority == null ? "null" : human.activePriority.toString();
 						System.out.println(human.name + ", for its job process: " + process + ", " +
 								"was given the PRIORITY: " + priorityName);
 					}
@@ -173,6 +173,10 @@ public class LocalGridTimeExecution {
 					if (process.recRepeats <= 0) {
 						executeProcessResActions(grid, human, process.processResActions);
 						System.err.println(human.name + " COMPLETED process (as an employee for a job): " + process);
+						
+						//Special data for jobs
+						MapUtil.removeSafeNestSetMap(human.jobProcessProgress.boss.workers, human, human.jobProcessProgress);
+						
 						human.jobProcessProgress = null; //Reset all jobs and job fields to null
 						if (human.processBuilding != null) {
 							human.processBuilding.currentUser = null;
@@ -210,7 +214,7 @@ public class LocalGridTimeExecution {
 					ProcessStep step = process.processSteps.get(process.processStepIndex);
 					if (human.activePriority == null) {
 						human.activePriority = getPriorityForStep(society, grid, human, human, human.processProgress, step);
-						String priorityName = human.activePriority == null ? "null" : human.activePriority.getClass().getSimpleName();
+						String priorityName = human.activePriority == null ? "null" : human.activePriority.toString();
 						System.out.println(human.name + ", for its process: " + human.processProgress + ", ");
 								System.out.println("was given the PRIORITY: " + priorityName);
 					}
@@ -388,14 +392,15 @@ public class LocalGridTimeExecution {
 			int width = (int) Math.ceil(Math.sqrt(being.ownedBuildings.size() + being.inventory.size() + 8));
 			Vector2i requiredSpace = new Vector2i(width, width);
 			
-			List<Vector3i> bestRectangle = findBestOpenRectSpace(
+			List<GridRectInterval> bestRectangles = findBestOpenRectSpace(
 					grid, validLandOwners, being.location.coords, requiredSpace);
-			List<Vector3i> borderRegion = VecGridUtil.getBorderRegionFromCoords(bestRectangle);
+			List<Vector3i> borderRegion = VecGridUtil.getBorderRegionFromCoords(
+					Vector3i.getRange(bestRectangles));
 			
 			Set<Integer> bestBuildingMaterials = society.getBestBuildingMaterials(calcUtility, 
 					being, borderRegion.size());
 				
-			if (bestRectangle != null) {
+			if (bestRectangles != null) {
 				priority = new ConstructRoomPriority(borderRegion, bestBuildingMaterials);
 			}
 			else {
@@ -458,17 +463,30 @@ public class LocalGridTimeExecution {
 			
 			//If available building, use it, 
 			//otherwise find space needed for building, allocate it, and start allocating a room
-			GridRectInterval nearOpenSpace = grid.getNearestViableRoom(validLandOwners, being.location.coords, requiredSpace);
+			GridRectInterval nearOpenSpace = grid.getNearestViableRoom(validLandOwners, 
+					being.location.coords, requiredSpace);
 
 			if (nearOpenSpace == null) { //No available rooms to use
-				List<Vector3i> bestRectangle = findBestOpenRectSpace(grid, validLandOwners, being.location.coords, requiredSpace);
-			
-				if (bestRectangle != null) {
-					System.out.println("Create building space: " + VecGridUtil.findCoordBounds(bestRectangle).toString());
+				List<GridRectInterval> bestRectangles = findBestOpenRectSpace(grid, validLandOwners, 
+						being.location.coords, requiredSpace);
+				
+				if (bestRectangles != null && bestRectangles.size() > 0) {
+					List<Vector3i> bestRectangleVecs = Vector3i.getRange(bestRectangles);
+					
+					System.out.println("Create building space: " + bestRectangles.toString());
 					Set<Integer> bestBuildingMaterials = society.getBestBuildingMaterials(calcUtility, 
 							being, (requiredSpace.x + requiredSpace.y) * 2);
-					grid.setInUseRoomSpace(bestRectangle, true);
-					priority = new ConstructRoomPriority(bestRectangle, bestBuildingMaterials);
+					
+					//Use land claims on the spaces not already claimed
+					for (GridRectInterval interval: bestRectangles) {
+						List<Human> claimants = grid.findClaimantToTiles(interval);
+						if (claimants == null || claimants.size() == 0) {
+							grid.claimTiles(ownerProducts, interval.start, interval.end);
+						}
+					}
+					
+					grid.setInUseRoomSpace(bestRectangleVecs, true);
+					priority = new ConstructRoomPriority(bestRectangleVecs, bestBuildingMaterials);
 				}
 				else {
 					System.out.println("Could not create building space of size: " + requiredSpace);
@@ -1001,12 +1019,14 @@ public class LocalGridTimeExecution {
 			System.err.println(entry.getKey().name + " " + entry.getValue());
 		}
 		
-		Object potentialJob = MapUtil.randChoiceFromMaps(bestProcesses, bestJobs);
-		if (potentialJob instanceof LocalJob && human.jobProcessProgress == null) {
-			human.jobProcessProgress = (LocalJob) potentialJob;
+		Object potentialItem = MapUtil.randChoiceFromMaps(bestProcesses, bestJobs);
+		if (potentialItem instanceof LocalJob && human.jobProcessProgress == null) {
+			LocalJob potentialJob = (LocalJob) potentialItem;
+			human.jobProcessProgress = potentialJob;
+			MapUtil.insertNestedSetMap(potentialJob.boss.workers, human, potentialJob);
 		}
-		else if (potentialJob instanceof LocalProcess && human.processProgress == null) {
-			human.processProgress = (LocalProcess) potentialJob;
+		else if (potentialItem instanceof LocalProcess && human.processProgress == null) {
+			human.processProgress = (LocalProcess) potentialItem;
 		}
 		//LocalProcess randBiasedChosenProcess = MapUtil.randChoiceFromWeightMap(bestProcesses);
 		//human.processProgress = randBiasedChosenProcess;
@@ -1204,7 +1224,7 @@ public class LocalGridTimeExecution {
 	 * @return A list of vector coords representing the space. This is a list
 	 * 		   because we need an indexed ordering to the  
 	 */
-	private static List<Vector3i> findBestOpenRectSpace(LocalGrid grid, Set<Human> validLandOwners, 
+	private static List<GridRectInterval> findBestOpenRectSpace(LocalGrid grid, Set<Human> validLandOwners, 
 			Vector3i coords, Vector2i requiredSpace) {
 		GridRectInterval openSpace = SpaceFillingAlg.findAvailableSpaceWithinClaims(grid, 
 				requiredSpace.x, requiredSpace.y, true, validLandOwners, null);
@@ -1227,14 +1247,14 @@ public class LocalGridTimeExecution {
 			});
 			return bestRectangle; 
 			*/
-			return openSpace.getRange();
+			return CollectionUtil.newList(openSpace);
 		}
 
 		//Make user claim new land
 		openSpace = SpaceFillingAlg.findAvailableSpaceNear(grid, coords,
 				requiredSpace.x, requiredSpace.y, true, validLandOwners, null);
 		if (openSpace != null) {
-			return openSpace.getRange();
+			return CollectionUtil.newList(openSpace);
 		}
 	
 		return null;

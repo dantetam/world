@@ -9,4 +9,8 @@ public class Pair<T> {
 		this.second = second;
 	}
 	
+	public String toString() {
+		return "Pair: [" + first.toString() + ", " + second.toString() + "]";
+	}
+	
 }

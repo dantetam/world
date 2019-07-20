@@ -197,10 +197,18 @@ public class ItemCSVParser extends WorldCsvParser {
 					System.err.println("Could not find item name: " + itemName);
 					id = ItemData.generateItem(itemName);
 				}
-				int min = args.length >= 2 ? Integer.parseInt(args[1].strip()) : 1;
-				int max = args.length >= 3 ? Integer.parseInt(args[2].strip()) : 1;
-				double prob = args.length >= 4 ? Double.parseDouble(args[3].strip()) : 1.0;
-				trialArgs.add(new ItemDrop(id, min, max, prob));
+				
+				try {
+					int min = args.length >= 2 ? Integer.parseInt(args[1].strip()) : 1;
+					int max = args.length >= 3 ? Integer.parseInt(args[2].strip()) : 1;
+					double prob = args.length >= 4 ? Double.parseDouble(args[3].strip()) : 1.0;
+					trialArgs.add(new ItemDrop(id, min, max, prob));
+				} catch (NumberFormatException e) {
+					e.printStackTrace();
+					throw new IllegalArgumentException("Drops must be in the form: "
+							+ "String name, (int min, int max, double prob), given drop: \n" 
+							+ dropString);
+				}
 			}
 			ItemDropTrial itemDropTrial = new ItemDropTrial(trialArgs);
 			itemDrops.independentDrops.add(itemDropTrial);

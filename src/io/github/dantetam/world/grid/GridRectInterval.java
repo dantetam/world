@@ -58,4 +58,8 @@ public class GridRectInterval {
 		return Vector3i.getRange(start, end);
 	}
 	
+	public String toString() {
+		return "Grid Interval: " + start + " <-> " + end;
+	}
+	
 }

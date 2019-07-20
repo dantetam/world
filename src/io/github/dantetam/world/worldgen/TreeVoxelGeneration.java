@@ -14,8 +14,8 @@ import io.github.dantetam.world.grid.LocalTile;
 public class TreeVoxelGeneration {
 
 	public static void generateSingle3dTree(LocalGrid grid, int[] coords, ProceduralTree proceduralTree) {
-		int startingHeight = grid.findLowestEmptyHeight(coords[0], coords[1]);
-		Vector3i startLocation = new Vector3i(coords[0], coords[1], startingHeight);
+		Vector3i startLocation = grid.findLowestAccessibleHeight(coords[0], coords[1]);
+		if (startLocation == null) return;
 		
 		List<Vector3i> treeLocations = new ArrayList<>();
 		List<Integer> blockIds = new ArrayList<>();

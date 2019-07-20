@@ -16,7 +16,11 @@ public class SkillCSVParser extends WorldCsvParser {
 			if (name.isBlank()) {
 				continue;
 			}
-			SkillData.getAllSkills().add(name);
+			
+			String isCoreSkillStr = record.get("IsCoreSkill");
+			boolean isCoreSkill = isCoreSkillStr != null && !isCoreSkillStr.isBlank();
+			
+			SkillData.addSkill(name, isCoreSkill);
 		}
 	}
 	

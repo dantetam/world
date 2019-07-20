@@ -375,7 +375,7 @@ public class Society {
 		Map<Integer, Double> itemRarity = new HashMap<>();
 		for (int r = 0; r < grid.rows; r++) {
 			for (int c = 0; c < grid.cols; c++) {
-				int startHeight = grid.findLowestEmptyHeight(r, c) - 1;
+				int startHeight = grid.findHighestEmptyHeight(r, c) - 1;
 				for (int h = startHeight; h >= startHeight - 5; h--) {
 					LocalTile tile = grid.getTile(new Vector3i(r, c, h));
 					if (tile == null) continue;

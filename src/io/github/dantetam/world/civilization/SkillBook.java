@@ -3,12 +3,13 @@ package io.github.dantetam.world.civilization;
 import java.util.HashMap;
 import java.util.Map;
 
+import io.github.dantetam.world.dataparse.SkillData;
+
 public class SkillBook {
 	
+	public static final int MIN_LEVEL = 0;
 	public static final int MAX_LEVEL = 30;
-	private static int[] experienceNeeded = new int[MAX_LEVEL+2]; 
-	public static String[] allSkills = {"build", "cook", "cloth", "craft", "farm", 
-			"fight", "process", "smelt", "stone", "woodcut"};
+	static int[] experienceNeeded = new int[MAX_LEVEL+2]; 
 	
 	private Map<String, Skill> skillMapping;
 	
@@ -27,9 +28,9 @@ public class SkillBook {
 	
 	public SkillBook() {
 		skillMapping = new HashMap<>();
-		for (String skillName: allSkills) {
-			Skill skill = new Skill(skillName, (int) (Math.random() * 8));
-			skillMapping.put(skillName, skill);
+		for (Skill skill: SkillData.getAllSkills().values()) {
+			skill = skill.clone();
+			skillMapping.put(skill.name, skill);
 		}
 	}
 	
@@ -54,21 +55,6 @@ public class SkillBook {
 		Skill skill = skillMapping.get(skillName);
 		skill.level = level;
 		skill.allExp = experienceNeeded[level + 1];
-	}
-	
-	private static class Skill {
-		public String name;
-		public int level, allExp;
-		
-		public Skill(String name, int level) {
-			this.name = name;
-			this.level = level;
-			this.allExp = (int) (0.5 * (experienceNeeded[level] + experienceNeeded[level + 1]));
-		}
-		
-		public String toString() {
-			return "Skill: " + name + " (L: " + level + ", exp: " + allExp + ")";
-		}
 	}
 	
 }

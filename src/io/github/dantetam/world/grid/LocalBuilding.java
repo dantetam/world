@@ -17,7 +17,7 @@ public class LocalBuilding {
 	
 	private Vector3i primaryLocation;
 	private List<Vector3i> locationOffsets; //Contains every location, including primary
-	public Set<Vector3i> calculatedLocations; //Contains the absolute location of every part of this building
+	public List<Vector3i> calculatedLocations; //Contains the absolute location of every part of this building
 	public List<Integer> buildingBlockIds;
 	
 	public LivingEntity owner;
@@ -57,7 +57,7 @@ public class LocalBuilding {
 			calculatedLocations = null;
 		}
 		else {
-			calculatedLocations = new HashSet<>();
+			calculatedLocations = new ArrayList<>();
 			for (Vector3i offset: offsets) {
 				calculatedLocations.add(primaryLocation.getSum(offset));
 			}

@@ -1,8 +1,10 @@
 package io.github.dantetam.world.life;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import io.github.dantetam.toolbox.CollectionUtil;
@@ -17,6 +19,7 @@ import io.github.dantetam.world.dataparse.ItemData;
 import io.github.dantetam.world.grid.LocalBuilding;
 import io.github.dantetam.world.grid.LocalGridLandClaim;
 import io.github.dantetam.world.grid.LocalGridTimeExecution;
+import io.github.dantetam.world.process.LocalJob;
 
 public class Human extends LivingEntity {
 	
@@ -32,7 +35,7 @@ public class Human extends LivingEntity {
 	//Used for convenient storage; all humans have relationships stored in HumanBrain::indexedRelationships
 	public Human lord;
 	public List<Human> servants;
-	public List<Human> workers;
+	public Map<Human, Set<LocalJob>> workers;
 	
 	public Household household;
 	
@@ -50,7 +53,7 @@ public class Human extends LivingEntity {
 		EthosSetInitialize.initHumanBrain(brain.ethosSet);
 		dna = new DNAHuman("Human");
 		servants = new ArrayList<>();
-		workers = new ArrayList<>();
+		workers = new HashMap<>();
 	}
 	
 	public void feed(double standardUnitNutrition) {
@@ -89,7 +92,7 @@ public class Human extends LivingEntity {
 			basePrestige += housePrestigeExtra;
 		}
 		
-		for (Human worker: workers) {
+		for (Human worker: workers.keySet()) {
 			basePrestige += worker.getTotalPowerPrestige() * 0.3;
 		}
 		for (Human servant: servants) {

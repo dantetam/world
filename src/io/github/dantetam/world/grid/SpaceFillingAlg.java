@@ -30,7 +30,9 @@ public class SpaceFillingAlg {
 	/**
 	 * Intended for finding space within a group's own existing land claims.
 	 * 
-	 * @return
+	 * @return The best rectangle close to center and the closest size, 
+	 * with minimum dimensions (desiredR, desiredC),
+	 * if one exists within maxDistFlat * trials distance (square dist) away from center.
 	 */
 	public static GridRectInterval findAvailableSpaceWithinClaims(LocalGrid grid, 
 			int desiredR, int desiredC, boolean sameLevel, Set<Human> validLandOwners,
@@ -39,12 +41,15 @@ public class SpaceFillingAlg {
 		int minScore = 0;
 		for (Human landOwner: validLandOwners) {
 			for (LocalGridLandClaim claim: landOwner.allClaims) {
+				System.out.println(claim.boundary);
 				GridRectInterval space = findAvailableSpaceExact(grid, claim.boundary.avgVec(), 
 						desiredR, desiredC, sameLevel, validLandOwners, tileCond);
-				int reverseScore = Math.abs(space.get2dSize() - (desiredR * desiredC)); 
-				if (reverseScore < minScore || bestSpace == null) {
-					bestSpace = space;
-					minScore = reverseScore;
+				if (space != null) {
+					int reverseScore = Math.abs(space.get2dSize() - (desiredR * desiredC)); 
+					if (reverseScore < minScore || bestSpace == null) {
+						bestSpace = space;
+						minScore = reverseScore;
+					}
 				}
 			}
 		}
@@ -196,7 +201,7 @@ public class SpaceFillingAlg {
 		Set<Vector3i> candidates = new HashSet<>();
 		for (int r = 0; r < grid.rows; r++) {
 			for (int c = 0; c < grid.cols; c++) {
-				int groundHeight = grid.findLowestEmptyHeight(r, c);
+				int groundHeight = grid.findHighestEmptyHeight(r, c);
 				for (int h = grid.heights - 1; h >= 0; h--) {
 					LocalTile tile = grid.getTile(new Vector3i(r,c,h));
 					if (h == groundHeight || (h < groundHeight && tile.exposedToAir)) {

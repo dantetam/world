@@ -127,19 +127,20 @@ public class GuiSystem extends BaseSystem {
 		}
 		
 		for (LocalBuilding building: activeGrid.getAllBuildings()) {
-			int i = 0;
-			for (Vector3i coords: building.calculatedLocations) {
+			
+			for (int i = 0; i < building.calculatedLocations.size(); i++) {
+				Vector3i coords = building.calculatedLocations.get(i);
 				//int emptyHeight = activeGrid.findLowestEmptyHeight(coords.x, coords.y);
 				
 				if (coords.z <= originalHeight && coords.x >= minX && coords.x <= maxX && coords.y >= minZ && coords.y <= maxZ) {
 					int blockId = building.buildingBlockIds.get(i);
-					Vector2f guiPos = new Vector2f(guiWidth * (coords.x - minX), guiHeight * (coords.y - minZ)); 
+					Vector2f guiPos = new Vector2f(guiWidth * (coords.x - minX), guiHeight * (coords.y - minZ));
 					
 					int tileTexture = ItemData.getTextureFromItemId(blockId);
 					listGuis.add(new GuiQuad(tileTexture, guiPos, guiDim));
 				}
-				i++;
 			}
+			
 		}
 		
 		allGuiQuad = listGuis;
