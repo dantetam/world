@@ -108,8 +108,8 @@ public class SpaceFillingAlg {
 				
 				Vector3i start = new Vector3i(maxSubRect.first.x, maxSubRect.first.y, height);
 				Vector3i end = new Vector3i(
-						maxSubRect.first.x + maxSubRect.second.x, 
-						maxSubRect.first.y + maxSubRect.second.y, 
+						maxSubRect.first.x + maxSubRect.second.x - 1, 
+						maxSubRect.first.y + maxSubRect.second.y - 1, 
 						height);
 				GridRectInterval interval = new GridRectInterval(start, end);
 				componentMaxSubRect.add(interval);

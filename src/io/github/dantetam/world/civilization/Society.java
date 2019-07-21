@@ -49,6 +49,11 @@ public class Society {
 	
 	public JobMarket jobMarket;
 	
+	//Societal utility of objects measured for this society, stored here
+	public Map<Integer, Double> calcUtility;
+	public Map<String, Double> groupItemRarity;
+	public List<Vector3i> importantLocations;
+	
 	public Society(String name, LocalGrid grid) {
 		this.name = name;
 		this.grid = grid;
@@ -624,7 +629,7 @@ public class Society {
 			//MathUti.addNumMap(societalNeed, "Drink", thirstScore);
 			
 			int shelterScore = 0;
-			for (LocalGridLandClaim claim: human.allClaims) {
+			for (LocalGridLandClaim claim: human.allClaimsByPurpose.values()) {
 				//TODO
 				//Calculate shelter score based on number of claims and amount of covered blocks
 				
@@ -653,7 +658,7 @@ public class Society {
 			}
 			else {
 				double normFurnitureScore = 0;
-				Set<Vector3i> buildingSpaces = human.home.calculatedLocations;
+				Collection<Vector3i> buildingSpaces = human.home.calculatedLocations;
 				for (Vector3i buildingSpace: buildingSpaces) {
 					LocalTile tile = grid.getTile(buildingSpace);
 					if (tile.building != null) {

@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.commons.math3.distribution.NormalDistribution;
+import org.lwjgl.util.vector.Vector2f;
 
 import io.github.dantetam.localdata.ConstantData;
 import io.github.dantetam.lwjglEngine.terrain.ForestGeneration;
@@ -16,6 +17,7 @@ import io.github.dantetam.lwjglEngine.terrain.ForestGeneration.ProceduralTree;
 import io.github.dantetam.lwjglEngine.terrain.RasterizeVoronoi;
 import io.github.dantetam.toolbox.MathUti;
 import io.github.dantetam.toolbox.VecGridUtil;
+import io.github.dantetam.vector.Vector2i;
 import io.github.dantetam.vector.Vector3i;
 import io.github.dantetam.world.ai.HierarchicalPathfinder;
 import io.github.dantetam.world.ai.RSRPathfinder;
@@ -309,30 +311,7 @@ public class LocalGridInstantiate {
 			double meanWithinCluster = clusterSize / 1.85;
 			
 			for (int clusterNum = 0; clusterNum < actualNumClusters; clusterNum++) {
-				double meanR = meanWithinCluster * (Math.random()*0.8 + 0.6),
-						meanC = meanWithinCluster * (Math.random()*0.8 + 0.6);
-				NormalDistribution gaussianResExist = new NormalDistribution(0, 
-						(meanR + meanC) / 2 * 0.6);
-				
-				NormalDistribution gaussianR = new NormalDistribution(meanR, meanR * 0.4);
-				NormalDistribution gaussianC = new NormalDistribution(meanC, meanC * 0.4);
-				int rows = (int) Math.round(gaussianR.sample());
-				int cols = (int) Math.round(gaussianC.sample());
-				
-				int randomR = (int) (terrain.length * Math.random());
-				int randomC = (int) (terrain[0].length * Math.random());
-				for (int r = -rows; r <= rows; r++) {
-					for (int c = -cols; c <= cols; c++) {
-						int distCenter = Math.abs(r) + Math.abs(c);
-						double probability = 1.25 - gaussianResExist.cumulativeProbability(distCenter);
-						if (Math.random() < probability) {
-							int trueR = randomR + r, trueC = randomC + c;
-							if (trueR >= 0 && trueC >= 0 && trueR < terrain.length && trueC < terrain[0].length) {
-								surfaceClusters[trueR][trueC] = itemId;
-							}
-						}
-					}
-				}
+				modifyResTableWithCluster(surfaceClusters, itemId, meanWithinCluster, ClusterDistrMode.BASELINE_EUCLIDEAN);
 			}
 		}
 		return surfaceClusters;
@@ -364,6 +343,59 @@ public class LocalGridInstantiate {
 	
 	public double[] generateIgneousMetaHeights() {
 		return null;
+	}
+	
+	public void modifyResTableWithCluster(int[][] surfaceClusters, int itemId, double meanWithinCluster,
+			ClusterDistrMode clusterCalcMode) {
+		double meanR = meanWithinCluster * (Math.random()*0.8 + 0.6),
+				meanC = meanWithinCluster * (Math.random()*0.8 + 0.6);
+		NormalDistribution gaussianResExist = new NormalDistribution(0, 
+				(meanR + meanC) / 2 * 0.6);
+		
+		NormalDistribution gaussianR = new NormalDistribution(meanR, meanR * 0.4);
+		NormalDistribution gaussianC = new NormalDistribution(meanC, meanC * 0.4);
+		int rows = (int) Math.round(gaussianR.sample());
+		int cols = (int) Math.round(gaussianC.sample());
+		
+		double majorAxis = Math.max(rows, cols), minorAxis = Math.min(rows, cols);
+		double foci = Math.sqrt(majorAxis*majorAxis - minorAxis*minorAxis);
+		Vector2f coords = new Vector2f(0,0);
+		if (rows > cols) {
+			coords.x = (float) foci;
+		}
+		else {
+			coords.y = (float) foci;
+		}
+		
+		int randomR = (int) (surfaceClusters.length * Math.random());
+		int randomC = (int) (surfaceClusters[0].length * Math.random());
+		for (int r = -rows; r <= rows; r++) {
+			for (int c = -cols; c <= cols; c++) {
+				double probability = 0;
+				if (clusterCalcMode == ClusterDistrMode.BASELINE_EUCLIDEAN) {
+					int distCenter = Math.abs(r) + Math.abs(c);
+					probability = 1.25 - gaussianResExist.cumulativeProbability(distCenter);
+				}
+				else if (clusterCalcMode == ClusterDistrMode.ELLIPSE) {
+					double distFoci = Math.sqrt(Math.pow(coords.x - r, 2) + Math.pow(coords.y - c, 2));
+					double withinBounds = distFoci - foci;
+					probability = 1.25 - gaussianResExist.cumulativeProbability(withinBounds);
+				}
+				
+				if (Math.random() < probability) {
+					int trueR = randomR + r, trueC = randomC + c;
+					if (trueR >= 0 && trueC >= 0 && 
+							trueR < surfaceClusters.length && trueC < surfaceClusters[0].length) {
+						surfaceClusters[trueR][trueC] = itemId;
+					}
+				}
+			}
+		}
+	}
+	
+	public enum ClusterDistrMode {
+		BASELINE_EUCLIDEAN,
+		ELLIPSE
 	}
 	
 }

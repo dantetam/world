@@ -127,7 +127,7 @@ public class GuiSystem extends BaseSystem {
 		}
 		
 		for (LocalBuilding building: activeGrid.getAllBuildings()) {
-			
+			 
 			for (int i = 0; i < building.calculatedLocations.size(); i++) {
 				Vector3i coords = building.calculatedLocations.get(i);
 				//int emptyHeight = activeGrid.findLowestEmptyHeight(coords.x, coords.y);

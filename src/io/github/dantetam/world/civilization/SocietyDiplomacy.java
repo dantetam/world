@@ -108,6 +108,7 @@ public class SocietyDiplomacy {
 		}
 	}
 	
+	//See FreeActionsSociety::considerAllFreeActions()
 	public void initiateTrade(Society host, Society target) {
 		//TODO
 	}

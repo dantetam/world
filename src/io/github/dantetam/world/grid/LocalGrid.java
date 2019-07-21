@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import io.github.dantetam.toolbox.MapUtil;
 import io.github.dantetam.toolbox.VecGridUtil;
 import io.github.dantetam.vector.Vector2i;
 import io.github.dantetam.vector.Vector3i;
@@ -21,6 +22,7 @@ import io.github.dantetam.world.items.Inventory;
 import io.github.dantetam.world.items.InventoryItem;
 import io.github.dantetam.world.life.Human;
 import io.github.dantetam.world.life.LivingEntity;
+import io.github.dantetam.world.process.LocalProcess;
 import kdtreegeo.KdTree;
 
 /**
@@ -427,7 +429,7 @@ public class LocalGrid {
 		if (buildingCanFitAt(building, newPrimaryCoords) || overrideGrid) {
 			removeBuilding(building);
 			building.setPrimaryLocation(newPrimaryCoords);
-			Set<Vector3i> newAbsLocations = building.calculatedLocations;
+			Collection<Vector3i> newAbsLocations = building.calculatedLocations;
 
 			for (Vector3i newAbsLocation: newAbsLocations) {
 				LocalTile absTile = getTile(newAbsLocation);
@@ -459,7 +461,7 @@ public class LocalGrid {
 	}
 	
 	public void removeBuilding(LocalBuilding building) {
-		Set<Vector3i> oldAbsLocations = building.calculatedLocations;
+		Collection<Vector3i> oldAbsLocations = building.calculatedLocations;
 		for (Vector3i oldAbsLocation: oldAbsLocations) {
 			LocalTile oldTile = getTile(oldAbsLocation);
 			if (oldTile != null) {
@@ -741,14 +743,16 @@ public class LocalGrid {
 	}
 	
 	//Claim is equivalent to actual human ownership and full rights, as opposed to being in use
-	public void claimTiles(Human human, Vector3i start, Vector3i end) {
-		LocalGridLandClaim newLandClaim = new LocalGridLandClaim(human, start, end);
+	public void claimTiles(Human human, Vector3i start, Vector3i end, LocalProcess purpose) {
+		LocalGridLandClaim newLandClaim = new LocalGridLandClaim(human, start, end, purpose);
 		localLandClaims.add(newLandClaim);
 		human.allClaims.add(newLandClaim);
+		MapUtil.insertNestedListMap(human.allClaimsByPurpose, purpose, newLandClaim);
 	}
 	
 	public void unclaimTiles(LocalGridLandClaim claim) {
 		claim.claimant.allClaims.remove(claim);
+		MapUtil.insertNestedListMap(claim.claimant.allClaimsByPurpose, claim.purpose, claim);
 		localLandClaims.remove(claim);
 		claim.boundary = null;
 		claim.claimant = null;

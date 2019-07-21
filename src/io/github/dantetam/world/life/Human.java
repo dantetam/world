@@ -20,12 +20,16 @@ import io.github.dantetam.world.grid.LocalBuilding;
 import io.github.dantetam.world.grid.LocalGridLandClaim;
 import io.github.dantetam.world.grid.LocalGridTimeExecution;
 import io.github.dantetam.world.process.LocalJob;
+import io.github.dantetam.world.process.LocalProcess;
 
 public class Human extends LivingEntity {
 	
 	public Society society;
 	public LocalBuilding home;
+	
 	public Set<LocalGridLandClaim> allClaims;
+	public Map<LocalProcess, List<LocalGridLandClaim>> allClaimsByPurpose;
+	
 	public SkillBook skillBook;
 	public String familyName;
 	
@@ -43,6 +47,7 @@ public class Human extends LivingEntity {
 		super(name);
 		this.society = society;
 		allClaims = new HashSet<>();
+		allClaimsByPurpose = new HashMap<>();
 		maxNutrition = 100;
 		maxRest = 100;
 		nutrition = 30;
@@ -112,8 +117,8 @@ public class Human extends LivingEntity {
 		
 		int landClaimId = ItemData.getIdFromName("Land Claim");
 		double landVal = 10;
-		if (LocalGridTimeExecution.calcUtility != null && LocalGridTimeExecution.calcUtility.containsKey(landClaimId)) {
-			landVal = LocalGridTimeExecution.calcUtility.get(landClaimId) / 10.0;
+		if (society.calcUtility != null && society.calcUtility.containsKey(landClaimId)) {
+			landVal = society.calcUtility.get(landClaimId) / 10.0;
 		}
 		
 		for (LocalGridLandClaim claim: this.allClaims) {

@@ -64,6 +64,9 @@ public class WorldGrid {
 		
 		societalDiplomacy = new SocietyDiplomacy(this);
 		
+		TODO Create all grids instantiated with
+		new societies, DNA/races/cultures, biomes/flora/fauna, and intersocietal interactions across grids;
+		
 		Vector3i sizes = new Vector3i(200,200,50);
 		int biome = 3;
 		localGridTiles[2][2] = new LocalGridInstantiate(sizes, biome).setupGrid(true);

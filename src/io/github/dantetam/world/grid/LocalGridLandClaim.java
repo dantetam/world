@@ -9,6 +9,7 @@ import org.lwjgl.util.vector.Vector3f;
 
 import io.github.dantetam.vector.Vector3i;
 import io.github.dantetam.world.life.Human;
+import io.github.dantetam.world.process.LocalProcess;
 import kdtreegeo.KdPoint;
 
 public class LocalGridLandClaim {
@@ -16,11 +17,13 @@ public class LocalGridLandClaim {
 	public Human claimant;
 	public GridRectInterval boundary;
 	private Vector3f averageVec;
+	public LocalProcess purpose;
 	
-	public LocalGridLandClaim(Human human, Vector3i s, Vector3i e) {
+	public LocalGridLandClaim(Human human, Vector3i s, Vector3i e, LocalProcess purpose) {
 		this.claimant = human;
 		averageVec = s.getSum(e).getScaled(0.5f);
 		boundary = new GridRectInterval(s, e);
+		this.purpose = purpose;
 	}
 	
 	@Override

@@ -44,16 +44,12 @@ import kdtreegeo.KdTree;
 
 public class LocalGridTimeExecution {
 	
-	public static Map<Integer, Double> calcUtility;
-	public static Map<String, Double> groupItemRarity;
-	public static List<Vector3i> importantLocations;
-	
 	public static int NUM_JOBPROCESS_CONSIDER = 40;
 	
 	public static void tick(WorldGrid world, LocalGrid grid, Society society) {
-		calcUtility = society.findCompleteUtilityAllItems(null);
-		groupItemRarity = society.findRawGroupsResRarity(null);
-		importantLocations = society.getImportantLocations(society.societyCenter);
+		society.calcUtility = society.findCompleteUtilityAllItems(null);
+		society.groupItemRarity = society.findRawGroupsResRarity(null);
+		society.importantLocations = society.getImportantLocations(society.societyCenter);
 		
 		Date date = world.getTime();
 		
@@ -288,21 +284,22 @@ public class LocalGridTimeExecution {
 				numCandidates, being.location.coords);
 		for (Vector3i nearestCoord: nearestCoords) {
 			LocalBuilding building = grid.getTile(nearestCoord).building;
-			System.out.println(building);
-			if (building.owner == null || capitalOwners.contains(building.owner)) {
-				if (building.currentUser == null) {
-					
-					Set<Vector3i> neighbors = grid.getAllNeighbors14(nearestCoord);
-					neighbors.add(nearestCoord);
-					for (Vector3i neighbor: neighbors) {
-						ScoredPath scoredPath = grid.pathfinder.findPath(
-								being, being.location, grid.getTile(neighbor));
-						if (scoredPath.isValid()) {
-							building.currentUser = being;
-							being.processBuilding = building;
+			if (building != null) {
+				if (building.owner == null || capitalOwners.contains(building.owner)) {
+					if (building.currentUser == null) {
+						
+						Set<Vector3i> neighbors = grid.getAllNeighbors14(nearestCoord);
+						neighbors.add(nearestCoord);
+						for (Vector3i neighbor: neighbors) {
+							ScoredPath scoredPath = grid.pathfinder.findPath(
+									being, being.location, grid.getTile(neighbor));
+							if (scoredPath.isValid()) {
+								building.currentUser = being;
+								being.processBuilding = building;
+							}
 						}
+						
 					}
-					
 				}
 			}
 		}
@@ -397,7 +394,7 @@ public class LocalGridTimeExecution {
 			List<Vector3i> borderRegion = VecGridUtil.getBorderRegionFromCoords(
 					Vector3i.getRange(bestRectangles));
 			
-			Set<Integer> bestBuildingMaterials = society.getBestBuildingMaterials(calcUtility, 
+			Set<Integer> bestBuildingMaterials = society.getBestBuildingMaterials(society.calcUtility, 
 					being, borderRegion.size());
 				
 			if (bestRectangles != null) {
@@ -474,7 +471,7 @@ public class LocalGridTimeExecution {
 					List<Vector3i> bestRectangleVecs = Vector3i.getRange(bestRectangles);
 					
 					System.out.println("Create building space: " + bestRectangles.toString());
-					Set<Integer> bestBuildingMaterials = society.getBestBuildingMaterials(calcUtility, 
+					Set<Integer> bestBuildingMaterials = society.getBestBuildingMaterials(society.calcUtility, 
 							being, (requiredSpace.x + requiredSpace.y) * 2);
 					
 					//Use land claims on the spaces not already claimed
@@ -905,8 +902,15 @@ public class LocalGridTimeExecution {
 		else if (priority instanceof SoldierPriority) {
 			//SoldierPriority soldierPriority = (SoldierPriority) priority;
 			
-			double weaponAmt = groupItemRarity.containsKey("Weapon") ? groupItemRarity.get("Weapon") : 0;
-			double armorAmt = groupItemRarity.containsKey("Armor") ? groupItemRarity.get("Armor") : 0;
+			if (!(being instanceof Human)) {
+				return new ImpossibleTaskPlaceholder();
+			}
+			
+			Human human = (Human) being;
+			Society society = human.society;
+			
+			double weaponAmt = society.groupItemRarity.containsKey("Weapon") ? society.groupItemRarity.get("Weapon") : 0;
+			double armorAmt = society.groupItemRarity.containsKey("Armor") ? society.groupItemRarity.get("Armor") : 0;
 			
 			double weaponReq = SoldierPriority.weaponAmtRequired(being);
 			double armorReq = SoldierPriority.armorAmtRequired(being);
@@ -928,7 +932,7 @@ public class LocalGridTimeExecution {
 				}
 			}
 			
-			resultPriority = new PatrolPriority(importantLocations);
+			resultPriority = new PatrolPriority(society.importantLocations);
 			return getTasksFromPriority(grid, being, resultPriority);
 		}
 		else if (priority instanceof PatrolPriority) {
