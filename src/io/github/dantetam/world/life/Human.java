@@ -8,7 +8,6 @@ import java.util.Map;
 import java.util.Set;
 
 import io.github.dantetam.toolbox.CollectionUtil;
-import io.github.dantetam.vector.Vector3i;
 import io.github.dantetam.world.civhumanrelation.HumanHumanRel;
 import io.github.dantetam.world.civhumanrelation.HumanHumanRel.HumanHumanRelType;
 import io.github.dantetam.world.civilization.Household;
@@ -98,7 +97,9 @@ public class Human extends LivingEntity {
 		}
 		
 		for (Human worker: workers.keySet()) {
-			basePrestige += worker.getTotalPowerPrestige() * 0.3;
+			if (!worker.equals(this)) {
+				basePrestige += worker.getTotalPowerPrestige() * 0.3;
+			}
 		}
 		for (Human servant: servants) {
 			basePrestige += servant.getTotalPowerPrestige();

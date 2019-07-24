@@ -3,12 +3,9 @@ package io.github.dantetam.lwjglEngine.render;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.util.vector.Matrix4f;
 
-import io.github.dantetam.lwjglEngine.entities.Camera;
-import io.github.dantetam.lwjglEngine.entities.Light;
 import io.github.dantetam.lwjglEngine.fontRendering.TextMaster;
 import io.github.dantetam.lwjglEngine.gui.GuiRenderer;
 import io.github.dantetam.lwjglEngine.shaders.StaticShader;
-import io.github.dantetam.toolbox.MousePicker;
 
 public class MasterRenderer {
 

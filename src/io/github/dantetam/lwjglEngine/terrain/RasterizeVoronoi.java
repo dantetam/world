@@ -25,10 +25,8 @@ import kn.uni.voronoitreemap.gui.JSite;
 import kn.uni.voronoitreemap.gui.VoronoiLibrary;
 import kn.uni.voronoitreemap.j2d.Point2D;
 import kn.uni.voronoitreemap.j2d.PolygonSimple;
-import io.github.dantetam.lwjglEngine.terrain.NeighborsGraphStructure.Edge;
-import io.github.dantetam.toolbox.MapUtil;
 import io.github.dantetam.toolbox.RGBUtil;
-import io.github.dantetam.vector.Vector2i;
+import io.github.dantetam.toolbox.log.CustomLog;
 
 public class RasterizeVoronoi {
 
@@ -135,7 +133,7 @@ public class RasterizeVoronoi {
 			}
 		}
 		
-		System.out.println("Failed matches: " + failedMatches);
+		CustomLog.outPrintln("Failed matches: " + failedMatches);
 		
 		return rasterResults;
 	}
@@ -306,7 +304,7 @@ public class RasterizeVoronoi {
 		BufferedImage terrain2Img = getBlendMapFromTerrainData(rasterData, 1, false);
 		RGBUtil.writeBlendMapToFile(terrain2Img, "res/testVoronoiBlendMap.png");
 		//printTable(rasterData);
-		System.out.println("Completed writing to file: blendMap");
+		CustomLog.outPrintln("Completed writing to file: blendMap");
 	}
 
 	private static void printTable(double[][] terrain) {
@@ -321,7 +319,7 @@ public class RasterizeVoronoi {
 				*/
 				System.out.print(data + " ");
 			}
-			System.out.println();
+			CustomLog.outPrintln();
 		}
 	}
 
@@ -336,7 +334,7 @@ public class RasterizeVoronoi {
 				*/
 				System.out.print(data + " ");
 			}
-			System.out.println();
+			CustomLog.outPrintln(r);
 		}
 	}
 	
@@ -346,7 +344,7 @@ public class RasterizeVoronoi {
 				String data = terrain[r][c].toString();
 				System.out.print(data);
 			}
-			System.out.println();
+			CustomLog.outPrintln();
 		}
 	}
 

@@ -46,7 +46,7 @@ public class OctaveNoise2D extends BaseTerrain2D {
 			for (int j = 0; j < nDiv; j++) {
 				double idx = (double) (a.length * i) / nDiv;
 				double idy = (double) (a[0].length * j) / nDiv;
-				// System.out.println("L: " + idx + "," + idy + ": " +
+				// CustomLog.outPrintln("L: " + idx + "," + idy + ": " +
 				// bi.getValue(source,idx,idx));
 				double zeroCheck = bi.getValue(a, idx, idy);
 				returnThis[i][j] = zeroCheck >= 0 ? zeroCheck : 0;
@@ -113,7 +113,7 @@ public class OctaveNoise2D extends BaseTerrain2D {
 	}
 
 	public double bInter(double[] distances, double[] values) {
-		// System.out.println(values[0]);
+		// CustomLog.outPrintln(values[0]);
 		if (distances.length != values.length)
 			return -1;
 		double returnThis = 0;
@@ -124,7 +124,7 @@ public class OctaveNoise2D extends BaseTerrain2D {
 			returnThis += values[i] * (sum - distances[i]);
 		}
 		returnThis /= sum;
-		// System.out.println(returnThis);
+		// CustomLog.outPrintln(returnThis);
 		return returnThis;
 	}
 
@@ -137,7 +137,7 @@ public class OctaveNoise2D extends BaseTerrain2D {
 	@Override
 	public double[][] generate(double[] a) {
 		// for (int i = 0; i < a.length; i++)
-		// System.out.println(a[i]);
+		// CustomLog.outPrintln(a[i]);
 		double[][] source = makePerlinNoise((int) a[0], (int) a[1], a[2], a[3], a[4], a[5], (int) a[6]);
 		// double[][] newSource = PerlinNoise.recurInter(source,2,nDiv/4);
 		source = OctaveNoise2D.expand(OctaveNoise2D.expand(source, a[7] / 2), a[7]);

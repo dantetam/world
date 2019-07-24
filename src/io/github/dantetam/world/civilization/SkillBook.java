@@ -36,6 +36,7 @@ public class SkillBook {
 	
 	public int getSkillLevel(String skillName) {
 		if (!skillMapping.containsKey(skillName)) {
+			System.err.println(this.skillMapping);
 			throw new IllegalArgumentException("Could not find skill name: " + skillName);
 		}
 		return skillMapping.get(skillName).level;

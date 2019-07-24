@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
+import io.github.dantetam.toolbox.log.CustomLog;
+
 public class TerrainData {
 
 	public double[][] terrain;
@@ -39,7 +41,7 @@ public class TerrainData {
 				count.put(adj, count.get(adj) + 1);
 			} catch (Exception e) {
 				e.printStackTrace();
-				// System.out.println((int)terrain[r][c]/5);
+				// CustomLog.outPrintln((int)terrain[r][c]/5);
 			}
 		}
 		// Measure "diversity" of the stratified groups of heights
@@ -47,11 +49,11 @@ public class TerrainData {
 		double divIndex = 0;
 		for (Entry en : count.entrySet()) {
 			int temp = (Integer) en.getValue();
-			System.out.println(temp);
+			CustomLog.outPrintln(temp);
 			if (temp != 0)
 				divIndex -= ((double) temp / n) * Math.log((double) temp / n);
 		}
-		System.out.println(divIndex);
+		CustomLog.outPrintln(divIndex);
 		return divIndex;
 	}
 
@@ -77,7 +79,7 @@ public class TerrainData {
 					count.put(adj, count.get(adj) + 1);
 				} catch (Exception e) {
 					e.printStackTrace();
-					// System.out.println((int)terrain[r][c]/5);
+					// CustomLog.outPrintln((int)terrain[r][c]/5);
 				}
 			}
 		}
@@ -86,11 +88,11 @@ public class TerrainData {
 		double divIndex = 0;
 		for (Entry en : count.entrySet()) {
 			int temp = (Integer) en.getValue();
-			System.out.println(temp);
+			CustomLog.outPrintln(temp);
 			if (temp != 0)
 				divIndex -= ((double) temp / n) * Math.log((double) temp / n);
 		}
-		System.out.println(divIndex);
+		CustomLog.outPrintln(divIndex);
 		return divIndex;
 	}
 
@@ -102,12 +104,12 @@ public class TerrainData {
 			for (int r = sX; r < sX + orig; r += width) {
 				for (int c = sY; c < sY + orig; c += width) {
 					double divIndex = divIndex(r, c, width);
-					// System.out.println(divIndex);
+					// CustomLog.outPrintln(divIndex);
 					if (divIndex < 0 && r + width < terrain.length && c + width < terrain[0].length) {
 						try {
 							// TODO:
 							// dS.dS(r, c, width+1, terrain[r][c]*0.5, 0.5);
-							// System.out.println("DS: " + r + " " + c + " " + width);
+							// CustomLog.outPrintln("DS: " + r + " " + c + " " + width);
 						} catch (Exception e) {
 							/* do nothing */}
 					}
@@ -143,9 +145,9 @@ public class TerrainData {
 			getListIslands(terrain, cutoff);
 			for (int i = 0; i < listIslands.size(); i++) {
 				ArrayList<Location> island = listIslands.get(i);
-				System.out.println("Island " + i);
+				CustomLog.outPrintln("Island " + i);
 				for (int j = 0; j < island.size(); j++) {
-					System.out.println(">>>>>" + island.get(j).r + "," + island.get(j).c);
+					CustomLog.outPrintln(">>>>>" + island.get(j).r + "," + island.get(j).c);
 				}
 			}
 		}
@@ -155,7 +157,7 @@ public class TerrainData {
 				for (int c = 0; c < terrain[0].length; c++) {
 					// Do not look at islands below cutoff e.g. sea
 					accounted[r][c] = terrain[r][c] < cutoff;
-					// System.out.println(accounted[r][c]);
+					// CustomLog.outPrintln(accounted[r][c]);
 				}
 			}
 			for (int r = 0; r < terrain.length; r++) {

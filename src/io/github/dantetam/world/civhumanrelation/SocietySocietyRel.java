@@ -5,8 +5,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map.Entry;
 
-import io.github.dantetam.world.civhumanrelation.SocietySocietyRel.SocietalRelationMode;
-import io.github.dantetam.world.civilization.LocalExperience;
 import io.github.dantetam.world.civilization.Society;
 import io.github.dantetam.world.items.InventoryItem;
 import io.github.dantetam.world.life.Human;

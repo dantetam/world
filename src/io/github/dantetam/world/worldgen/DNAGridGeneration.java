@@ -10,8 +10,8 @@ import java.util.Set;
 
 import io.github.dantetam.lwjglEngine.terrain.RasterizeVoronoi;
 import io.github.dantetam.toolbox.StringUtil;
+import io.github.dantetam.toolbox.log.CustomLog;
 import io.github.dantetam.lwjglEngine.terrain.NeighborsGraphStructure;
-import io.github.dantetam.lwjglEngine.terrain.NeighborsGraphStructure.Edge;
 import io.github.dantetam.vector.Vector2i;
 import io.github.dantetam.world.life.DNAHuman;
 import kn.uni.voronoitreemap.gui.JSite;
@@ -146,7 +146,7 @@ public class DNAGridGeneration {
 					System.out.print(data[r][c].languages.toString());
 				System.out.print(" ");
 			}
-			System.out.println();
+			CustomLog.outPrintln(r);
 		}
 	}
 	

@@ -6,6 +6,7 @@ import java.util.HashMap;
 import org.lwjgl.glfw.GLFW;
 
 import io.github.dantetam.render.GameLauncher;
+import io.github.dantetam.toolbox.log.CustomLog;
 
 public class InputSystem extends BaseSystem {
 
@@ -191,19 +192,19 @@ public class InputSystem extends BaseSystem {
 	}
 
 	public void executeAction(String action) {
-		System.out.println("InputSystem executed " + action);
+		CustomLog.outPrintln("InputSystem executed " + action);
 
 		if (action.equals("ADVANCE_TURN")) {
-			System.out.println("##### End turn #####");
+			CustomLog.outPrintln("##### End turn #####");
 			super.gameLauncher.worldGrid.tick();
 		}
 		else if (action.equals("ADVANCE_MULTIPLE_TURNS")) {
-			System.out.println("##### End 10 turns #####");
+			CustomLog.outPrintln("##### End 10 turns #####");
 			for (int i = 0; i < 10; i++)
 				super.gameLauncher.worldGrid.tick();
 		}
 		else if (action.equals("PAUSE_UNPAUSE")) {
-			System.out.println("##### Toggle game process #####");
+			CustomLog.outPrintln("##### Toggle game process #####");
 				super.gameLauncher.worldGrid.currentlyTicking = 
 						!super.gameLauncher.worldGrid.currentlyTicking;
 		}

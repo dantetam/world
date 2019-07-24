@@ -7,7 +7,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import io.github.dantetam.toolbox.MapUtil;
-import io.github.dantetam.world.combat.CombatMod.CombatCondition;
 
 public class CombatMod {
 

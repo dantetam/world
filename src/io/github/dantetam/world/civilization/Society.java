@@ -15,7 +15,6 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 import io.github.dantetam.toolbox.MapUtil;
-import io.github.dantetam.toolbox.MathUti;
 import io.github.dantetam.vector.Vector3i;
 import io.github.dantetam.world.civhumanai.Ethos;
 import io.github.dantetam.world.civhumansocietyai.SocietalHumansActionsCalc;
@@ -50,7 +49,8 @@ public class Society {
 	public JobMarket jobMarket;
 	
 	//Societal utility of objects measured for this society, stored here
-	public Map<Integer, Double> calcUtility;
+	public Map<Integer, Double> calcUtility; //Sorted ascending
+	public Map<Integer, Double> allEconomicUtil; 
 	public Map<String, Double> groupItemRarity;
 	public List<Vector3i> importantLocations;
 	
@@ -175,9 +175,9 @@ public class Society {
 		processByPercentage = MapUtil.getSortedMapByValueDesc(processByPercentage);
 		
 		/*
-		System.out.println("Ranked processes: #####");
+		CustomLog.outPrintln("Ranked processes: #####");
 		for (Entry<LocalProcess, Double> entry: processByUtil.entrySet()) {
-			System.out.println(entry.getKey().name + "; ranking: " + entry.getValue());
+			CustomLog.outPrintln(entry.getKey().name + "; ranking: " + entry.getValue());
 		}
 		*/
 		
@@ -213,16 +213,16 @@ public class Society {
 		
 		Map<LocalProcess, Double> bestProcesses = new HashMap<>();
 		
-		//System.out.println("raw resource rarity: ");
-		//System.out.println(rawResRarity);
+		//CustomLog.outPrintln("raw resource rarity: ");
+		//CustomLog.outPrintln(rawResRarity);
 		
-		//System.out.println("_______________________________________" + ItemData.getNameFromId(outputItemId));
+		//CustomLog.outPrintln("_______________________________________" + ItemData.getNameFromId(outputItemId));
 		
 		while (fringe.size() > 0) {
 			Set<Integer> newFringe = new HashSet<>();
 			for (Integer fringeId: fringe) {
 				
-				//System.out.println("Process for base item >>>: " + ItemData.getNameFromId(fringeId));
+				//CustomLog.outPrintln("Process for base item >>>: " + ItemData.getNameFromId(fringeId));
 				
 				List<LocalProcess> processes = ProcessData.getProcessesByOutput(fringeId);
 				for (LocalProcess process: processes) {
@@ -232,34 +232,34 @@ public class Society {
 						inputs.add(ItemData.item(process.requiredBuildNameOrGroup, 1));
 					}
 					if (process.requiredTileNameOrGroup != null) {
-						//System.out.println(ItemData.item(process.requiredTileNameOrGroup, 1) + ":processed->" + process.requiredTileNameOrGroup + "<<<<");
+						//CustomLog.outPrintln(ItemData.item(process.requiredTileNameOrGroup, 1) + ":processed->" + process.requiredTileNameOrGroup + "<<<<");
 						inputs.add(ItemData.item(process.requiredTileNameOrGroup, 1));
 					}
 					for (InventoryItem input: process.inputItems) {
 						inputs.add(input);
 					}
 					
-					//System.out.println("Looking at process: " + process.toString());
+					//CustomLog.outPrintln("Looking at process: " + process.toString());
 					
 					for (InventoryItem input: inputs) {
 						double util = allItemsUtility.containsKey(input.itemId) ? 
 								allItemsUtility.get(input.itemId) : 0;
 						if (canCompleteProcess(process, rawResRarity)) {
 							MapUtil.insertKeepMaxMap(bestProcesses, process.clone(), util);
-							//System.out.println("COMPLETE process: " + process.name + " " + util);
+							//CustomLog.outPrintln("COMPLETE process: " + process.name + " " + util);
 							continue;
 						}
 						else {
-							//System.out.println("Could not complete process: " + process);
+							//CustomLog.outPrintln("Could not complete process: " + process);
 						}
 						//if (util > 0)
-							//System.out.println("Found utility for base item: " + util);
+							//CustomLog.outPrintln("Found utility for base item: " + util);
 						//else 
-							//System.out.println("terminal");
+							//CustomLog.outPrintln("terminal");
 						if (!visitedItemIds.contains(input.itemId)) {
 							if (util > 0)
 								newFringe.add(input.itemId);
-								//System.out.println("Expanding from " + ItemData.getNameFromId(fringeId) + " -----> " + ItemData.getNameFromId(input.itemId));
+								//CustomLog.outPrintln("Expanding from " + ItemData.getNameFromId(fringeId) + " -----> " + ItemData.getNameFromId(input.itemId));
 						}
 					}
 				}
@@ -278,7 +278,7 @@ public class Society {
 		List<InventoryItem> inputs = process.inputItems;
 		for (InventoryItem input: inputs) {
 			if (!rawResRarity.containsKey(input.itemId) || rawResRarity.get(input.itemId) == 0) {
-				//System.out.println("No input");
+				//CustomLog.outPrintln("No input");
 				return false;
 			}
 			
@@ -294,7 +294,7 @@ public class Society {
 		if (process.requiredBuildNameOrGroup != null) {
 			int buildingId = ItemData.getIdFromName(process.requiredBuildNameOrGroup);
 			if (!rawResRarity.containsKey(buildingId) || rawResRarity.get(buildingId) == 0) {
-				//System.out.println("No req building");
+				//CustomLog.outPrintln("No req building");
 				return false;
 			}
 		}
@@ -302,7 +302,7 @@ public class Society {
 		if (process.requiredTileNameOrGroup != null) {
 			int tileHarvestId = ItemData.getIdFromName(process.requiredTileNameOrGroup);
 			if (!rawResRarity.containsKey(tileHarvestId) || rawResRarity.get(tileHarvestId) == 0) {
-				//System.out.println("No required tile");
+				//CustomLog.outPrintln("No required tile");
 				return false;
 			}
 		}
@@ -377,38 +377,20 @@ public class Society {
 	 * Directly count the physical rarity and presence of all items available on the map
 	 */
 	public Map<Integer, Double> findRawResourcesRarity(Human human) {
-		Map<Integer, Double> itemRarity = new HashMap<>();
-		for (int r = 0; r < grid.rows; r++) {
-			for (int c = 0; c < grid.cols; c++) {
-				int startHeight = grid.findHighestEmptyHeight(r, c) - 1;
-				for (int h = startHeight; h >= startHeight - 5; h--) {
-					LocalTile tile = grid.getTile(new Vector3i(r, c, h));
-					if (tile == null) continue;
-					if (tile.itemsOnFloor.getItems() != null) {
-						List<InventoryItem> items = tile.itemsOnFloor.getItems();
-						for (InventoryItem item: items) {
-							if (item.currentUser == null || human == null || item.currentUser.equals(human)) {
-								int id = item.itemId;
-								int num = item.quantity;
-								MapUtil.addNumMap(itemRarity, id, (double) num);
-							}
-						}
-					}
-					if (tile.tileBlockId != ItemData.ITEM_EMPTY_ID) {
-						MapUtil.addNumMap(itemRarity, tile.tileBlockId, 1.0);
-					}
-
-					if (tile.tileBlockId != ItemData.ITEM_EMPTY_ID) {
-						ItemTotalDrops drops = ItemData.getOnBlockItemDrops(tile.tileBlockId);
-						Map<Integer, Double> itemExpectations = drops.itemExpectation();
-						for (Entry<Integer, Double> entry: itemExpectations.entrySet()) {
-							MapUtil.addNumMap(itemRarity, entry.getKey(), entry.getValue());
-						}
-					}
-					
-				}
+		Map<Integer, Double> preItemRarity = new HashMap<Integer, Double>(this.grid.tileIdCounts);
+		Map<Integer, Double> itemRarity = new HashMap<>(preItemRarity);
+		
+		for (Entry<Integer, Double> entry: preItemRarity.entrySet()) {
+			Integer itemId = entry.getKey();
+			Double count = entry.getValue();
+			
+			ItemTotalDrops drops = ItemData.getOnBlockItemDrops(itemId);
+			Map<Integer, Double> itemExpectations = drops.itemExpectation();
+			for (Entry<Integer, Double> dropEntry: itemExpectations.entrySet()) {
+				MapUtil.addNumMap(itemRarity, dropEntry.getKey(), dropEntry.getValue() * count);
 			}
 		}
+		
 		for (LocalBuilding building: grid.getAllBuildings()) {
 			if (human == null || building.owner == null || building.owner.equals(human)) {
 				MapUtil.addNumMap(itemRarity, building.buildingId, 1.0);
@@ -494,8 +476,10 @@ public class Society {
 	 * Using raw resources, figure out every possible item that could be generated from destroying,
 	 * crafting, or otherwise processing the available items. Return all possible items that this
 	 * society could create, and their associated rareness.
+	 * 
+	 * Higher numbers means the resource is more common and has a higher count
 	 */
-	private Map<Integer, Double> findAllAvailableResourceRarity(Human human) {
+	public Map<Integer, Double> findAllAvailableResourceRarity(Human human) {
 		Set<Integer> visitedItemIds = new HashSet<>();
 		Set<Integer> fringe = new HashSet<>();
 		Map<Integer, Double> rawResources = findRawResourcesRarity(human);
@@ -531,7 +515,7 @@ public class Society {
 						if (!visitedItemIds.contains(nextItemId)) {
 							newFringe.add(nextItemId);
 						}
-						//System.out.println(ItemData.getNameFromId(itemId) + " ---expand---> " + ItemData.getNameFromId(nextItemId));
+						//CustomLog.outPrintln(ItemData.getNameFromId(itemId) + " ---expand---> " + ItemData.getNameFromId(nextItemId));
 						MapUtil.addNumMap(itemRarity, nextItemId, entry.getValue());
 					}
 				}
@@ -558,8 +542,8 @@ public class Society {
 			for (int outputItemId: fringe) {
 				double outputUtil = new Double((double) newFinalUtility.get(outputItemId));
 				
-				//System.out.println("-------------------------------------");
-				//System.out.println("Starting item: " + ItemData.getNameFromId(outputItemId) + ", " + outputUtil);
+				//CustomLog.outPrintln("-------------------------------------");
+				//CustomLog.outPrintln("Starting item: " + ItemData.getNameFromId(outputItemId) + ", " + outputUtil);
 				
 				List<LocalProcess> processes = ProcessData.getProcessesByOutput(outputItemId);
 				for (LocalProcess process: processes) {
@@ -591,9 +575,9 @@ public class Society {
 						}
 						double percentage = item.quantity / totalItems;
 						
-						//System.out.println("Sub-item: " + ItemData.getNameFromId(item.itemId));
-						//System.out.println((int) (percentage * 100) + "%, " + (int) provisionalUtil + " util, " + (int) (percentage * (outputUtil + provisionalUtil) / 2.0) + " frac. util");
-						//System.out.println("");
+						//CustomLog.outPrintln("Sub-item: " + ItemData.getNameFromId(item.itemId));
+						//CustomLog.outPrintln((int) (percentage * 100) + "%, " + (int) provisionalUtil + " util, " + (int) (percentage * (outputUtil + provisionalUtil) / 2.0) + " frac. util");
+						//CustomLog.outPrintln("");
 						
 						double avgUtil = (outputUtil + provisionalUtil) / 2.0;
 						avgUtil -= inputCosts;
@@ -609,7 +593,7 @@ public class Society {
 					}
 				}
 				
-				//System.out.println("");
+				//CustomLog.outPrintln("");
 			}
 			fringe = newFringe;
 		}
@@ -629,7 +613,7 @@ public class Society {
 			//MathUti.addNumMap(societalNeed, "Drink", thirstScore);
 			
 			int shelterScore = 0;
-			for (LocalGridLandClaim claim: human.allClaimsByPurpose.values()) {
+			for (LocalGridLandClaim claim: human.allClaims) {
 				//TODO
 				//Calculate shelter score based on number of claims and amount of covered blocks
 				
@@ -719,9 +703,9 @@ public class Society {
 		MapUtil.addNumMap(rawUtilByNeed, "Beauty", beautyValue / 3.0);
 		
 		/*
-		System.out.println(ItemData.getNameFromId(itemId) + " stats: ");
-		System.out.println(rawUtilByNeed);
-		System.out.println("---------------------");
+		CustomLog.outPrintln(ItemData.getNameFromId(itemId) + " stats: ");
+		CustomLog.outPrintln(rawUtilByNeed);
+		CustomLog.outPrintln("---------------------");
 		*/
 		
 		return rawUtilByNeed;

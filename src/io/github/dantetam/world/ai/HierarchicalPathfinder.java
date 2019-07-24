@@ -13,12 +13,11 @@ import java.util.Set;
 
 import io.github.dantetam.toolbox.Pair;
 import io.github.dantetam.toolbox.VecGridUtil;
+import io.github.dantetam.toolbox.log.CustomLog;
 import io.github.dantetam.vector.Vector2i;
 import io.github.dantetam.vector.Vector3i;
-import io.github.dantetam.world.ai.Pathfinder.ScoredPath;
 import io.github.dantetam.world.civilization.Household;
 import io.github.dantetam.world.civilization.Society;
-import io.github.dantetam.world.dataparse.ItemData;
 import io.github.dantetam.world.dataparse.WorldCsvParser;
 import io.github.dantetam.world.grid.LocalGrid;
 import io.github.dantetam.world.grid.LocalTile;
@@ -61,12 +60,12 @@ public class HierarchicalPathfinder extends Pathfinder {
 			return new ScoredPath(completePath, totalScore);
 		}
 		
-		//System.out.println(absPath);
-		System.out.println(startVec + " path to -> " + endVec);
+		//CustomLog.outPrintln(absPath);
+		CustomLog.outPrintln(startVec + " path to -> " + endVec);
 		for (int node = 0; node < absPath.path.size() - 1; node++) {
 			AbstractNode firstNode = absPath.path.get(node);
 			AbstractNode secondNode = absPath.path.get(node + 1);
-			//System.out.println("\t Score: " + firstNode.distToPathableNodes.get(secondNode).score + ": " + firstNode.distToPathableNodes.get(secondNode).path);
+			//CustomLog.outPrintln("\t Score: " + firstNode.distToPathableNodes.get(secondNode).score + ": " + firstNode.distToPathableNodes.get(secondNode).path);
 			//ScoredPath localPath = super.findPath(being, grid.getTile(firstNode.coords), grid.getTile(secondNode.coords));
 			ScoredPath localPath = firstNode.distToPathableNodes.get(secondNode);
 			for (int local = 0; local < localPath.path.size(); local++) {
@@ -114,7 +113,7 @@ public class HierarchicalPathfinder extends Pathfinder {
         dist.put(start, 0.0);
         while (!fringe.isEmpty()) {        	
         	AbstractNode v = fringe.poll();
-        	//System.out.println("At node: " + v.coords.toString());
+        	//CustomLog.outPrintln("At node: " + v.coords.toString());
             if (visited.contains(v)) {
                 continue;
             }
@@ -131,7 +130,7 @@ public class HierarchicalPathfinder extends Pathfinder {
             		AbstractNode c = entry.getKey();
             		double cvHeurDist = entry.getValue().score;
                     if ((!dist.containsKey(c)) || (dist.containsKey(c) && dist.get(c) > dist.get(v) + cvHeurDist)) {
-                    	//System.out.println("\t Expanding: " + c.coords.toString());
+                    	//CustomLog.outPrintln("\t Expanding: " + c.coords.toString());
                     	dist.put(c, dist.get(v) + 0.7*cvHeurDist);
                         fringe.add(c);
                         prev.put(c, v);
@@ -150,7 +149,7 @@ public class HierarchicalPathfinder extends Pathfinder {
 				rIndex >= abstractBlocks.length || 
 				cIndex >= abstractBlocks[0].length || 
 				hIndex >= abstractBlocks[0][0].length) {
-			System.err.println("Warning, vector out of bounds for abstract blocks");
+			CustomLog.errPrintln("Warning, vector out of bounds for abstract blocks");
 			return null;
 		}
 		return abstractBlocks[rIndex][cIndex][hIndex];
@@ -172,7 +171,7 @@ public class HierarchicalPathfinder extends Pathfinder {
 							);
 					abstractBlocks[r][c][h] = new LocalGridBlock(minB, maxB);
 					
-					System.out.println(minB + " " + maxB + " <BOunds!");
+					CustomLog.outPrintln(minB + " " + maxB + " <BOunds!");
 				}
 			}
 		}
@@ -195,14 +194,14 @@ public class HierarchicalPathfinder extends Pathfinder {
 					
 					getDistInAbsBlock(block);
 					
-					System.out.println("Completed abstraction at block coord: " + new Vector3i(r,c,h));
+					CustomLog.outPrintln("Completed abstraction at block coord: " + new Vector3i(r,c,h));
 				}
 			}
 		}
 	}
 	
 	public void getDistInAbsBlock(LocalGridBlock block) {
-		System.out.println("Computing paths between num blocks: " + block.importantNodes.size());
+		CustomLog.outPrintln("Computing paths between num blocks: " + block.importantNodes.size());
 		
 		//Use a three dimensional flood fill (connected component search)
 		//to eliminate any impossible paths immediately
@@ -218,14 +217,14 @@ public class HierarchicalPathfinder extends Pathfinder {
 						boolean success = (node.distToPathableNodes != null && 
 								node.distToPathableNodes.containsKey(otherNode));
 						if (!success) {
-							System.out.println("Connected in 3d component");
-							System.out.println("Found path: " + success);
+							CustomLog.outPrintln("Connected in 3d component");
+							CustomLog.outPrintln("Found path: " + success);
 						}
 					}
 				}
 			}
 			if (node.mirrorConnections != null) { 
-				//System.out.println(node.coords + " connected " + node.mirrorConnection.coords);
+				//CustomLog.outPrintln(node.coords + " connected " + node.mirrorConnection.coords);
 				for (AbstractNode mirrorConnection: node.mirrorConnections) {
 					attemptConnectAbsNode(node, mirrorConnection, null);
 				}
@@ -327,12 +326,12 @@ public class HierarchicalPathfinder extends Pathfinder {
 			}
 		}
 		/*
-		System.out.println("---------------");
+		CustomLog.outPrintln("---------------");
 		for (int i = 0; i < firstBlockAccess.length; i++) {
 			for (int j = 0; j < firstBlockAccess[0].length; j++) {
 				System.out.print(firstBlockAccess[i][j] ? "X" : "_");
 			}
-			System.out.println();
+			CustomLog.outPrintln();
 		}
 		*/
 		
@@ -558,7 +557,7 @@ public class HierarchicalPathfinder extends Pathfinder {
 		LocalGrid activeLocalGrid = new LocalGridInstantiate(sizes, biome).setupGrid(false);
 		
 		long endTime = Calendar.getInstance().getTimeInMillis();
-		System.out.println("Init hierarchical pathfinder in " + (endTime - startTime) + "ms");
+		CustomLog.outPrintln("Init hierarchical pathfinder in " + (endTime - startTime) + "ms");
 		
 		Society testSociety = new Society("TestSociety", activeLocalGrid);
 		testSociety.societyCenter = new Vector3i(10,10,10);
@@ -581,10 +580,10 @@ public class HierarchicalPathfinder extends Pathfinder {
 			for (int c = 0; c < hPath.abstractBlocks[0].length; c++) {
 				for (int h = 0; h < hPath.abstractBlocks[0][0].length; h++) {
 					LocalGridBlock block = hPath.abstractBlocks[r][c][h];
-					System.out.println("--------------------");
-					System.out.println("Local Block Bounds: " + block.minBound + " -> " + block.maxBound);
+					CustomLog.outPrintln("--------------------");
+					CustomLog.outPrintln("Local Block Bounds: " + block.minBound + " -> " + block.maxBound);
 					for (AbstractNode node: block.importantNodes.values()) {
-						System.out.println("\t" + node.toString());
+						CustomLog.outPrintln("\t" + node.toString());
 					}
 				}
 			}
@@ -599,7 +598,7 @@ public class HierarchicalPathfinder extends Pathfinder {
 		LocalGridBlock blockEnd;
 		//AbstractNode randStartNode = blockStart.importantNodes.values().iterator().next();
 		//AbstractNode randEndNode = blockStart.importantNodes.values().iterator().next();
-		System.out.println("Finding a viable path to test");
+		CustomLog.outPrintln("Finding a viable path to test");
 		
 		ScoredPath path;
 		Vector3i startVec, endVec;
@@ -631,16 +630,16 @@ public class HierarchicalPathfinder extends Pathfinder {
 			path = hPath.findPath(null, startVec, endVec);
 			
 			endTime = Calendar.getInstance().getTimeInMillis();
-			System.out.println("Completed trials in " + (endTime - startTime) + "ms");
+			CustomLog.outPrintln("Completed trials in " + (endTime - startTime) + "ms");
 			
 			if (path != null && path.path != null && path.path.size() > 0) {
-				System.out.println("Pathing: " + startVec + ", " + endVec + " ####################################");
+				CustomLog.outPrintln("Pathing: " + startVec + ", " + endVec + " ####################################");
 				
 				numPathsTested++;
 				
-				System.out.println("Hierarchical Path: ");
-				System.out.println(path.path);
-				System.out.println("Score (high means longer): " + path.score);
+				CustomLog.outPrintln("Hierarchical Path: ");
+				CustomLog.outPrintln(path.path);
+				CustomLog.outPrintln("Score (high means longer): " + path.score);
 				
 				List<Vector3i> vecs = new ArrayList<>();
 				vecs.add(startVec); vecs.add(endVec);
@@ -648,13 +647,13 @@ public class HierarchicalPathfinder extends Pathfinder {
 						vecs
 					);
 				
-				System.out.println("Regular Path: ");
+				CustomLog.outPrintln("Regular Path: ");
 				Pathfinder regPather = new Pathfinder(activeLocalGrid);
 				ScoredPath oldStylePath = regPather.findPath(people.get(0), 
 						activeLocalGrid.getTile(startVec), activeLocalGrid.getTile(endVec), 
 						tempBounds.first, tempBounds.second);
-				System.out.println(oldStylePath.path);
-				System.out.println("Score (high means longer): " + oldStylePath.score);
+				CustomLog.outPrintln(oldStylePath.path);
+				CustomLog.outPrintln("Score (high means longer): " + oldStylePath.score);
 			}
 			else {
 				continue;

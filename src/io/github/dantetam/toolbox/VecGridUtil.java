@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -11,9 +12,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
 
+import io.github.dantetam.toolbox.log.CustomLog;
 import io.github.dantetam.vector.Vector2i;
 import io.github.dantetam.vector.Vector3i;
-import io.github.dantetam.world.ai.Pathfinder;
 import io.github.dantetam.world.dataparse.WorldCsvParser;
 import io.github.dantetam.world.grid.ClusterVector3i;
 import io.github.dantetam.world.grid.LocalGrid;
@@ -21,6 +22,20 @@ import io.github.dantetam.world.grid.LocalTile;
 import io.github.dantetam.world.worldgen.LocalGridInstantiate;
 
 public class VecGridUtil {
+	
+	
+	public static class VecDistComp implements Comparator<Vector3i> {
+		public Vector3i target;
+		public VecDistComp(Vector3i target) {
+			this.target = target;
+		}
+		
+		@Override
+		public int compare(Vector3i o1, Vector3i o2) {
+			// TODO Auto-generated method stub
+			return o1.manhattanDist(target) - o2.manhattanDist(target);
+		}
+	}
 	
 	/**
 	 * @return The minimum and maximum bounds of the set of coords in three dimensions,
@@ -564,7 +579,7 @@ public class VecGridUtil {
 			for (int c = 0; c < data[0].length; c++) {
 				System.out.print(data[r][c] + " ");
 			}
-			System.out.println();
+			CustomLog.outPrintln(r);
 		}
 	}
 	
@@ -579,7 +594,7 @@ public class VecGridUtil {
 		int biome = 3;
 		LocalGrid activeLocalGrid = new LocalGridInstantiate(sizes, biome).setupGrid(false);
 		
-		System.out.println("Start 3d component time trial now");
+		CustomLog.outPrintln("Start 3d component time trial now");
 		long startTime = Calendar.getInstance().getTimeInMillis();
 		
 		Map<Vector3i, Integer> components = contComponent3dSolids(
@@ -589,9 +604,9 @@ public class VecGridUtil {
 				);
 		
 		long endTime = Calendar.getInstance().getTimeInMillis();
-		System.out.println("Completed trials in " + (endTime - startTime) + "ms");
+		CustomLog.outPrintln("Completed trials in " + (endTime - startTime) + "ms");
 	
-		//System.out.println(components);
+		//CustomLog.outPrintln(components);
 	}
 	
 	public void matrixAndComp2DTest() {
@@ -609,15 +624,15 @@ public class VecGridUtil {
                 {1, 1, 1, 1}, 
                 {0, 1, 0, 0}, 
               }; 
-		System.out.println(findMaxSubRect(A).toString());
+		CustomLog.outPrintln(findMaxSubRect(A).toString());
 		
-		System.out.println(findClosestSubRect(A, 2, 2).toString());
+		CustomLog.outPrintln(findClosestSubRect(A, 2, 2).toString());
 		
 		List<Vector3i> coords = new ArrayList<>();
 		coords.add(new Vector3i(1,1,1));
 		coords.add(new Vector3i(5,-1,1));
 		coords.add(new Vector3i(2,1,4));
-		System.out.println(VecGridUtil.findCoordBounds(coords).toString());
+		CustomLog.outPrintln(VecGridUtil.findCoordBounds(coords).toString());
 		
 		
 		Set<Vector2i> cornerCoordsTest = new HashSet<>();
@@ -634,12 +649,12 @@ public class VecGridUtil {
 		cornerCoordsTest.add(new Vector2i(0,0));
 		
 		Set<Vector2i> border = getBorderRegionFromCoords2d(cornerCoordsTest);
-		System.out.println(border);
+		CustomLog.outPrintln(border);
 		
 		Set<Vector2i> corners = VecGridUtil.getCornerRegionCoords2d(cornerCoordsTest);
-		System.out.println(corners);
+		CustomLog.outPrintln(corners);
 		
-		System.out.println(VecGridUtil.getConnectedComponents(matrix, true));
+		CustomLog.outPrintln(VecGridUtil.getConnectedComponents(matrix, true));
 	}
 
 }

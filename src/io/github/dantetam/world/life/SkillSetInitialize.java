@@ -10,15 +10,8 @@ import java.util.Map.Entry;
 import org.apache.commons.math3.distribution.ExponentialDistribution;
 import org.apache.commons.math3.distribution.GeometricDistribution;
 
-import io.github.dantetam.toolbox.CollectionUtil;
-import io.github.dantetam.toolbox.MapUtil;
-import io.github.dantetam.world.civhumanai.Ethos;
-import io.github.dantetam.world.civhumanai.EthosSet;
 import io.github.dantetam.world.civilization.Skill;
 import io.github.dantetam.world.civilization.SkillBook;
-import io.github.dantetam.world.civilization.Society;
-import io.github.dantetam.world.dataparse.EthosData;
-import io.github.dantetam.world.dataparse.ItemData;
 import io.github.dantetam.world.dataparse.ProcessData;
 import io.github.dantetam.world.dataparse.SkillData;
 import io.github.dantetam.world.items.InventoryItem;

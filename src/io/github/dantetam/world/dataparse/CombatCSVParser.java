@@ -11,6 +11,7 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.csv.CSVRecord;
 
+import io.github.dantetam.toolbox.log.CustomLog;
 import io.github.dantetam.world.combat.CombatData;
 import io.github.dantetam.world.combat.CombatMod;
 
@@ -41,7 +42,7 @@ public class CombatCSVParser extends WorldCsvParser {
 			
 			List<String> groupNames = ItemCSVParser.groupSyntaxShortcuts.get(groupName);
 			if (groupNames == null) {
-				System.err.println("Could not find group name: " + groupName);
+				CustomLog.errPrintln("Could not find group name: " + groupName);
 			}
 			else {
 				for (String groupItemName: groupNames) {

@@ -3,6 +3,7 @@ package io.github.dantetam.world.grid;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -11,10 +12,9 @@ import java.util.Set;
 
 import io.github.dantetam.toolbox.MapUtil;
 import io.github.dantetam.toolbox.VecGridUtil;
+import io.github.dantetam.toolbox.log.CustomLog;
 import io.github.dantetam.vector.Vector2i;
 import io.github.dantetam.vector.Vector3i;
-import io.github.dantetam.world.ai.HierarchicalPathfinder;
-import io.github.dantetam.world.ai.Pathfinder;
 import io.github.dantetam.world.ai.RSRPathfinder;
 import io.github.dantetam.world.dataparse.ItemData;
 import io.github.dantetam.world.dataparse.WorldCsvParser;
@@ -45,6 +45,8 @@ public class LocalGrid {
 	
 	private Map<Integer, KdTree<Vector3i>> globalTileBlockLookup;
 	private KdTree<Vector3i> buildingLookup;
+	public Map<Integer, Double> tileIdCounts; //Updated per tile update
+	private boolean[][][] accessibleTileRecord;
 	
 	private Map<Integer, KdTree<Vector3i>> buildIdQuickTileLookup;
 	
@@ -69,6 +71,8 @@ public class LocalGrid {
 		
 		globalTileBlockLookup = new HashMap<>();
 		buildingLookup = new KdTree<>();
+		tileIdCounts = new HashMap<>();
+		accessibleTileRecord = new boolean[rows][cols][heights];
 		
 		buildIdQuickTileLookup = new HashMap<>();
 		
@@ -106,7 +110,16 @@ public class LocalGrid {
 	}
 	
 	public boolean tileIsAccessible(Vector3i coords) {
+		if (!this.inBounds(coords))
+			return false;
+		return this.accessibleTileRecord[coords.x][coords.y][coords.z];
+	}
+	
+	private boolean determineTileIsAccessible(Vector3i coords) {
 		LocalTile tile = getTile(coords);
+		
+		if (!this.inBounds(coords))
+			return false;
 		
 		Vector3i belowCoords = new Vector3i(coords.x, coords.y, coords.z - 1);
 		
@@ -138,6 +151,19 @@ public class LocalGrid {
 		}
 		
 		return true;
+	}
+	
+	private void updateTileAccessibility(Vector3i coords) {
+		this.accessibleTileRecord[coords.x][coords.y][coords.z] = determineTileIsAccessible(coords);
+	}
+	public void updateAllTilesAccessInit() {
+		for (int r = 0; r < rows; r++) {
+			for (int c = 0; c < cols; c++) {
+				for (int h = 0; h < heights; h++) {
+					updateTileAccessibility(new Vector3i(r,c,h));
+				}
+			}
+		}
 	}
 	
 	private Set<Vector3i> getAllNeighbors(Vector3i coords, Set<Vector3i> vecNeighbors) {
@@ -218,6 +244,14 @@ public class LocalGrid {
 		}
 	}
 	
+	
+	//Find all 14-neighbords of coords, sorted in ascending distance to target
+	public List<Vector3i> getAll14NeighborsSorted(Vector3i coords, Vector3i target) {
+		List<Vector3i> vecs = new ArrayList<>(this.getAllNeighbors14(coords));
+		Collections.sort(vecs, new VecGridUtil.VecDistComp(target));
+		return vecs;
+	}
+	
 	public Set<Vector3i> squareSpiralTiles(Vector3i coords, int radius) {
 		Set<Vector3i> results = new HashSet<>();
 		for (int r = -radius; r <= +radius; r++) {
@@ -260,15 +294,57 @@ public class LocalGrid {
 			globalTileBlockLookup.put(tile.tileBlockId, new KdTree<>());
 		}
 		globalTileBlockLookup.get(tile.tileBlockId).add(new Vector3i(r,c,h));
+		
+		//this.putBlockIntoTile(coords, tile == null ? ItemData.ITEM_EMPTY_ID : tile.tileBlockId);
 	}
 	
 	public LocalTile createTile(Vector3i coords) {
 		if (inBounds(coords)) {
 			LocalTile tile = new LocalTile(coords);
 			grid[coords.x][coords.y][coords.z] = tile;
+			//this.putBlockIntoTile(coords, tile == null ? ItemData.ITEM_EMPTY_ID : tile.tileBlockId);
 			return tile;
 		}
 		return null;
+	}
+	
+	public void putBlockIntoTile(Vector3i coords, int newBlockId) {
+		if (!ItemData.isPlaceable(newBlockId)) {
+			throw new IllegalArgumentException("Cannot place down block id: " + newBlockId);
+		}
+		if (!this.inBounds(coords)) {
+			throw new IllegalArgumentException("Invalid tile added to coords: " + coords.toString());
+		}
+		
+		LocalTile tile = getTile(coords);
+		int oldItemId = tile.tileBlockId;
+		if (tile != null) {
+			tile.tileBlockId = newBlockId;
+			if (tile.tileBlockId != ItemData.ITEM_EMPTY_ID) {
+				if (!(globalTileBlockLookup.containsKey(newBlockId))) {
+					globalTileBlockLookup.put(newBlockId, new KdTree<Vector3i>());
+				}
+				globalTileBlockLookup.get(newBlockId).add(coords);
+				if (oldItemId != ItemData.ITEM_EMPTY_ID)
+					MapUtil.addNumMap(this.tileIdCounts, oldItemId, -1);
+				MapUtil.addNumMap(this.tileIdCounts, newBlockId, 1);
+			}
+			else {
+				if (oldItemId != ItemData.ITEM_EMPTY_ID) {
+					if (globalTileBlockLookup.containsKey(oldItemId)) {
+						globalTileBlockLookup.get(oldItemId).remove(coords);
+					}
+				}
+				markAllAdjAsExposed(coords);
+			}
+		}
+		
+		//Do not create/modify RSR pathfinding nodes while world is being created
+		if (this.pathfinder != null) {
+			this.pathfinder.adjustRSR(coords, oldItemId != ItemData.ITEM_EMPTY_ID);
+		}
+		
+		updateTileAccessibility(coords);
 	}
 	
 	public void addItemRecordsToWorld(Vector3i coords, List<InventoryItem> items) {
@@ -314,52 +390,6 @@ public class LocalGrid {
 				if (itemGroupTileLookup.get(itemGroup).size() == 0) {
 					itemGroupTileLookup.remove(itemGroup);
 				}
-			}
-		}
-	}
-	
-	/*
-	public void dropItemAtTile(Vector3i coords, InventoryItem item) {
-		LocalTile tile = getTile(coords);
-		if (tile == null) {
-			tile = createTile(coords);
-		}
-		if (tile != null) {
-			tile.itemsOnFloor.addItem(item);
-			if (!(itemIdQuickTileLookup.containsKey(item.itemId))) {
-				itemIdQuickTileLookup.put(item.itemId, new KdTree<Vector3i>());
-			}
-			itemIdQuickTileLookup.get(item.itemId).add(coords);
-			globalItemsLookup.add(coords);
-		}
-	}
-	*/
-	
-	public void putBlockIntoTile(Vector3i coords, int newBlockId) {
-		if (!ItemData.isPlaceable(newBlockId)) {
-			throw new IllegalArgumentException("Cannot place down block id: " + newBlockId);
-		}
-		if (!this.inBounds(coords)) {
-			throw new IllegalArgumentException("Invalid tile added to coords: " + coords.toString());
-		}
-		
-		LocalTile tile = getTile(coords);
-		int oldItemId = tile.tileBlockId;
-		if (tile != null) {
-			tile.tileBlockId = newBlockId;
-			if (tile.tileBlockId != ItemData.ITEM_EMPTY_ID) {
-				if (!(globalTileBlockLookup.containsKey(newBlockId))) {
-					globalTileBlockLookup.put(newBlockId, new KdTree<Vector3i>());
-				}
-				globalTileBlockLookup.get(newBlockId).add(coords);
-			}
-			else {
-				if (oldItemId != ItemData.ITEM_EMPTY_ID) {
-					if (globalTileBlockLookup.containsKey(oldItemId)) {
-						globalTileBlockLookup.get(oldItemId).remove(coords);
-					}
-				}
-				markAllAdjAsExposed(coords);
 			}
 		}
 	}
@@ -441,8 +471,10 @@ public class LocalGrid {
 					
 					//TODO Update pathfinder correctly, use neighboring tiles
 					if (this.pathfinder != null)
-						this.pathfinder.tempNodeInRectSolid(newAbsLocation, true);
+						this.pathfinder.adjustRSR(newAbsLocation, true);
 				}
+				
+				updateTileAccessibility(newAbsLocation);
 			} 
 			
 			allBuildings.add(building);
@@ -468,6 +500,9 @@ public class LocalGrid {
 				oldTile.building = null;
 				oldTile.tileBlockId = ItemData.ITEM_EMPTY_ID;
 			}
+			if (this.pathfinder != null)
+				this.pathfinder.adjustRSR(oldAbsLocation, false);
+			updateTileAccessibility(oldAbsLocation);
 		}
 		buildingLookup.remove(building.getPrimaryLocation());
 		
@@ -666,6 +701,16 @@ public class LocalGrid {
 		return null;
 	}
 	
+	public Vector3i findHighestAccessibleHeight(int r, int c) {
+		for (int h = heights - 1; h >= 0; h--) {
+			Vector3i coords = new Vector3i(r,c,h);
+			if (this.tileIsAccessible(coords)) {
+				return coords;
+			}
+		}
+		return null;
+	}
+	
 	//Find an empty height at lowest possible level, i.e. an empty tile with ground right below it,
 	//so that a Human can be placed.
 	public int findHighestGroundHeight(int r, int c) {
@@ -679,7 +724,7 @@ public class LocalGrid {
 	}
 	
 	public double averageBeauty(Vector3i coords) {
-		Set<Vector3i> spiralCoords = rangeLargeSquareTiles(coords, 0, 8);
+		Set<Vector3i> spiralCoords = rangeLargeSquareTiles(coords, 0, 4);
 		double sumBeauty = 0;
 		int numWeights = 0;
 		final double itemWeighting = 0.25;
@@ -792,13 +837,13 @@ public class LocalGrid {
 		
 		grid.addBuilding(building, new Vector3i(25,25,35), true, null);
 		
-		System.out.println(Arrays.toString(building.calculatedLocations.toArray())); //[25 25 25, 26 25 25, 25 28 25]
-		System.out.println(grid.getTile(new Vector3i(26,25,45))); //This tile should have been created
-		System.out.println(grid.getTile(new Vector3i(25,25,45)).building.name); //Test1
+		CustomLog.outPrintln(Arrays.toString(building.calculatedLocations.toArray())); //[25 25 25, 26 25 25, 25 28 25]
+		CustomLog.outPrintln(grid.getTile(new Vector3i(26,25,45))); //This tile should have been created
+		CustomLog.outPrintln(grid.getTile(new Vector3i(25,25,45)).building.name); //Test1
 		
 		grid.removeBuilding(building);
 		
-		System.out.println(grid.getTile(new Vector3i(26,25,45)).building); //null
+		CustomLog.outPrintln(grid.getTile(new Vector3i(26,25,45)).building); //null
 	}
 	
 }

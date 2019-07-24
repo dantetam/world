@@ -5,7 +5,6 @@ import java.util.List;
 
 import org.lwjgl.util.vector.Vector3f;
 
-import io.github.dantetam.world.dataparse.AnatomyData;
 import io.github.dantetam.world.dataparse.AnatomyData.BodyDamage;
 import io.github.dantetam.world.items.CombatItem;
 

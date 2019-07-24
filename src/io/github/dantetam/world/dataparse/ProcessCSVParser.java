@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.csv.CSVRecord;
 
+import io.github.dantetam.toolbox.log.CustomLog;
 import io.github.dantetam.world.items.InventoryItem;
 import io.github.dantetam.world.process.LocalProcess.ProcessStep;
 
@@ -39,7 +40,7 @@ public class ProcessCSVParser extends WorldCsvParser {
 		for (String singleInput : multipleInput) {
 		    Matcher inputGroupMatcher = Pattern.compile(pattern).matcher(singleInput);
 		    
-		    //System.out.println(singleInput + " o " + inputGroupMatcher.find());
+		    //CustomLog.outPrintln(singleInput + " o " + inputGroupMatcher.find());
 		    
 			//Duplicate a whole group into its item rows if the group <caret> notation is present
 		    //Continue the recursion because of more data to process
@@ -49,7 +50,7 @@ public class ProcessCSVParser extends WorldCsvParser {
 				
 				List<String> groupNames = ItemCSVParser.groupSyntaxShortcuts.get(groupName);
 				if (groupNames == null) {
-					System.err.println("Could not find group name: " + groupName);
+					CustomLog.errPrintln("Could not find group name: " + groupName);
 				}
 				else {
 					for (String groupItemName: groupNames) {
@@ -90,7 +91,7 @@ public class ProcessCSVParser extends WorldCsvParser {
 				String groupName = buildingMatcher.group(1);
 				List<String> groupNames = ItemCSVParser.groupSyntaxShortcuts.get(groupName);
 				if (groupNames == null) {
-					System.err.println("Could not find group name: " + groupName);
+					CustomLog.errPrintln("Could not find group name: " + groupName);
 				}
 				else {
 					for (String groupItemName: groupNames) {
@@ -105,7 +106,7 @@ public class ProcessCSVParser extends WorldCsvParser {
 				String groupName = tileMatcher.group(1);
 				List<String> groupNames = ItemCSVParser.groupSyntaxShortcuts.get(groupName);
 				if (groupNames == null) {
-					System.err.println("Could not find group name: " + groupName);
+					CustomLog.errPrintln("Could not find group name: " + groupName);
 				}
 				else {
 					/*

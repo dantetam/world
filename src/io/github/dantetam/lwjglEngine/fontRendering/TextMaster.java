@@ -44,13 +44,13 @@ public class TextMaster {
 				// if ((text.active || menuSystem.menus.get(i).active()) && text.textMeshVao <=
 				// 0) //needs to be loaded and not already loaded
 				if (menuSystem.menus.get(i).active() && text.textMeshVao <= 0) {
-					// System.out.println("loading");
+					// CustomLog.outPrintln("loading");
 					loadText(text);
 				}
 				// else if ((!text.active && !menuSystem.menus.get(i).active()) &&
 				// text.textMeshVao > 0) //needs to be unloaded and already loaded
 				else if (!menuSystem.menus.get(i).active() && text.textMeshVao > 0) {
-					// System.out.println("removing");
+					// CustomLog.outPrintln("removing");
 					removeText(text);
 					text.textMeshVao = -1;
 				}
@@ -113,7 +113,7 @@ public class TextMaster {
 		 * text.display.get(i).length(); }
 		 */
 		TextMeshData data = text.font.loadText(text);
-		// System.out.println(data.getVertexPositions() + " " +
+		// CustomLog.outPrintln(data.getVertexPositions() + " " +
 		// data.getTextureCoords());
 		int vao = VBOLoader.loadToVAO(data.getVertexPositions(), data.getTextureCoords());
 		text.textMeshVao = vao;

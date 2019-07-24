@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import io.github.dantetam.lwjglEngine.render.DisplayManager;
+import io.github.dantetam.toolbox.log.CustomLog;
 
 /**
  * Provides functionality for getting the values from a font file.
@@ -140,7 +141,7 @@ public class MetaFile {
 			reader = new BufferedReader(new FileReader(file));
 		} catch (Exception e) {
 			e.printStackTrace();
-			System.err.println("Couldn't read font meta file!");
+			CustomLog.errPrintln("Couldn't read font meta file!");
 		}
 	}
 

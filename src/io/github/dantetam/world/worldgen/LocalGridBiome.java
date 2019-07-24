@@ -6,7 +6,7 @@ import java.util.Map;
 public class LocalGridBiome {
 
 	//TODO
-	//Use this architecture
+	//Use this architecture;
 	
 	public BiomeType biomeType;
 	

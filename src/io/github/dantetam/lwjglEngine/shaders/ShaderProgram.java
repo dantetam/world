@@ -13,6 +13,8 @@ import org.lwjgl.util.vector.Vector2f;
 import org.lwjgl.util.vector.Vector3f;
 import org.lwjgl.util.vector.Vector4f;
 
+import io.github.dantetam.toolbox.log.CustomLog;
+
 //'Template' for the general shader class
 
 public abstract class ShaderProgram {
@@ -124,8 +126,8 @@ public abstract class ShaderProgram {
 		GL20.glShaderSource(shaderID, shaderSource);
 		GL20.glCompileShader(shaderID);
 		if (GL20.glGetShaderi(shaderID, GL20.GL_COMPILE_STATUS) == GL11.GL_FALSE) {
-			System.out.println(GL20.glGetShaderInfoLog(shaderID, 500));
-			System.err.println("Could not compile shader");
+			CustomLog.outPrintln(GL20.glGetShaderInfoLog(shaderID, 500));
+			CustomLog.errPrintln("Could not compile shader");
 			System.exit(-1);
 		}
 		return shaderID;

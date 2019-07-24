@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import io.github.dantetam.toolbox.log.CustomLog;
 import kn.uni.voronoitreemap.gui.JSite;
 import kn.uni.voronoitreemap.j2d.Point2D;
 import kn.uni.voronoitreemap.j2d.PolygonSimple;
@@ -69,7 +70,7 @@ public class NeighborsGraphStructure {
 		Edge a = new Edge(new Point2D(0, 0), new Point2D(50, 25));
 		Edge b = new Edge(new Point2D(50, 25), new Point2D(0, 0));
 		sharedEdgesMap.put(a, new ArrayList<Integer>());
-		System.out.println(sharedEdgesMap.containsKey(b));
+		CustomLog.outPrintln(sharedEdgesMap.containsKey(b));
 	}
 
 	public static class Edge {

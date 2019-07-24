@@ -15,15 +15,14 @@ import java.util.Set;
 import java.util.function.Function;
 
 import io.github.dantetam.toolbox.VecGridUtil;
+import io.github.dantetam.toolbox.log.CustomLog;
 import io.github.dantetam.toolbox.CollectionUtil;
 import io.github.dantetam.toolbox.MapUtil;
 import io.github.dantetam.toolbox.Pair;
 import io.github.dantetam.toolbox.StringUtil;
 import io.github.dantetam.vector.Vector2i;
 import io.github.dantetam.vector.Vector3i;
-import io.github.dantetam.world.ai.Pathfinder;
 import io.github.dantetam.world.ai.Pathfinder.ScoredPath;
-import io.github.dantetam.world.civhumansocietyai.EmergentSocietyCalc;
 import io.github.dantetam.world.civilization.Society;
 import io.github.dantetam.world.civilization.artwork.ArtworkGraph;
 import io.github.dantetam.world.dataparse.ItemData;
@@ -47,36 +46,39 @@ public class LocalGridTimeExecution {
 	public static int NUM_JOBPROCESS_CONSIDER = 40;
 	
 	public static void tick(WorldGrid world, LocalGrid grid, Society society) {
-		society.calcUtility = society.findCompleteUtilityAllItems(null);
-		society.groupItemRarity = society.findRawGroupsResRarity(null);
-		society.importantLocations = society.getImportantLocations(society.societyCenter);
-		
 		Date date = world.getTime();
 		
-		System.out.println("<<<<>>>> Date: " + date);
-		if (date.getHours() == 0) { //Every day, assign new jobs
+		CustomLog.outPrintln("<<<<>>>> Date: " + date);
+		
+		//Every day, assign new jobs and new societal measures of utility
+		if (date.getHours() == 0 || society.calcUtility == null) {
 			society.createJobOffers();
 			assignAllHumanJobs(society, date);
 			society.leadershipManager.workThroughSocietalPolitics();
+			
+			society.calcUtility = society.findCompleteUtilityAllItems(null);
+			society.allEconomicUtil = society.findAllAvailableResourceRarity(null);
+			society.groupItemRarity = society.findRawGroupsResRarity(null);
+			society.importantLocations = society.getImportantLocations(society.societyCenter);
 		}
 		
-		System.out.println("################");
+		CustomLog.outPrintln("################");
 		for (Human human: society.getAllPeople()) {
 			String processName = human.processProgress == null ? "null" : human.processProgress.name;
-			System.out.println(human.name + " located at " + human.location.coords + 
+			CustomLog.outPrintln(human.name + " located at " + human.location.coords + 
 					", with process: " + processName); 
-			System.out.println("Inventory (counts): " + human.inventory.toUniqueItemsMap());
+			CustomLog.outPrintln("Inventory (counts): " + human.inventory.toUniqueItemsMap());
 					// + human.processProgress == null ? "null" : human.processProgress.name);
-			System.out.println("Wealth: " + human.getTotalWealth() + 
+			CustomLog.outPrintln("Wealth: " + human.getTotalWealth() + 
 					", buildings: " + human.ownedBuildings.size() +
 					", num items: " + human.ownedItems.size());
-			System.out.println("Priority: " + human.activePriority);
+			CustomLog.outPrintln("Priority: " + human.activePriority);
 			
 			if (human.currentQueueTasks != null && human.currentQueueTasks.size() > 0) {
 				Task task = human.currentQueueTasks.get(0);
-				System.out.println(human.name + " has " + human.currentQueueTasks.size() + " tasks."); 
+				CustomLog.outPrintln(human.name + " has " + human.currentQueueTasks.size() + " tasks."); 
 				if (task.taskTime <= 0) {
-					System.out.println(human.name + " FINISHED task: " + task.toString());
+					CustomLog.outPrintln(human.name + " FINISHED task: " + task.toString());
 					human.currentQueueTasks.remove(0);
 					executeTask(grid, human, task);
 					if (human.currentQueueTasks.size() == 0) {
@@ -85,7 +87,7 @@ public class LocalGridTimeExecution {
 				}
 				else {
 					task.taskTime--;
-					System.out.println(human.name + " task in progress: " 
+					CustomLog.outPrintln(human.name + " task in progress: " 
 							+ task.getClass().getSimpleName() + " (" + task.taskTime + ")");
 				}
 			}
@@ -95,14 +97,14 @@ public class LocalGridTimeExecution {
 				
 				if (human.currentQueueTasks != null) {
 					String firstTaskString = human.currentQueueTasks.size() > 0 ? human.currentQueueTasks.get(0).toString() : "tasks is empty";
-					System.out.println(human.name + " was assigned " + human.currentQueueTasks.size() + " tasks, first: " + firstTaskString); 
+					CustomLog.outPrintln(human.name + " was assigned " + human.currentQueueTasks.size() + " tasks, first: " + firstTaskString); 
 				}
 				else {
-					System.out.println(human.name + " was assigned NULL tasks"); 
+					CustomLog.outPrintln(human.name + " was assigned NULL tasks"); 
 				}
 				
 				if (human.currentQueueTasks != null && human.currentQueueTasks.size() > 0)
-					System.out.println(human.currentQueueTasks.get(0).getClass());
+					CustomLog.outPrintln(human.currentQueueTasks.get(0).getClass());
 				if (human.currentQueueTasks instanceof DoneTaskPlaceholder ||
 					human.currentQueueTasks instanceof ImpossibleTaskPlaceholder) {
 					human.activePriority = null;
@@ -133,14 +135,14 @@ public class LocalGridTimeExecution {
 						human.activePriority = getPriorityForStep(society, grid, 
 								human, human.jobProcessProgress.boss, process, step);
 						String priorityName = human.activePriority == null ? "null" : human.activePriority.toString();
-						System.out.println(human.name + ", for its job process: " + process + ", " +
+						CustomLog.outPrintln(human.name + ", for its job process: " + process + ", " +
 								"was given the PRIORITY: " + priorityName);
 					}
 					if (human.activePriority instanceof DonePriority || 
 							human.activePriority instanceof ImpossiblePriority) {
 						if (human.activePriority instanceof ImpossiblePriority) {
 							ImpossiblePriority iPrior = (ImpossiblePriority) human.activePriority;
-							System.err.println("Warning, impossible priority: " + iPrior.reason);
+							CustomLog.errPrintln("Warning, impossible priority: " + iPrior.reason);
 						}
 						process.processStepIndex++;
 						human.activePriority = null;
@@ -168,7 +170,7 @@ public class LocalGridTimeExecution {
 					
 					if (process.recRepeats <= 0) {
 						executeProcessResActions(grid, human, process.processResActions);
-						System.err.println(human.name + " COMPLETED process (as an employee for a job): " + process);
+						CustomLog.errPrintln(human.name + " COMPLETED process (as an employee for a job): " + process);
 						
 						//Special data for jobs
 						MapUtil.removeSafeNestSetMap(human.jobProcessProgress.boss.workers, human, human.jobProcessProgress);
@@ -211,15 +213,15 @@ public class LocalGridTimeExecution {
 					if (human.activePriority == null) {
 						human.activePriority = getPriorityForStep(society, grid, human, human, human.processProgress, step);
 						String priorityName = human.activePriority == null ? "null" : human.activePriority.toString();
-						System.out.println(human.name + ", for its process: " + human.processProgress + ", ");
-								System.out.println("was given the PRIORITY: " + priorityName);
+						CustomLog.outPrintln(human.name + ", for its process: " + human.processProgress + ", ");
+								CustomLog.outPrintln("was given the PRIORITY: " + priorityName);
 					}
 					if (human.activePriority instanceof DonePriority || 
 							human.activePriority instanceof ImpossiblePriority) {
 						if (human.activePriority instanceof ImpossiblePriority) {
-							System.err.println("Warning, impossible for process step: " + human.processProgress.processSteps.get(0));
+							CustomLog.errPrintln("Warning, impossible for process step: " + human.processProgress.processSteps.get(0));
 							ImpossiblePriority iPrior = (ImpossiblePriority) human.activePriority;
-							System.err.println("Warning, impossible priority: " + iPrior.reason);
+							CustomLog.errPrintln("Warning, impossible priority: " + iPrior.reason);
 						}
 						human.processProgress.processStepIndex++;
 						human.activePriority = null;
@@ -245,7 +247,7 @@ public class LocalGridTimeExecution {
 					}
 					
 					if (process.recRepeats <= 0) {
-						System.err.println(human.name + " COMPLETED process: " + human.processProgress);
+						CustomLog.errPrintln(human.name + " COMPLETED process: " + human.processProgress);
 						executeProcessResActions(grid, human, human.processProgress.processResActions);
 						human.processProgress = null; //Reset all jobs and job fields to null
 						if (human.processBuilding != null) {
@@ -270,7 +272,7 @@ public class LocalGridTimeExecution {
 			if (human.processProgress == null && human.activePriority == null) {
 				assignSingleHumanJob(society, human, date);
 			}
-			System.out.println();
+			CustomLog.outPrintln();
 		}
 	}
 	
@@ -325,7 +327,7 @@ public class LocalGridTimeExecution {
 		KdTree<Vector3i> items = grid.getKdTreeForItemGroup(tileName);
 		if (items == null) return null;
 		
-		Collection<Vector3i> candidates = items.nearestNeighbourListSearch(30, being.location.coords);
+		Collection<Vector3i> candidates = items.nearestNeighbourListSearch(20, being.location.coords);
 		Map<Pair<LocalTile>, Double> tileByPathScore = new HashMap<>();
 		
 		//Collect pair objects: the actual location of interest, followed by an accessible neighbor
@@ -334,7 +336,7 @@ public class LocalGridTimeExecution {
 				candidate = candidate.getSum(0, 1, 0);
 			}
 			
-			//System.out.println("Calc path: " + being.location.coords + " to -> " + grid.getTile(candidate).coords);
+			//CustomLog.outPrintln("Calc path: " + being.location.coords + " to -> " + grid.getTile(candidate).coords);
 			LocalTile tile = grid.getTile(candidate);
 			
 			List<Human> claimants = grid.findClaimantToTile(candidate);
@@ -342,21 +344,27 @@ public class LocalGridTimeExecution {
 			if (claimants == null || claimants.size() == 0 || 
 					CollectionUtil.colnsHasIntersect(claimants, validOwners)) {
 				if (!tile.harvestInUse) {
-					Set<Vector3i> neighbors = grid.getAllNeighbors14(candidate);
+					List<Vector3i> neighbors = grid.getAll14NeighborsSorted(candidate, being.location.coords);
 					neighbors.add(candidate);
 					for (Vector3i neighbor: neighbors) {
 						ScoredPath scoredPath = grid.pathfinder.findPath(
 								being, being.location, grid.getTile(neighbor));
 						if (scoredPath.isValid()) {
-							//System.out.println(scoredPath.path);
+							//CustomLog.outPrintln(scoredPath.path);
 							Pair<LocalTile> pair = new Pair(grid.getTile(candidate), grid.getTile(neighbor));
-							tileByPathScore.put(pair, scoredPath.score);
+							
+							//tileByPathScore.put(pair, scoredPath.score);
+							being.processTile = pair.second;
+							being.targetTile = pair.first;
+							pair.first.harvestInUse = true;
+							return pair;
 						}
 					}
 				}
 			}
 		}
 		
+		/*
 		tileByPathScore = MapUtil.getSortedMapByValueDesc(tileByPathScore);
 		for (Object obj: tileByPathScore.keySet().toArray()) {
 			Pair<LocalTile> bestPair = (Pair) obj;
@@ -365,6 +373,7 @@ public class LocalGridTimeExecution {
 			bestPair.first.harvestInUse = true;
 			return bestPair;
 		}
+		*/
 		
 		return null;
 	}
@@ -383,7 +392,7 @@ public class LocalGridTimeExecution {
 		Set<Human> validLandOwners = new HashSet<>();
 		validLandOwners.add(being); validLandOwners.add(ownerProducts);
 		
-		//System.out.println("Figuring out priority, for process: " + process);
+		//CustomLog.outPrintln("Figuring out priority, for process: " + process);
 		
 		if (process.name.equals("Build Basic Home")) {
 			int width = (int) Math.ceil(Math.sqrt(being.ownedBuildings.size() + being.inventory.size() + 8));
@@ -428,7 +437,7 @@ public class LocalGridTimeExecution {
 			itemMode = "Personal";
 		}
 		else {
-			System.err.println("Warning, building and/or tile required: " + 
+			CustomLog.errPrintln("Warning, building and/or tile required: " + 
 					process.toString() + ", tile/building may not be assigned");
 			return new ImpossiblePriority("Warning, could not find case for process. Tile/building may not be assigned");
 		}
@@ -440,9 +449,9 @@ public class LocalGridTimeExecution {
 		//For the case where a person has not been assigned a building/space yet
 		if ((primaryLocation == null && process.requiredBuildNameOrGroup != null)
 				|| process.isCreatedAtSite) {
-			System.out.println("Find status building case");
-			System.out.println(process.requiredBuildNameOrGroup);
-			System.out.println(process);
+			CustomLog.outPrintln("Find status building case");
+			CustomLog.outPrintln(process.requiredBuildNameOrGroup);
+			CustomLog.outPrintln(process);
 			
 			int buildingId; 
 			Vector2i requiredSpace;
@@ -470,7 +479,7 @@ public class LocalGridTimeExecution {
 				if (bestRectangles != null && bestRectangles.size() > 0) {
 					List<Vector3i> bestRectangleVecs = Vector3i.getRange(bestRectangles);
 					
-					System.out.println("Create building space: " + bestRectangles.toString());
+					CustomLog.outPrintln("Create building space: " + bestRectangles.toString());
 					Set<Integer> bestBuildingMaterials = society.getBestBuildingMaterials(society.calcUtility, 
 							being, (requiredSpace.x + requiredSpace.y) * 2);
 					
@@ -478,7 +487,7 @@ public class LocalGridTimeExecution {
 					for (GridRectInterval interval: bestRectangles) {
 						List<Human> claimants = grid.findClaimantToTiles(interval);
 						if (claimants == null || claimants.size() == 0) {
-							grid.claimTiles(ownerProducts, interval.start, interval.end);
+							grid.claimTiles(ownerProducts, interval.start, interval.end, process);
 						}
 					}
 					
@@ -486,13 +495,13 @@ public class LocalGridTimeExecution {
 					priority = new ConstructRoomPriority(bestRectangleVecs, bestBuildingMaterials);
 				}
 				else {
-					System.out.println("Could not create building space of size: " + requiredSpace);
+					CustomLog.outPrintln("Could not create building space of size: " + requiredSpace);
 					priority = new ImpossiblePriority("Could not create building space of size: " + requiredSpace);
 				}
 				return priority;
 			}
 			else {
-				System.out.println("Assigned building space: " + nearOpenSpace.toString());
+				CustomLog.outPrintln("Assigned building space: " + nearOpenSpace.toString());
 				grid.setInUseRoomSpace(nearOpenSpace, true);
 				
 				Vector3i newBuildCoords = nearOpenSpace.avgVec();
@@ -535,7 +544,7 @@ public class LocalGridTimeExecution {
 				Object[] invData = being.inventory.findRemainingItemsNeeded(process.inputItems);
 				Map<Integer, Integer> regularItemNeeds = (Map) invData[0];
 				
-				System.out.println("Searching for: " + regularItemNeeds);
+				CustomLog.outPrintln("Searching for: " + regularItemNeeds);
 				
 				int firstItemNeeded = (Integer) regularItemNeeds.keySet().toArray()[0];
 				int amountNeeded = regularItemNeeds.get(firstItemNeeded);
@@ -627,7 +636,7 @@ public class LocalGridTimeExecution {
 				}
 			}
 			
-			System.out.println("Dropped items: " + new Inventory(outputItems) + " at place: " + itemMode);
+			CustomLog.outPrintln("Dropped items: " + new Inventory(outputItems) + " at place: " + itemMode);
 			
 			if (being.inventory.canFitItems(outputItems) && (itemMode.equals("Personal") || itemMode.equals("Tile"))) {
 				being.inventory.addItems(outputItems);
@@ -654,7 +663,7 @@ public class LocalGridTimeExecution {
 			
 			LocalBuilding building = ItemData.building(buildingItem.itemId);
 			
-			System.out.println("Built building: " + building.name + " at place: " + itemMode);
+			CustomLog.outPrintln("Built building: " + building.name + " at place: " + itemMode);
 			
 			Vector3i aboveTargetLocation = targetLocation.getSum(0, 1, 0);
 			if (grid.inBounds(aboveTargetLocation) || grid.tileIsAccessible(aboveTargetLocation)) {
@@ -667,7 +676,7 @@ public class LocalGridTimeExecution {
 		}
 		
 		if (!step.stepType.startsWith("U") && priority == null)
-			System.err.println("Warning, case not covered for priority from step, returning null priority");
+			CustomLog.errPrintln("Warning, case not covered for priority from step, returning null priority");
 		return priority;
 	}
 	
@@ -761,7 +770,7 @@ public class LocalGridTimeExecution {
 			if (buildPriority.coords.areAdjacent14(being.location.coords)) {
 				LocalTile tile = grid.getTile(buildPriority.coords);
 				if (tile.building != null) {
-					System.err.println("Warning, was given command to place building where one already exists");
+					CustomLog.errPrintln("Warning, was given command to place building where one already exists");
 					return new ImpossibleTaskPlaceholder();
 				}
 				
@@ -868,7 +877,7 @@ public class LocalGridTimeExecution {
 				}
 			}
 			else {
-				System.err.println("Warning, path was not valid from " + being.location + ", " + grid.getTile(movePriority.coords));
+				CustomLog.errPrintln("Warning, path was not valid from " + being.location + ", " + grid.getTile(movePriority.coords));
 				return new ImpossibleTaskPlaceholder();
 			}
 		}
@@ -908,6 +917,10 @@ public class LocalGridTimeExecution {
 			
 			Human human = (Human) being;
 			Society society = human.society;
+			
+			System.out.println(human);
+			System.out.println(society);
+			System.out.println(society.groupItemRarity);
 			
 			double weaponAmt = society.groupItemRarity.containsKey("Weapon") ? society.groupItemRarity.get("Weapon") : 0;
 			double armorAmt = society.groupItemRarity.containsKey("Armor") ? society.groupItemRarity.get("Armor") : 0;
@@ -1020,7 +1033,7 @@ public class LocalGridTimeExecution {
 		Map<LocalJob, Double> bestJobs = society.prioritizeJobs(human, bestProcesses, date);
 		
 		for (Entry<LocalProcess, Double> entry: bestProcesses.entrySet()) {
-			System.err.println(entry.getKey().name + " " + entry.getValue());
+			CustomLog.outPrintln(entry.getKey().name + " " + entry.getValue());
 		}
 		
 		Object potentialItem = MapUtil.randChoiceFromMaps(bestProcesses, bestJobs);
@@ -1066,6 +1079,9 @@ public class LocalGridTimeExecution {
 		int bestItemIdToFind = -1;
 		Vector3i bestLocation = null;
 		
+		TODO;
+		//Sort amounts needed by item heuristic and item record counts
+		
 		for (Entry<Integer, Integer> entry: itemsAmtNeeded.entrySet()) {
 			int firstItemNeeded = entry.getKey();
 			
@@ -1106,7 +1122,7 @@ public class LocalGridTimeExecution {
 				double expectedNumItem = process.outputItems.itemExpectation().get(firstItemNeeded);
 				
 				if (process.name.startsWith("Harvest Tile ")) {
-					System.out.println(process);
+					CustomLog.outPrintln(process);
 					int inputTileId = ItemData.getIdFromName(process.requiredTileNameOrGroup);
 					effectiveNum = Math.min(amountNeeded, expectedNumItem);
 					itemTree = grid.getKdTreeForTile(inputTileId);

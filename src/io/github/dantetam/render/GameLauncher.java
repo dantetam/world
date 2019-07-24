@@ -5,12 +5,10 @@ import java.util.List;
 
 import org.lwjgl.glfw.GLFW;
 
-import io.github.dantetam.lwjglEngine.entities.Camera;
 import io.github.dantetam.lwjglEngine.entities.Gui2DCamera;
 import io.github.dantetam.lwjglEngine.render.DisplayManager;
 import io.github.dantetam.lwjglEngine.tests.MainGameLoop;
 import io.github.dantetam.system.*;
-import io.github.dantetam.toolbox.MousePicker;
 import io.github.dantetam.toolbox.StringUtil;
 import io.github.dantetam.world.civilization.SkillBook;
 import io.github.dantetam.world.dataparse.WorldCsvParser;

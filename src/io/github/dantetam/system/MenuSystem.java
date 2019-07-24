@@ -8,7 +8,6 @@ import java.util.Set;
 
 import io.github.dantetam.localdata.ConstantData;
 import io.github.dantetam.lwjglEngine.fontRendering.TextMaster;
-import io.github.dantetam.lwjglEngine.gui.GuiQuad;
 import io.github.dantetam.lwjglEngine.render.DisplayManager;
 import io.github.dantetam.lwjglEngine.render.VBOLoader;
 import io.github.dantetam.render.Button;
@@ -226,7 +225,7 @@ public class MenuSystem extends BaseSystem {
 	*/
 
 	public void forceFullUIUpdate() {
-		//System.out.println("force update");
+		//CustomLog.outPrintln("force update");
 		updateMenus();
 		gameLauncher.guiSystem.updateUI();
 		TextMaster.update(this, gameLauncher.guiSystem);

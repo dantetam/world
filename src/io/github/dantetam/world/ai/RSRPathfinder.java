@@ -13,11 +13,10 @@ import java.util.Set;
 import io.github.dantetam.toolbox.MapUtil;
 import io.github.dantetam.toolbox.VecGridUtil;
 import io.github.dantetam.toolbox.VecGridUtil.RectangularSolid;
+import io.github.dantetam.toolbox.log.CustomLog;
 import io.github.dantetam.vector.Vector3i;
-import io.github.dantetam.world.ai.Pathfinder.ScoredPath;
 import io.github.dantetam.world.civilization.Household;
 import io.github.dantetam.world.civilization.Society;
-import io.github.dantetam.world.dataparse.ItemData;
 import io.github.dantetam.world.dataparse.ProcessData;
 import io.github.dantetam.world.dataparse.WorldCsvParser;
 import io.github.dantetam.world.grid.LocalGrid;
@@ -193,6 +192,14 @@ public class RSRPathfinder extends Pathfinder {
 		}
 	}
 	
+	public void adjustRSR(Vector3i coords, boolean isSolidBlock) {
+		for (Vector3i neighbor: this.grid.getAllNeighbors26(coords)) {
+			if (grid.tileIsAccessible(neighbor)) {
+				this.tempNodeInRectSolid(coords, isSolidBlock);
+			}
+		}
+ 	}
+	
 	@Override
 	protected Set<LocalTile> validNeighbors(LivingEntity being, LocalTile tile) {
 		//TODO
@@ -203,7 +210,7 @@ public class RSRPathfinder extends Pathfinder {
 		if (macroEdgeConnections.containsKey(tile.coords)) {
 			Set<Vector3i> coords = macroEdgeConnections.get(tile.coords);
 			for (Vector3i coord: coords) {
-				//System.out.println("Added shortcut from " + tile.coords + " to " + coord);
+				//CustomLog.outPrintln("Added shortcut from " + tile.coords + " to " + coord);
 				candidates.add(grid.getTile(coord));
 			}
 		}
@@ -229,19 +236,19 @@ public class RSRPathfinder extends Pathfinder {
 	public ScoredPath findPath(LivingEntity being, LocalTile start, LocalTile end,
     		Vector3i minRestrict, Vector3i maxRestrict) {
 		if (start == null || end == null) {
-        	//System.out.println("Start or end null, start: " + start + ", end: " + end);
+        	//CustomLog.outPrintln("Start or end null, start: " + start + ", end: " + end);
     		return new ScoredPath(null, 999);
     	}
 		
 		//Do quick check if path is possible (i.e. in same connected component)
 		if (grid.connectedCompsMap.containsKey(start.coords) && grid.connectedCompsMap.containsKey(end.coords)) {
 			if (grid.connectedCompsMap.get(start.coords) != grid.connectedCompsMap.get(end.coords)) {
-				//System.out.println("No match valid comp");
+				//CustomLog.outPrintln("No match valid comp");
 				return new ScoredPath(null, 999);
 			}
 		}
 		else {
-			//System.out.println("Not in comp: " + connectedCompsMap.containsKey(start.coords) + "; " + connectedCompsMap.containsKey(end.coords));
+			//CustomLog.outPrintln("Not in comp: " + connectedCompsMap.containsKey(start.coords) + "; " + connectedCompsMap.containsKey(end.coords));
 			return new ScoredPath(null, 999);
 		}
 		
@@ -309,7 +316,7 @@ public class RSRPathfinder extends Pathfinder {
 		
 		RSRPathfinder pathfinder = new RSRPathfinder(activeLocalGrid);
 		
-		System.out.println("Start pathfinding time trial now");
+		CustomLog.outPrintln("Start pathfinding time trial now");
 		
 		for (int i = 0; i < 20; i++) {
 			//int r = (int) (Math.random() * 95) + 5;
@@ -326,7 +333,7 @@ public class RSRPathfinder extends Pathfinder {
 			);
 			activeLocalGrid.createTile(coords);
 			
-			System.out.println("Finding path from " + baseTile.coords + " to " + coords);
+			CustomLog.outPrintln("Finding path from " + baseTile.coords + " to " + coords);
 			
 			long startTime = Calendar.getInstance().getTimeInMillis();
 			
@@ -336,11 +343,11 @@ public class RSRPathfinder extends Pathfinder {
 			long endTime = Calendar.getInstance().getTimeInMillis();
 			
 			if (path.isValid())
-				System.out.println(path.path);
+				CustomLog.outPrintln(path.path);
 			else
-				System.out.println("No path found");
+				CustomLog.outPrintln("No path found");
 			
-			System.out.println("Completed trials in " + (endTime - startTime) + "ms");
+			CustomLog.outPrintln("Completed trials in " + (endTime - startTime) + "ms");
 		}
     }
 

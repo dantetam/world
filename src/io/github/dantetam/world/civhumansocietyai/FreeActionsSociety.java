@@ -8,9 +8,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.HashMap;
 
-import io.github.dantetam.world.civhumanrelation.HumanHumanRel;
 import io.github.dantetam.world.civhumanrelation.SocietySocietyRel;
-import io.github.dantetam.world.civilization.Household;
 import io.github.dantetam.world.civilization.Society;
 import io.github.dantetam.world.grid.LocalGrid;
 import io.github.dantetam.world.grid.WorldGrid;

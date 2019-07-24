@@ -14,11 +14,9 @@ import java.util.HashMap;
 
 import io.github.dantetam.toolbox.CollectionUtil;
 import io.github.dantetam.toolbox.Pair;
-import io.github.dantetam.vector.Vector3i;
 import io.github.dantetam.world.civhumanai.Ethos;
 import io.github.dantetam.world.civhumanai.EthosSet;
 import io.github.dantetam.world.civhumanrelation.HumanHumanRel;
-import io.github.dantetam.world.civhumanrelation.HumanHumanRel.HumanHumanRelType;
 import io.github.dantetam.world.civilization.Household;
 import io.github.dantetam.world.civilization.LocalExperience;
 import io.github.dantetam.world.civilization.Society;
@@ -99,7 +97,7 @@ public class FreeActionsHumans {
 						if (claimants != null && claimants.size() > 0) {
 							continue;
 						}
-						grid.claimTiles(human, interval.start, interval.end);
+						grid.claimTiles(human, interval.start, interval.end, null);
 					//}
 				}
 			}

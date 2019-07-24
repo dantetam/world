@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Set;
 
+import io.github.dantetam.toolbox.log.CustomLog;
 import io.github.dantetam.vector.Vector3i;
 import io.github.dantetam.world.civilization.Household;
 import io.github.dantetam.world.civilization.Society;
@@ -105,8 +106,8 @@ public class Pathfinder {
     	}
     	
     	/*
-    	System.out.println("-----------");
-    	System.out.println("Finding path between: " + start.coords + " -> " + end.coords + ",\n with bounds: "
+    	CustomLog.outPrintln("-----------");
+    	CustomLog.outPrintln("Finding path between: " + start.coords + " -> " + end.coords + ",\n with bounds: "
     			+ minRestrict + " <-> " + maxRestrict);
     	*/
     	
@@ -165,7 +166,7 @@ public class Pathfinder {
                     results.add(0, v);
                     v = prev.get(v);
                 } while (v != null);
-                //System.out.println("Nodes expanded: " + nodesExpanded);
+                CustomLog.outPrintln("Nodes expanded: " + nodesExpanded);
                 return new ScoredPath(results, dist.get(end).doubleValue());
             }
             for (LocalTile c : validNeighbors(being, v)) {
@@ -178,7 +179,7 @@ public class Pathfinder {
             }
         }
         
-        //System.out.println("Nodes expanded: " + nodesExpanded);
+        //CustomLog.outPrintln("Nodes expanded: " + nodesExpanded);
         return new ScoredPath(null, 999);
     }
     
@@ -219,7 +220,7 @@ public class Pathfinder {
 		}
 		testSociety.addHousehold(new Household(people));
 		
-		System.out.println("Start pathfinding time trial now");
+		CustomLog.outPrintln("Start pathfinding time trial now");
 		
 		for (int i = 0; i < 10; i++) {
 			long startTime = Calendar.getInstance().getTimeInMillis();
@@ -236,14 +237,14 @@ public class Pathfinder {
 			);
 			activeLocalGrid.createTile(coords);
 			
-			System.out.println("Finding path from " + baseTile.coords + " to " + coords);
+			CustomLog.outPrintln("Finding path from " + baseTile.coords + " to " + coords);
 			
 			new Pathfinder(activeLocalGrid).findPath(people.get(0), 
 					baseTile, activeLocalGrid.getTile(coords));
 			
 			long endTime = Calendar.getInstance().getTimeInMillis();
 			
-			System.out.println("Completed trials in " + (endTime - startTime) + "ms");
+			CustomLog.outPrintln("Completed trials in " + (endTime - startTime) + "ms");
 		}
     }
 

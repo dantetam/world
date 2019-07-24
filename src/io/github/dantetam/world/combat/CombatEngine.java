@@ -14,7 +14,6 @@ import org.apache.commons.math3.distribution.NormalDistribution;
 import org.apache.commons.math3.distribution.UniformRealDistribution;
 
 import io.github.dantetam.toolbox.MapUtil;
-import io.github.dantetam.world.combat.CombatMod.CombatCondition;
 import io.github.dantetam.world.combat.CombatMod.CombatModActor;
 import io.github.dantetam.world.combat.CombatMod.CombatModCalc;
 import io.github.dantetam.world.dataparse.AnatomyData.BodyDamage;

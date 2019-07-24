@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import io.github.dantetam.toolbox.MapUtil;
 import io.github.dantetam.world.civhumanrelation.SocietySocietyRel;
 import io.github.dantetam.world.civhumanrelation.SocietySocietyRel.SocietalRelationMode;
 import io.github.dantetam.world.civhumansocietyai.FreeActionsSociety;
@@ -111,6 +112,13 @@ public class SocietyDiplomacy {
 	//See FreeActionsSociety::considerAllFreeActions()
 	public void initiateTrade(Society host, Society target) {
 		//TODO
+		Map<Integer, Double> hostSocUtil = MapUtil.getSortedMapByValueDesc(host.calcUtility);
+		Map<Integer, Double> hostTarUtil = MapUtil.getSortedMapByValueDesc(target.calcUtility);
+		
+		Map<Integer, Double> hostSocCommon = MapUtil.getSortedMapByValueDesc(host.allEconomicUtil);
+		Map<Integer, Double> hostTarCommon = MapUtil.getSortedMapByValueDesc(target.allEconomicUtil);
+		
+		
 	}
 	
 	public boolean isObligatedInDefCall(Society caller, Society ally, Society target) {

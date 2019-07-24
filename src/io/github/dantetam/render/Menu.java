@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import io.github.dantetam.localdata.ConstantData;
 import io.github.dantetam.lwjglEngine.fontMesh.FontType;
 import io.github.dantetam.system.MenuSystem.Click;
+import io.github.dantetam.toolbox.log.CustomLog;
 
 public class Menu {
 
@@ -73,11 +74,11 @@ public class Menu {
 	}
 
 	public String click(boolean isActualClick, float mouseX, float mouseY) {
-		// System.out.println("-----------------");
-		// System.out.println(buttons.size());
+		// CustomLog.outPrintln("-----------------");
+		// CustomLog.outPrintln(buttons.size());
 		for (TextBox b : buttons) {
 			/*
-			 * System.out.println(b.getDisplay().get(0) + "; Pos: " + b.pixelPos +
+			 * CustomLog.outPrintln(b.getDisplay().get(0) + "; Pos: " + b.pixelPos +
 			 * "; Size: " + b.pixelSize + "; Bounding Box Edge: " + new
 			 * Vector2f(b.pixelPos.x + b.pixelSize.x, b.pixelPos.y + b.pixelSize.y) +
 			 * "; Mouse: " + mouseX + "," + mouseY);
@@ -136,7 +137,7 @@ public class Menu {
 	public boolean requestUpdate = false;
 
 	public void activate(boolean yn) {
-		System.out.println("Menu " + name + " was updated to be active: " + yn);
+		CustomLog.outPrintln("Menu " + name + " was updated to be active: " + yn);
 		active = yn;
 		if (yn)
 			requestUpdate = true;

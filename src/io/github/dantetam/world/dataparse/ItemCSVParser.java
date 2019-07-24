@@ -9,6 +9,7 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.csv.CSVRecord;
 
+import io.github.dantetam.toolbox.log.CustomLog;
 import io.github.dantetam.vector.Vector3i;
 import io.github.dantetam.world.dataparse.ItemTotalDrops.ItemDrop;
 import io.github.dantetam.world.dataparse.ItemTotalDrops.ItemDropTrial;
@@ -60,7 +61,7 @@ public class ItemCSVParser extends WorldCsvParser {
 					}
  				}
 				else {
-					System.err.println(record.toMap());
+					CustomLog.errPrintln(record.toMap());
 					throw new IllegalArgumentException("While parsing item csv, could not find group name: " + groupName);
 				}
 			}
@@ -86,7 +87,7 @@ public class ItemCSVParser extends WorldCsvParser {
 				stackNum = Integer.parseInt(stackable);
 			} catch (NumberFormatException e) {
 				e.printStackTrace();
-				System.err.println("Could not parse stack num in item CSV parsing");
+				CustomLog.errPrintln("Could not parse stack num in item CSV parsing");
 			}
 		}
 		ItemTotalDrops itemDrops = processItemDropsString(record.get("OnBlockHarvest"), namesToIdsMap);
@@ -194,7 +195,7 @@ public class ItemCSVParser extends WorldCsvParser {
 					id = namesToIdsMap.get(itemName);
 				} catch (NullPointerException e) {
 					//e.printStackTrace();
-					System.err.println("Could not find item name: " + itemName);
+					CustomLog.errPrintln("Could not find item name: " + itemName);
 					id = ItemData.generateItem(itemName);
 				}
 				

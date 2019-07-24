@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Map;
 
 import io.github.dantetam.world.civhumanai.EthosSet;
-import io.github.dantetam.world.civhumanrelation.SocietySocietyRel;
 import io.github.dantetam.world.life.Human;
 
 /**

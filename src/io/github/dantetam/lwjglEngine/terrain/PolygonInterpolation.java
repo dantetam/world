@@ -1,5 +1,6 @@
 package io.github.dantetam.lwjglEngine.terrain;
 
+import io.github.dantetam.toolbox.log.CustomLog;
 import kn.uni.voronoitreemap.j2d.Point2D;
 import kn.uni.voronoitreemap.j2d.PolygonSimple;
 
@@ -118,21 +119,21 @@ public class PolygonInterpolation {
 		for (double coord : polyCoords) {
 			System.out.print(coord + ", ");
 		}
-		System.out.println();
+		CustomLog.outPrintln();
 
 		fWeights = new double[] { 50, 50, 50, 50, 50, 50 };
 		polyCoords = getPolyCoords(polyTest, new Point2D(4, 8), fWeights);
 		for (double coord : polyCoords) {
 			System.out.print(coord + ", ");
 		}
-		System.out.println();
+		CustomLog.outPrintln(polyCoords);
 
 		fWeights = new double[] { 1, 1, 1, 1, 1, 1 };
 		polyCoords = getPolyCoords(polyTest, new Point2D(4, 8), fWeights);
 		for (double coord : polyCoords) {
 			System.out.print(coord + ", ");
 		}
-		System.out.println();
+		CustomLog.outPrintln();
 
 		fWeights = new double[] { 1, 1, 1, 1, 1, 1 };
 		polyCoords = getPolyCoords(polyTest, new Point2D(3, 15), fWeights);

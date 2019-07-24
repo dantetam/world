@@ -2,6 +2,7 @@ package io.github.dantetam.world.worldgen;
 
 import java.text.DecimalFormat;
 
+import io.github.dantetam.toolbox.log.CustomLog;
 import io.github.dantetam.vector.Vector2i;
 import io.github.dantetam.vector.Vector3i;
 import io.github.dantetam.world.dataparse.ItemData;
@@ -152,7 +153,7 @@ public class LocalGridTerrainGenerate {
 			for (int j = 0; j < a[0].length; j++) {
 				System.out.print(df.format(a[i][j]) + " ");
 			}
-			System.out.println();
+			CustomLog.outPrintln();
 		}
 	}
 	
@@ -162,7 +163,7 @@ public class LocalGridTerrainGenerate {
 			for (int j = 0; j < a[0].length; j++) {
 				System.out.print((a[i][j] ? "T" : "F") + " ");
 			}
-			System.out.println();
+			CustomLog.outPrintln();
 		}
 	}
 	

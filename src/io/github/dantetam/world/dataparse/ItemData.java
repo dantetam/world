@@ -12,6 +12,7 @@ import java.util.Set;
 import io.github.dantetam.lwjglEngine.render.VBOLoader;
 import io.github.dantetam.toolbox.Pair;
 import io.github.dantetam.toolbox.VecGridUtil;
+import io.github.dantetam.toolbox.log.CustomLog;
 import io.github.dantetam.vector.Vector2i;
 import io.github.dantetam.vector.Vector3i;
 import io.github.dantetam.world.grid.LocalBuilding;
@@ -204,7 +205,7 @@ public class ItemData {
 	
 	public static int generateItem(String name) {
 		GENERATED_BASE_ID++;
-		System.out.println("Generated item: " + GENERATED_BASE_ID);
+		CustomLog.outPrintln("Generated item: " + GENERATED_BASE_ID);
 		addItemToDatabase(GENERATED_BASE_ID, name, false, null, 15, ItemData.ITEM_EMPTY_ID, 
 				null, 100, 0.0, 1.0, null, null, null);
 		return GENERATED_BASE_ID;

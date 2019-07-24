@@ -10,9 +10,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import io.github.dantetam.toolbox.MapUtil;
-import io.github.dantetam.vector.Vector3i;
 import io.github.dantetam.world.dataparse.ItemData;
-import io.github.dantetam.world.dataparse.ProcessData;
 import io.github.dantetam.world.items.InventoryItem;
 import io.github.dantetam.world.life.LivingEntity;
 import io.github.dantetam.world.process.LocalProcess;

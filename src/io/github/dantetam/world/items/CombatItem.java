@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Set;
 
 import io.github.dantetam.world.combat.CombatData;
-import io.github.dantetam.world.combat.CombatMod;
 
 public class CombatItem {
 	

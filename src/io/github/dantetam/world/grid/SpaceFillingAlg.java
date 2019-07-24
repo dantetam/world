@@ -12,12 +12,12 @@ import java.util.Map;
 import java.util.Set;
 
 import io.github.dantetam.toolbox.VecGridUtil;
+import io.github.dantetam.toolbox.log.CustomLog;
 import io.github.dantetam.toolbox.CollectionUtil;
 import io.github.dantetam.toolbox.MapUtil;
 import io.github.dantetam.toolbox.Pair;
 import io.github.dantetam.vector.Vector2i;
 import io.github.dantetam.vector.Vector3i;
-import io.github.dantetam.world.dataparse.ItemData;
 import io.github.dantetam.world.life.Human;
 
 public class SpaceFillingAlg {
@@ -41,7 +41,7 @@ public class SpaceFillingAlg {
 		int minScore = 0;
 		for (Human landOwner: validLandOwners) {
 			for (LocalGridLandClaim claim: landOwner.allClaims) {
-				System.out.println(claim.boundary);
+				CustomLog.outPrintln(claim.boundary);
 				GridRectInterval space = findAvailableSpaceExact(grid, claim.boundary.avgVec(), 
 						desiredR, desiredC, sameLevel, validLandOwners, tileCond);
 				if (space != null) {

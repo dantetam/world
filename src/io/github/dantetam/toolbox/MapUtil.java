@@ -11,6 +11,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import io.github.dantetam.toolbox.log.CustomLog;
+
 public class MapUtil {
 
 	public static void printTable(double[][] terrain) {
@@ -25,7 +27,7 @@ public class MapUtil {
 				*/
 				System.out.print(data + " ");
 			}
-			System.out.println();
+			CustomLog.outPrintln();
 		}
 	}
 
@@ -34,9 +36,9 @@ public class MapUtil {
 	 * Add value to key k, defaulting to k -> 0 when k is not a key.
 	 */
 	public static <T, U extends Number> void 
-			addNumMap(Map<T, U> map, T key, U value) {
+			addNumMap(Map<T, U> map, T key, Number value) {
 		if (!map.containsKey(key)) {
-			map.put(key, value);
+			map.put(key, (U) new Double(value.doubleValue()));
 		}
 		else {
 			map.put(key, (U) new Double(map.get(key).doubleValue() + value.doubleValue()));
@@ -167,8 +169,8 @@ public class MapUtil {
 		data.put(3, 9);
 		data.put(4, 7);
 		data = getSortedMapByValueDesc(data);
-		System.out.println(data);
-		System.out.println(Arrays.toString(data.entrySet().toArray()));
+		CustomLog.outPrintln(data);
+		CustomLog.outPrintln(Arrays.toString(data.entrySet().toArray()));
 	}
 	
 }

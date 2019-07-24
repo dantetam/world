@@ -20,6 +20,7 @@ public class WorldCsvParser {
 		ProcessCSVParser.init();
 		CombatCSVParser.init();
 		EthosCSVParser.init();
+		SkillCSVParser.init();
 	}
 	
 	public static List<CSVRecord> parseCsvFile(String fileName) {

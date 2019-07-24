@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Map.Entry;
 
 import io.github.dantetam.toolbox.MapUtil;
-import io.github.dantetam.world.civhumanai.EthosSet;
 import io.github.dantetam.world.civilization.Society;
 
 public class HumanBrainInitialize {

@@ -17,6 +17,7 @@ import io.github.dantetam.lwjglEngine.entities.Group;
 import io.github.dantetam.lwjglEngine.models.RawModel;
 import io.github.dantetam.lwjglEngine.models.TexturedModel;
 import io.github.dantetam.lwjglEngine.textures.LoadedIdTexture;
+import io.github.dantetam.toolbox.log.CustomLog;
 import io.github.dantetam.vector.CustomVector3f;
 
 /**
@@ -38,7 +39,7 @@ public class OBJLoader {
 		try {
 			fr = new FileReader(objFile);
 		} catch (FileNotFoundException e) {
-			System.out.println("Could not load material OBJ model from file: " + fullObjFileName);
+			CustomLog.outPrintln("Could not load material OBJ model from file: " + fullObjFileName);
 			e.printStackTrace();
 			return null;
 		}
@@ -137,9 +138,9 @@ public class OBJLoader {
 				}
 			}
 
-			System.out.println("------------------");
+			CustomLog.outPrintln("------------------");
 			for (Vector2f texture : textures) {
-				System.out.println(texture.toString());
+				CustomLog.outPrintln(texture.toString());
 			}
 
 			verticesArray = new float[vertices.size() * 3]; // Convert lists to array
@@ -253,7 +254,7 @@ public class OBJLoader {
 		try {
 			fr = new FileReader(new File(fileName));
 		} catch (FileNotFoundException e) {
-			System.out.println("Could not load simple OBJ model from file: " + fileName);
+			CustomLog.outPrintln("Could not load simple OBJ model from file: " + fileName);
 			e.printStackTrace();
 			return null;
 		}

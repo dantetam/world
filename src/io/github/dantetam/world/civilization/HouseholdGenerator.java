@@ -3,7 +3,6 @@ package io.github.dantetam.world.civilization;
 import java.util.ArrayList;
 import java.util.List;
 
-import io.github.dantetam.world.civilization.language.Language;
 import io.github.dantetam.world.life.Human;
 
 public class HouseholdGenerator {

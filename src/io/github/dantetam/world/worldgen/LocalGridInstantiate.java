@@ -15,11 +15,11 @@ import io.github.dantetam.lwjglEngine.terrain.ForestGeneration;
 import io.github.dantetam.lwjglEngine.terrain.ForestGeneration.BiomeData;
 import io.github.dantetam.lwjglEngine.terrain.ForestGeneration.ProceduralTree;
 import io.github.dantetam.lwjglEngine.terrain.RasterizeVoronoi;
+import io.github.dantetam.toolbox.MapUtil;
 import io.github.dantetam.toolbox.MathUti;
 import io.github.dantetam.toolbox.VecGridUtil;
-import io.github.dantetam.vector.Vector2i;
+import io.github.dantetam.toolbox.log.CustomLog;
 import io.github.dantetam.vector.Vector3i;
-import io.github.dantetam.world.ai.HierarchicalPathfinder;
 import io.github.dantetam.world.ai.RSRPathfinder;
 import io.github.dantetam.world.dataparse.ItemData;
 import io.github.dantetam.world.grid.LocalGrid;
@@ -85,9 +85,9 @@ public class LocalGridInstantiate {
 							tile = new LocalTile(coords);
 							tile.tileBlockId = advTerrain;
 							tile.tileFloorId = advTerrain;
-							localGrid.setTileInstantiate(coords, tile);
 						}
 					//}
+						localGrid.setTileInstantiate(coords, tile);
 				}
 			}
 		}
@@ -103,8 +103,8 @@ public class LocalGridInstantiate {
 					int surfaceClusterItemId = surfaceClusters[r][c];
 					if (surfaceClusterItemId != ItemData.ITEM_EMPTY_ID) {
 						topTile.tileBlockId = surfaceClusterItemId;
+						localGrid.setTileInstantiate(topCoord, topTile);
 					}
-					localGrid.setTileInstantiate(topCoord, topTile);
 				}
 				
 				while (height > 0 && numTilesPassed < (int) soilLevels[r][c]) {
@@ -138,11 +138,26 @@ public class LocalGridInstantiate {
 		if (setupAdvancedPathfinding)
 			localGrid.pathfinder = new RSRPathfinder(localGrid);
 		
-		System.out.println(localGrid.rows + " " + localGrid.cols + " " + localGrid.heights);
-		System.out.println(gridTrees.size());
+		CustomLog.outPrintln(localGrid.rows + " " + localGrid.cols + " " + localGrid.heights);
+		CustomLog.outPrintln(gridTrees.size());
 		
 		localGrid.connectedCompsMap = VecGridUtil.contComponent3dSolids(null, null, localGrid);
 		localGrid.clustersList = new KdTree(VecGridUtil.contComp3dSolidsClustersSpec(null, null, localGrid));
+		
+		localGrid.tileIdCounts = new HashMap<>();
+		for (int r = 0; r < localGrid.rows; r++) {
+			for (int c = 0; c < localGrid.cols; c++) {
+				for (int h = 0; h < localGrid.heights; h++) {
+					Vector3i coords = new Vector3i(r,c,h);
+					LocalTile tile = localGrid.getTile(coords);
+					if (tile != null && tile.tileBlockId != ItemData.ITEM_EMPTY_ID) { //Special case for init.
+						MapUtil.addNumMap(localGrid.tileIdCounts, tile.tileBlockId, 1);
+					}
+				}
+			}
+		}
+		
+		localGrid.updateAllTilesAccessInit();
 		
 		return localGrid;
 	}

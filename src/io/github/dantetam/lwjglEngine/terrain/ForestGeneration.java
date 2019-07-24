@@ -273,7 +273,7 @@ public class ForestGeneration {
 			double x = this.age;
 			double chance = REPRODUCE_MAX_CHANCE
 					- REPRODUCE_MAX_CHANCE / (1 + Math.pow(Math.E, -REPRODUCE_STEEPNESS * (x - 15)));
-			// System.out.println("Reproduce tree chance: " + chance);
+			// CustomLog.outPrintln("Reproduce tree chance: " + chance);
 			return Math.random() < chance;
 		}
 
@@ -281,21 +281,21 @@ public class ForestGeneration {
 		public boolean growChance() {
 			double x = this.age;
 			double chance = GROW_MAX_CHANCE - GROW_MAX_CHANCE / (1 + Math.pow(Math.E, -GROW_STEEPNESS * (x)));
-			// System.out.println("Grow chance tree: " + chance);
+			// CustomLog.outPrintln("Grow chance tree: " + chance);
 			return Math.random() < chance;
 		}
 
 		public double rawBurnChance() {
 			double x = this.age + (this.size / this.initialSize) * 2;
 			double chance = BURN_MAX_CHANCE / (1 + Math.pow(Math.E, -BURN_STEEPNESS * (x)));
-			// System.out.println("Burn chance tree: " + chance);
+			// CustomLog.outPrintln("Burn chance tree: " + chance);
 			return chance;
 		}
 
 		public boolean spantaneousDeathChance() {
 			double x = this.age;
 			double chance = DEATH_MAX_CHANCE / (1 + Math.pow(Math.E, -DEATH_STEEPNESS * (x)));
-			// System.out.println("Death chance tree: " + chance);
+			// CustomLog.outPrintln("Death chance tree: " + chance);
 			return Math.random() < chance;
 		}
 

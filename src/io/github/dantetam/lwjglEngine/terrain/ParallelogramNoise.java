@@ -8,6 +8,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import io.github.dantetam.lwjglEngine.terrain.NeighborsGraphStructure.Edge;
+import io.github.dantetam.toolbox.log.CustomLog;
 import kn.uni.voronoitreemap.gui.JSite;
 import kn.uni.voronoitreemap.j2d.Point2D;
 import kn.uni.voronoitreemap.j2d.PolygonSimple;
@@ -49,14 +50,14 @@ public class ParallelogramNoise {
 		double extendX = cutX + xDisp, extendY = cutY + yDisp;
 
 		/*
-		 * System.out.println("Took 2 points: " + p1 + " ; " + p2);
-		 * System.out.println("Slope: " + slope + ", Theta: " + theta);
-		 * System.out.println("(" + cutX + "," + cutY + ")");
-		 * System.out.println("Angle to extend: " + extendAngle + " " +
-		 * Math.toDegrees(extendAngle)); System.out.println("Split proportion: " +
-		 * randomSplit); System.out.println("(" + extendX + "," + extendY + ")");
-		 * System.out.println(xDisp + " " + yDisp);
-		 * System.out.println("--------------");
+		 * CustomLog.outPrintln("Took 2 points: " + p1 + " ; " + p2);
+		 * CustomLog.outPrintln("Slope: " + slope + ", Theta: " + theta);
+		 * CustomLog.outPrintln("(" + cutX + "," + cutY + ")");
+		 * CustomLog.outPrintln("Angle to extend: " + extendAngle + " " +
+		 * Math.toDegrees(extendAngle)); CustomLog.outPrintln("Split proportion: " +
+		 * randomSplit); CustomLog.outPrintln("(" + extendX + "," + extendY + ")");
+		 * CustomLog.outPrintln(xDisp + " " + yDisp);
+		 * CustomLog.outPrintln("--------------");
 		 */
 
 		return new double[] { extendX, extendY, randomSplit };
@@ -165,7 +166,7 @@ public class ParallelogramNoise {
 
 		List<Point2D> chainPoints = parallelogramBoundNoise(testPoints, 130, 0.65, 0.5, 50);
 		for (Point2D point : chainPoints) {
-			System.out.println(point);
+			CustomLog.outPrintln(point);
 		}
 
 	}

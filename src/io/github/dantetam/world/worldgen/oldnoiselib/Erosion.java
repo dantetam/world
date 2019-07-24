@@ -50,11 +50,11 @@ public class Erosion {
 						double a = (Math.random() * 0.15 + 0.2) * waterLevel[r][c].water;
 						double b = Math.max(0, waterLevel[r][c].speed * (Math.random() * 0.25 + 0.25));
 						double dissolved = a + b;
-						// System.out.println(a + " " + b);
+						// CustomLog.outPrintln(a + " " + b);
 						if (terrain[r][c] - dissolved < averageNeighbors(r, c) - 10) {
 							dissolved = terrain[r][c] - averageNeighbors(r, c) + 10;
 							dissolved = Math.max(0, dissolved);
-							// System.out.println(dissolved);
+							// CustomLog.outPrintln(dissolved);
 						}
 						waterLevel[r][c].soil += dissolved;
 						terrain[r][c] -= dissolved;

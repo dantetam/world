@@ -13,6 +13,7 @@ import java.util.Set;
 
 import io.github.dantetam.toolbox.MapUtil;
 import io.github.dantetam.toolbox.StringUtil;
+import io.github.dantetam.toolbox.log.CustomLog;
 import io.github.dantetam.vector.Vector2i;
 import io.github.dantetam.vector.Vector3i;
 import io.github.dantetam.world.civhumanai.Ethos;
@@ -64,8 +65,8 @@ public class WorldGrid {
 		
 		societalDiplomacy = new SocietyDiplomacy(this);
 		
-		TODO Create all grids instantiated with
-		new societies, DNA/races/cultures, biomes/flora/fauna, and intersocietal interactions across grids;
+		//TODO Create all grids instantiated with
+		//new societies, DNA/races/cultures, biomes/flora/fauna, and intersocietal interactions across grids;
 		
 		Vector3i sizes = new Vector3i(200,200,50);
 		int biome = 3;
@@ -134,19 +135,19 @@ public class WorldGrid {
 		
 		DecimalFormat df = new DecimalFormat("#.##");
 		
-		System.out.println("-----Calculated adjusted full economic utility-----");
+		CustomLog.outPrintln("-----Calculated adjusted full economic utility-----");
 		for (Entry<Integer, Double> entry: calcUtility.entrySet()) {
 			if (entry.getValue() > 0)
-				System.out.println(ItemData.getNameFromId(entry.getKey()) + ": " + df.format(entry.getValue()));
+				CustomLog.outPrintln(ItemData.getNameFromId(entry.getKey()) + ": " + df.format(entry.getValue()));
 		}
 		
 		Map<Integer, Double> rawUtility = testSociety.findRawResourcesRarity(null);
 		rawUtility = MapUtil.getSortedMapByValueDesc(rawUtility);
 		
-		System.out.println("-----Commonness of Resources (higher means more common)-----");
+		CustomLog.outPrintln("-----Commonness of Resources (higher means more common)-----");
 		for (Entry<Integer, Double> entry: rawUtility.entrySet()) {
 			if (entry.getValue() > 0)
-				System.out.println(ItemData.getNameFromId(entry.getKey()) + ": " + df.format(entry.getValue()));
+				CustomLog.outPrintln(ItemData.getNameFromId(entry.getKey()) + ": " + df.format(entry.getValue()));
 		}
 	}
 	

@@ -7,7 +7,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import io.github.dantetam.world.civilization.LocalExperience;
-import io.github.dantetam.world.civilization.Society;
 import io.github.dantetam.world.combat.War;
 import io.github.dantetam.world.items.InventoryItem;
 import io.github.dantetam.world.life.Human;

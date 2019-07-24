@@ -6,8 +6,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import io.github.dantetam.toolbox.CollectionUtil;
-import io.github.dantetam.toolbox.MapUtil;
 import io.github.dantetam.world.civhumanai.Ethos;
 import io.github.dantetam.world.civhumanai.EthosSet;
 import io.github.dantetam.world.civhumansocietyai.FreeAction;

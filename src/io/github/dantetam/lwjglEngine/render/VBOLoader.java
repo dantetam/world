@@ -21,6 +21,7 @@ import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
 
 import io.github.dantetam.lwjglEngine.models.RawModel;
+import io.github.dantetam.toolbox.log.CustomLog;
 
 public class VBOLoader {
 
@@ -85,7 +86,7 @@ public class VBOLoader {
 				File file = new File(fileName);
 				image = ImageIO.read(file);
 			} catch (IOException e2) {
-				System.out.println("Could not load " + fileName + ", loading from default texture instead");
+				CustomLog.outPrintln("Could not load " + fileName + ", loading from default texture instead");
 				try {
 					File file = new File("res/tiles/Error.png");
 					image = ImageIO.read(file);

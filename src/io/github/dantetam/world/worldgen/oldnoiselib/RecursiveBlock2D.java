@@ -3,6 +3,8 @@ package io.github.dantetam.world.worldgen.oldnoiselib;
 import java.util.ArrayList;
 import java.util.Random;
 
+import io.github.dantetam.toolbox.log.CustomLog;
+
 public class RecursiveBlock2D extends BaseTerrain2D {
 
 	public ArrayList<Entity> entities;
@@ -149,14 +151,14 @@ public class RecursiveBlock2D extends BaseTerrain2D {
 		terrain[sX + width / 2][sY + width / 2] = (terrain[sX][sY] + terrain[sX + width][sY] + terrain[sX][sY + width]
 				+ terrain[sX + width][sY + width]) / 4 + startAmp * (random.nextDouble() - 0.5) * 2;
 		/*
-		 * System.out.println(terrain[sX][sY]);
-		 * System.out.println(terrain[sX+width][sY]);
-		 * System.out.println(terrain[sX][sY+width]);
-		 * System.out.println(terrain[sX+width][sY+width]);
-		 * System.out.println("-------");
+		 * CustomLog.outPrintln(terrain[sX][sY]);
+		 * CustomLog.outPrintln(terrain[sX+width][sY]);
+		 * CustomLog.outPrintln(terrain[sX][sY+width]);
+		 * CustomLog.outPrintln(terrain[sX+width][sY+width]);
+		 * CustomLog.outPrintln("-------");
 		 */
 		// printTable(t);
-		// System.out.println("-------");
+		// CustomLog.outPrintln("-------");
 		if (width > 1) {
 			square(sX + width / 2, sY, width, startAmp);
 			square(sX, sY + width / 2, width, startAmp);
@@ -171,33 +173,33 @@ public class RecursiveBlock2D extends BaseTerrain2D {
 
 	public void square(int sX, int sY, int width, double startAmp) {
 		if (sX - width / 2 < 0) {
-			// System.out.println(sX + " 1 " + sY);
+			// CustomLog.outPrintln(sX + " 1 " + sY);
 			terrain[sX][sY] = (terrain[sX][sY - width / 2] + terrain[sX][sY + width / 2] + terrain[sX + width / 2][sY])
 					/ 3;
 		} else if (sX + width / 2 >= terrain.length) {
-			// System.out.println(sX + " 2 " + sY);
+			// CustomLog.outPrintln(sX + " 2 " + sY);
 			terrain[sX][sY] = (terrain[sX][sY - width / 2] + terrain[sX][sY + width / 2] + terrain[sX - width / 2][sY])
 					/ 3;
 		} else if (sY - width / 2 < 0) {
-			// System.out.println(sX + " 3 " + sY);
+			// CustomLog.outPrintln(sX + " 3 " + sY);
 			terrain[sX][sY] = (terrain[sX][sY + width / 2] + terrain[sX + width / 2][sY] + terrain[sX - width / 2][sY])
 					/ 3;
 		} else if (sY + width / 2 >= terrain.length) {
-			// System.out.println(sX + " 4 " + sY);
+			// CustomLog.outPrintln(sX + " 4 " + sY);
 			terrain[sX][sY] = (terrain[sX][sY - width / 2] + terrain[sX + width / 2][sY] + terrain[sX - width / 2][sY])
 					/ 3;
 		} else {
-			// System.out.println(sX + " 5 " + sY);
+			// CustomLog.outPrintln(sX + " 5 " + sY);
 			terrain[sX][sY] = (terrain[sX][sY + width / 2] + terrain[sX][sY - width / 2] + terrain[sX + width / 2][sY]
 					+ terrain[sX - width / 2][sY]) / 4;
 		}
 		terrain[sX][sY] += startAmp * (random.nextDouble() - 0.5) * 2;
 		// printTable(t);
-		// System.out.println("-------");
+		// CustomLog.outPrintln("-------");
 	}
 
 	public double[][] generate() {
-		System.out.println("Use the overloaded function with arguments");
+		CustomLog.outPrintln("Use the overloaded function with arguments");
 		return null;
 	}
 
@@ -225,7 +227,7 @@ public class RecursiveBlock2D extends BaseTerrain2D {
 			for (int i = 0; i < 2; i++) {
 				for (int j = 0; j < (int) Math.pow(2, i); j++) {
 					double angle = Math.random() * 6.28;
-					System.out.println(angle);
+					CustomLog.outPrintln(angle);
 					int size = (int) (block / (Math.pow(1.5, j - 1)));
 					if (size >= 16) {
 						startIsland(size, size, size, (int) (radius * Math.cos(angle)), 100,
@@ -292,7 +294,7 @@ public class RecursiveBlock2D extends BaseTerrain2D {
 				} else
 					System.out.print(height + " ");
 			}
-			System.out.println();
+			CustomLog.outPrintln(seed);
 		}
 	}
 
