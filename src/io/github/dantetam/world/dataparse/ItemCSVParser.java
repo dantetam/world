@@ -212,7 +212,7 @@ public class ItemCSVParser extends WorldCsvParser {
 				}
 			}
 			ItemDropTrial itemDropTrial = new ItemDropTrial(trialArgs);
-			itemDrops.independentDrops.add(itemDropTrial);
+			itemDrops.addItemDropTrial(itemDropTrial);
 		}
 		return itemDrops;
 	}

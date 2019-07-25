@@ -23,10 +23,12 @@ import io.github.dantetam.world.items.InventoryItem;
 
 public class ItemTotalDrops {
 
-	public List<ItemDropTrial> independentDrops;
+	private List<ItemDropTrial> independentDrops;
+	public Map<Integer, Double> itemDropExpectation;
 	
 	public ItemTotalDrops() {
 		independentDrops = new ArrayList<>();
+		itemDropExpectation = this.calculateItemExpectation();
 	}
 	
 	public List<InventoryItem> getOneItemDrop() {
@@ -50,7 +52,16 @@ public class ItemTotalDrops {
 		return allItems;
 	}
 	
-	public Map<Integer, Double> itemExpectation() {
+	public void addItemDropTrial(ItemDropTrial trial) {
+		this.independentDrops.add(trial);
+		itemDropExpectation = this.calculateItemExpectation();
+	}
+	
+	/**
+	 * Private method for calculating item drops average over time
+	 * @return
+	 */
+	private Map<Integer, Double> calculateItemExpectation() {
 		Map<Integer, Double> allItems = new HashMap<>();
 		for (ItemDropTrial trial: independentDrops) {
 			for (ItemDrop drop: trial.itemDrops) {
@@ -61,6 +72,10 @@ public class ItemTotalDrops {
 			}
 		}
 		return allItems;
+	}
+	
+	public Map<Integer, Double> itemExpectation() {
+		return this.itemDropExpectation;
 	}
 	
 	//Establish a single independent 'trial' that can only drop one item

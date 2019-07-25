@@ -48,6 +48,7 @@ public class ItemData {
 	private static Map<String, Set<Integer>> itemPropertiesNamed = new HashMap<>();
 	
 	private static Map<Integer, ItemTotalDrops> allItemDropsById = new HashMap<>();
+	//private static Map<Integer, Map<Integer, Double>> itemDropExpectationById = new HashMap<>();
 	
 	private static Map<Integer, Integer> refinedFormsById = new HashMap<>();
 	
@@ -165,6 +166,8 @@ public class ItemData {
 		if (itemTotalDrops != null) {
 			allItemDropsById.put(id, itemTotalDrops);
 		}
+		//ItemTotalDrops.setItemExpectation(id);
+		
 		pickupTime.put(id, time);
 		baseItemValue.put(id, baseValue);
 		beautyItemValue.put(id, beautyValue);
