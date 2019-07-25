@@ -68,7 +68,7 @@ public class WorldGrid {
 		//TODO Create all grids instantiated with
 		//new societies, DNA/races/cultures, biomes/flora/fauna, and intersocietal interactions across grids;
 		
-		Vector3i sizes = new Vector3i(200,200,50);
+		Vector3i sizes = new Vector3i(200,200,60);
 		int biome = 3;
 		localGridTiles[2][2] = new LocalGridInstantiate(sizes, biome).setupGrid(true);
 		
@@ -83,13 +83,17 @@ public class WorldGrid {
 			int numPeopleHouse = (int)(Math.random() * 8) + 1;
 			List<Human> people = new ArrayList<>();
 			for (int j = 0; j < numPeopleHouse; j++) {
-				int r = (int) (Math.random() * activeLocalGrid.rows);
-				int c = (int) (Math.random() * activeLocalGrid.cols);
-				int h = activeLocalGrid.findHighestGroundHeight(r,c);
+				int r, c;
+				Vector3i availVec;
+				do {
+					r = (int) (Math.random() * activeLocalGrid.rows);
+					c = (int) (Math.random() * activeLocalGrid.cols);
+					availVec = activeLocalGrid.findHighestAccessibleHeight(r,c);
+				} while (availVec == null);
 				
 				Human human = new Human(testSociety, "Human" + j + " of House " + i);
 				people.add(human);
-				activeLocalGrid.addHuman(human, new Vector3i(r,c,h));
+				activeLocalGrid.addHuman(human, availVec);
 				
 				/*
 				human.inventory.addItem(ItemData.randomBaseItem());

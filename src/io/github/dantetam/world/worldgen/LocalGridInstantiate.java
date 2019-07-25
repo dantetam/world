@@ -92,12 +92,16 @@ public class LocalGridInstantiate {
 			}
 		}
 		
+		localGrid.updateAllTilesAccessInit();
+		
 		for (int r = 0; r < localGrid.rows; r++) {
 			for (int c = 0; c < localGrid.cols; c++) {
-				int height = localGrid.findHighestGroundHeight(r, c);
+				Vector3i coord = localGrid.findHighestAccessibleHeight(r, c);
 				int numTilesPassed = 0;
 				
-				Vector3i topCoord = new Vector3i(r, c, height + 1);
+				if (coord == null) continue;
+				
+				Vector3i topCoord = coord.getSum(0, 0, 1);
 				if (localGrid.inBounds(topCoord)) {
 					LocalTile topTile = localGrid.getTile(topCoord);
 					int surfaceClusterItemId = surfaceClusters[r][c];
@@ -106,6 +110,8 @@ public class LocalGridInstantiate {
 						localGrid.setTileInstantiate(topCoord, topTile);
 					}
 				}
+				
+				int height = coord.z;
 				
 				while (height > 0 && numTilesPassed < (int) soilLevels[r][c]) {
 					Vector3i coords = new Vector3i(r,c,height);
@@ -129,6 +135,8 @@ public class LocalGridInstantiate {
 				}
 			}
 		}
+		
+		localGrid.updateAllTilesAccessInit();
 		
 		Map<int[], ProceduralTree> gridTrees = generateTrees(terrain, biomes, temperature, rain);
 		for (Entry<int[], ProceduralTree> entry : gridTrees.entrySet()) {
@@ -156,8 +164,6 @@ public class LocalGridInstantiate {
 				}
 			}
 		}
-		
-		localGrid.updateAllTilesAccessInit();
 		
 		return localGrid;
 	}

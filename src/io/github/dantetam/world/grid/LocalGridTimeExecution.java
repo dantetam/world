@@ -918,35 +918,40 @@ public class LocalGridTimeExecution {
 			Human human = (Human) being;
 			Society society = human.society;
 			
-			System.out.println(human);
-			System.out.println(society);
-			System.out.println(society.groupItemRarity);
+			try {
 			
-			double weaponAmt = society.groupItemRarity.containsKey("Weapon") ? society.groupItemRarity.get("Weapon") : 0;
-			double armorAmt = society.groupItemRarity.containsKey("Armor") ? society.groupItemRarity.get("Armor") : 0;
-			
-			double weaponReq = SoldierPriority.weaponAmtRequired(being);
-			double armorReq = SoldierPriority.armorAmtRequired(being);
-			
-			Priority resultPriority = null;
-			
-			if (armorReq > 0 && armorAmt > 0) {
-				resultPriority = progressToFindItemGroups(grid, being, new HashSet<LivingEntity>() {{add(being);}}, 
-						new HashMap<String, Integer>() {{put("Armor", 1);}}, new DefaultItemMetric());
-				if (!(resultPriority instanceof ImpossiblePriority)) {
-					return getTasksFromPriority(grid, being, resultPriority);
-				}				
-			}
-			if (weaponReq > 0 && weaponAmt > 0) {
-				resultPriority = progressToFindItemGroups(grid, being, new HashSet<LivingEntity>() {{add(being);}}, 
-						new HashMap<String, Integer>() {{put("Weapon", 1);}}, new DefaultItemMetric());
-				if (!(resultPriority instanceof ImpossiblePriority)) {
-					return getTasksFromPriority(grid, being, resultPriority);
+				double weaponAmt = society.groupItemRarity.containsKey("Weapon") ? society.groupItemRarity.get("Weapon") : 0;
+				double armorAmt = society.groupItemRarity.containsKey("Armor") ? society.groupItemRarity.get("Armor") : 0;
+				
+				double weaponReq = SoldierPriority.weaponAmtRequired(being);
+				double armorReq = SoldierPriority.armorAmtRequired(being);
+				
+				Priority resultPriority = null;
+				
+				if (armorReq > 0 && armorAmt > 0) {
+					resultPriority = progressToFindItemGroups(grid, being, new HashSet<LivingEntity>() {{add(being);}}, 
+							new HashMap<String, Integer>() {{put("Armor", 1);}}, new DefaultItemMetric());
+					if (!(resultPriority instanceof ImpossiblePriority)) {
+						return getTasksFromPriority(grid, being, resultPriority);
+					}				
 				}
-			}
+				if (weaponReq > 0 && weaponAmt > 0) {
+					resultPriority = progressToFindItemGroups(grid, being, new HashSet<LivingEntity>() {{add(being);}}, 
+							new HashMap<String, Integer>() {{put("Weapon", 1);}}, new DefaultItemMetric());
+					if (!(resultPriority instanceof ImpossiblePriority)) {
+						return getTasksFromPriority(grid, being, resultPriority);
+					}
+				}
+				
+				resultPriority = new PatrolPriority(society.importantLocations);
+				return getTasksFromPriority(grid, being, resultPriority);
 			
-			resultPriority = new PatrolPriority(society.importantLocations);
-			return getTasksFromPriority(grid, being, resultPriority);
+			} catch (Exception e) {
+				System.err.println(human);
+				System.err.println(society);
+				System.err.println(society.groupItemRarity);
+				throw new RuntimeException();
+			}
 		}
 		else if (priority instanceof PatrolPriority) {
 			PatrolPriority patrolPriority = (PatrolPriority) priority;
@@ -1078,11 +1083,23 @@ public class LocalGridTimeExecution {
 		double bestScore = -1;
 		int bestItemIdToFind = -1;
 		Vector3i bestLocation = null;
-		
-		TODO;
+
 		//Sort amounts needed by item heuristic and item record counts
-		
+		Map<Integer, Double> sortedItemIdsByScore = new HashMap<>();
 		for (Entry<Integer, Integer> entry: itemsAmtNeeded.entrySet()) {
+			int itemId = entry.getKey();
+			int itemAmtNeeded = entry.getValue();
+			
+			KdTree<Vector3i> nearestItemsTree = grid.getKdTreeForItemId(itemId);
+			int recordsFound = nearestItemsTree == null ? 0 : nearestItemsTree.size();
+			//List<Vector3i> allCoords = nearestItemsTree.getAllItems();
+			
+			sortedItemIdsByScore.put(itemId, (double) (recordsFound * itemAmtNeeded));
+		}
+		sortedItemIdsByScore = MapUtil.getSortedMapByValueDesc(sortedItemIdsByScore);
+		
+		
+		for (Entry<Integer, Double> entry: sortedItemIdsByScore.entrySet()) {
 			int firstItemNeeded = entry.getKey();
 			
 			KdTree<Vector3i> nearestItemsTree = grid.getKdTreeForItemId(firstItemNeeded);

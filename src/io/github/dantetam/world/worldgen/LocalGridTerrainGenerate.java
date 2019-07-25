@@ -50,7 +50,7 @@ public class LocalGridTerrainGenerate {
 		
 		for (int y = 0; y < dimensions.y; y++) {
 			for (int x = 0; x < dimensions.x; x++) {
-				int realHeight = (int) Math.min(surfaceLevel[x][y] * 5 + 40, dimensions.z - 1);
+				int realHeight = (int) Math.min(surfaceLevel[x][y] * 5 + 30, dimensions.z - 1);
 				for (int z = 0; z < dimensions.z; z++) {
 					terrain[x][y][z] = ItemData.ITEM_EMPTY_ID;
 					if (z <= realHeight) {
@@ -131,7 +131,7 @@ public class LocalGridTerrainGenerate {
 				for (int y = 0; y < terrain[0].length; y++) {
 					float value = rigidMultiData[x][y][z] * rigidMultiDataSecond[x][y][z];
 					if (value >= modCutoff) {
-						//terrain[x][y][z] = ItemData.getIdFromName("Coal");
+						terrain[x][y][z] = ItemData.getIdFromName("Coal");
 					}
 				}
 			}

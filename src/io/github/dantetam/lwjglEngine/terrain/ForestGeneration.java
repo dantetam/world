@@ -196,6 +196,10 @@ public class ForestGeneration {
 				if (visited.contains(explore))
 					continue;
 				visited.add(explore);
+				if (!polygonEdgesMap.containsKey(explore)) {
+					System.err.println("Failed neighbor polygon index: " + explore);
+					continue;
+				}
 				Set<Integer> neighbors = polygonEdgesMap.get(explore);
 				for (Integer neighbor : neighbors) {
 					if (Math.random() < 0.95 - roundNumber / 20) {

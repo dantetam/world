@@ -109,6 +109,10 @@ public class LocalGrid {
 		return false;
 	}
 	
+	/**
+	 * Precondition of this method: tile access records must be updated with
+	 * LocalGrid::updateAllTilesAccessInit();
+	 */
 	public boolean tileIsAccessible(Vector3i coords) {
 		if (!this.inBounds(coords))
 			return false;
@@ -145,15 +149,17 @@ public class LocalGrid {
 		}
 		
 		if (inBounds(belowCoords)) {
-			if (!tileIsOccupied(belowCoords)) {
-				return false;
-			}
+			return tileIsOccupied(belowCoords);
 		}
-		
-		return true;
+		else {
+			return false;
+		}
 	}
 	
 	private void updateTileAccessibility(Vector3i coords) {
+		if (!this.inBounds(coords)) {
+			throw new IllegalArgumentException("Cannot update tile access info of block over level 50");
+		}
 		this.accessibleTileRecord[coords.x][coords.y][coords.z] = determineTileIsAccessible(coords);
 	}
 	public void updateAllTilesAccessInit() {
@@ -474,7 +480,8 @@ public class LocalGrid {
 						this.pathfinder.adjustRSR(newAbsLocation, true);
 				}
 				
-				updateTileAccessibility(newAbsLocation);
+				if (this.inBounds(newAbsLocation))
+					updateTileAccessibility(newAbsLocation);
 			} 
 			
 			allBuildings.add(building);
@@ -502,7 +509,9 @@ public class LocalGrid {
 			}
 			if (this.pathfinder != null)
 				this.pathfinder.adjustRSR(oldAbsLocation, false);
-			updateTileAccessibility(oldAbsLocation);
+			
+			if (this.inBounds(oldAbsLocation))
+				updateTileAccessibility(oldAbsLocation);
 		}
 		buildingLookup.remove(building.getPrimaryLocation());
 		
@@ -691,6 +700,7 @@ public class LocalGrid {
 		return 0;
 	}
 	
+	//See LocalGrid::tileIsAccessible(...)
 	public Vector3i findLowestAccessibleHeight(int r, int c) {
 		for (int h = 0; h < heights; h++) {
 			Vector3i coords = new Vector3i(r,c,h);
@@ -701,6 +711,7 @@ public class LocalGrid {
 		return null;
 	}
 	
+	//See LocalGrid::tileIsAccessible(...)
 	public Vector3i findHighestAccessibleHeight(int r, int c) {
 		for (int h = heights - 1; h >= 0; h--) {
 			Vector3i coords = new Vector3i(r,c,h);
