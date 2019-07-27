@@ -56,8 +56,12 @@ public class LocalGrid {
 	
 	public List<LocalGridLandClaim> localLandClaims;
 	
+	//3d connected components
 	public Map<Vector3i, Integer> connectedCompsMap; //Mapping of all available vectors to a unique numbered space (a 3d volume)
-	public KdTree<ClusterVector3i> clustersList;
+	public KdTree<ClusterVector3i> clustersList3d;
+	
+	//2d connected surfaces
+	public KdTree<ClusterVector3i> clustersList2dSurfaces;
 	
 	public LocalGrid(Vector3i size) {
 		rows = size.x; cols = size.y; heights = size.z;

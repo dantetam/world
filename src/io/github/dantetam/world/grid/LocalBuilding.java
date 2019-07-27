@@ -25,13 +25,20 @@ public class LocalBuilding {
 	
 	public Inventory inventory;
 	
-	public LocalBuilding(int buildingId, String name, Vector3i primaryLoc, List<Vector3i> offsets, List<Integer> blockIds) {
+	public LocalBuilding(int buildingId, String name, Vector3i primaryLoc, 
+			List<Vector3i> offsets, List<Integer> blockIds) {
 		this.buildingId = buildingId;
 		this.name = name;
 		primaryLocation = primaryLoc;
-		if (offsets.size() != blockIds.size()) {
-			throw new IllegalArgumentException("When creating building, offset list and block id list"
-					+ "must have same size");
+		if (offsets != null || blockIds != null) {
+			if (
+					(offsets != null && blockIds == null) ||
+					(offsets == null && blockIds != null) ||
+					(offsets.size() != blockIds.size())
+				) {
+				throw new IllegalArgumentException("When creating building, offset list and block id list"
+						+ "must have same size");
+			}
 		}
 		buildingBlockIds = blockIds;
 		inventory = new Inventory();

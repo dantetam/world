@@ -19,6 +19,7 @@ import io.github.dantetam.toolbox.Pair;
 import io.github.dantetam.vector.Vector2i;
 import io.github.dantetam.vector.Vector3i;
 import io.github.dantetam.world.life.Human;
+import kdtreegeo.KdTree;
 
 public class SpaceFillingAlg {
 
@@ -68,37 +69,19 @@ public class SpaceFillingAlg {
 	public static GridRectInterval findAvailableSpaceExact(LocalGrid grid, Vector3i center, 
 			int desiredR, int desiredC, boolean sameLevel, 
 			Set<Human> validLandOwners, LocalTileCond tileCond) {
-		//int minDistFlat = 0;
-		int maxDistFlat = 10;
-		int trials = 0;
 		
 		while (true) {
-			Set<Vector3i> candidates = new HashSet<>();
-			for (int r = -maxDistFlat; r <= maxDistFlat; r++) {
-				for (int c = -maxDistFlat; c <= maxDistFlat; c++) {
-					int h = grid.findHighestGroundHeight(r, c) + 1;
-					Vector3i candidate = center.getSum(new Vector3i(r,c,0));
-					candidate.z = h;
-					
-					if (grid.inBounds(candidate) && 
-							(tileCond == null || tileCond.isDesiredTile(grid, candidate))) {
-						List<Human> claimants = grid.findClaimantToTile(candidate);
-						if (claimants == null || claimants.size() == 0 || 
-								CollectionUtil.colnsHasIntersect(claimants, validLandOwners)) {
-							candidates.add(candidate);
-						}
-					}
-				}
-			}
-
-			List<Set<Vector3i>> components = findContFreeTiles(grid, candidates);
+			KdTree<ClusterVector3i> componentsTree = grid.clustersList2dSurfaces;
+			Collection<ClusterVector3i> closestClusters = componentsTree.nearestNeighbourListSearch(10, 
+					new ClusterVector3i(center, null));
 			List<GridRectInterval> componentMaxSubRect = new ArrayList<>();
 			Map<Integer, Integer> componentScore = new HashMap<>();
 			
 			int componentIndex = 0;
-			for (Set<Vector3i> component: components) {
+			for (ClusterVector3i cluster: closestClusters) {
 				
-				int height = component.iterator().next().z;
+				int height = cluster.center.z;
+				Set<Vector3i> component = cluster.clusterData;
 				
 				//int[] maxSubRect = AlgUtil.findMaxRect(component);
 				Pair<Vector2i> maxSubRect = VecGridUtil.findBestRect(component, desiredR, desiredC);
@@ -128,13 +111,7 @@ public class SpaceFillingAlg {
 				GridRectInterval bestSpace = componentMaxSubRect.get(bestSpaceIndex);
 				return bestSpace;
 			}
-			else {
-				maxDistFlat += 10;
-				if (trials >= 3) {
-					return null;
-				}
-				trials++;
-			}
+			return null;
 		}
 	}
 	
@@ -148,7 +125,7 @@ public class SpaceFillingAlg {
 			Set<Human> validLandOwners, LocalTileCond tileCond) {
 		Map<GridRectInterval, Double> bestMinScoring = new HashMap<>();
 		
-		Collection<ClusterVector3i> nearestFreeClusters = grid.clustersList.nearestNeighbourListSearch(
+		Collection<ClusterVector3i> nearestFreeClusters = grid.clustersList3d.nearestNeighbourListSearch(
 				50, new ClusterVector3i(coords, null));
 		for (ClusterVector3i cluster: nearestFreeClusters) {
 			GridRectInterval bestInterval = findAvailableSpaceExact(grid, cluster.center, 
@@ -167,50 +144,72 @@ public class SpaceFillingAlg {
 		return null;
 	}
 	
-	
-	public static List<Set<Vector3i>> findContFreeTiles(
-			LocalGrid grid, Set<Vector3i> candidates) {
-		List<Set<Vector3i>> connectedComponents = new ArrayList<>();
+	public static ClusterVector3i findSingleComponent(
+			LocalGrid grid, Vector3i coords) {
+
 		Set<Vector3i> visitedSet = new HashSet<>();
-		for (Vector3i startVec : candidates) {
-			if (visitedSet.contains(startVec)) continue;
-			Set<Vector3i> singleComponent = new HashSet<>();
-			Set<Vector3i> fringe = new HashSet<Vector3i>() {{add(startVec);}};
-			while (fringe.size() > 0) {
-				Set<Vector3i> newFringe = new HashSet<>();
-				for (Vector3i fringeVec: fringe) {
-					if (visitedSet.contains(fringeVec) || !candidates.contains(fringeVec)) continue;
-					if (!grid.tileIsAccessible(fringeVec)) continue;
-					
-					visitedSet.add(fringeVec);
-					singleComponent.add(fringeVec);
-					Set<Vector3i> neighbors = grid.getAllNeighbors6(fringeVec);
-					for (Vector3i neighborVec: neighbors) {
-						newFringe.add(neighborVec);
-					}
+
+		Set<Vector3i> singleComponent = new HashSet<>();
+		Set<Vector3i> fringe = new HashSet<Vector3i>() {{add(coords);}};
+		while (fringe.size() > 0) {
+			Set<Vector3i> newFringe = new HashSet<>();
+			for (Vector3i fringeVec: fringe) {
+				if (visitedSet.contains(fringeVec)) continue;
+				if (!grid.tileIsAccessible(fringeVec)) continue;
+				
+				visitedSet.add(fringeVec);
+				singleComponent.add(fringeVec);
+				Set<Vector3i> neighbors = grid.getAllNeighbors6(fringeVec);
+				for (Vector3i neighborVec: neighbors) {
+					newFringe.add(neighborVec);
 				}
-				fringe = newFringe;
 			}
-			if (singleComponent.size() > 0)
-				connectedComponents.add(singleComponent);
+			fringe = newFringe;
 		}
-		return connectedComponents;
+		if (singleComponent.size() > 0)
+			return null;
+		return new ClusterVector3i(singleComponent.iterator().next(), singleComponent);
 	}
 	
-	public static List<Set<Vector3i>> allSurfaceContTiles(LocalGrid grid) {
-		Set<Vector3i> candidates = new HashSet<>();
+	/**
+	 * @return All separate surfaces, where a surface is defined as a group of vectors
+	 * 		   adjacent to each other in the r,c dimensions, and having the exact same height h.
+	 */
+	public static List<ClusterVector3i> allFlatSurfaceContTiles(LocalGrid grid) {
+		List<ClusterVector3i> allSurfaceClusters = new ArrayList<>();
+		Set<Vector3i> visitedSet = new HashSet<>();
+		
 		for (int r = 0; r < grid.rows; r++) {
 			for (int c = 0; c < grid.cols; c++) {
-				int groundHeight = grid.findHighestEmptyHeight(r, c);
-				for (int h = grid.heights - 1; h >= 0; h--) {
-					LocalTile tile = grid.getTile(new Vector3i(r,c,h));
-					if (h == groundHeight || (h < groundHeight && tile.exposedToAir)) {
-						candidates.add(new Vector3i(r,c,h));
+				Vector3i ground = grid.findHighestAccessibleHeight(r, c);
+				if (ground != null) {
+					Set<Vector3i> singleComponent = new HashSet<>();
+					Set<Vector3i> fringe = new HashSet<Vector3i>() {{add(ground);}};
+					while (fringe.size() > 0) {
+						Set<Vector3i> newFringe = new HashSet<>();
+						for (Vector3i fringeVec: fringe) {
+							if (visitedSet.contains(fringeVec)) continue;
+							if (!grid.tileIsAccessible(fringeVec)) continue;
+							
+							visitedSet.add(fringeVec);
+							singleComponent.add(fringeVec);
+							Set<Vector3i> neighbors = grid.getAllNeighbors8(fringeVec);
+							for (Vector3i neighborVec: neighbors) {
+								newFringe.add(neighborVec);
+							}
+						}
+						fringe = newFringe;
+					}
+					if (singleComponent.size() > 0) {
+						ClusterVector3i cluster = new ClusterVector3i(singleComponent.iterator().next(), 
+								singleComponent);
+						allSurfaceClusters.add(cluster);
 					}
 				}
 			}
 		}
-		return findContFreeTiles(grid, candidates);
+		
+		return allSurfaceClusters;
 	}
 	
 	/*

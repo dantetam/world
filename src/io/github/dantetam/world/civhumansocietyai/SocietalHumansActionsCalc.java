@@ -192,7 +192,7 @@ public class SocietalHumansActionsCalc {
 			int dimension = (int) Math.sqrt(landNeed);
 			
 			if (landNeed > 0) {
-				for (ClusterVector3i clusterObj: grid.clustersList) {
+				for (ClusterVector3i clusterObj: grid.clustersList3d) {
 					Vector3i firstVec = clusterObj.clusterData.iterator().next();
 					GridRectInterval space = SpaceFillingAlg.findAvailableSpaceExact(
 							grid, firstVec, dimension, dimension, false, null, null);

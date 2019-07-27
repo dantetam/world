@@ -52,8 +52,8 @@ public class WorldGrid {
 	public WorldGrid() {
 		currentWorldTime = Calendar.getInstance();
 		worldStartTime = getTime();
-		worldRows = 50;
-		worldCols = 50;
+		worldRows = 10;
+		worldCols = 10;
 		Vector2i worldSize = new Vector2i(worldRows, worldCols);
 		localGridTiles = new LocalGrid[worldSize.x][worldSize.y];
 
@@ -68,45 +68,11 @@ public class WorldGrid {
 		//TODO Create all grids instantiated with
 		//new societies, DNA/races/cultures, biomes/flora/fauna, and intersocietal interactions across grids;
 		
-		Vector3i sizes = new Vector3i(200,200,60);
-		int biome = 3;
-		localGridTiles[2][2] = new LocalGridInstantiate(sizes, biome).setupGrid(true);
+		Vector3i gridSizes = new Vector3i(200,200,60);
+		//TODO
 		
+		localGridTiles[2][2] = createNewGridRoutine(worldSize, gridSizes, 3);
 		activeLocalGrid = localGridTiles[2][2];
-		
-		testSociety = new Society("TestSociety", activeLocalGrid);
-		testSociety.societyCenter = new Vector3i(50,50,30);
-		
-		int numHouses = 20;
-		
-		for (int i = 0; i < numHouses; i++) {
-			int numPeopleHouse = (int)(Math.random() * 8) + 1;
-			List<Human> people = new ArrayList<>();
-			for (int j = 0; j < numPeopleHouse; j++) {
-				int r, c;
-				Vector3i availVec;
-				do {
-					r = (int) (Math.random() * activeLocalGrid.rows);
-					c = (int) (Math.random() * activeLocalGrid.cols);
-					availVec = activeLocalGrid.findHighestAccessibleHeight(r,c);
-				} while (availVec == null);
-				
-				Human human = new Human(testSociety, "Human" + j + " of House " + i);
-				people.add(human);
-				activeLocalGrid.addHuman(human, availVec);
-				
-				/*
-				human.inventory.addItem(ItemData.randomBaseItem());
-				human.inventory.addItem(ItemData.randomBaseItem());
-				human.inventory.addItem(ItemData.randomBaseItem());
-				human.inventory.addItem(ItemData.randomBaseItem());
-				human.inventory.addItem(ItemData.randomItem());
-				*/
-				human.inventory.addItem(ItemData.item("Wheat Seeds", 50));
-				human.inventory.addItem(ItemData.item("Pine Wood", 50));
-			}
-			testSociety.addHousehold(new Household(people));
-		}
 		
 		DNATileData[][] worldData = DNAGridGeneration.createGrid(worldSize);
 		for (int r = 0; r < worldSize.x; r++) {
@@ -135,6 +101,7 @@ public class WorldGrid {
 			}
 		}
 		
+		/*
 		Map<Integer, Double> calcUtility = testSociety.findCompleteUtilityAllItems(null);
 		
 		DecimalFormat df = new DecimalFormat("#.##");
@@ -153,6 +120,47 @@ public class WorldGrid {
 			if (entry.getValue() > 0)
 				CustomLog.outPrintln(ItemData.getNameFromId(entry.getKey()) + ": " + df.format(entry.getValue()));
 		}
+		*/
+	}
+	
+	private LocalGrid createNewGridRoutine(Vector2i worldSize, Vector3i gridSizes, int biome) {
+		LocalGrid grid = new LocalGridInstantiate(gridSizes, biome).setupGrid(true);
+		
+		testSociety = new Society("TestSociety", grid);
+		testSociety.societyCenter = new Vector3i(50,50,30);
+		
+		int numHouses = 20;
+		
+		for (int i = 0; i < numHouses; i++) {
+			int numPeopleHouse = (int)(Math.random() * 8) + 1;
+			List<Human> people = new ArrayList<>();
+			for (int j = 0; j < numPeopleHouse; j++) {
+				int r, c;
+				Vector3i availVec;
+				do {
+					r = (int) (Math.random() * grid.rows);
+					c = (int) (Math.random() * grid.cols);
+					availVec = grid.findHighestAccessibleHeight(r,c);
+				} while (availVec == null);
+				
+				Human human = new Human(testSociety, "Human" + j + " of House " + i);
+				people.add(human);
+				grid.addHuman(human, availVec);
+				
+				/*
+				human.inventory.addItem(ItemData.randomBaseItem());
+				human.inventory.addItem(ItemData.randomBaseItem());
+				human.inventory.addItem(ItemData.randomBaseItem());
+				human.inventory.addItem(ItemData.randomBaseItem());
+				human.inventory.addItem(ItemData.randomItem());
+				*/
+				human.inventory.addItem(ItemData.item("Wheat Seeds", 50));
+				human.inventory.addItem(ItemData.item("Pine Wood", 50));
+			}
+			testSociety.addHousehold(new Household(people));
+		}
+		
+		return grid;
 	}
 	
 	public void addSociety(Society society) {

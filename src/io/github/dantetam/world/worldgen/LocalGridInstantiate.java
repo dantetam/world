@@ -24,6 +24,7 @@ import io.github.dantetam.world.ai.RSRPathfinder;
 import io.github.dantetam.world.dataparse.ItemData;
 import io.github.dantetam.world.grid.LocalGrid;
 import io.github.dantetam.world.grid.LocalTile;
+import io.github.dantetam.world.grid.SpaceFillingAlg;
 import io.github.dantetam.world.worldgen.oldnoiselib.BaseTerrain2D;
 import io.github.dantetam.world.worldgen.oldnoiselib.DiamondSquare2D;
 import kdtreegeo.KdTree;
@@ -150,7 +151,9 @@ public class LocalGridInstantiate {
 		CustomLog.outPrintln(gridTrees.size());
 		
 		localGrid.connectedCompsMap = VecGridUtil.contComponent3dSolids(null, null, localGrid);
-		localGrid.clustersList = new KdTree(VecGridUtil.contComp3dSolidsClustersSpec(null, null, localGrid));
+		localGrid.clustersList3d = new KdTree(VecGridUtil.contComp3dSolidsClustersSpec(null, null, localGrid));
+		
+		localGrid.clustersList2dSurfaces = new KdTree(SpaceFillingAlg.allFlatSurfaceContTiles(localGrid));
 		
 		localGrid.tileIdCounts = new HashMap<>();
 		for (int r = 0; r < localGrid.rows; r++) {

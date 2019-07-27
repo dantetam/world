@@ -72,6 +72,7 @@ public class MenuSystem extends BaseSystem {
 		LocalGrid grid = world.activeLocalGrid;
 		
 		Vector3i highlightCoords = mousePicker.calculateWorldCoordsFromMouse();
+		if (highlightCoords == null) return;
 		
 		int candidateHeight = highlightCoords.z; //Find the highest height <= camera height, in the rendering style of DF
 		LocalTile tile = null;

@@ -23,7 +23,6 @@ import io.github.dantetam.world.worldgen.LocalGridInstantiate;
 
 public class VecGridUtil {
 	
-	
 	public static class VecDistComp implements Comparator<Vector3i> {
 		public Vector3i target;
 		public VecDistComp(Vector3i target) {
@@ -318,6 +317,9 @@ public class VecGridUtil {
 		}
 		return results;
 	}
+	/**
+	 * Much like VecGridUtil:contComponent3dSolids, but return a list of the cluster vectors
+	 */
 	public static List<ClusterVector3i> contComp3dSolidsClustersSpec(Vector3i minBoundsInc,
 			Vector3i maxBoundsInc, LocalGrid grid) {
 		List<ClusterVector3i> results = new ArrayList<>();
