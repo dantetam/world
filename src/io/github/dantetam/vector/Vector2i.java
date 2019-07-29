@@ -60,5 +60,9 @@ public class Vector2i {
 	public static Vector2i sum(Vector2i v1, Vector2i v2) {
 		return new Vector2i(v1.x + v2.x, v1.y + v2.y);
 	}
+	
+	public Vector2i clone() {
+		return new Vector2i(this.x, this.y);
+	}
 
 }

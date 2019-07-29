@@ -19,6 +19,7 @@ import io.github.dantetam.world.dataparse.WorldCsvParser;
 import io.github.dantetam.world.grid.ClusterVector3i;
 import io.github.dantetam.world.grid.LocalGrid;
 import io.github.dantetam.world.grid.LocalTile;
+import io.github.dantetam.world.worldgen.LocalGridBiome;
 import io.github.dantetam.world.worldgen.LocalGridInstantiate;
 
 public class VecGridUtil {
@@ -593,8 +594,8 @@ public class VecGridUtil {
 		WorldCsvParser.init();
     	
     	Vector3i sizes = new Vector3i(50,50,50);
-		int biome = 3;
-		LocalGrid activeLocalGrid = new LocalGridInstantiate(sizes, biome).setupGrid(false);
+		LocalGrid activeLocalGrid = new LocalGridInstantiate(sizes, LocalGridBiome.defaultBiomeTest())
+				.setupGrid(false);
 		
 		CustomLog.outPrintln("Start 3d component time trial now");
 		long startTime = Calendar.getInstance().getTimeInMillis();

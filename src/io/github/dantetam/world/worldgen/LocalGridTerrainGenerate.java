@@ -17,7 +17,7 @@ public class LocalGridTerrainGenerate {
 	// https://www.gamedev.net/forums/topic/612655-3d-perlin-noise-map-ridges/
 	// https://www.gamedev.net/blogs/entry/2249106-more-procedural-voxel-world-generation/
 	
-	public static int[][][] genTerrain(Vector3i dimensions) {
+	public static int[][][] genTerrain(LocalGridBiome localGridBiome, Vector3i dimensions) {
 		int[][][] terrain = new int[dimensions.x][dimensions.y][dimensions.z];
 		
 		FastNoiseGen noiseGenLib = new FastNoiseGen(FastNoiseGen.NoiseType.SimplexFractal);

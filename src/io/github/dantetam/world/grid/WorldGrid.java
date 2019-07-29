@@ -35,10 +35,8 @@ public class WorldGrid {
 
 	public Date worldStartTime;
 	private Calendar currentWorldTime;
-	public LocalGrid activeLocalGrid;
-	public Society testSociety;
 	
-	public int worldRows, worldCols;
+	public Vector2i worldSize;
 	private LocalGrid[][] localGridTiles;
 	
 	//Manage all societies, relations, wars, and societal relationships in general
@@ -49,12 +47,11 @@ public class WorldGrid {
 	
 	public boolean currentlyTicking = false;
 	
-	public WorldGrid() {
+	public WorldGrid(Vector2i worldSize) {
+		this.worldSize = worldSize.clone();
 		currentWorldTime = Calendar.getInstance();
 		worldStartTime = getTime();
-		worldRows = 10;
-		worldCols = 10;
-		Vector2i worldSize = new Vector2i(worldRows, worldCols);
+		
 		localGridTiles = new LocalGrid[worldSize.x][worldSize.y];
 
 		for (int r = 0; r < worldSize.x; r++) {
@@ -64,42 +61,6 @@ public class WorldGrid {
 		}
 		
 		societalDiplomacy = new SocietyDiplomacy(this);
-		
-		//TODO Create all grids instantiated with
-		//new societies, DNA/races/cultures, biomes/flora/fauna, and intersocietal interactions across grids;
-		
-		Vector3i gridSizes = new Vector3i(200,200,60);
-		//TODO
-		
-		localGridTiles[2][2] = createNewGridRoutine(worldSize, gridSizes, 3);
-		activeLocalGrid = localGridTiles[2][2];
-		
-		DNATileData[][] worldData = DNAGridGeneration.createGrid(worldSize);
-		for (int r = 0; r < worldSize.x; r++) {
-			for (int c = 0; c < worldSize.y; c++) {
-				LocalGrid grid = localGridTiles[r][c];
-				if (grid != null) {
-					DNATileData tileData = worldData[r][c];
-					for (LivingEntity being: grid.getAllLivingBeings()) {
-						if (being instanceof Human) {
-							Human human = (Human) being;
-							human.dna.overrideDnaMapping("race", tileData.race);
-							human.dna.overrideDnaMapping("culture", tileData.culture);
-							String apparentCul = tileData.culture.repeat(1);
-							for (int i = 0; i < (int) (Math.random() * 8); i++) {
-								apparentCul = StringUtil.mutateAlphaNumStr(apparentCul);
-							}
-							human.brain.ethosSet.greatEthos.put("Culture", 
-									new Ethos("Culture", 1.0, "MOD:" + apparentCul, ""));
-							for (int i = 0; i < tileData.languages.size(); i++) {
-								String language = tileData.languages.get(i);
-								human.brain.languageCodesStrength.put(language, 1.0 / i);
-							}
-						}
-					}
-				}
-			}
-		}
 		
 		/*
 		Map<Integer, Double> calcUtility = testSociety.findCompleteUtilityAllItems(null);
@@ -123,53 +84,13 @@ public class WorldGrid {
 		*/
 	}
 	
-	private LocalGrid createNewGridRoutine(Vector2i worldSize, Vector3i gridSizes, int biome) {
-		LocalGrid grid = new LocalGridInstantiate(gridSizes, biome).setupGrid(true);
-		
-		testSociety = new Society("TestSociety", grid);
-		testSociety.societyCenter = new Vector3i(50,50,30);
-		
-		int numHouses = 20;
-		
-		for (int i = 0; i < numHouses; i++) {
-			int numPeopleHouse = (int)(Math.random() * 8) + 1;
-			List<Human> people = new ArrayList<>();
-			for (int j = 0; j < numPeopleHouse; j++) {
-				int r, c;
-				Vector3i availVec;
-				do {
-					r = (int) (Math.random() * grid.rows);
-					c = (int) (Math.random() * grid.cols);
-					availVec = grid.findHighestAccessibleHeight(r,c);
-				} while (availVec == null);
-				
-				Human human = new Human(testSociety, "Human" + j + " of House " + i);
-				people.add(human);
-				grid.addHuman(human, availVec);
-				
-				/*
-				human.inventory.addItem(ItemData.randomBaseItem());
-				human.inventory.addItem(ItemData.randomBaseItem());
-				human.inventory.addItem(ItemData.randomBaseItem());
-				human.inventory.addItem(ItemData.randomBaseItem());
-				human.inventory.addItem(ItemData.randomItem());
-				*/
-				human.inventory.addItem(ItemData.item("Wheat Seeds", 50));
-				human.inventory.addItem(ItemData.item("Pine Wood", 50));
-			}
-			testSociety.addHousehold(new Household(people));
-		}
-		
-		return grid;
-	}
-	
 	public void addSociety(Society society) {
 		this.societalDiplomacy.addSociety(society);
 	}
 	
 	public void tick() {
-		for (int r = 0; r < worldRows; r++) {
-			for (int c = 0; c < worldCols; c++) {
+		for (int r = 0; r < worldSize.x; r++) {
+			for (int c = 0; c < worldSize.y; c++) {
 				LocalGrid grid = localGridTiles[r][c];
 				if (grid != null) {
 					List<Household> households = getFreeHouseholds(new Vector2i(r,c));
@@ -198,14 +119,7 @@ public class WorldGrid {
 	public Date getTime() {
 		return currentWorldTime.getTime();
 	}
-	
-	public boolean inBounds(Vector2i coord) {
-		if (coord.x < 0 || coord.x >= worldRows || coord.y < 0 || coord.y >= worldCols) {
-			return false;
-		}
-		return true;
-	}
-	
+
 	public List<Household> getFreeHouseholds(Vector2i coord) {
 		if (inBounds(coord)) {
 			List<Household> freeHouses = new ArrayList<>();
@@ -218,6 +132,17 @@ public class WorldGrid {
 			return freeHouses;
 		}
 		return null;
+	}
+	
+	public boolean inBounds(Vector2i coords) {
+		return !(coords.x < 0 || coords.y < 0 || coords.x >= worldSize.x || coords.y >= worldSize.y);
+	}
+	
+	public LocalGrid getLocalGrid(Vector2i coords) {
+		if (!inBounds(coords)) {
+			throw new IllegalArgumentException("In world grid, cannot find indexed local grid: " + coords);
+		}
+		return this.localGridTiles(coords.x, coords.y);
 	}
 	
 }

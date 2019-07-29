@@ -45,7 +45,7 @@ public class GuiSystem extends BaseSystem {
 
 	public void updateUI() {
 		//tileDisplay.entrySet().removeIf(entry -> entry.getKey().location == null);
-		LocalGrid activeGrid = gameLauncher.worldGrid.activeLocalGrid;
+		LocalGrid activeGrid = gameLauncher.activeLocalGrid;
 		Gui2DCamera camera = super.gameLauncher.camera;
 		
 		List<GuiQuad> listGuis = new ArrayList<>();

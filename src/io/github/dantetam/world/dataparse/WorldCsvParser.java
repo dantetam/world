@@ -6,7 +6,9 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.StreamSupport;
 
 import org.apache.commons.csv.CSVFormat;
@@ -43,6 +45,30 @@ public class WorldCsvParser {
 			e.printStackTrace();
 		}
 		return null;
+	}
+	
+	public static <T, U> Map<T, U> parseMapStringIntoMap(Class<T> keyClass, Class<U> valueClass, String mapStr) {
+		String[] entriesStr = mapStr.split("/");
+		Map<T, U> map = new HashMap<>();
+		for (String entry: entriesStr) {
+			String[] pair = entry.split(",");
+			if (keyClass.isInstance(new String())) {
+				if (valueClass.isInstance(new String())) {
+					map.put((T) pair[0], (U) pair[1]);
+				}
+				else {
+					
+				}
+			}
+			else {
+				if (valueClass.isInstance(new String())) {
+					map.put(, (U) pair[1]);
+				}
+				else {
+					map.put((T) new Number(pair[0]), value)
+				}
+			}
+		}
 	}
 	
 }

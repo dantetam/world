@@ -23,6 +23,7 @@ import io.github.dantetam.world.grid.LocalGrid;
 import io.github.dantetam.world.grid.LocalTile;
 import io.github.dantetam.world.life.Human;
 import io.github.dantetam.world.life.LivingEntity;
+import io.github.dantetam.world.worldgen.LocalGridBiome;
 import io.github.dantetam.world.worldgen.LocalGridInstantiate;
 
 public class HierarchicalPathfinder extends Pathfinder {
@@ -550,11 +551,11 @@ public class HierarchicalPathfinder extends Pathfinder {
 		WorldCsvParser.init();
     	
     	Vector3i sizes = new Vector3i(50,50,50);
-		int biome = 3;
 		
 		long startTime = Calendar.getInstance().getTimeInMillis();
 		
-		LocalGrid activeLocalGrid = new LocalGridInstantiate(sizes, biome).setupGrid(false);
+		LocalGrid activeLocalGrid = new LocalGridInstantiate(sizes, LocalGridBiome.defaultBiomeTest())
+				.setupGrid(false);
 		
 		long endTime = Calendar.getInstance().getTimeInMillis();
 		CustomLog.outPrintln("Init hierarchical pathfinder in " + (endTime - startTime) + "ms");

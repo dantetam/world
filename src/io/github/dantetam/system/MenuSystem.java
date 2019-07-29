@@ -69,7 +69,7 @@ public class MenuSystem extends BaseSystem {
 	
 	public void updateMenus() {
 		WorldGrid world = gameLauncher.worldGrid;
-		LocalGrid grid = world.activeLocalGrid;
+		LocalGrid grid = gameLauncher.activeLocalGrid;
 		
 		Vector3i highlightCoords = mousePicker.calculateWorldCoordsFromMouse();
 		if (highlightCoords == null) return;

@@ -23,6 +23,7 @@ import io.github.dantetam.world.grid.LocalGrid;
 import io.github.dantetam.world.grid.LocalTile;
 import io.github.dantetam.world.life.Human;
 import io.github.dantetam.world.life.LivingEntity;
+import io.github.dantetam.world.worldgen.LocalGridBiome;
 import io.github.dantetam.world.worldgen.LocalGridInstantiate;
 
 /**
@@ -298,7 +299,8 @@ public class RSRPathfinder extends Pathfinder {
     	
     	Vector3i sizes = new Vector3i(200,200,50);
 		int biome = 3;
-		LocalGrid activeLocalGrid = new LocalGridInstantiate(sizes, biome).setupGrid(false);
+		LocalGrid activeLocalGrid = new LocalGridInstantiate(sizes, LocalGridBiome.defaultBiomeTest())
+				.setupGrid(false);
 		
 		Society testSociety = new Society("TestSociety", activeLocalGrid);
 		testSociety.societyCenter = new Vector3i(20,20,10);

@@ -43,32 +43,34 @@ public class LocalGridInstantiate {
 
 	private LocalGrid localGrid;
 	private int generatedTerrainLen;
-	private int localGridBiome;
+	private LocalGridBiome localGridBiome;
 	
-	public LocalGridInstantiate(Vector3i sizes, int biome) {
+	public LocalGridInstantiate(Vector3i sizes, LocalGridBiome biome) {
 		localGrid = new LocalGrid(sizes);
 		generatedTerrainLen = (int) MathUti.roundToPower2(Math.max(Math.max(sizes.x, sizes.y), sizes.z));
 		localGridBiome = biome;
 	}
 	
 	public LocalGrid setupGrid(boolean setupAdvancedPathfinding) {
-		int[][][] advTerrainData = LocalGridTerrainGenerate.genTerrain(new Vector3i(localGrid.rows, localGrid.cols, localGrid.heights));
+		int[][][] advTerrainData = LocalGridTerrainGenerate.genTerrain(
+				localGridBiome,
+				new Vector3i(localGrid.rows, localGrid.cols, localGrid.heights));
 		
 		double[][] terrain = generateTerrain();
-		int[][] biomes = generateFlatTableInt(localGrid.rows, localGrid.cols, localGridBiome);
+		int[][] ultraFineBiomes = generateFlatTableInt(localGrid.rows, localGrid.cols, 3);
 		double[][] temperature = generateFlatTableDouble(localGrid.rows, localGrid.cols, 0);
 		double[][] rain = generateFlatTableDouble(localGrid.rows, localGrid.cols, 0);
 		
 		int grassId = ItemData.getIdFromName("Grass");
-		double[][] gridGrasses = generateGrass(terrain, biomes, temperature, rain);
+		double[][] gridGrasses = generateGrass(terrain, ultraFineBiomes, temperature, rain);
 		
 		int quartzId = ItemData.getIdFromName("Quartz");
 		
 		int airId = ItemData.ITEM_EMPTY_ID;
 		
 	    int[][] surfaceClusters = generateSurfaceClusters(
-	    		ConstantData.clusterUbiquityMap, 
-	    		ConstantData.clusterSizesMap, 
+	    		localGridBiome.surfaceResourceUbiquity, 
+	    		localGridBiome.surfaceResourceSizes, 
 	    		terrain);
 		
 		double[][] soilLevels = generateSoilLevels();
@@ -139,7 +141,7 @@ public class LocalGridInstantiate {
 		
 		localGrid.updateAllTilesAccessInit();
 		
-		Map<int[], ProceduralTree> gridTrees = generateTrees(terrain, biomes, temperature, rain);
+		Map<int[], ProceduralTree> gridTrees = generateTrees(terrain, ultraFineBiomes, temperature, rain);
 		for (Entry<int[], ProceduralTree> entry : gridTrees.entrySet()) {
 			TreeVoxelGeneration.generateSingle3dTree(localGrid, entry.getKey(), entry.getValue());
 		}

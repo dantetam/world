@@ -10,9 +10,12 @@ import io.github.dantetam.lwjglEngine.render.DisplayManager;
 import io.github.dantetam.lwjglEngine.tests.MainGameLoop;
 import io.github.dantetam.system.*;
 import io.github.dantetam.toolbox.StringUtil;
+import io.github.dantetam.vector.Vector2i;
 import io.github.dantetam.world.civilization.SkillBook;
 import io.github.dantetam.world.dataparse.WorldCsvParser;
+import io.github.dantetam.world.grid.LocalGrid;
 import io.github.dantetam.world.grid.WorldGrid;
+import io.github.dantetam.world.worldgen.WorldGridInstantiate;
 
 public class GameLauncher {
 
@@ -29,6 +32,7 @@ public class GameLauncher {
 																	// position of the mouse affects the camera
 
 	public WorldGrid worldGrid;
+	public LocalGrid activeLocalGrid;
 	
 	public MenuSystem menuSystem = new MenuSystem(this);
 	public InputSystem inputSystem = new InputSystem(this);
@@ -66,7 +70,8 @@ public class GameLauncher {
 			SkillBook.init();
 			StringUtil.init();
 			
-			worldGrid = new WorldGrid();
+			worldGrid = new WorldGridInstantiate(new Vector2i(10, 10)).setupGrid();
+			activeLocalGrid = worldGrid.getLocalGrid(new Vector2i(2, 2));
 			
 			menuSystem.setupLoader();
 			guiSystem.setupLoader();
