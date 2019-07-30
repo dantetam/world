@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 
 import org.lwjgl.util.vector.Vector3f;
 
@@ -144,12 +145,34 @@ public class Vector3i extends KdPoint {
 	 * @param intervals
 	 * @return
 	 */
-	public static List<Vector3i> getRange(List<GridRectInterval> intervals) {
+	public static Set<Vector3i> getRange(List<GridRectInterval> intervals) {
 		Set<Vector3i> total = new HashSet<>();
 		for (GridRectInterval interval: intervals) {
 			total.addAll(interval.getRange());
 		}
-		return new ArrayList<>(total);
+		return new HashSet<>(total);
+	}
+	
+	public static Collection<Vector3i> mapCollectionVec(Collection<Vector3i> collection, 
+			Function<Vector3i, Vector3i> func) {
+		Collection<Vector3i> results = new ArrayList<>();
+		for (Vector3i vec: collection) {
+			Vector3i result = func.apply(vec);
+			if (result != null)
+				results.add(result);
+		}
+		return results;
 	}
 
+	public static Set<Vector3i> uniqueMapCollectionVec(Collection<Vector3i> collection, 
+			Function<Vector3i, Vector3i> func) {
+		Set<Vector3i> results = new HashSet<>();
+		for (Vector3i vec: collection) {
+			Vector3i result = func.apply(vec);
+			if (result != null)
+				results.add(result);
+		}
+		return results;
+	}
+	
 }

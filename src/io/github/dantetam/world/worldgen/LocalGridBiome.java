@@ -12,7 +12,7 @@ public class LocalGridBiome {
 	public BiomeType biomeType;
 	public BiomeLocalizedClimate biomeClimate;
 	public List<BiomeLocalizedFeatures> features;
-	public float elevation;
+	public double elevation;
 	public BiomeTerrain terrain;
 	
 	//The rest of the parameters below determine the actual substances and life that make up the land
@@ -32,7 +32,7 @@ public class LocalGridBiome {
 	public Map<Integer, Integer> subSurfaceResourceHeight;
 	
 	public LocalGridBiome(BiomeType biomeType, BiomeLocalizedClimate biomeClimate,
-			List<BiomeLocalizedFeatures> features, float elevation, BiomeTerrain terrain) {
+			List<BiomeLocalizedFeatures> features, double elevation, BiomeTerrain terrain) {
 		this.biomeType = biomeType;
 		this.biomeClimate = biomeClimate;
 		this.features = features;
@@ -46,7 +46,9 @@ public class LocalGridBiome {
 	}
 	
 	public enum BiomeType { //Main indicator of biome profile/high level summary
-		
+		TUNDRA, TAIGA, WINTER_FOREST,
+		CONTINENTAL_FOREST, COOL_TEMP_FOREST, TEMPERATE_FOREST, SUBTROPICAL_FOREST,
+		TROPICA_RAINFOREST, DESERT
 	}
 	
 	public enum BiomeTerrain {
@@ -54,10 +56,16 @@ public class LocalGridBiome {
 	}
 	
 	//The climate specific to one local grid region
-	public class BiomeLocalizedClimate {
+	public static class BiomeLocalizedClimate {
 		public BroadClimateGroup group;
 		public Precipitation rain;
 		public TemperatureModifier temperature;
+		
+		public BiomeLocalizedClimate(BroadClimateGroup group, Precipitation rain, TemperatureModifier temperature) {
+			this.group = group;
+			this.rain = rain;
+			this.temperature = temperature;
+		}
 	}
 	
 	//Affects temperature, heat/cold resistant plants, biodiversity and existence of special plant types
@@ -149,7 +157,10 @@ public class LocalGridBiome {
 			}
 		}
 		
-		LocalGridBiome biome = new LocalGridBiome(null, climateGroup, null, elevation, terrainEnum); 
+		BiomeLocalizedClimate climate = new BiomeLocalizedClimate(climateGroup, precip, tempMod);
+		LocalGridBiome biome = new LocalGridBiome(
+				BiomeType.CONTINENTAL_FOREST, climate, null, elevation, terrainEnum); 
+		return biome;
 	}
 	
 }

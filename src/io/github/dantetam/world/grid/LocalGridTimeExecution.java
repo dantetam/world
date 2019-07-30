@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.LinkedHashSet;
 import java.util.function.Function;
 
 import io.github.dantetam.toolbox.VecGridUtil;
@@ -400,13 +401,18 @@ public class LocalGridTimeExecution {
 			
 			List<GridRectInterval> bestRectangles = findBestOpenRectSpace(
 					grid, validLandOwners, being.location.coords, requiredSpace);
-			List<Vector3i> borderRegion = VecGridUtil.getBorderRegionFromCoords(
+			LinkedHashSet<Vector3i> borderRegion = VecGridUtil.getBorderRegionFromCoords(
 					Vector3i.getRange(bestRectangles));
 			
 			Set<Integer> bestBuildingMaterials = society.getBestBuildingMaterials(society.calcUtility, 
 					being, borderRegion.size());
 				
 			if (bestRectangles != null) {
+				PurposeAnnotatedBuild compound = new PurposeAnnotatedBuild("Home");
+				compound.addRoom("Bedroom", bestRectangles, borderRegion, 
+						VecGridUtil.setUnderVecs(grid, Vector3i.getRange(bestRectangles)));
+				MapUtil.insertNestedListMap(ownerProducts.designatedBuildsByPurpose, "Home", compound);
+				
 				priority = new ConstructRoomPriority(borderRegion, bestBuildingMaterials);
 			}
 			else {
@@ -477,7 +483,9 @@ public class LocalGridTimeExecution {
 						being.location.coords, requiredSpace);
 				
 				if (bestRectangles != null && bestRectangles.size() > 0) {
-					List<Vector3i> bestRectangleVecs = Vector3i.getRange(bestRectangles);
+					Set<Vector3i> bestRectangleVecs = Vector3i.getRange(bestRectangles);
+					LinkedHashSet<Vector3i> borderRegion = VecGridUtil.getBorderRegionFromCoords(
+							Vector3i.getRange(bestRectangles));
 					
 					CustomLog.outPrintln("Create building space: " + bestRectangles.toString());
 					Set<Integer> bestBuildingMaterials = society.getBestBuildingMaterials(society.calcUtility, 
@@ -492,7 +500,13 @@ public class LocalGridTimeExecution {
 					}
 					
 					grid.setInUseRoomSpace(bestRectangleVecs, true);
-					priority = new ConstructRoomPriority(bestRectangleVecs, bestBuildingMaterials);
+					
+					PurposeAnnotatedBuild compound = new PurposeAnnotatedBuild("Home");
+					compound.addRoom("Bedroom", bestRectangles, borderRegion, 
+							VecGridUtil.setUnderVecs(grid, Vector3i.getRange(bestRectangles)));
+					MapUtil.insertNestedListMap(ownerProducts.designatedBuildsByPurpose, "Home", compound);
+					
+					priority = new ConstructRoomPriority(borderRegion, bestBuildingMaterials);
 				}
 				else {
 					CustomLog.outPrintln("Could not create building space of size: " + requiredSpace);
@@ -833,7 +847,7 @@ public class LocalGridTimeExecution {
 				if (consPriority.remainingBuildCoords.size() == 0) {
 					return new DoneTaskPlaceholder();
 				}
-				bestLocation = consPriority.remainingBuildCoords.remove(0);
+				bestLocation = consPriority.remainingBuildCoords.iterator().next();
 			}
 			
 			Collection<Integer> rankedMaterials = consPriority.rankedBuildMaterials;

@@ -143,7 +143,7 @@ public class LocalGridTerrainGenerate {
 	public static void main(String[] args) {
 		WorldCsvParser.init();
 		
-		int[][][] world = genTerrain(new Vector3i(200,200,50));
+		int[][][] world = genTerrain(LocalGridBiome.defaultBiomeTest(), new Vector3i(200,200,50));
 		printTable(world[0]);
 	}
 	

@@ -9,6 +9,7 @@ import java.util.Set;
 import io.github.dantetam.world.dataparse.ItemData;
 import io.github.dantetam.world.grid.LocalBuilding;
 import io.github.dantetam.world.grid.LocalTile;
+import io.github.dantetam.world.grid.PurposeAnnotatedBuild;
 import io.github.dantetam.world.items.Inventory;
 import io.github.dantetam.world.items.InventoryItem;
 import io.github.dantetam.world.process.LocalJob;
@@ -43,6 +44,8 @@ public abstract class LivingEntity {
 	public List<LocalBuilding> ownedBuildings;
 	public List<InventoryItem> ownedItems; //Note, this is different from the inventory	
 	
+	public Map<String, List<PurposeAnnotatedBuild>> designatedBuildsByPurpose;
+	
 	// Maps item id to item objects, for finding out quickly if this person has item x
 	public Inventory inventory;
 	
@@ -64,6 +67,7 @@ public abstract class LivingEntity {
 		inventory = new Inventory();
 		ownedBuildings = new ArrayList<>();
 		ownedItems = new ArrayList<>();
+		designatedBuildsByPurpose = new HashMap<>();
 		age = 0;
 	}
 

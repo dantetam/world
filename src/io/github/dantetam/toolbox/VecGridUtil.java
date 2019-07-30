@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
+import java.util.LinkedHashSet;
+import java.util.function.Function;
 
 import io.github.dantetam.toolbox.log.CustomLog;
 import io.github.dantetam.vector.Vector2i;
@@ -231,18 +233,18 @@ public class VecGridUtil {
 	 * If the given list of vectors represents a building foundation, the result of this calculation
 	 * represents the bounding walls of the buildings, with corners included.
 	 * 
-	 * This returns a list as a solution to create an ordered set for use in calculations,
+	 * This returns an ordered set for use in calculations,
 	 * involving human distance travelling and priority. 
 	 */
-	public static List<Vector3i> getBorderRegionFromCoords(Collection<Vector3i> coords) {
+	public static LinkedHashSet<Vector3i> getBorderRegionFromCoords(Collection<Vector3i> coords) {
 		Set<Vector3i> vecSet = new HashSet<>();
 		for (Vector3i coord: coords) {
 			vecSet.add(coord);
 		}
 		return getBorderRegionFromCoords(vecSet);
 	}
-	public static List<Vector3i> getBorderRegionFromCoords(Set<Vector3i> coords) {
-		List<Vector3i> perimeter = new ArrayList<>();
+	public static LinkedHashSet<Vector3i> getBorderRegionFromCoords(Set<Vector3i> coords) {
+		LinkedHashSet<Vector3i> perimeter = new LinkedHashSet<>();
 		Set<Vector3i> vecAdjOffsets = LocalGrid.allAdjOffsets8;
 		for (Vector3i coord: coords) {
 			for (Vector3i offset: vecAdjOffsets) {
@@ -575,6 +577,20 @@ public class VecGridUtil {
 			}
 		}
 		return results;
+	}
+	
+	public static Set<Vector3i> setUnderVecs(final LocalGrid grid, Collection<Vector3i> collection) {
+		return Vector3i.uniqueMapCollectionVec(collection, new Function<Vector3i, Vector3i>() {
+
+			@Override
+			public Vector3i apply(Vector3i t) {
+				Vector3i belowCoords = t.getSum(0, -1, 0);
+				if (grid.inBounds(belowCoords))
+					return belowCoords;
+				return null;
+			}
+			
+		});
 	}
 	
 	private static void printTable(int[][] data) {
