@@ -591,7 +591,7 @@ public class LocalGrid {
 	}
 	*/
 	public GridRectInterval getNearestViableRoom(Set<Human> validLandOwners, Vector3i coords, Vector2i requiredSpace) {
-		GridRectInterval bestAvailSpace = SpaceFillingAlg.findAvailableSpaceWithinClaims(this, 
+		GridRectInterval bestAvailSpace = SpaceFillingAlg.findAvailSpaceInClaims(this, 
 				requiredSpace.x, requiredSpace.y, true, 
 				validLandOwners, new LocalTileCond.IsBuildingTileCond());
 		return bestAvailSpace;
@@ -807,12 +807,10 @@ public class LocalGrid {
 		LocalGridLandClaim newLandClaim = new LocalGridLandClaim(human, start, end, purpose);
 		localLandClaims.add(newLandClaim);
 		human.allClaims.add(newLandClaim);
-		MapUtil.insertNestedListMap(human.allClaimsByPurpose, purpose, newLandClaim);
 	}
 	
 	public void unclaimTiles(LocalGridLandClaim claim) {
 		claim.claimant.allClaims.remove(claim);
-		MapUtil.insertNestedListMap(claim.claimant.allClaimsByPurpose, claim.purpose, claim);
 		localLandClaims.remove(claim);
 		claim.boundary = null;
 		claim.claimant = null;

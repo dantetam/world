@@ -27,6 +27,7 @@ public class SocietyDiplomacy {
 	public SocietyDiplomacy(WorldGrid world) {
 		this.world = world;
 		societiesByName = new HashMap<>();
+		relationships = new HashMap<>();
 		activeWars = new ArrayList<>();
 	}
 	

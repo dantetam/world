@@ -68,7 +68,11 @@ public class FreeActionsHousehold {
 			if (!entry.getValue().fireChanceExecute()) continue;
 			String name = entry.getKey();
 			if (name.equals("formNewHousehold")) {
+				System.err.println(">>>>>%: " + house.householdMembers.toString());
+				
 				Human splitHuman = EmergentHouseholdCalc.calcBestHouseholdSplit(house, date);
+				if (splitHuman == null) continue;
+				
 				List<Human> separatingHumans = new ArrayList<>();
 				separatingHumans.add(splitHuman);
 				List<List<Human>> newHousePeople = EmergentHouseholdCalc.
@@ -81,6 +85,9 @@ public class FreeActionsHousehold {
 				
 				LocalExperience newHouseExp = new LocalExperience("New Household");
 				for (Human human: housePeopleB) {
+					System.out.println(human);
+					System.out.println(human.brain);
+					System.out.println(human.brain.experiences);
 					human.brain.experiences.add(newHouseExp);
 				}
 			}

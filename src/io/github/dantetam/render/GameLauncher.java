@@ -70,8 +70,8 @@ public class GameLauncher {
 			SkillBook.init();
 			StringUtil.init();
 			
-			worldGrid = new WorldGridInstantiate(new Vector2i(10, 10)).setupGrid();
-			activeLocalGrid = worldGrid.getLocalGrid(new Vector2i(2, 2));
+			worldGrid = new WorldGridInstantiate(new Vector2i(1, 1)).setupGrid();
+			activeLocalGrid = worldGrid.getLocalGrid(new Vector2i(0, 0));
 			
 			menuSystem.setupLoader();
 			guiSystem.setupLoader();

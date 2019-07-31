@@ -3,6 +3,8 @@ package io.github.dantetam.world.worldgen;
 import java.util.List;
 import java.util.Map;
 
+import io.github.dantetam.localdata.ConstantData;
+
 public class LocalGridBiome {
 
 	//TODO
@@ -160,6 +162,13 @@ public class LocalGridBiome {
 		BiomeLocalizedClimate climate = new BiomeLocalizedClimate(climateGroup, precip, tempMod);
 		LocalGridBiome biome = new LocalGridBiome(
 				BiomeType.CONTINENTAL_FOREST, climate, null, elevation, terrainEnum); 
+		
+		
+		//TODO
+		//Use special clusters parsed from file, WorldCSVParser::parseMap? 
+		biome.surfaceResourceSizes = ConstantData.clusterSizesMap;
+		biome.surfaceResourceUbiquity = ConstantData.clusterUbiquityMap;
+		
 		return biome;
 	}
 	

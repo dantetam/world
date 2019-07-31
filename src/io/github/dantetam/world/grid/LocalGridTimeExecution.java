@@ -848,6 +848,7 @@ public class LocalGridTimeExecution {
 					return new DoneTaskPlaceholder();
 				}
 				bestLocation = consPriority.remainingBuildCoords.iterator().next();
+				consPriority.remainingBuildCoords.remove(bestLocation);
 			}
 			
 			Collection<Integer> rankedMaterials = consPriority.rankedBuildMaterials;
@@ -1277,7 +1278,7 @@ public class LocalGridTimeExecution {
 	 */
 	private static List<GridRectInterval> findBestOpenRectSpace(LocalGrid grid, Set<Human> validLandOwners, 
 			Vector3i coords, Vector2i requiredSpace) {
-		GridRectInterval openSpace = SpaceFillingAlg.findAvailableSpaceWithinClaims(grid, 
+		GridRectInterval openSpace = SpaceFillingAlg.findAvailSpaceInClaims(grid, 
 				requiredSpace.x, requiredSpace.y, true, validLandOwners, null);
 		
 		if (openSpace != null) {

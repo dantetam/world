@@ -63,9 +63,15 @@ public class WorldGridInstantiate {
 		WorldGrid world = new WorldGrid(this.worldSize);
 		
 		double[][] elevation = generateTerrain(10, 0.4);
+		
 		double[][] temperature = generateTerrain(10, 0.4);
-		double[][] yearRoundTempVariation = generateTerrain(10, 0.75);
+		double[][] yearRoundVarTemp = generateTerrain(10, 0.75);
+		
 		double[][] rain = generateTerrain(10, 0.6);
+		double[][] yearRoundVarRain = generateTerrain(10, 0.5);
+		
+		double[][] terrain = generateTerrain(10, 0.3);
+		double[][] terrainPerturb = generateTerrain(10, 0.75);
 		
 		//TODO Create all grids instantiated with
 		//new societies, DNA/races/cultures, biomes/flora/fauna, and intersocietal interactions across grids;
@@ -75,9 +81,13 @@ public class WorldGridInstantiate {
 		
 		for (int r = 0; r < worldSize.x; r++) {
 			for (int c = 0; c < worldSize.y; c++) {
-				LocalGridBiome assignedBiome = null;
+				LocalGridBiome assignedBiome = LocalGridBiome.determineAllBiomeBroad(
+						elevation[r][c], temperature[r][c], yearRoundVarTemp[r][c], 
+						rain[r][c], yearRoundVarRain[r][c], 
+						terrain[r][c], terrainPerturb[r][c]);
 				
-				LocalGrid grid = createNewLocalGridRoutine(gridSizes, assignedBiome);
+				LocalGrid grid = createNewLocalGridRoutine(world, gridSizes, assignedBiome);
+				world.initLocalGrid(new Vector2i(r,c), grid);
 			}
 		}
 		
@@ -111,8 +121,8 @@ public class WorldGridInstantiate {
 		return world;
 	}
 	
-	private LocalGrid createNewLocalGridRoutine(Vector3i gridSizes, LocalGridBiome biome) {
-		LocalGrid grid = new LocalGridInstantiate(gridSizes, biome).setupGrid(true);
+	private LocalGrid createNewLocalGridRoutine(WorldGrid world, Vector3i localGridSizes, LocalGridBiome biome) {
+		LocalGrid grid = new LocalGridInstantiate(localGridSizes, biome).setupGrid(true);
 		
 		Society testSociety = new Society("TestSociety", grid);
 		testSociety.societyCenter = new Vector3i(50,50,30);
@@ -147,6 +157,8 @@ public class WorldGridInstantiate {
 			}
 			testSociety.addHousehold(new Household(people));
 		}
+		
+		world.addSociety(testSociety);
 		
 		return grid;
 	}

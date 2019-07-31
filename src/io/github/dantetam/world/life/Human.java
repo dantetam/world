@@ -27,7 +27,7 @@ public class Human extends LivingEntity {
 	public LocalBuilding home;
 	
 	public Set<LocalGridLandClaim> allClaims;
-	public Map<LocalProcess, List<LocalGridLandClaim>> allClaimsByPurpose;
+	//public Map<LocalProcess, List<LocalGridLandClaim>> allClaimsByPurpose;
 	
 	public SkillBook skillBook;
 	public String familyName;
@@ -46,7 +46,6 @@ public class Human extends LivingEntity {
 		super(name);
 		this.society = society;
 		allClaims = new HashSet<>();
-		allClaimsByPurpose = new HashMap<>();
 		maxNutrition = 100;
 		maxRest = 100;
 		nutrition = 30;

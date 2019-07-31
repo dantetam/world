@@ -30,12 +30,16 @@ public class SpaceFillingAlg {
 	
 	/**
 	 * Intended for finding space within a group's own existing land claims.
+	 * Option of excluding existing annotated rooms
 	 * 
 	 * @return The best rectangle close to center and the closest size, 
 	 * with minimum dimensions (desiredR, desiredC),
 	 * if one exists within maxDistFlat * trials distance (square dist) away from center.
 	 */
-	public static GridRectInterval findAvailableSpaceWithinClaims(LocalGrid grid, 
+	
+	TODO; impl. annotated rooms boolean (use or excluse annotated rooms)
+	
+	public static GridRectInterval findAvailSpaceInClaims(LocalGrid grid, 
 			int desiredR, int desiredC, boolean sameLevel, Set<Human> validLandOwners,
 			LocalTileCond tileCond) {
 		GridRectInterval bestSpace = null;
@@ -143,6 +147,8 @@ public class SpaceFillingAlg {
 		}
 		return null;
 	}
+	
+	TODO: Create space filling alg like findAvailableSpaceNear, that expands from already existing annotated rooms
 	
 	public static ClusterVector3i findSingleComponent(
 			LocalGrid grid, Vector3i coords) {

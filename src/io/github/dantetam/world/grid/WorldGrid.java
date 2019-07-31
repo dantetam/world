@@ -88,6 +88,7 @@ public class WorldGrid {
 		this.societalDiplomacy.addSociety(society);
 	}
 	
+	//TODO: Fix this so societies can live across multiple grids
 	public void tick() {
 		for (int r = 0; r < worldSize.x; r++) {
 			for (int c = 0; c < worldSize.y; c++) {
@@ -96,17 +97,17 @@ public class WorldGrid {
 					List<Household> households = getFreeHouseholds(new Vector2i(r,c));
 					FreeActionsHousehold.considerAllFreeActionsHouseholds(
 							this, grid, households, getTime());
-					
-					FreeActionsHumans.considerAllFreeActionsHumans(this, grid,
-							testSociety.getAllPeople(), getTime());
-					
-					//TODO //Tick for every society involved in this grid
-					LocalGridTimeExecution.tick(this, grid, testSociety);
 				}
 			}
 		}
 		
 		for (Society society: this.societalDiplomacy.getAllSocieties()) {
+			//TODO //Tick for every society involved in this grid
+			LocalGridTimeExecution.tick(this, society.primaryGrid, society);
+			
+			FreeActionsHumans.considerAllFreeActionsHumans(this, society.primaryGrid,
+					society.getAllPeople(), getTime());
+			
 			for (Household house: society.getAllHouseholds()) {
 				FreeActionsHousehold.considerAllFreeActionsHouse(this, society, house, getTime());
 			}
@@ -142,7 +143,14 @@ public class WorldGrid {
 		if (!inBounds(coords)) {
 			throw new IllegalArgumentException("In world grid, cannot find indexed local grid: " + coords);
 		}
-		return this.localGridTiles(coords.x, coords.y);
+		return this.localGridTiles[coords.x][coords.y];
+	}
+	
+	public void initLocalGrid(Vector2i coords, LocalGrid grid) {
+		if (!inBounds(coords)) {
+			throw new IllegalArgumentException("In world grid, cannot init indexed local grid: " + coords);
+		}
+		this.localGridTiles[coords.x][coords.y] = grid;
 	}
 	
 }

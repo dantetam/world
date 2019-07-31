@@ -45,6 +45,13 @@ public class MapUtil {
 		}
 	}
 	
+	public static <T, U extends Number> void 
+			addMapToMap(Map<T, U> baseMap, Map<T, U> additions) {
+		for (Entry<T, U> addition: additions.entrySet()) {
+			addNumMap(baseMap, addition.getKey(), addition.getValue());
+		}
+	}
+	
 	public static <T, U> boolean checkKeyValue(Map<T, U> map, T key, U value) {
 		if (!map.containsKey(key)) {
 			return false;
@@ -77,11 +84,15 @@ public class MapUtil {
 		map.get(key).add(value);
 	}
 	
+	public static <K, V> void removeSafeNestListMap(Map<K, List<V>> map, K key, V value) {
+		if (map.containsKey(key)) {
+			map.get(key).remove(value);
+		}
+	}
 	public static <K, V> void removeSafeNestSetMap(Map<K, Set<V>> map, K key, V value) {
 		if (map.containsKey(key)) {
 			map.get(key).remove(value);
 		}
-		map.get(key).add(value);
 	}
 	
 	public static <T, U extends Number> Map<T, Double> getNormalizedMap(Map<T, U> map) {

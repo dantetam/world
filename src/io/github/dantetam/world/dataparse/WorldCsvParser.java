@@ -14,6 +14,8 @@ import java.util.stream.StreamSupport;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
 
+import io.github.dantetam.toolbox.StringUtil;
+
 public class WorldCsvParser {
 	
 	//Global initialization of all CSV parsers
@@ -47,28 +49,44 @@ public class WorldCsvParser {
 		return null;
 	}
 	
+	//TODO: use in parsing files for 
 	public static <T, U> Map<T, U> parseMapStringIntoMap(Class<T> keyClass, Class<U> valueClass, String mapStr) {
 		String[] entriesStr = mapStr.split("/");
 		Map<T, U> map = new HashMap<>();
 		for (String entry: entriesStr) {
 			String[] pair = entry.split(",");
-			if (keyClass.isInstance(new String())) {
-				if (valueClass.isInstance(new String())) {
+			if (pair.length != 2) continue;
+			
+			boolean keyIsNumber = false;
+			try {
+				Double.parseDouble(pair[0]);
+				keyIsNumber = true;
+			} catch (NumberFormatException e) {}
+			
+			boolean valueIsNumber = false;
+			try {
+				Double.parseDouble(pair[1]);
+				valueIsNumber = true;
+			} catch (NumberFormatException e) {}
+			
+			if (keyIsNumber) {
+				if (valueIsNumber) {
 					map.put((T) pair[0], (U) pair[1]);
 				}
 				else {
-					
+					map.put((T) pair[0], (U) new Double(Double.parseDouble(pair[1])));
 				}
 			}
 			else {
-				if (valueClass.isInstance(new String())) {
-					map.put(, (U) pair[1]);
+				if (valueIsNumber) {
+					map.put((T) new Double(Double.parseDouble(pair[0])), (U) pair[1]);
 				}
 				else {
-					map.put((T) new Number(pair[0]), value)
+					map.put((T) new Double(Double.parseDouble(pair[0])), (U) new Double(Double.parseDouble(pair[1])));
 				}
 			}
 		}
+		return map;
 	}
 	
 }

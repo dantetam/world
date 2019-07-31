@@ -36,7 +36,8 @@ import io.github.dantetam.world.process.LocalProcess.ProcessStep;
 public class Society {
 
 	public String name;
-	public LocalGrid grid;
+	public LocalGrid primaryGrid;
+	public List<LocalGrid> allGrids;
 	private List<Household> households;
 	public Vector3i societyCenter;
 	
@@ -56,7 +57,11 @@ public class Society {
 	
 	public Society(String name, LocalGrid grid) {
 		this.name = name;
-		this.grid = grid;
+		
+		this.allGrids = new ArrayList<>();
+		this.allGrids.add(grid);
+		this.primaryGrid = grid;
+		
 		households = new ArrayList<>();
 		warsInvolved = new ArrayList<>();
 		this.leadershipManager = new SocietyLeadership(this);
@@ -102,8 +107,8 @@ public class Society {
 	 * @param centerCoords Find locations closest to these given arbitrary coords
 	 */
 	public List<Vector3i> getImportantLocations(Vector3i centerCoords) {
-		Collection<Vector3i> nearBuildings = grid.getNearestBuildings(centerCoords);
-		Collection<Vector3i> humanLocations = grid.getNearestPeopleCoords(centerCoords);
+		Collection<Vector3i> nearBuildings = primaryGrid.getNearestBuildings(centerCoords);
+		Collection<Vector3i> humanLocations = primaryGrid.getNearestPeopleCoords(centerCoords);
 		List<Vector3i> results = new ArrayList<>();
 		for (Vector3i nearBuilding: nearBuildings) {
 			results.add(nearBuilding);
@@ -375,9 +380,16 @@ public class Society {
 	
 	/**
 	 * Directly count the physical rarity and presence of all items available on the map
+	 * 
+	 * @param The owner of the inventory/property that this alg. should count items.
+	 * 		  If null, return a generic count of all items in the world, 
+	 *        not factoring for ownership/restriction.
 	 */
 	public Map<Integer, Double> findRawResourcesRarity(Human human) {
-		Map<Integer, Double> preItemRarity = new HashMap<Integer, Double>(this.grid.tileIdCounts);
+		Map<Integer, Double> preItemRarity = new HashMap<Integer, Double>();
+		for (LocalGrid grid: this.allGrids) {
+			MapUtil.addMapToMap(preItemRarity, grid.tileIdCounts);
+		}
 		Map<Integer, Double> itemRarity = new HashMap<>(preItemRarity);
 		
 		for (Entry<Integer, Double> entry: preItemRarity.entrySet()) {
@@ -391,8 +403,31 @@ public class Society {
 			}
 		}
 		
-		for (LocalBuilding building: grid.getAllBuildings()) {
-			if (human == null || building.owner == null || building.owner.equals(human)) {
+		if (human == null) {
+			for (LocalGrid grid: this.allGrids) {
+				for (LocalBuilding building: grid.getAllBuildings()) {
+					if (building.owner == null) {
+						MapUtil.addNumMap(itemRarity, building.buildingId, 1.0);
+						for (int itemId: building.buildingBlockIds) {
+							ItemTotalDrops drops = ItemData.getOnBlockItemDrops(itemId);
+							Map<Integer, Double> itemExpectations = drops.itemExpectation();
+							for (Entry<Integer, Double> entry: itemExpectations.entrySet()) {
+								MapUtil.addNumMap(itemRarity, entry.getKey(), entry.getValue());
+							}
+						}
+					}
+				}
+			}
+			
+			for (Human everyHuman: this.getAllPeople()) {
+				List<InventoryItem> items = everyHuman.inventory.getItems();
+				for (InventoryItem item: items) {
+					MapUtil.addNumMap(itemRarity, item.itemId, (double) item.quantity);
+				}
+			}
+		}
+		else {
+			for (LocalBuilding building: human.ownedBuildings) {
 				MapUtil.addNumMap(itemRarity, building.buildingId, 1.0);
 				for (int itemId: building.buildingBlockIds) {
 					ItemTotalDrops drops = ItemData.getOnBlockItemDrops(itemId);
@@ -402,16 +437,7 @@ public class Society {
 					}
 				}
 			}
-		}
-		if (human == null) {
-			for (Human everyHuman: this.getAllPeople()) {
-				List<InventoryItem> items = everyHuman.inventory.getItems();
-				for (InventoryItem item: items) {
-					MapUtil.addNumMap(itemRarity, item.itemId, (double) item.quantity);
-				}
-			}
-		}
-		else {
+			
 			List<InventoryItem> items = human.inventory.getItems();
 			for (InventoryItem item: items) {
 				MapUtil.addNumMap(itemRarity, item.itemId, (double) item.quantity);
@@ -445,12 +471,14 @@ public class Society {
 	 */
 	private Map<Integer, Double> findAdjEconomicRarity() {
 		Map<Integer, Double> itemRarity = this.findAllAvailableResourceRarity(null);
-		for (LocalBuilding building: grid.getAllBuildings()) {
-			for (int itemId: building.buildingBlockIds) {
-				ItemTotalDrops drops = ItemData.getOnBlockItemDrops(itemId);
-				Map<Integer, Double> itemExpectations = drops.itemExpectation();
-				for (Entry<Integer, Double> entry: itemExpectations.entrySet()) {
-					MapUtil.addNumMap(itemRarity, entry.getKey(), entry.getValue());
+		for (LocalGrid grid: this.allGrids) {
+			for (LocalBuilding building: grid.getAllBuildings()) {
+				for (int itemId: building.buildingBlockIds) {
+					ItemTotalDrops drops = ItemData.getOnBlockItemDrops(itemId);
+					Map<Integer, Double> itemExpectations = drops.itemExpectation();
+					for (Entry<Integer, Double> entry: itemExpectations.entrySet()) {
+						MapUtil.addNumMap(itemRarity, entry.getKey(), entry.getValue());
+					}
 				}
 			}
 		}
@@ -642,18 +670,15 @@ public class Society {
 			}
 			else {
 				double normFurnitureScore = 0;
-				Collection<Vector3i> buildingSpaces = human.home.calculatedLocations;
-				for (Vector3i buildingSpace: buildingSpaces) {
-					LocalTile tile = grid.getTile(buildingSpace);
-					if (tile.building != null) {
-						int id = tile.building.buildingId;
-						List<ProcessStep> itemProps = ItemData.getItemProps(id);
-						double beautyValue = ItemData.getItemBeautyValue(id);
-						if (itemProps != null) {
-							for (ProcessStep step: itemProps) {
-								if (step.stepType.equals("Furniture")) {
-									normFurnitureScore *= step.modifier * beautyValue;
-								}
+				//Collection<Vector3i> buildingSpaces = human.home.calculatedLocations;
+				for (int index = 0; index < human.home.buildingBlockIds.size(); index++) {
+					int id = human.home.buildingBlockIds.get(index);
+					List<ProcessStep> itemProps = ItemData.getItemProps(id);
+					double beautyValue = ItemData.getItemBeautyValue(id);
+					if (itemProps != null) {
+						for (ProcessStep step: itemProps) {
+							if (step.stepType.equals("Furniture")) {
+								normFurnitureScore *= step.modifier * beautyValue;
 							}
 						}
 					}
@@ -663,7 +688,7 @@ public class Society {
 				MapUtil.addNumMap(societalNeed, "Personal Home", normFurnitureScore / 3);
 			}	
 			
-			double beautyScore = grid.averageBeauty(human.location.coords);
+			double beautyScore = this.primaryGrid.averageBeauty(human.location.coords);
 			MapUtil.addNumMap(societalNeed, "Beauty", 1.0 - beautyScore);
 			
 			MapUtil.addNumMap(societalNeed, "Soldier", 0.1);
