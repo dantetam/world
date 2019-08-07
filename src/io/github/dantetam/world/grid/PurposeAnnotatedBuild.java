@@ -37,6 +37,17 @@ public class PurposeAnnotatedBuild {
 		MapUtil.insertNestedListMap(this.roomsByPurpose, purpose, room);
 	}
 	
+	public boolean annoBuildContainsVec(Vector3i vec) {
+		for (List<Room> rooms: this.roomsByPurpose.values()) {
+			for (Room room: rooms) {
+				if (room.containsVec(vec)) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	
 	public static class Room {
 		public String purpose;
 		public List<GridRectInterval> fullRoom; //does not include the walls of the room
@@ -50,6 +61,15 @@ public class PurposeAnnotatedBuild {
 			this.roomWalls = walls;
 			this.roomFloors = floors;
 			this.reservedBuiltSpace = new HashMap<>();
+		}
+		
+		public boolean containsVec(Vector3i vec) {
+			for (GridRectInterval interval: fullRoom) {
+				if (interval.vecInBounds(vec)) {
+					return true;
+				}
+			}
+			return false;
 		}
 	}
 	

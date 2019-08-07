@@ -9,6 +9,8 @@ import java.util.function.Function;
 
 import org.lwjgl.util.vector.Vector3f;
 
+import io.github.dantetam.toolbox.Pair;
+import io.github.dantetam.toolbox.VecGridUtil;
 import io.github.dantetam.world.grid.GridRectInterval;
 import io.github.dantetam.world.grid.LocalGrid;
 import kdtreegeo.KdPoint;
@@ -142,6 +144,17 @@ public class Vector3i extends KdPoint {
 	
 	/**
 	 * Convert between these units of vector measure
+	 * @param interval
+	 * @return
+	 */
+	public static Set<Vector3i> getRange(GridRectInterval interval) {
+		Set<Vector3i> total = new HashSet<>();
+		total.addAll(interval.getRange());
+		return new HashSet<>(total);
+	}
+	
+	/**
+	 * Convert between these units of vector measure
 	 * @param intervals
 	 * @return
 	 */
@@ -151,6 +164,20 @@ public class Vector3i extends KdPoint {
 			total.addAll(interval.getRange());
 		}
 		return new HashSet<>(total);
+	}
+	
+	public static Set<Vector3i> getAllBoundingBoxCorners(Set<Vector3i> vecs) {
+		Set<Vector3i> results = new HashSet<>();
+		Pair<Vector3i> bounds = VecGridUtil.findCoordBounds(vecs);
+		Vector3i min = bounds.first, max = bounds.second;
+		results.add(min); results.add(max);
+		results.add(min.x(max.x));
+		results.add(min.y(max.y));
+		results.add(min.z(max.z));
+		results.add(min.x(max.x).y(max.y));
+		results.add(min.y(max.y).z(max.z));
+		results.add(min.z(max.z).x(max.x));
+		return results;
 	}
 	
 	public static Collection<Vector3i> mapCollectionVec(Collection<Vector3i> collection, 

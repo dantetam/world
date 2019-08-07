@@ -166,7 +166,8 @@ public class SocietalHumansActionsCalc {
 	//Figure out a system for people claiming land in a world
 	//More powerful people get first choice? Followed by those who desparately want land and have the power
 	//to obtain/maintain land
-	public static Map<Human, GridRectInterval> possibleNewLandClaims(LocalGrid grid, List<Human> humans) {
+	public static Map<Human, GridRectInterval> possibleNewLandClaims(LocalGrid grid, Society society,
+			List<Human> humans) {
 		Map<Human, GridRectInterval> humanClaimUtil = new HashMap<>();
 		
 		Set<Vector3i> claimedFirstVec = new HashSet<>();
@@ -194,8 +195,8 @@ public class SocietalHumansActionsCalc {
 			if (landNeed > 0) {
 				for (ClusterVector3i clusterObj: grid.clustersList3d) {
 					Vector3i firstVec = clusterObj.clusterData.iterator().next();
-					GridRectInterval space = SpaceFillingAlg.findAvailableSpaceExact(
-							grid, firstVec, dimension, dimension, false, null, null);
+					GridRectInterval space = SpaceFillingAlg.findAvailSpaceClose(
+							grid, firstVec, dimension, dimension, false, society, null, false, null);
 					
 					if (space != null) {
 						int size = (int) Math.abs(space.get2dSize() - dimension * dimension);

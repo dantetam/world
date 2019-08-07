@@ -18,6 +18,7 @@ import io.github.dantetam.toolbox.MapUtil;
 import io.github.dantetam.toolbox.Pair;
 import io.github.dantetam.vector.Vector2i;
 import io.github.dantetam.vector.Vector3i;
+import io.github.dantetam.world.civilization.Society;
 import io.github.dantetam.world.life.Human;
 import kdtreegeo.KdTree;
 
@@ -36,30 +37,7 @@ public class SpaceFillingAlg {
 	 * with minimum dimensions (desiredR, desiredC),
 	 * if one exists within maxDistFlat * trials distance (square dist) away from center.
 	 */
-	
-	TODO; impl. annotated rooms boolean (use or excluse annotated rooms)
-	
-	public static GridRectInterval findAvailSpaceInClaims(LocalGrid grid, 
-			int desiredR, int desiredC, boolean sameLevel, Set<Human> validLandOwners,
-			LocalTileCond tileCond) {
-		GridRectInterval bestSpace = null;
-		int minScore = 0;
-		for (Human landOwner: validLandOwners) {
-			for (LocalGridLandClaim claim: landOwner.allClaims) {
-				CustomLog.outPrintln(claim.boundary);
-				GridRectInterval space = findAvailableSpaceExact(grid, claim.boundary.avgVec(), 
-						desiredR, desiredC, sameLevel, validLandOwners, tileCond);
-				if (space != null) {
-					int reverseScore = Math.abs(space.get2dSize() - (desiredR * desiredC)); 
-					if (reverseScore < minScore || bestSpace == null) {
-						bestSpace = space;
-						minScore = reverseScore;
-					}
-				}
-			}
-		}
-		return bestSpace;
-	}
+	//TODO: ???
 	
 	/**
 	 * Intended for finding land (free or occupied by correct owners) near coords center
@@ -70,14 +48,76 @@ public class SpaceFillingAlg {
 	 * @return The maximum rectangle closest to center, with minimum dimensions (desiredR, desiredC),
 	 * if one exists within maxDistFlat * trials distance (square dist) away from center.
 	 */
-	public static GridRectInterval findAvailableSpaceExact(LocalGrid grid, Vector3i center, 
+	public static GridRectInterval findAvailSpaceCloseFactorClaims(LocalGrid grid, Vector3i center, 
 			int desiredR, int desiredC, boolean sameLevel, 
-			Set<Human> validLandOwners, LocalTileCond tileCond) {
+			Society society,
+			Set<Human> validLandOwners, boolean allowAnnotated,
+			boolean exactStrictMatch,
+			LocalTileCond tileCond) {
+		LocalTileCond originalCond = tileCond; 
+		if (!allowAnnotated) { //Add to the custom tile condition to restrict annotated tiles 
+			LocalTileCond tempCond = new LocalTileCond() {
+				@Override
+				public boolean isDesiredTile(LocalGrid grid, Vector3i coords) {
+					if (validLandOwners != null) {
+						for (Human human: validLandOwners) {
+							for (List<PurposeAnnotatedBuild> builds: human.designatedBuildsByPurpose.values()) {
+								for (PurposeAnnotatedBuild annoBuild: builds) {
+									if (annoBuild.annoBuildContainsVec(coords)) {
+										return false;
+									}
+								}
+							}
+						}
+					}
+					if (originalCond == null) 
+						return true;
+					return originalCond.isDesiredTile(grid, coords);
+				}
+			};
+			
+			return findAvailSpaceClose(grid, center, desiredR, desiredC, sameLevel, society,
+					validLandOwners, exactStrictMatch, tempCond);
+		}
+		else {
+			return findAvailSpaceClose(grid, center, desiredR, desiredC, sameLevel, society,
+					validLandOwners, exactStrictMatch, originalCond);
+		}
+	}
+	
+	
+	/**
+	 * Like SpaceFillingAlg::findAvailableSpace(...) but without the center coords restriction
+	 * This is used to find available space near but not always exactly at certain coords.
+	 * @return
+	 */
+	//TODO: Create space filling alg like findAvailableSpaceNear, that expands from already existing annotated rooms
+	//This algorithm findAvailSpaceClose is generic enough
+	public static GridRectInterval findAvailSpaceClose(LocalGrid grid, Vector3i center, 
+			int desiredR, int desiredC, boolean sameLevel, 
+			Society society,
+			Set<Human> validLandOwners,
+			boolean exactStrictMatch,
+			LocalTileCond tileCond) {
 		
 		while (true) {
 			KdTree<ClusterVector3i> componentsTree = grid.clustersList2dSurfaces;
-			Collection<ClusterVector3i> closestClusters = componentsTree.nearestNeighbourListSearch(10, 
-					new ClusterVector3i(center, null));
+			Collection<ClusterVector3i> closestClusters; 
+			
+			if (validLandOwners == null || validLandOwners.size() <= 0) {
+				closestClusters = componentsTree.nearestNeighbourListSearch(10, 
+						new ClusterVector3i(center, null));
+			}
+			else {
+				closestClusters = new ArrayList<>();
+				for (Human human: validLandOwners) {
+					for (LocalGridLandClaim claim: human.allClaims) {
+						//TODO Fill closestClusters with new clusters
+						closestClusters.add(new ClusterVector3i(claim.avgVec(), 
+								Vector3i.getRange(claim.boundary)));
+					}
+				}
+			}
 			List<GridRectInterval> componentMaxSubRect = new ArrayList<>();
 			Map<Integer, Integer> componentScore = new HashMap<>();
 			
@@ -86,6 +126,17 @@ public class SpaceFillingAlg {
 				
 				int height = cluster.center.z;
 				Set<Vector3i> component = cluster.clusterData;
+				
+				if (tileCond != null)
+					component = LocalTileCond.filter(component, grid, tileCond);
+				
+				if (exactStrictMatch && !component.contains(center)) continue;
+				
+				if (society != null && validLandOwners != null)
+					component = LocalTileCond.filter(component, grid, 
+							new LocalTileCond.IsValidLandOwnerSoc(society, validLandOwners));
+				
+				if (component.size() == 0) continue;
 				
 				//int[] maxSubRect = AlgUtil.findMaxRect(component);
 				Pair<Vector2i> maxSubRect = VecGridUtil.findBestRect(component, desiredR, desiredC);
@@ -118,38 +169,7 @@ public class SpaceFillingAlg {
 			return null;
 		}
 	}
-	
-	/**
-	 * Like SpaceFillingAlg::findAvailableSpace(...) but without the center coords restriction
-	 * This is used to find available space near but not always exactly at certain coords.
-	 * @return
-	 */
-	public static GridRectInterval findAvailableSpaceNear(LocalGrid grid, Vector3i coords,
-			int desiredR, int desiredC, boolean sameLevel, 
-			Set<Human> validLandOwners, LocalTileCond tileCond) {
-		Map<GridRectInterval, Double> bestMinScoring = new HashMap<>();
 		
-		Collection<ClusterVector3i> nearestFreeClusters = grid.clustersList3d.nearestNeighbourListSearch(
-				50, new ClusterVector3i(coords, null));
-		for (ClusterVector3i cluster: nearestFreeClusters) {
-			GridRectInterval bestInterval = findAvailableSpaceExact(grid, cluster.center, 
-					desiredR, desiredC, sameLevel, validLandOwners, tileCond);
-			if (bestInterval != null) {
-				double util = cluster.center.dist(coords) - bestInterval.get2dSize();
-				bestMinScoring.put(bestInterval, util);
-			}
-		}
-		bestMinScoring = MapUtil.getSortedMapByValueDesc(bestMinScoring);
-		
-		if (bestMinScoring.size() > 0) {
-			GridRectInterval interval = bestMinScoring.keySet().iterator().next();
-			return interval;
-		}
-		return null;
-	}
-	
-	TODO: Create space filling alg like findAvailableSpaceNear, that expands from already existing annotated rooms
-	
 	public static ClusterVector3i findSingleComponent(
 			LocalGrid grid, Vector3i coords) {
 

@@ -12,10 +12,12 @@ import java.util.Set;
 
 import io.github.dantetam.toolbox.MapUtil;
 import io.github.dantetam.toolbox.VecGridUtil;
+import io.github.dantetam.toolbox.VecGridUtil.RectangularSolid;
 import io.github.dantetam.toolbox.log.CustomLog;
 import io.github.dantetam.vector.Vector2i;
 import io.github.dantetam.vector.Vector3i;
 import io.github.dantetam.world.ai.RSRPathfinder;
+import io.github.dantetam.world.civilization.Society;
 import io.github.dantetam.world.dataparse.ItemData;
 import io.github.dantetam.world.dataparse.WorldCsvParser;
 import io.github.dantetam.world.items.Inventory;
@@ -590,10 +592,11 @@ public class LocalGrid {
 		return null;
 	}
 	*/
-	public GridRectInterval getNearestViableRoom(Set<Human> validLandOwners, Vector3i coords, Vector2i requiredSpace) {
-		GridRectInterval bestAvailSpace = SpaceFillingAlg.findAvailSpaceInClaims(this, 
+	public GridRectInterval getNearestViableRoom(Society society, Set<Human> validLandOwners, Vector3i coords, 
+			Vector2i requiredSpace) {
+		GridRectInterval bestAvailSpace = SpaceFillingAlg.findAvailSpaceCloseFactorClaims(this, coords,
 				requiredSpace.x, requiredSpace.y, true, 
-				validLandOwners, new LocalTileCond.IsBuildingTileCond());
+				society, validLandOwners, false, false, new LocalTileCond.IsBuildingTileCond());
 		return bestAvailSpace;
 	}
 	
@@ -611,8 +614,8 @@ public class LocalGrid {
 	
 	public void setInUseRoomSpace(GridRectInterval interval, boolean inUse) {
 		setInUseRoomSpace(
-				interval.start, 
-				interval.end.getSubtractedBy(interval.start).getSum(1, 1, 1).getXY(), 
+				interval.getStart(), 
+				interval.getEnd().getSubtractedBy(interval.getStart()).getSum(1, 1, 1).getXY(), 
 				true
 		);
 	}
@@ -802,11 +805,31 @@ public class LocalGrid {
 		return null;
 	}
 	
+	public void claimTiles(Human human, GridRectInterval interval, LocalProcess purpose) {
+		claimTiles(human, interval.getStart(), interval.getEnd(), purpose);
+	}
+	
 	//Claim is equivalent to actual human ownership and full rights, as opposed to being in use
 	public void claimTiles(Human human, Vector3i start, Vector3i end, LocalProcess purpose) {
 		LocalGridLandClaim newLandClaim = new LocalGridLandClaim(human, start, end, purpose);
 		localLandClaims.add(newLandClaim);
 		human.allClaims.add(newLandClaim);
+		
+		Set<Vector3i> range = Vector3i.getRange(newLandClaim.boundary);
+		for (Vector3i vec: range) {
+			if (this.inBounds(vec)) 
+				human.society.recordClaimInGrid(human, this, vec);
+		}
+	}
+	
+	//Claim is equivalent to actual human ownership and full rights, as opposed to being in use
+	public void claimTiles(Human human, Set<Vector3i> vecs, LocalProcess purpose) {
+		List<RectangularSolid> solids = VecGridUtil.findMaximalRectSolids(this, vecs); 
+		for (RectangularSolid solid: solids) {
+			GridRectInterval interval = new GridRectInterval(solid.topLeftCorner, 
+					solid.topLeftCorner.getSum(solid.solidDimensions).getSum(-1,-1,-1));
+			claimTiles(human, interval.getStart(), interval.getEnd(), purpose);
+		}	
 	}
 	
 	public void unclaimTiles(LocalGridLandClaim claim) {
@@ -814,6 +837,12 @@ public class LocalGrid {
 		localLandClaims.remove(claim);
 		claim.boundary = null;
 		claim.claimant = null;
+		
+		Set<Vector3i> range = Vector3i.getRange(claim.boundary);
+		for (Vector3i vec: range) {
+			if (this.inBounds(vec)) 
+				claim.claimant.society.recordClaimInGrid(null, this, vec);
+		}
 	}
 	
 

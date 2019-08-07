@@ -41,7 +41,7 @@ public class FreeActionsHumans {
 	//Implement more human to human interactions, and for all interactions, take into account
 	//the situation, the relationships, and relevant personality traits.
 	
-	public static void considerAllFreeActionsHumans(WorldGrid world, LocalGrid grid,
+	public static void considerAllFreeActionsHumans(WorldGrid world, LocalGrid grid, Society society,
 			List<Human> humans, Date date) {
 		for (Entry<String, FreeAction> entry: freeActionsListHuman.entrySet()) {
 			if (!entry.getValue().fireChanceExecute()) continue;
@@ -87,7 +87,7 @@ public class FreeActionsHumans {
 			}
 			else if (name.equals("claimNewLand")) {
 				Map<Human, GridRectInterval> humanClaimUtil = SocietalHumansActionsCalc
-						.possibleNewLandClaims(grid, humans);
+						.possibleNewLandClaims(grid, society, humans);
 				for (Entry<Human, GridRectInterval> claimEntry: humanClaimUtil.entrySet()) {
 					Human human = claimEntry.getKey();
 					GridRectInterval interval = claimEntry.getValue();
@@ -97,7 +97,7 @@ public class FreeActionsHumans {
 						if (claimants != null && claimants.size() > 0) {
 							continue;
 						}
-						grid.claimTiles(human, interval.start, interval.end, null);
+						grid.claimTiles(human, interval.getStart(), interval.getEnd(), null);
 					//}
 				}
 			}

@@ -94,6 +94,7 @@ public class WorldGrid {
 			for (int c = 0; c < worldSize.y; c++) {
 				LocalGrid grid = localGridTiles[r][c];
 				if (grid != null) {
+					LocalGridTimeExecution.specificGridTick(this, grid);
 					List<Household> households = getFreeHouseholds(new Vector2i(r,c));
 					FreeActionsHousehold.considerAllFreeActionsHouseholds(
 							this, grid, households, getTime());
@@ -105,7 +106,7 @@ public class WorldGrid {
 			//TODO //Tick for every society involved in this grid
 			LocalGridTimeExecution.tick(this, society.primaryGrid, society);
 			
-			FreeActionsHumans.considerAllFreeActionsHumans(this, society.primaryGrid,
+			FreeActionsHumans.considerAllFreeActionsHumans(this, society.primaryGrid, society,
 					society.getAllPeople(), getTime());
 			
 			for (Household house: society.getAllHouseholds()) {

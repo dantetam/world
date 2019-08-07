@@ -46,6 +46,28 @@ public class LocalGridTimeExecution {
 	
 	public static int NUM_JOBPROCESS_CONSIDER = 40;
 	
+	/** 
+	 * Primarily tick through all of the grid's 'unsupervised' tasks, i.e. those
+	 * 
+	 * 1) assigned to the natural world;
+	 * 2) assigned to a human as a task not needing human input/time in some intermediate stage
+	 * 			(like waiting for food waste turn into compost)
+	 * 
+	 * The second case is denoted as "U..." in the process data csv, "world-recipes.csv"
+	 * 
+	 */
+	
+	public static void specificGridTick(WorldGrid world, LocalGrid grid) {
+		TODO;
+		//Implement ticking of natural tasks
+		//Fix unsupervised work bug by bringing tasks into the 'grid queue', 
+		//and when human input is needed, shift the task back into the human's queue.
+		
+		//While a process is in 'grid queue' i.e. it is unsupervised,
+		//tick it down using the same LocalGridTimeExecution::getPriorityForStep(...) protocols,
+		//but made generic with no humans involved.
+	}
+	
 	public static void tick(WorldGrid world, LocalGrid grid, Society society) {
 		Date date = world.getTime();
 		
@@ -400,7 +422,7 @@ public class LocalGridTimeExecution {
 			Vector2i requiredSpace = new Vector2i(width, width);
 			
 			List<GridRectInterval> bestRectangles = findBestOpenRectSpace(
-					grid, validLandOwners, being.location.coords, requiredSpace);
+					grid, society, validLandOwners, being.location.coords, requiredSpace);
 			LinkedHashSet<Vector3i> borderRegion = VecGridUtil.getBorderRegionFromCoords(
 					Vector3i.getRange(bestRectangles));
 			
@@ -408,6 +430,14 @@ public class LocalGridTimeExecution {
 					being, borderRegion.size());
 				
 			if (bestRectangles != null) {
+				//Use land claims on the spaces not already claimed
+				for (GridRectInterval interval: bestRectangles) {
+					List<Human> claimants = grid.findClaimantToTiles(interval);
+					if (claimants == null || claimants.size() == 0) {
+						grid.claimTiles(ownerProducts, interval.getStart(), interval.getEnd(), process);
+					}
+				}
+				
 				PurposeAnnotatedBuild compound = new PurposeAnnotatedBuild("Home");
 				compound.addRoom("Bedroom", bestRectangles, borderRegion, 
 						VecGridUtil.setUnderVecs(grid, Vector3i.getRange(bestRectangles)));
@@ -475,11 +505,11 @@ public class LocalGridTimeExecution {
 			
 			//If available building, use it, 
 			//otherwise find space needed for building, allocate it, and start allocating a room
-			GridRectInterval nearOpenSpace = grid.getNearestViableRoom(validLandOwners, 
+			GridRectInterval nearOpenSpace = grid.getNearestViableRoom(society, validLandOwners, 
 					being.location.coords, requiredSpace);
 
 			if (nearOpenSpace == null) { //No available rooms to use
-				List<GridRectInterval> bestRectangles = findBestOpenRectSpace(grid, validLandOwners, 
+				List<GridRectInterval> bestRectangles = findBestOpenRectSpace(grid, society, validLandOwners, 
 						being.location.coords, requiredSpace);
 				
 				if (bestRectangles != null && bestRectangles.size() > 0) {
@@ -495,7 +525,7 @@ public class LocalGridTimeExecution {
 					for (GridRectInterval interval: bestRectangles) {
 						List<Human> claimants = grid.findClaimantToTiles(interval);
 						if (claimants == null || claimants.size() == 0) {
-							grid.claimTiles(ownerProducts, interval.start, interval.end, process);
+							grid.claimTiles(ownerProducts, interval.getStart(), interval.getEnd(), process);
 						}
 					}
 					
@@ -1274,12 +1304,12 @@ public class LocalGridTimeExecution {
 	
 	/**
 	 * @return A list of vector coords representing the space. This is a list
-	 * 		   because we need an indexed ordering to the  
+	 * 		   because we need an indexed ordering to the target tiles 
 	 */
-	private static List<GridRectInterval> findBestOpenRectSpace(LocalGrid grid, Set<Human> validLandOwners, 
-			Vector3i coords, Vector2i requiredSpace) {
-		GridRectInterval openSpace = SpaceFillingAlg.findAvailSpaceInClaims(grid, 
-				requiredSpace.x, requiredSpace.y, true, validLandOwners, null);
+	private static List<GridRectInterval> findBestOpenRectSpace(LocalGrid grid, Society society, 
+			Set<Human> validLandOwners, Vector3i coords, Vector2i requiredSpace) {
+		GridRectInterval openSpace = SpaceFillingAlg.findAvailSpaceCloseFactorClaims(grid, coords,
+				requiredSpace.x, requiredSpace.y, true, society, validLandOwners, false, false, null);
 		
 		if (openSpace != null) {
 			/*
@@ -1301,10 +1331,9 @@ public class LocalGridTimeExecution {
 			*/
 			return CollectionUtil.newList(openSpace);
 		}
-
-		//Make user claim new land
-		openSpace = SpaceFillingAlg.findAvailableSpaceNear(grid, coords,
-				requiredSpace.x, requiredSpace.y, true, validLandOwners, null);
+		
+		openSpace = SpaceFillingAlg.findAvailSpaceClose(grid, coords,
+				requiredSpace.x, requiredSpace.y, true, society, new HashSet<>(), false, null);
 		if (openSpace != null) {
 			return CollectionUtil.newList(openSpace);
 		}

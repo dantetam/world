@@ -55,12 +55,18 @@ public class Society {
 	public Map<String, Double> groupItemRarity;
 	public List<Vector3i> importantLocations;
 	
+	//This society's unique claims on areas of land
+	//This can conflict and overlap with other societies' deeds and claims to all global land
+	private Map<LocalGrid, Human[][][]> landClaimRefByTile;
+	
 	public Society(String name, LocalGrid grid) {
 		this.name = name;
 		
+		landClaimRefByTile = new HashMap<>();
+		
 		this.allGrids = new ArrayList<>();
-		this.allGrids.add(grid);
 		this.primaryGrid = grid;
+		addGrid(this.primaryGrid);
 		
 		households = new ArrayList<>();
 		warsInvolved = new ArrayList<>();
@@ -76,6 +82,35 @@ public class Society {
 	public void removeHousehold(Household house) {
 		households.remove(house);
 		house.society = null;
+	}
+	
+	public void addGrid(LocalGrid grid) {
+		this.allGrids.add(grid);
+		Human[][][] arr = new Human[grid.rows][grid.cols][grid.heights];
+		landClaimRefByTile.put(grid, arr);
+	}
+	
+	public void recordClaimInGrid(Human human, LocalGrid grid, Vector3i vec) {
+		if (!human.society.equals(this)) {
+			throw new IllegalArgumentException("Cannot record land claim for human of society: " + human.society.toString() +
+					" in this society: " + this.name);
+		}
+		if (!landClaimRefByTile.containsKey(grid)) {
+			addGrid(grid);
+		}
+		if (grid.inBounds(vec)) {
+			landClaimRefByTile.get(grid)[vec.x][vec.y][vec.z] = human;
+		}
+	}
+	
+	public Human getRecordClaimInGrid(LocalGrid grid, Vector3i vec) {
+		if (!landClaimRefByTile.containsKey(grid)) {
+			throw new IllegalArgumentException("Cannot find records for grid: " + grid.toString());
+		}
+		if (!grid.inBounds(vec)) {
+			throw new IllegalArgumentException("In grid: " + grid + ", vec out of bounds: " + vec);
+		}
+		return landClaimRefByTile.get(grid)[vec.x][vec.y][vec.z];
 	}
 	
 	public List<Human> getAllPeople() {
@@ -172,7 +207,7 @@ public class Society {
 					}
 				}
 				if (heuristicActionScore > 0)
-					processByUtil.put(process, heuristicActionScore);
+					processByUtil.put(process.clone(), heuristicActionScore);
 			}
 		}
 		

@@ -16,14 +16,16 @@ public class LocalGridLandClaim {
 
 	public Human claimant;
 	public GridRectInterval boundary;
-	private Vector3f averageVec;
 	public LocalProcess purpose;
 	
 	public LocalGridLandClaim(Human human, Vector3i s, Vector3i e, LocalProcess purpose) {
 		this.claimant = human;
-		averageVec = s.getSum(e).getScaled(0.5f);
 		boundary = new GridRectInterval(s, e);
 		this.purpose = purpose;
+	}
+	
+	public Vector3i avgVec() {
+		return this.boundary.avgVec();
 	}
 	
 	@Override

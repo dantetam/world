@@ -115,6 +115,9 @@ public class VecGridUtil {
 	 * @return A list of the maximal rectangular solids
 	 */
 	public static List<RectangularSolid> findMaximalRectSolids(LocalGrid grid) {
+		return findMaximalRectSolids(grid, null);
+	}
+	public static List<RectangularSolid> findMaximalRectSolids(LocalGrid grid, Set<Vector3i> validSetVec) {
 		List<RectangularSolid> solids = new ArrayList<>();
 		int[][][] solidData = new int[grid.rows][grid.cols][grid.heights];
 		for (int r = 0; r < grid.rows; r++) {
@@ -131,19 +134,24 @@ public class VecGridUtil {
 			for (int c = minBoundsInc.y; c < maxBoundsInc.y; c++) {
 				for (int h = minBoundsInc.z; h < maxBoundsInc.z; h++) {
 					Vector3i minPoint = new Vector3i(r,c,h);
+					if (validSetVec != null && !validSetVec.contains(minPoint)) continue;
+					
 					Vector3i dimensions = new Vector3i(1,1,1);
 					boolean rExp = true, cExp = true, hExp = true;
 					while (rExp || cExp || hExp) {
 						if (rExp) {
-							if (canExpand(grid, minPoint, dimensions, 'r', solidData)) dimensions.x++;
+							if (canExpand(grid, minPoint, dimensions, 'r', solidData, validSetVec)) 
+								dimensions.x++;
 							else rExp = false;
 						}
 						if (cExp) {
-							if (canExpand(grid, minPoint, dimensions, 'c', solidData)) dimensions.y++;
+							if (canExpand(grid, minPoint, dimensions, 'c', solidData, validSetVec)) 
+								dimensions.y++;
 							else cExp = false;
 						}
 						if (hExp) {
-							if (canExpand(grid, minPoint, dimensions, 'h', solidData)) dimensions.z++;
+							if (canExpand(grid, minPoint, dimensions, 'h', solidData, validSetVec)) 
+								dimensions.z++;
 							else hExp = false;
 						}
 					}
@@ -166,7 +174,7 @@ public class VecGridUtil {
 		return solids;
 	}
 	public static boolean canExpand(LocalGrid grid, Vector3i minPoint, Vector3i dimensions, char direction,
-			int[][][] solidData) {
+			int[][][] solidData, Set<Vector3i> validSetVec) {
 		Set<Vector3i> face = new HashSet<>();
 		if (direction == 'r') {
 			int newDim = minPoint.x + dimensions.x;
@@ -196,7 +204,9 @@ public class VecGridUtil {
 			throw new IllegalArgumentException("Direction parameter must be one of 'r','c','h', got: " + direction);
 		}
 		for (Vector3i vec: face) {
-			if (!grid.inBounds(vec) || !grid.tileIsAccessible(vec) || solidData[vec.x][vec.y][vec.z] != -1) {
+			if (!grid.inBounds(vec) || !grid.tileIsAccessible(vec) || solidData[vec.x][vec.y][vec.z] != -1 ||
+					(validSetVec != null && !validSetVec.contains(vec))
+					) {
 				return false;
 			}
 		}
@@ -215,7 +225,8 @@ public class VecGridUtil {
 		}
 		
 		/**
-		 * @return True if the given point is fully within this rect solid (does not include perimeter).
+		 * @return True if the given point is fully within this rect solid 
+		 * 		   (does not include perimeter, hence why there is offset).
 		 */
 		public boolean insideInterior(Vector3i v) {
 			Vector3i minBounds = this.topLeftCorner.getSum(1,1,1);
