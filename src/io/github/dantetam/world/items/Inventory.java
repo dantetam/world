@@ -8,11 +8,13 @@ import java.util.Set;
 
 import io.github.dantetam.toolbox.MapUtil;
 import io.github.dantetam.world.dataparse.ItemData;
+import io.github.dantetam.world.life.Human;
 import io.github.dantetam.world.life.LivingEntity;
 
 public class Inventory {
 
-	private List<InventoryItem> items;
+	private List<InventoryItem> items; 
+	//Assumed that the owner of this inventory has access to all items in this inventory
 	
 	public Inventory() {
 	
@@ -59,19 +61,19 @@ public class Inventory {
 	}
 	
 	public int findItemCount(int itemId) {
-		return findItemCount(itemId, null);
+		return findItemCount(itemId, null, null);
 	}
 	
 	public int findItemCountGroup(String groupName) {
-		return findItemCountGroup(groupName, null);
+		return findItemCountGroup(groupName, null, null);
 	}
 	
-	public int findItemCount(int itemId, Set<LivingEntity> possibleUsers) {
+	public int findItemCount(int itemId, LivingEntity mainHuman, Set<LivingEntity> otherOwners) {
 		if (items == null) return 0;
 		int sum = 0;
 		for (InventoryItem item: items) {
-			if (possibleUsers == null || possibleUsers.contains(item.owner)) {
-				if (item.itemId == itemId) {
+			if (item.itemId == itemId) {
+				if (item.beingHasAccessItem(mainHuman, otherOwners)) {
 					sum += item.quantity;
 				}
 			}
@@ -79,13 +81,13 @@ public class Inventory {
 		return sum;
 	}
 	
-	public int findItemCountGroup(String groupName, Set<LivingEntity> possibleUsers) {
+	public int findItemCountGroup(String groupName, LivingEntity mainHuman, Set<LivingEntity> otherOwners) {
 		if (items == null) return 0;
 		int sum = 0;
 		Set<Integer> groupIds = ItemData.getGroupIds(groupName);
 		for (InventoryItem item: items) {
-			if (possibleUsers == null || possibleUsers.contains(item.owner)) {
-				if (groupIds.contains(item.itemId)) {
+			if (groupIds.contains(item.itemId)) {
+				if (item.beingHasAccessItem(mainHuman, otherOwners)) {
 					sum += item.quantity;
 				}
 			}

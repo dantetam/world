@@ -156,14 +156,19 @@ public class MenuSystem extends BaseSystem {
 							texts.add("Job: " + being.jobProcessProgress.jobWorkProcess.name + 
 									", under boss: " + being.jobProcessProgress.boss.name);
 						}
-						if (being.processBuilding != null)
-							texts.add("Used Proc Build: " + being.processBuilding.name + ", at " + being.processBuilding.getPrimaryLocation());
-						
-						if (being.targetTile != null) {
-							texts.add("Used Proc Tile (Target): " + ItemData.getNameFromId(being.targetTile.tileBlockId) + ", at " + being.targetTile.coords);
-						}
-						else if (being.processTile != null) {
-							texts.add("Used Proc Tile: " + ItemData.getNameFromId(being.processTile.tileBlockId) + ", at " + being.processTile.coords);
+						if (being.processProgress != null) {
+							if (being.processProgress.processBuilding != null)
+								texts.add("Used Proc Build: " + being.processProgress.processBuilding.name + ", at " + 
+												being.processProgress.processBuilding.getPrimaryLocation());
+							
+							if (being.processProgress.targetTile != null) {
+								texts.add("Used Proc Tile (Target): " + ItemData.getNameFromId(being.processProgress.targetTile.tileBlockId) + 
+										", at " + being.processProgress.targetTile.coords);
+							}
+							else if (being.processProgress.processTile != null) {
+								texts.add("Used Proc Tile: " + ItemData.getNameFromId(being.processProgress.processTile.tileBlockId) + ", at " 
+												+ being.processProgress.processTile.coords);
+							}
 						}
 						
 						if (being.activePriority != null)

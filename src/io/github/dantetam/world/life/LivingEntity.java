@@ -35,9 +35,10 @@ public abstract class LivingEntity {
 	public List<Task> currentQueueTasks;
 	public LocalJob jobProcessProgress; //For activities mandated by a lord, employer, or society
 	
-	public LocalBuilding processBuilding;
-	public LocalTile processTile; //Person should move directly to this tile
-	public LocalTile targetTile; //Person should target this tile for harvest, operations, etc.
+	//Unsupervised tasks not currently active/assigned with this human, but can come back
+	//They are ticked in the unsupervised 'phase' of process reduction.
+	public List<LocalJob> unsupervisedJobs;
+	public List<LocalProcess> unsupervisedProcesses;
 	
 	//Link to all items owned by this person, that can be stored in and out of the inventory,
 	//or in the game world.
@@ -65,6 +66,8 @@ public abstract class LivingEntity {
 	public LivingEntity(String name) {
 		this.name = name;
 		inventory = new Inventory();
+		unsupervisedJobs = new ArrayList<>();
+		unsupervisedProcesses = new ArrayList<>();
 		ownedBuildings = new ArrayList<>();
 		ownedItems = new ArrayList<>();
 		designatedBuildsByPurpose = new HashMap<>();

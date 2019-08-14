@@ -4,8 +4,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import io.github.dantetam.world.dataparse.ItemData;
+import io.github.dantetam.world.life.Human;
 import io.github.dantetam.world.life.LivingEntity;
 
 /**
@@ -24,8 +26,13 @@ public class InventoryItem {
 	public ItemQuality quality;
 	public String name;
 	
-	public LivingEntity owner;
-	public LivingEntity currentUser;
+	public LivingEntity owner; //Normal ownership rights
+	
+	/*
+		Someone who often but not always has ownership access,
+		who wants restrictive access (reservation) of this item.
+	*/
+	public LivingEntity currentUser; 
 	
 	private List<ItemSpecialProperty> itemSpecProperties;
 	
@@ -58,6 +65,18 @@ public class InventoryItem {
 			}
 		}
 		return null;
+	}
+	
+	public boolean beingHasAccessItem(LivingEntity human, Set<LivingEntity> otherOwners) {
+		if (this.currentUser != null) {
+			return this.currentUser.equals(human);
+		}
+		else {
+			if (owner != null) {
+				return owner.equals(human) || (otherOwners != null && otherOwners.contains(owner));
+			}
+			return true;
+		}
 	}
 	
 	public enum ItemQuality {

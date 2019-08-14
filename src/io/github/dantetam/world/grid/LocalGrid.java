@@ -31,6 +31,10 @@ import kdtreegeo.KdTree;
  * A grid representing one section of the whole world, i.e. a self contained world with its own people, tiles, and so on.
  * @author Dante
  *
+ * This grid contains a ton of memotized information for quick retrieval and update later.
+ * Most of this was implemented to search across a grid in less than grid time,
+ * while also updating good records in constant time per access/change.
+ *
  */
 
 

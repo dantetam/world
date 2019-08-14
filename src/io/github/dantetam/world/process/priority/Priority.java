@@ -12,7 +12,7 @@ public abstract class Priority {
 	}
 	
 	public String toString() {
-		return ReflectionUtil.getDeclaredToString(this);
+		return ReflectionUtil.getDeclaredToString(this) + '[' + coords + ']';
 	}
 
 }

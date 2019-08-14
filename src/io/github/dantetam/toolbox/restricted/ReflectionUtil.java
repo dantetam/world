@@ -17,6 +17,10 @@ import java.util.List;
 
 public class ReflectionUtil {
 
+	/**
+	 * @param object
+	 * @return Object string representation with only new subclass fields (not inherited)
+	 */
 	public static String getDeclaredToString(Object object) {
 		Class<?> type = object.getClass();
 		String string = type.getSimpleName() + ": ";

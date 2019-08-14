@@ -5,6 +5,8 @@ import java.util.List;
 
 import io.github.dantetam.world.dataparse.ItemData;
 import io.github.dantetam.world.dataparse.ItemTotalDrops;
+import io.github.dantetam.world.grid.LocalBuilding;
+import io.github.dantetam.world.grid.LocalTile;
 import io.github.dantetam.world.items.Inventory;
 import io.github.dantetam.world.items.InventoryItem;
 
@@ -29,6 +31,11 @@ public class LocalProcess {
 	
 	public int recRepeats; //Recommended number of times to repeat the sequence of this process
 	public int processStepIndex; //Keep track of which step the human is completing
+	
+	//Information for the human to store the location of where a process is done
+	public LocalBuilding processBuilding;
+	public LocalTile processTile; //Person should move directly to this tile
+	public LocalTile targetTile; //Person should target this tile for harvest, operations, etc.
 	
 	public LocalProcess(String name, List<InventoryItem> input, ItemTotalDrops output, 
 			String buildingName, boolean site, String tileFloorId, 

@@ -100,74 +100,72 @@ public class SpaceFillingAlg {
 			boolean exactStrictMatch,
 			LocalTileCond tileCond) {
 		
-		while (true) {
+		Collection<ClusterVector3i> closestClusters; 
+		
+		if (validLandOwners == null || validLandOwners.size() <= 0) {
 			KdTree<ClusterVector3i> componentsTree = grid.clustersList2dSurfaces;
-			Collection<ClusterVector3i> closestClusters; 
-			
-			if (validLandOwners == null || validLandOwners.size() <= 0) {
-				closestClusters = componentsTree.nearestNeighbourListSearch(10, 
-						new ClusterVector3i(center, null));
-			}
-			else {
-				closestClusters = new ArrayList<>();
-				for (Human human: validLandOwners) {
-					for (LocalGridLandClaim claim: human.allClaims) {
-						//TODO Fill closestClusters with new clusters
-						closestClusters.add(new ClusterVector3i(claim.avgVec(), 
-								Vector3i.getRange(claim.boundary)));
-					}
+			closestClusters = componentsTree.nearestNeighbourListSearch(10, 
+					new ClusterVector3i(center, null));
+		}
+		else {
+			closestClusters = new ArrayList<>();
+			for (Human human: validLandOwners) {
+				for (LocalGridLandClaim claim: human.allClaims) {
+					//TODO Fill closestClusters with new clusters
+					closestClusters.add(new ClusterVector3i(claim.avgVec(), 
+							Vector3i.getRange(claim.boundary)));
 				}
 			}
-			List<GridRectInterval> componentMaxSubRect = new ArrayList<>();
-			Map<Integer, Integer> componentScore = new HashMap<>();
-			
-			int componentIndex = 0;
-			for (ClusterVector3i cluster: closestClusters) {
-				
-				int height = cluster.center.z;
-				Set<Vector3i> component = cluster.clusterData;
-				
-				if (tileCond != null)
-					component = LocalTileCond.filter(component, grid, tileCond);
-				
-				if (exactStrictMatch && !component.contains(center)) continue;
-				
-				if (society != null && validLandOwners != null)
-					component = LocalTileCond.filter(component, grid, 
-							new LocalTileCond.IsValidLandOwnerSoc(society, validLandOwners));
-				
-				if (component.size() == 0) continue;
-				
-				//int[] maxSubRect = AlgUtil.findMaxRect(component);
-				Pair<Vector2i> maxSubRect = VecGridUtil.findBestRect(component, desiredR, desiredC);
-				
-				if (maxSubRect == null || maxSubRect.second.x < desiredR || maxSubRect.second.y < desiredC) 
-					continue; 
-				
-				Vector3i start = new Vector3i(maxSubRect.first.x, maxSubRect.first.y, height);
-				Vector3i end = new Vector3i(
-						maxSubRect.first.x + maxSubRect.second.x - 1, 
-						maxSubRect.first.y + maxSubRect.second.y - 1, 
-						height);
-				GridRectInterval interval = new GridRectInterval(start, end);
-				componentMaxSubRect.add(interval);
-				
-				Vector3i centerRectSpace = interval.avgVec();
-				int dist = (int) Math.ceil(centerRectSpace.dist(center));
-				int verticalDist = Math.abs(center.z - height) * 5;
-				
-				componentScore.put(componentIndex, interval.get2dSize() - dist - verticalDist);
-				componentIndex++;
-			}
-			
-			if (componentScore.size() > 0) {
-				componentScore = MapUtil.getSortedMapByValueDesc(componentScore);
-				Integer bestSpaceIndex = (Integer) componentScore.keySet().toArray()[0];
-				GridRectInterval bestSpace = componentMaxSubRect.get(bestSpaceIndex);
-				return bestSpace;
-			}
-			return null;
 		}
+		List<GridRectInterval> componentMaxSubRect = new ArrayList<>();
+		Map<Integer, Integer> componentScore = new HashMap<>();
+		
+		int componentIndex = 0;
+		for (ClusterVector3i cluster: closestClusters) {
+			
+			int height = cluster.center.z;
+			Set<Vector3i> component = cluster.clusterData;
+			
+			if (tileCond != null)
+				component = LocalTileCond.filter(component, grid, tileCond);
+			
+			if (exactStrictMatch && !component.contains(center)) continue;
+			
+			if (society != null && validLandOwners != null)
+				component = LocalTileCond.filter(component, grid, 
+						new LocalTileCond.IsValidLandOwnerSoc(society, validLandOwners));
+			
+			if (component.size() == 0) continue;
+			
+			//int[] maxSubRect = AlgUtil.findMaxRect(component);
+			Pair<Vector2i> maxSubRect = VecGridUtil.findBestRect(component, desiredR, desiredC);
+			
+			if (maxSubRect == null || maxSubRect.second.x < desiredR || maxSubRect.second.y < desiredC) 
+				continue; 
+			
+			Vector3i start = new Vector3i(maxSubRect.first.x, maxSubRect.first.y, height);
+			Vector3i end = new Vector3i(
+					maxSubRect.first.x + maxSubRect.second.x - 1, 
+					maxSubRect.first.y + maxSubRect.second.y - 1, 
+					height);
+			GridRectInterval interval = new GridRectInterval(start, end);
+			componentMaxSubRect.add(interval);
+			
+			Vector3i centerRectSpace = interval.avgVec();
+			int dist = (int) Math.ceil(centerRectSpace.dist(center));
+			int verticalDist = Math.abs(center.z - height) * 5;
+			
+			componentScore.put(componentIndex, interval.get2dSize() - dist - verticalDist);
+			componentIndex++;
+		}
+		
+		if (componentScore.size() > 0) {
+			componentScore = MapUtil.getSortedMapByValueDesc(componentScore);
+			Integer bestSpaceIndex = (Integer) componentScore.keySet().toArray()[0];
+			GridRectInterval bestSpace = componentMaxSubRect.get(bestSpaceIndex);
+			return bestSpace;
+		}
+		return null;
 	}
 		
 	public static ClusterVector3i findSingleComponent(
