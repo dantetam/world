@@ -19,6 +19,7 @@ import io.github.dantetam.toolbox.Pair;
 import io.github.dantetam.vector.Vector2i;
 import io.github.dantetam.vector.Vector3i;
 import io.github.dantetam.world.civilization.Society;
+import io.github.dantetam.world.civilization.gridstructure.PurposeAnnotatedBuild;
 import io.github.dantetam.world.life.Human;
 import kdtreegeo.KdTree;
 

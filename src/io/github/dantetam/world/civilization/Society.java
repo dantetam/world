@@ -667,6 +667,9 @@ public class Society {
 	 * @return A map of needs mapping to intensity values, based on this society's total needs for certain parts of the Maslow hierachy
 	 */
 	private Map<String, Double> findAllNeedsIntensity() {
+		
+		TODO: Maslow's need hierarchy object, see Human.java
+		
 		Map<String, Double> societalNeed = new HashMap<>();
 		for (Human human : this.getAllPeople()) {
 			double hungerScore = 2.0 - human.nutrition / human.maxNutrition;

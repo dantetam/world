@@ -9,6 +9,7 @@ import java.util.Set;
 import java.util.Map.Entry;
 
 import io.github.dantetam.toolbox.MapUtil;
+import io.github.dantetam.world.civhumanai.StringDoubleGamut;
 
 /**
  * Represents a range of different emotions with distinct values. This is needed
@@ -19,10 +20,8 @@ import io.github.dantetam.toolbox.MapUtil;
  *
  */
 
-public class EmotionGamut {
+public class EmotionGamut extends StringDoubleGamut {
 
-	private Map<String, Double> emotionGamut;
-	
 	public static final Set<String> EMOTIONS = new HashSet<String>() {{
 		add("Kindness"); add("Honor"); add("Attraction"); add("Admiration");
 		add("Rationality"); 
@@ -30,38 +29,7 @@ public class EmotionGamut {
 	}};
 	
 	public EmotionGamut() {
-		this.emotionGamut = new HashMap<>();
-	}
-	
-	public void addEmotion(String emotion, double value) {
-		if (EMOTIONS.contains(emotion)) {
-			MapUtil.addNumMap(emotionGamut, emotion, value);
-		}
-		else {
-			throw new IllegalArgumentException("Could not find given emotion in gamut (emotion range): " + emotion);
-		}
-	}
-	
-	public double getEmotion(String emotion) {
-		if (EMOTIONS.contains(emotion)) {
-			if (emotionGamut.containsKey(emotion)) {
-				return emotionGamut.get(emotion);
-			}
-			return 0;
-		}
-		else {
-			throw new IllegalArgumentException("Could not find given emotion in gamut (emotion range): " + emotion);
-		}
-	}
-	
-	public double dotProductWeights(Map<String, Double> weights) {
-		double sum = 0;
-		for (Entry<String, Double> emotion: emotionGamut.entrySet()) {
-			if (weights.containsKey(emotion.getKey())) {
-				sum += weights.get(emotion.getKey()) * emotion.getValue();
-			}
-		}
-		return sum;
+		super();
 	}
 	
 }

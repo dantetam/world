@@ -27,6 +27,7 @@ import io.github.dantetam.vector.Vector3i;
 import io.github.dantetam.world.ai.Pathfinder.ScoredPath;
 import io.github.dantetam.world.civilization.Society;
 import io.github.dantetam.world.civilization.artwork.ArtworkGraph;
+import io.github.dantetam.world.civilization.gridstructure.PurposeAnnotatedBuild;
 import io.github.dantetam.world.dataparse.ItemData;
 import io.github.dantetam.world.dataparse.ProcessData;
 import io.github.dantetam.world.grid.ItemMetricsUtil.*;
@@ -531,6 +532,9 @@ public class LocalGridTimeExecution {
 				priority = new ImpossiblePriority("Could not find open rectangular space");
 			}
 			return priority;
+		}
+		else if (process.name.equals("Improve Complex")) {
+			
 		}
 		else if (process.name.equals("Local Soldier Duty")) {
 			return new SoldierPriority(society.societyCenter, being);

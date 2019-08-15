@@ -1,4 +1,4 @@
-package io.github.dantetam.world.grid;
+package io.github.dantetam.world.civilization.gridstructure;
 
 import java.util.HashMap;
 import java.util.List;
@@ -7,6 +7,8 @@ import java.util.Set;
 
 import io.github.dantetam.toolbox.MapUtil;
 import io.github.dantetam.vector.Vector3i;
+import io.github.dantetam.world.grid.GridRectInterval;
+import io.github.dantetam.world.grid.LocalBuilding;
 
 /**
  * 
@@ -32,6 +34,9 @@ public class PurposeAnnotatedBuild {
 		roomsByPurpose = new HashMap<>();
 	}
 	
+	public void addRoom(Room room) {
+		MapUtil.insertNestedListMap(this.roomsByPurpose, room.purpose, room);
+	}
 	public void addRoom(String purpose, List<GridRectInterval> roomArea, Set<Vector3i> walls, Set<Vector3i> floors) {
 		Room room = new Room(purpose, roomArea, walls, floors);
 		MapUtil.insertNestedListMap(this.roomsByPurpose, purpose, room);

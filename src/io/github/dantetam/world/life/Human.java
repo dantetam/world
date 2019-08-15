@@ -42,6 +42,12 @@ public class Human extends LivingEntity {
 	
 	public Household household;
 	
+	TODO; //Use traits like in DF to represent physical properties of a person, like sentience, or civilization,
+			//or aversion to water.
+	
+	TODO; //Implement short-term (immediate), medium-term (job? current goals), 
+			//and long-term (fulfillment and life-long) Maslow needs
+	
 	public Human(Society society, String name) {
 		super(name);
 		this.society = society;
