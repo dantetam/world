@@ -3,8 +3,6 @@ package io.github.dantetam.world.civilization.gridstructure;
 import java.util.HashMap;
 import java.util.Map;
 
-import io.github.dantetam.world.civilization.gridstructure.PurposeAnnotatedBuild.Room;
-
 /**
  * Create rooms based from either templates or those that emerge from a society and its ethos.
  * These can also be defined as rooms in CSV files.
@@ -23,7 +21,7 @@ import io.github.dantetam.world.civilization.gridstructure.PurposeAnnotatedBuild
 
 public class PurposeAnnoBuildDesign {
 	
-	public static Map<String, Room> predesignedRoomConf = new HashMap<>();
+	public static Map<String, AnnotatedRoom> predesignedRoomConf = new HashMap<>();
 	
 	public static void init() {
 		TODO;

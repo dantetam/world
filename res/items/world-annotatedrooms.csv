@@ -1,0 +1,8 @@
+Room Name,Valid Complexes,Target Size,Required Placed Items,Optional Placed Items,Required Storage,Optional Storage,Heuristic Needs Fulfilled
+,,,,,,,
+Bedroom,Home,"4,5,1","Bed, 1","Furniture, 3",,Clothing,"Personal Home, 1.0; Shelter, 1.0"
+Kitchen,Home,"3,4,1","Oven, 1","Table, 1","Food, 5",,"Eat, 0.2; Personal Home, 0.2"
+,,,,,,,
+Armory,Armory,"3,3,1",,,Weapon; Armor; RangedWeapon,"Medicine, 3","Soldier, 1.0"
+,,,,,,,
+Crafting Room,Carpenter,"6,6,1","Carpenter, 1","Furniture, 2",,Furniture,

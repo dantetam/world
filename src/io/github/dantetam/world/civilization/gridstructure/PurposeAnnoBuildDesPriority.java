@@ -7,7 +7,6 @@ import java.util.Map.Entry;
 import java.util.AbstractMap.SimpleEntry;
 
 import io.github.dantetam.world.civhumanai.NeedsGamut;
-import io.github.dantetam.world.civilization.gridstructure.PurposeAnnotatedBuild.Room;
 import io.github.dantetam.world.life.Human;
 import io.github.dantetam.world.life.LivingEntity;
 
@@ -29,32 +28,33 @@ import io.github.dantetam.world.life.LivingEntity;
 
 public class PurposeAnnoBuildDesPriority {
 	
-	public Entry<PurposeAnnotatedBuild, Room> futureRoomNeedByScore(LivingEntity being, 
+	public Entry<PurposeAnnotatedBuild, AnnotatedRoom> futureRoomNeedByScore(LivingEntity being, 
 			NeedsGamut humanNeedsCalc) {
 		//Look all the complexes, and find the best room expansion candidate of each.
 		//Then compare these for the final best result.
-		Entry<PurposeAnnotatedBuild, Room> bestEntry = null;
+		Entry<PurposeAnnotatedBuild, AnnotatedRoom> bestEntry = null;
 		double bestScore = 0;
 		for (List<PurposeAnnotatedBuild> purposeAnnoBuilds: being.designatedBuildsByPurpose.values()) {
 			for (PurposeAnnotatedBuild purposeAnnoBuild: purposeAnnoBuilds) {
-				LinkedHashMap<Room, Double> scoredRooms = futureRoomNeedByScore(being, purposeAnnoBuild,
+				LinkedHashMap<AnnotatedRoom, Double> scoredRooms = futureRoomNeedByScore(being, purposeAnnoBuild,
 						humanNeedsCalc);
 				if (scoredRooms != null && scoredRooms.size() > 0) {
-					Entry<Room, Double> thisComplexBestChoice = scoredRooms.entrySet().iterator().next();
+					Entry<AnnotatedRoom, Double> thisComplexBestChoice = scoredRooms.entrySet().iterator().next();
 					if (bestEntry == null || thisComplexBestChoice.getValue() > bestScore) {
 						bestScore = thisComplexBestChoice.getValue();
-						bestEntry = new SimpleEntry<PurposeAnnotatedBuild, Room>(
+						bestEntry = new SimpleEntry<PurposeAnnotatedBuild, AnnotatedRoom>(
 								purposeAnnoBuild, thisComplexBestChoice.getKey()
 						);
 					}
 				}
 			}
 		}
+		return bestEntry;
 	}
 	
 	//TODO: Implement Maslow's needs hierarchy object (different scoring of different needs)
-	public LinkedHashMap<Room, Double> futureRoomNeedByScore(LivingEntity being, PurposeAnnotatedBuild complex,
-			NeedsGamut humanNeedsCalc) {
+	public LinkedHashMap<AnnotatedRoom, Double> futureRoomNeedByScore(LivingEntity being, 
+			PurposeAnnotatedBuild complex, NeedsGamut humanNeedsCalc) {
 		 
 	}
 	

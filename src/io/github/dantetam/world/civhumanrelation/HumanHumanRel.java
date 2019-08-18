@@ -157,7 +157,7 @@ public class HumanHumanRel extends HumanRelationship {
 		//Find dot product of this vector with current emotion range of person 
 		//to determine opinion sum.
 		Map<String, Double> weights = human.brain.feelingGamutWeights;
-		return emotionGamut.dotProductWeights(weights);
+		return emotionGamut.dotProduct(weights);
 	}
 
 	public boolean equals(Object other) {

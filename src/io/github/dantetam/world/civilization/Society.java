@@ -17,6 +17,8 @@ import java.util.function.Supplier;
 import io.github.dantetam.toolbox.MapUtil;
 import io.github.dantetam.vector.Vector3i;
 import io.github.dantetam.world.civhumanai.Ethos;
+import io.github.dantetam.world.civhumanai.NeedsGamut;
+import io.github.dantetam.world.civhumanrelation.EmotionGamut;
 import io.github.dantetam.world.civhumansocietyai.SocietalHumansActionsCalc;
 import io.github.dantetam.world.combat.War;
 import io.github.dantetam.world.dataparse.ItemData;
@@ -192,7 +194,7 @@ public class Society {
 		}
 		
 		//For leftover processes that have not been assigned a utility yet
-		Map<String, Double> needsIntensity = findAllNeedsIntensity();
+		NeedsGamut needsIntensity = findAllNeedsIntensity();
 		for (LocalProcess process: ProcessData.getAllProcesses()) {
 			if (!processByUtil.containsKey(process) && canCompleteProcess(process, rawResRarity)) {
 				double heuristicActionScore = 0;
@@ -200,8 +202,8 @@ public class Society {
 				if (resActions != null) {
 					for (ProcessStep resAction: resActions) {
 						double needWeight = 0.5;
-						if (needsIntensity.containsKey(resAction.stepType)) {
-							needWeight = needsIntensity.get(resAction.stepType);
+						if (needsIntensity.hasEmotion(resAction.stepType)) {
+							needWeight = needsIntensity.getEmotion(resAction.stepType);
 						}
 						heuristicActionScore += needWeight * resAction.modifier;
 					}
@@ -359,13 +361,15 @@ public class Society {
 		Map<Integer, Double> economicRarityMap = findAdjEconomicRarity();
 		Set<Integer> availableItemIds = economicRarityMap.keySet();
 		
-		Map<String, Double> needsIntensity = findAllNeedsIntensity();
+		NeedsGamut needsIntensity = findAllNeedsIntensity();
 		
 		Map<String, Double> needWeights = new HashMap<>();
 		needWeights.put("Eat", 2.0);
 		needWeights.put("Rest", 2.5);
 		needWeights.put("Shelter", 1.0);
 		needWeights.put("Soldier", 0.3);
+		
+		Map<String, Double> productWeights = needsIntensity.productWeights(needWeights);
 		
 		//Used to normalize the values and determine 
 		Map<String, Double> totalNeedsUtility = new HashMap<>(); 
@@ -382,12 +386,12 @@ public class Society {
 			Map<String, Double> needsUtilityFromItems = findUtilityByNeed(itemId);
 			
 			for (Entry<String, Double> e: needsUtilityFromItems.entrySet()) {
-				Double intensity = needsIntensity.get(e.getKey());
+				Double intensity = productWeights.get(e.getKey());
 				if (intensity == null) {
 					intensity = new Double(0.5);
 				}
-				double needWeight = needWeights.containsKey(e.getKey()) ? needWeights.get(e.getKey()) : 0.5;
-				double util = (e.getValue() * intensity * needWeight) - (itemRarity * economicRarity);
+				//double needWeight = needWeights.containsKey(e.getKey()) ? needWeights.get(e.getKey()) : 0.5;
+				double util = (e.getValue() * intensity) - (itemRarity * economicRarity);
 				needsUtilityFromItems.put(e.getKey(), util);
 			}
 			
@@ -665,15 +669,13 @@ public class Society {
 	
 	/**
 	 * @return A map of needs mapping to intensity values, based on this society's total needs for certain parts of the Maslow hierachy
+	 * Return a Maslow's need hierarchy object, see NeedsGamut.java/StringDoubleGamut.java
 	 */
-	private Map<String, Double> findAllNeedsIntensity() {
-		
-		TODO: Maslow's need hierarchy object, see Human.java
-		
-		Map<String, Double> societalNeed = new HashMap<>();
+	private NeedsGamut findAllNeedsIntensity() {		
+		NeedsGamut societalNeed = new NeedsGamut();
 		for (Human human : this.getAllPeople()) {
 			double hungerScore = 2.0 - human.nutrition / human.maxNutrition;
-			MapUtil.addNumMap(societalNeed, "Eat", hungerScore);
+			societalNeed.addEmotion(NeedsGamut.EAT, hungerScore);
 		
 			//double thirstScore = 1.0 - human.hydration / human.maxHydration;
 			//MathUti.addNumMap(societalNeed, "Drink", thirstScore);
@@ -698,13 +700,13 @@ public class Society {
 			
 			int minShelter = 20;
 			double normShelterScore = (double) Math.max(minShelter - shelterScore, 0) / minShelter;
-			MapUtil.addNumMap(societalNeed, "Shelter", normShelterScore);
+			societalNeed.addEmotion(NeedsGamut.SHELTER, normShelterScore);
 			
-			MapUtil.addNumMap(societalNeed, "Clothing", 1.0);
+			societalNeed.addEmotion(NeedsGamut.CLOTHING, 1.0);
 			
 			if (human.home == null) {
-				MapUtil.addNumMap(societalNeed, "Personal Home", 1.0);
-				MapUtil.addNumMap(societalNeed, "Furniture", 0.8);
+				societalNeed.addEmotion(NeedsGamut.PERSONAL_HOME, 1.0);
+				societalNeed.addEmotion(NeedsGamut.FURNITURE, 0.8);
 			}
 			else {
 				double normFurnitureScore = 0;
@@ -722,14 +724,14 @@ public class Society {
 					}
 				}
 				normFurnitureScore = Math.min(normFurnitureScore, 1.0);
-				MapUtil.addNumMap(societalNeed, "Furniture", normFurnitureScore);
-				MapUtil.addNumMap(societalNeed, "Personal Home", normFurnitureScore / 3);
+				societalNeed.addEmotion(NeedsGamut.PERSONAL_HOME, normFurnitureScore);
+				societalNeed.addEmotion(NeedsGamut.FURNITURE, normFurnitureScore / 3);
 			}	
 			
 			double beautyScore = this.primaryGrid.averageBeauty(human.location.coords);
-			MapUtil.addNumMap(societalNeed, "Beauty", 1.0 - beautyScore);
-			
-			MapUtil.addNumMap(societalNeed, "Soldier", 0.1);
+			societalNeed.addEmotion(NeedsGamut.BEAUTY, 1.0 - beautyScore);
+
+			societalNeed.addEmotion(NeedsGamut.SOLDIER, 0.1);
 		}
 		return societalNeed;
 	}

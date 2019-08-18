@@ -21,11 +21,7 @@ public abstract class StringDoubleGamut {
 
 	private Map<String, Double> stringDoubleGamut;
 	
-	public static final Set<String> EMOTIONS = new HashSet<String>() {{
-		add("Kindness"); add("Honor"); add("Attraction"); add("Admiration");                                                                                                                                                                          
-		add("Rationality"); 
-		add("Hate"); add("Indifference");
-	}};
+	public static Set<String> EMOTIONS;
 	
 	protected StringDoubleGamut() {
 		this.stringDoubleGamut = new HashMap<>();
@@ -40,8 +36,12 @@ public abstract class StringDoubleGamut {
 		}
 	}
 	
+	public boolean hasEmotion(String emotion) {
+		return EMOTIONS.contains(emotion);
+	}
+	
 	public double getEmotion(String emotion) {
-		if (EMOTIONS.contains(emotion)) {
+		if (hasEmotion(emotion)) {
 			if (stringDoubleGamut.containsKey(emotion)) {
 				return stringDoubleGamut.get(emotion);
 			}
@@ -52,7 +52,7 @@ public abstract class StringDoubleGamut {
 		}
 	}
 	
-	public double dotProductWeights(Map<String, Double> weights) {
+	public double dotProduct(Map<String, Double> weights) {
 		double sum = 0;
 		for (Entry<String, Double> emotion: stringDoubleGamut.entrySet()) {
 			if (weights.containsKey(emotion.getKey())) {
@@ -60,6 +60,16 @@ public abstract class StringDoubleGamut {
 			}
 		}
 		return sum;
+	}
+	
+	public Map<String, Double> productWeights(Map<String, Double> weights) {
+		Map<String, Double> newWeights = new HashMap<>();
+		for (Entry<String, Double> emotion: stringDoubleGamut.entrySet()) {
+			if (weights.containsKey(emotion.getKey())) {
+				newWeights.put(emotion.getKey(), weights.get(emotion.getKey()) * emotion.getValue());
+			}
+		}
+		return newWeights;
 	}
 	
 }

@@ -268,7 +268,7 @@ Wooden Scaffolding,6051,,Y,"Wooden Scaffolding, 1",Building,,,,,25,,"Scaffold, 0
 Wooden Tailor,6052,,Y,"Wooden Tailor, 1",Building; Tailor,,,,,25,,,,
 Wooden Cabinet,6100,,Y,Wooden Cabinet,Building,,,,,25,,"Furniture, 0, 10",,
 Wooden Shelf,6101,,Y,Wooden Shelf,Building,,,,,25,,"Furniture, 0, 10",,
-Wooden Table,6102,,Y,Wooden Table,Building,,,,,25,,"Furniture, 0, 10",,
+Wooden Table,6102,,Y,Wooden Table,Building; Table,,,,,25,,"Furniture, 0, 10",,
 Wooden Chair,6103,,Y,Wooden Chair,Building,,,,,25,,"Furniture, 0, 10",,
 Wooden Press,6104,A wooden frame used to press and squeeze items into their refined forms.,Y,Wooden Press,Building; Press,,,,,25,,,,
 Fishery,6105,"A designated location to fish, with tools and wooden boards.",Y,Fishery,Building,,,,,35,,,,

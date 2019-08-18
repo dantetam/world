@@ -22,7 +22,7 @@ import io.github.dantetam.world.civhumanai.StringDoubleGamut;
 
 public class EmotionGamut extends StringDoubleGamut {
 
-	public static final Set<String> EMOTIONS = new HashSet<String>() {{
+	public static Set<String> EMOTIONS = new HashSet<String>() {{
 		add("Kindness"); add("Honor"); add("Attraction"); add("Admiration");
 		add("Rationality"); 
 		add("Hate"); add("Indifference");

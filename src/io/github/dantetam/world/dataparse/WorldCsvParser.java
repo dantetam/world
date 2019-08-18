@@ -25,6 +25,7 @@ public class WorldCsvParser {
 		CombatCSVParser.init();
 		EthosCSVParser.init();
 		SkillCSVParser.init();
+		AnnotatedRoomCSVParser.init();
 	}
 	
 	public static List<CSVRecord> parseCsvFile(String fileName) {

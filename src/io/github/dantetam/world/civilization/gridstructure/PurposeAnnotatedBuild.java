@@ -27,55 +27,30 @@ import io.github.dantetam.world.grid.LocalBuilding;
 public class PurposeAnnotatedBuild {
 	
 	public String totalHousePurpose;
-	public Map<String, List<Room>> roomsByPurpose;
+	public Map<String, List<AnnotatedRoom>> roomsByPurpose;
 	
 	public PurposeAnnotatedBuild(String totalHousePurpose) {
 		this.totalHousePurpose = totalHousePurpose;
 		roomsByPurpose = new HashMap<>();
 	}
 	
-	public void addRoom(Room room) {
+	public void addRoom(AnnotatedRoom room) {
 		MapUtil.insertNestedListMap(this.roomsByPurpose, room.purpose, room);
 	}
 	public void addRoom(String purpose, List<GridRectInterval> roomArea, Set<Vector3i> walls, Set<Vector3i> floors) {
-		Room room = new Room(purpose, roomArea, walls, floors);
+		AnnotatedRoom room = new AnnotatedRoom(purpose, roomArea, walls, floors);
 		MapUtil.insertNestedListMap(this.roomsByPurpose, purpose, room);
 	}
 	
 	public boolean annoBuildContainsVec(Vector3i vec) {
-		for (List<Room> rooms: this.roomsByPurpose.values()) {
-			for (Room room: rooms) {
+		for (List<AnnotatedRoom> rooms: this.roomsByPurpose.values()) {
+			for (AnnotatedRoom room: rooms) {
 				if (room.containsVec(vec)) {
 					return true;
 				}
 			}
 		}
 		return false;
-	}
-	
-	public static class Room {
-		public String purpose;
-		public List<GridRectInterval> fullRoom; //does not include the walls of the room
-		public Set<Vector3i> roomWalls;
-		public Set<Vector3i> roomFloors; //Is not always a flat grid rect interval
-		public Map<Vector3i, LocalBuilding> reservedBuiltSpace; //Record interior items and buildings
-		
-		public Room(String purpose, List<GridRectInterval> room, Set<Vector3i> walls, Set<Vector3i> floors) {
-			this.purpose = purpose;
-			this.fullRoom = room;
-			this.roomWalls = walls;
-			this.roomFloors = floors;
-			this.reservedBuiltSpace = new HashMap<>();
-		}
-		
-		public boolean containsVec(Vector3i vec) {
-			for (GridRectInterval interval: fullRoom) {
-				if (interval.vecInBounds(vec)) {
-					return true;
-				}
-			}
-			return false;
-		}
 	}
 	
 }
