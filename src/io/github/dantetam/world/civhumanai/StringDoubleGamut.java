@@ -17,7 +17,7 @@ import io.github.dantetam.toolbox.MapUtil;
  *
  */
 
-public abstract class StringDoubleGamut {
+public class StringDoubleGamut {
 
 	private Map<String, Double> stringDoubleGamut;
 	
@@ -25,6 +25,10 @@ public abstract class StringDoubleGamut {
 	
 	protected StringDoubleGamut() {
 		this.stringDoubleGamut = new HashMap<>();
+	}
+	
+	protected StringDoubleGamut(StringDoubleGamut gamut) {
+		this.stringDoubleGamut = new HashMap<>(gamut.stringDoubleGamut);
 	}
 	
 	public void addEmotion(String emotion, double value) {
@@ -70,6 +74,12 @@ public abstract class StringDoubleGamut {
 			}
 		}
 		return newWeights;
+	}
+	
+	public StringDoubleGamut addKeyGamut(StringDoubleGamut gamut) {
+		StringDoubleGamut newGamut = new StringDoubleGamut(this);
+		MapUtil.addMapToMap(newGamut.stringDoubleGamut, gamut.stringDoubleGamut);
+		return newGamut;
 	}
 	
 }

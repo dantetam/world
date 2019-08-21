@@ -19,9 +19,10 @@ public class AnnotatedRoom {
 	
 	//Initialized in room creation/prioritization, and modified when humans build and fill rooms
 	public Vector3i desiredSize;
-	public Map<Integer, Integer> origItemCounts, desiredItemCounts; 
-	public Map<Integer, Integer> origItemCountsOpt, desiredItemCountsOpt;
-	public Map<Integer, Integer> desiredItemStorage;
+	public Map<String, Integer> origBuildCounts, desiredBuildCounts; 
+	public Map<String, Integer> origBuildCountsOpt, desiredBuildCountsOpt;
+	public Map<String, Integer> origItemStorage, desiredItemStorage;
+	public Map<String, Integer> origItemStorageOpt, desiredItemStorageOpt;
 	
 	public AnnotatedRoom(String purpose, List<GridRectInterval> room, Set<Vector3i> walls, Set<Vector3i> floors) {
 		this.purpose = purpose;
@@ -38,6 +39,29 @@ public class AnnotatedRoom {
 			}
 		}
 		return false;
+	}
+	
+	public void initBuildStoreNeeds(Map<String, Integer> placeBuilds, Map<String, Integer> optBuilds,
+			Map<String, Integer> reqStorage, Map<String, Integer> optStorage) {
+		this.origBuildCounts = placeBuilds;
+		this.origBuildCountsOpt = optBuilds;
+		this.origItemStorage = reqStorage;
+		this.origItemStorageOpt = optStorage;
+		
+		this.desiredBuildCounts = new HashMap<>(this.origBuildCounts);
+		this.desiredBuildCountsOpt = new HashMap<>(this.origBuildCountsOpt);
+		this.desiredItemStorage = new HashMap<>(this.origItemStorage);
+		this.desiredItemStorageOpt = new HashMap<>(this.origItemStorageOpt);
+	}
+	
+	public AnnotatedRoom clone() {
+		return this.clone(null, null, null);
+	}
+	public AnnotatedRoom clone(List<GridRectInterval> roomArea, Set<Vector3i> walls, Set<Vector3i> floors) {
+		AnnotatedRoom room = new AnnotatedRoom(this.purpose, roomArea, walls, floors);
+		initBuildStoreNeeds(this.origBuildCounts, this.origBuildCountsOpt, 
+				this.origItemStorage, this.origItemStorageOpt);
+		return room;
 	}
 	
 }

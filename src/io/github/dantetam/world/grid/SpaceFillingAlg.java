@@ -19,15 +19,33 @@ import io.github.dantetam.toolbox.Pair;
 import io.github.dantetam.vector.Vector2i;
 import io.github.dantetam.vector.Vector3i;
 import io.github.dantetam.world.civilization.Society;
+import io.github.dantetam.world.civilization.gridstructure.AnnotatedRoom;
 import io.github.dantetam.world.civilization.gridstructure.PurposeAnnotatedBuild;
 import io.github.dantetam.world.life.Human;
 import kdtreegeo.KdTree;
 
+TODO;
+//Reform all these methods and definitions of land claims, purpose annotated rooms, and so on
+//Idea: annotated unbuilt land (home expansions?) or unannotated land in land claims for expansions
+
 public class SpaceFillingAlg {
 
+	/*
 	public static Set<Vector3i> fillSpacesIntoGrid(LocalGrid grid, Vector3i center, 
 			List<Vector2i> sizes, boolean sameLevel) {
 		return null;
+	}
+	*/
+	
+	public static GridRectInterval expandAnnotatedComplex(LocalGrid grid, 
+			int desiredR, int desiredC, boolean sameLevel, Society society, Set<Human> validLandOwners,
+			PurposeAnnotatedBuild complex, AnnotatedRoom room) {
+		return findAvailSpaceCloseFactorClaims(grid, complex.singleLocation, 
+				room.desiredSize.x, room.desiredSize.y, true, 
+				society, validLandOwners, false,
+				false,
+				null,
+				complex.)
 	}
 	
 	/**
@@ -54,7 +72,8 @@ public class SpaceFillingAlg {
 			Society society,
 			Set<Human> validLandOwners, boolean allowAnnotated,
 			boolean exactStrictMatch,
-			LocalTileCond tileCond) {
+			LocalTileCond tileCond,
+			Collection<ClusterVector3i> mustBeWithinAreas) {
 		LocalTileCond originalCond = tileCond; 
 		if (!allowAnnotated) { //Add to the custom tile condition to restrict annotated tiles 
 			LocalTileCond tempCond = new LocalTileCond() {
@@ -78,11 +97,11 @@ public class SpaceFillingAlg {
 			};
 			
 			return findAvailSpaceClose(grid, center, desiredR, desiredC, sameLevel, society,
-					validLandOwners, exactStrictMatch, tempCond);
+					validLandOwners, exactStrictMatch, tempCond, mustBeWithinAreas);
 		}
 		else {
 			return findAvailSpaceClose(grid, center, desiredR, desiredC, sameLevel, society,
-					validLandOwners, exactStrictMatch, originalCond);
+					validLandOwners, exactStrictMatch, originalCond, mustBeWithinAreas);
 		}
 	}
 	
@@ -99,22 +118,28 @@ public class SpaceFillingAlg {
 			Society society,
 			Set<Human> validLandOwners,
 			boolean exactStrictMatch,
-			LocalTileCond tileCond) {
+			LocalTileCond tileCond,
+			Collection<ClusterVector3i> mustBeWithinAreas) {
 		
 		Collection<ClusterVector3i> closestClusters; 
 		
-		if (validLandOwners == null || validLandOwners.size() <= 0) {
-			KdTree<ClusterVector3i> componentsTree = grid.clustersList2dSurfaces;
-			closestClusters = componentsTree.nearestNeighbourListSearch(10, 
-					new ClusterVector3i(center, null));
+		if (mustBeWithinAreas != null) {
+			closestClusters = new ArrayList<>(mustBeWithinAreas);
 		}
 		else {
-			closestClusters = new ArrayList<>();
-			for (Human human: validLandOwners) {
-				for (LocalGridLandClaim claim: human.allClaims) {
-					//TODO Fill closestClusters with new clusters
-					closestClusters.add(new ClusterVector3i(claim.avgVec(), 
-							Vector3i.getRange(claim.boundary)));
+			if (validLandOwners == null || validLandOwners.size() <= 0) {
+				KdTree<ClusterVector3i> componentsTree = grid.clustersList2dSurfaces;
+				closestClusters = componentsTree.nearestNeighbourListSearch(10, 
+						new ClusterVector3i(center, null));
+			}
+			else {
+				closestClusters = new ArrayList<>();
+				for (Human human: validLandOwners) {
+					for (LocalGridLandClaim claim: human.allClaims) {
+						//TODO Fill closestClusters with new clusters
+						closestClusters.add(new ClusterVector3i(claim.avgVec(), 
+								Vector3i.getRange(claim.boundary)));
+					}
 				}
 			}
 		}
@@ -123,7 +148,6 @@ public class SpaceFillingAlg {
 		
 		int componentIndex = 0;
 		for (ClusterVector3i cluster: closestClusters) {
-			
 			int height = cluster.center.z;
 			Set<Vector3i> component = cluster.clusterData;
 			
@@ -136,7 +160,13 @@ public class SpaceFillingAlg {
 				component = LocalTileCond.filter(component, grid, 
 						new LocalTileCond.IsValidLandOwnerSoc(society, validLandOwners));
 			
-			if (component.size() == 0) continue;
+			if (mustBeWithinAreas != null) {
+				component = LocalTileCond.filter(component, grid,
+						new LocalTileCond.IsWithinIntervalsStrict(mustBeWithinAreas));
+			}
+			
+			if (component.size() == 0) continue; //After all the filtering has been done
+			
 			
 			//int[] maxSubRect = AlgUtil.findMaxRect(component);
 			Pair<Vector2i> maxSubRect = VecGridUtil.findBestRect(component, desiredR, desiredC);

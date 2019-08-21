@@ -63,6 +63,9 @@ public class LocalGrid {
 	public List<LocalGridLandClaim> localLandClaims;
 	
 	//3d connected components
+	TODO;
+	//Update these two values below when the grid updates, using local (linear time in size of cluster) updates
+	
 	public Map<Vector3i, Integer> connectedCompsMap; //Mapping of all available vectors to a unique numbered space (a 3d volume)
 	public KdTree<ClusterVector3i> clustersList3d;
 	
@@ -564,6 +567,7 @@ public class LocalGrid {
 		return this.allLivingBeings;
 	}
 	
+	//TODO; Implement these heuristics in the generalized scoring metric functions
 	/**
 	 * 
 	 * @param coords The desired coordinates to look for nearest available rooms
@@ -573,8 +577,6 @@ public class LocalGrid {
 	 */
 	/*
 	public Object[] getNearestViableRoom(Set<Human> validLandOwners, Vector3i coords, Vector2i requiredSpace) {
-		TODO;
-		
 		Collection<Vector3i> nearestBuildingCoords = this.buildingLookup.nearestNeighbourListSearch(50, coords);
 		for (Vector3i nearestBuildingCoord: nearestBuildingCoords) {
 			LocalBuilding building = getTile(nearestBuildingCoord).building;
@@ -600,7 +602,7 @@ public class LocalGrid {
 			Vector2i requiredSpace) {
 		GridRectInterval bestAvailSpace = SpaceFillingAlg.findAvailSpaceCloseFactorClaims(this, coords,
 				requiredSpace.x, requiredSpace.y, true, 
-				society, validLandOwners, false, false, new LocalTileCond.IsBuildingTileCond());
+				society, validLandOwners, false, false, new LocalTileCond.IsBuildingTileCond(), null);
 		return bestAvailSpace;
 	}
 	

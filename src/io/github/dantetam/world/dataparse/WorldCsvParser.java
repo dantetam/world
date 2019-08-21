@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,6 +16,7 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
 
 import io.github.dantetam.toolbox.StringUtil;
+import io.github.dantetam.vector.Vector3i;
 
 public class WorldCsvParser {
 	
@@ -89,5 +91,28 @@ public class WorldCsvParser {
 		}
 		return map;
 	}
+	
+	public static List<Vector3i> parseVecs(String string) {
+		List<Vector3i> results = new ArrayList<>();
+		String[] vecStrs = string.split(";");
+		for (String vec: vecStrs) {
+			String[] numStrs = vec.split(",");
+			if (numStrs.length >= 3) {
+				try {
+					results.add(new Vector3i(
+							Integer.parseInt(numStrs[0]),
+							Integer.parseInt(numStrs[1]),
+							Integer.parseInt(numStrs[2])
+							));
+				} catch (NumberFormatException e) {
+					e.printStackTrace();
+					return null;
+				}
+			}
+		}
+		return results;
+	}
+	
+	
 	
 }

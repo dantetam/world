@@ -25,8 +25,11 @@ import io.github.dantetam.toolbox.StringUtil;
 import io.github.dantetam.vector.Vector2i;
 import io.github.dantetam.vector.Vector3i;
 import io.github.dantetam.world.ai.Pathfinder.ScoredPath;
+import io.github.dantetam.world.civhumanai.NeedsGamut;
 import io.github.dantetam.world.civilization.Society;
 import io.github.dantetam.world.civilization.artwork.ArtworkGraph;
+import io.github.dantetam.world.civilization.gridstructure.AnnotatedRoom;
+import io.github.dantetam.world.civilization.gridstructure.PurposeAnnoBuildDesPriority;
 import io.github.dantetam.world.civilization.gridstructure.PurposeAnnotatedBuild;
 import io.github.dantetam.world.dataparse.ItemData;
 import io.github.dantetam.world.dataparse.ProcessData;
@@ -83,6 +86,7 @@ public class LocalGridTimeExecution {
 			society.allEconomicUtil = society.findAllAvailableResourceRarity(null);
 			society.groupItemRarity = society.findRawGroupsResRarity(null);
 			society.importantLocations = society.getImportantLocations(society.societyCenter);
+			society.humanNeedsMap = society.findAllNeedsIntensityMap();
 		}
 		
 		CustomLog.outPrintln("################");
@@ -512,7 +516,7 @@ public class LocalGridTimeExecution {
 			Set<Integer> bestBuildingMaterials = society.getBestBuildingMaterials(society.calcUtility, 
 					being, borderRegion.size());
 				
-			if (bestRectangles != null) {
+			if (bestRectangles != null && bestRectangles.size() > 0) {
 				//Use land claims on the spaces not already claimed
 				for (GridRectInterval interval: bestRectangles) {
 					List<Human> claimants = grid.findClaimantToTiles(interval);
@@ -521,7 +525,8 @@ public class LocalGridTimeExecution {
 					}
 				}
 				
-				PurposeAnnotatedBuild compound = new PurposeAnnotatedBuild("Home");
+				Vector3i singleLocation = bestRectangles.iterator().next().avgVec();
+				PurposeAnnotatedBuild compound = new PurposeAnnotatedBuild("Home", singleLocation);
 				compound.addRoom("Bedroom", bestRectangles, borderRegion, 
 						VecGridUtil.setUnderVecs(grid, Vector3i.getRange(bestRectangles)));
 				MapUtil.insertNestedListMap(ownerProducts.designatedBuildsByPurpose, "Home", compound);
@@ -534,7 +539,46 @@ public class LocalGridTimeExecution {
 			return priority;
 		}
 		else if (process.name.equals("Improve Complex")) {
-			
+			//Choose the best complex and room to expand for this human, if necessary
+			//Also use this process when there's a need to build a new room
+			//Like for example, household needs food. Create a kitchen that has an oven and stores food.
+			Map<Human, NeedsGamut> societyNeeds = society.humanNeedsMap != null ? society.humanNeedsMap : 
+				society.findAllNeedsIntensityMap(); 
+			if (societyNeeds.containsKey(being)) {
+				NeedsGamut humanNeeds = societyNeeds.get(being);
+				Entry<PurposeAnnotatedBuild, AnnotatedRoom> bestEntry = PurposeAnnoBuildDesPriority.
+						futureRoomNeedByScore(being, humanNeeds);
+				PurposeAnnotatedBuild complex = bestEntry.getKey();
+				AnnotatedRoom room = bestEntry.getValue();
+				Vector2i requiredSpace = new Vector2i(room.desiredSize.x, room.desiredSize.y);
+				
+				List<GridRectInterval> bestRectangles = ;
+						
+				LinkedHashSet<Vector3i> borderRegion = VecGridUtil.getBorderRegionFromCoords(
+						Vector3i.getRange(bestRectangles));
+				Set<Integer> bestBuildingMaterials = society.getBestBuildingMaterials(society.calcUtility, 
+						being, borderRegion.size());
+					
+				if (bestRectangles != null) {
+					//Use land claims on the spaces not already claimed
+					for (GridRectInterval interval: bestRectangles) {
+						List<Human> claimants = grid.findClaimantToTiles(interval);
+						if (claimants == null || claimants.size() == 0) {
+							grid.claimTiles(ownerProducts, interval.getStart(), interval.getEnd(), process);
+						}
+					}
+					
+					complex.addRoom(room.purpose, bestRectangles, borderRegion, 
+							VecGridUtil.setUnderVecs(grid, Vector3i.getRange(bestRectangles)));
+					MapUtil.insertNestedListMap(ownerProducts.designatedBuildsByPurpose, room.purpose, complex);
+					
+					priority = new ConstructRoomPriority(borderRegion, bestBuildingMaterials);
+				}
+				else {
+					priority = new ImpossiblePriority("Could not find open rectangular space");
+				}
+				
+			}
 		}
 		else if (process.name.equals("Local Soldier Duty")) {
 			return new SoldierPriority(society.societyCenter, being);
@@ -1477,14 +1521,14 @@ public class LocalGridTimeExecution {
 	private static List<GridRectInterval> findBestOpenRectSpace(LocalGrid grid, Society society, 
 			Set<Human> validLandOwners, Vector3i coords, Vector2i requiredSpace) {
 		GridRectInterval openSpace = SpaceFillingAlg.findAvailSpaceCloseFactorClaims(grid, coords,
-				requiredSpace.x, requiredSpace.y, true, society, validLandOwners, false, false, null);
+				requiredSpace.x, requiredSpace.y, true, society, validLandOwners, false, false, null, null);
 		
 		if (openSpace != null) {
 			return CollectionUtil.newList(openSpace);
 		}
 		
 		openSpace = SpaceFillingAlg.findAvailSpaceClose(grid, coords,
-				requiredSpace.x, requiredSpace.y, true, society, null, false, null);
+				requiredSpace.x, requiredSpace.y, true, society, null, false, null, null);
 		if (openSpace != null) {
 			return CollectionUtil.newList(openSpace);
 		}

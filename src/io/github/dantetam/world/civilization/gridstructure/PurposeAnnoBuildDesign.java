@@ -1,6 +1,7 @@
 package io.github.dantetam.world.civilization.gridstructure;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -21,10 +22,16 @@ import java.util.Map;
 
 public class PurposeAnnoBuildDesign {
 	
-	public static Map<String, AnnotatedRoom> predesignedRoomConf = new HashMap<>();
+	//Predesigned rooms with target size, builds, items storage data
+	public static Map<String, AnnotatedRoom> allRooms = new HashMap<>(); 
 	
-	public static void init() {
-		TODO;
+	public static Map<String, List<String>> complexRoomsMap = new HashMap<>();
+
+	public static AnnotatedRoom getRoom(String name) {
+		if (!allRooms.containsKey(name)) {
+			throw new IllegalArgumentException("Purpose annotated room does not contain this name: " + name);
+		}
+		return allRooms.get(name);
 	}
 	
 }

@@ -1,6 +1,7 @@
 package io.github.dantetam.toolbox;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -78,6 +79,21 @@ public class StringUtil {
 			}
 		}
 		return newRace;
+	}
+	
+	/**
+	 * 
+	 * @param record
+	 * @param keys
+	 * @return true if the record contains 
+	 */
+	public static boolean validateCsvMap(Map<String, String> record, Iterable<String> keys) {
+		for (String key: keys) {
+			if (!record.containsKey(key) || record.get(key).isBlank()) {
+				return false;
+			}
+		}
+		return true;
 	}
 	
 }

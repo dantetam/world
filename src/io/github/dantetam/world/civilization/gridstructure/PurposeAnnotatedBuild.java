@@ -28,10 +28,12 @@ public class PurposeAnnotatedBuild {
 	
 	public String totalHousePurpose;
 	public Map<String, List<AnnotatedRoom>> roomsByPurpose;
+	public Vector3i singleLocation; /** A location within the complex/anno build, used to represent it on a map **/
 	
-	public PurposeAnnotatedBuild(String totalHousePurpose) {
+	public PurposeAnnotatedBuild(String totalHousePurpose, Vector3i location) {
 		this.totalHousePurpose = totalHousePurpose;
 		roomsByPurpose = new HashMap<>();
+		this.singleLocation = location;
 	}
 	
 	public void addRoom(AnnotatedRoom room) {

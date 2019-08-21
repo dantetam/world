@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.AbstractMap.SimpleEntry;
 
+import io.github.dantetam.toolbox.MapUtil;
 import io.github.dantetam.world.civhumanai.NeedsGamut;
 import io.github.dantetam.world.life.Human;
 import io.github.dantetam.world.life.LivingEntity;
@@ -28,7 +29,7 @@ import io.github.dantetam.world.life.LivingEntity;
 
 public class PurposeAnnoBuildDesPriority {
 	
-	public Entry<PurposeAnnotatedBuild, AnnotatedRoom> futureRoomNeedByScore(LivingEntity being, 
+	public static Entry<PurposeAnnotatedBuild, AnnotatedRoom> futureRoomNeedByScore(LivingEntity being, 
 			NeedsGamut humanNeedsCalc) {
 		//Look all the complexes, and find the best room expansion candidate of each.
 		//Then compare these for the final best result.
@@ -53,9 +54,26 @@ public class PurposeAnnoBuildDesPriority {
 	}
 	
 	//TODO: Implement Maslow's needs hierarchy object (different scoring of different needs)
-	public LinkedHashMap<AnnotatedRoom, Double> futureRoomNeedByScore(LivingEntity being, 
+	public static LinkedHashMap<AnnotatedRoom, Double> futureRoomNeedByScore(LivingEntity being, 
 			PurposeAnnotatedBuild complex, NeedsGamut humanNeedsCalc) {
-		 
+		LinkedHashMap<AnnotatedRoom, Double> roomScoring = new LinkedHashMap<>();
+		
+		if (PurposeAnnoBuildDesign.complexRoomsMap.containsKey(complex.totalHousePurpose)) {
+			return roomScoring;
+		}
+		
+		List<String> possibleRooms = PurposeAnnoBuildDesign.complexRoomsMap.get(complex.totalHousePurpose);
+		for (String roomName: possibleRooms) {
+			AnnotatedRoom room = PurposeAnnoBuildDesign.getRoom(roomName);
+			
+			double score = Math.random() * 100;
+			//TODO: Process of determining user need -> build complex room score
+			
+			roomScoring.put(room, score);
+		}
+		
+		roomScoring = MapUtil.getSortedMapByValueDesc(roomScoring);
+		return roomScoring;
 	}
 	
 }

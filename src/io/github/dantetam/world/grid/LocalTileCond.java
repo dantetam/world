@@ -1,5 +1,6 @@
 package io.github.dantetam.world.grid;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -53,6 +54,24 @@ public abstract class LocalTileCond {
 			// TODO Auto-generated method stub
 			Human tileOwner = society.getRecordClaimInGrid(grid, coords);
 			return this.validLandOwners.contains(tileOwner);
+		}
+	}
+	
+	public static class IsWithinIntervalsStrict extends LocalTileCond {
+		private Collection<ClusterVector3i> validAreas;
+		public IsWithinIntervalsStrict(Collection<ClusterVector3i> validAreas) {
+			this.validAreas = validAreas;
+		}
+		
+		@Override
+		public boolean isDesiredTile(LocalGrid grid, Vector3i coords) {
+			// TODO Auto-generated method stub
+			for (ClusterVector3i cluster: validAreas) {
+				if (cluster.clusterData.contains(coords)) {
+					return true;
+				}
+			}
+			return false;
 		}
 	}
 	

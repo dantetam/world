@@ -196,7 +196,7 @@ public class SocietalHumansActionsCalc {
 				for (ClusterVector3i clusterObj: grid.clustersList3d) {
 					Vector3i firstVec = clusterObj.clusterData.iterator().next();
 					GridRectInterval space = SpaceFillingAlg.findAvailSpaceClose(
-							grid, firstVec, dimension, dimension, false, society, null, false, null);
+							grid, firstVec, dimension, dimension, false, society, null, false, null, null);
 					
 					if (space != null) {
 						int size = (int) Math.abs(space.get2dSize() - dimension * dimension);

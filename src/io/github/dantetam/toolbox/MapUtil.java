@@ -134,11 +134,11 @@ public class MapUtil {
 	}
 
 	//Ascending sort on a generic mapping
-	public static <K, V extends Comparable<? super V>> Map<K, V> getSortedMapByValue(Map<K, V> map) {
+	public static <K, V extends Comparable<? super V>> LinkedHashMap<K, V> getSortedMapByValue(Map<K, V> map) {
         List<Entry<K, V>> list = new ArrayList<>(map.entrySet());
         list.sort(Entry.comparingByValue());
 
-        Map<K, V> result = new LinkedHashMap<>();
+        LinkedHashMap<K, V> result = new LinkedHashMap<>();
         for (Entry<K, V> entry : list) {
             result.put(entry.getKey(), entry.getValue());
         }
@@ -147,11 +147,11 @@ public class MapUtil {
     }
 	
 	//Descending sort on a generic mapping
-	public static <K, V extends Comparable<? super V>> Map<K, V> getSortedMapByValueDesc(Map<K, V> map) {
+	public static <K, V extends Comparable<? super V>> LinkedHashMap<K, V> getSortedMapByValueDesc(Map<K, V> map) {
         List<Entry<K, V>> list = new ArrayList<>(map.entrySet());
         list.sort(Entry.comparingByValue());
 
-        Map<K, V> result = new LinkedHashMap<>();
+        LinkedHashMap<K, V> result = new LinkedHashMap<>();
         for (int i = list.size() - 1; i >= 0; i--) {
         	Entry<K, V> entry = list.get(i);
             result.put(entry.getKey(), entry.getValue());

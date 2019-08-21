@@ -56,6 +56,7 @@ public class Society {
 	public Map<Integer, Double> allEconomicUtil; 
 	public Map<String, Double> groupItemRarity;
 	public List<Vector3i> importantLocations;
+	public Map<Human, NeedsGamut> humanNeedsMap; //Fill with the needs of humans calculated in needs intensity calc.
 	
 	//This society's unique claims on areas of land
 	//This can conflict and overlap with other societies' deeds and claims to all global land
@@ -194,7 +195,7 @@ public class Society {
 		}
 		
 		//For leftover processes that have not been assigned a utility yet
-		NeedsGamut needsIntensity = findAllNeedsIntensity();
+		NeedsGamut needsIntensity = finalTotalNeedsMap();
 		for (LocalProcess process: ProcessData.getAllProcesses()) {
 			if (!processByUtil.containsKey(process) && canCompleteProcess(process, rawResRarity)) {
 				double heuristicActionScore = 0;
@@ -361,7 +362,7 @@ public class Society {
 		Map<Integer, Double> economicRarityMap = findAdjEconomicRarity();
 		Set<Integer> availableItemIds = economicRarityMap.keySet();
 		
-		NeedsGamut needsIntensity = findAllNeedsIntensity();
+		NeedsGamut needsIntensity = finalTotalNeedsMap();
 		
 		Map<String, Double> needWeights = new HashMap<>();
 		needWeights.put("Eat", 2.0);
@@ -671,68 +672,84 @@ public class Society {
 	 * @return A map of needs mapping to intensity values, based on this society's total needs for certain parts of the Maslow hierachy
 	 * Return a Maslow's need hierarchy object, see NeedsGamut.java/StringDoubleGamut.java
 	 */
-	private NeedsGamut findAllNeedsIntensity() {		
+	public NeedsGamut finalTotalNeedsMap() {
 		NeedsGamut societalNeed = new NeedsGamut();
 		for (Human human : this.getAllPeople()) {
-			double hungerScore = 2.0 - human.nutrition / human.maxNutrition;
-			societalNeed.addEmotion(NeedsGamut.EAT, hungerScore);
+			NeedsGamut humanNeed = findAllNeedsIntensHuman(human);
+			societalNeed.addKeyGamut(humanNeed);
+		}
+		return societalNeed;
+	}
+	public Map<Human, NeedsGamut> findAllNeedsIntensityMap() {		
+		Map<Human, NeedsGamut> humanMapNeeds = new HashMap<>();
+		for (Human human : this.getAllPeople()) {
+			NeedsGamut humanNeed = findAllNeedsIntensHuman(human);
+			humanMapNeeds.put(human, humanNeed);
+		}
+		return humanMapNeeds;
+	}
+	private NeedsGamut findAllNeedsIntensHuman(Human human) {
+		NeedsGamut societalNeed = new NeedsGamut();
 		
-			//double thirstScore = 1.0 - human.hydration / human.maxHydration;
-			//MathUti.addNumMap(societalNeed, "Drink", thirstScore);
+		double hungerScore = 2.0 - human.nutrition / human.maxNutrition;
+		societalNeed.addEmotion(NeedsGamut.EAT, hungerScore);
+	
+		//double thirstScore = 1.0 - human.hydration / human.maxHydration;
+		//MathUti.addNumMap(societalNeed, "Drink", thirstScore);
+		
+		int shelterScore = 0;
+		for (LocalGridLandClaim claim: human.allClaims) {
+			//TODO
+			//Calculate shelter score based on number of claims and amount of covered blocks
 			
-			int shelterScore = 0;
-			for (LocalGridLandClaim claim: human.allClaims) {
-				//TODO
-				//Calculate shelter score based on number of claims and amount of covered blocks
-				
-				/*
-				LocalTile tile = grid.getTile(coords);
-				if (tile != null) {
-					LocalTile aboveTile = grid.getTile(coords);
-					if (ItemData.isPlaceable(tile.tileBlockId) || 
-							(aboveTile != null && ItemData.isPlaceable(aboveTile.tileFloorId)) ||
-							(aboveTile != null && ItemData.isPlaceable(aboveTile.tileBlockId))) {
-						shelterScore++;
-					}
+			/*
+			LocalTile tile = grid.getTile(coords);
+			if (tile != null) {
+				LocalTile aboveTile = grid.getTile(coords);
+				if (ItemData.isPlaceable(tile.tileBlockId) || 
+						(aboveTile != null && ItemData.isPlaceable(aboveTile.tileFloorId)) ||
+						(aboveTile != null && ItemData.isPlaceable(aboveTile.tileBlockId))) {
+					shelterScore++;
 				}
-				*/
 			}
-			
-			int minShelter = 20;
-			double normShelterScore = (double) Math.max(minShelter - shelterScore, 0) / minShelter;
-			societalNeed.addEmotion(NeedsGamut.SHELTER, normShelterScore);
-			
-			societalNeed.addEmotion(NeedsGamut.CLOTHING, 1.0);
-			
-			if (human.home == null) {
-				societalNeed.addEmotion(NeedsGamut.PERSONAL_HOME, 1.0);
-				societalNeed.addEmotion(NeedsGamut.FURNITURE, 0.8);
-			}
-			else {
-				double normFurnitureScore = 0;
-				//Collection<Vector3i> buildingSpaces = human.home.calculatedLocations;
-				for (int index = 0; index < human.home.buildingBlockIds.size(); index++) {
-					int id = human.home.buildingBlockIds.get(index);
-					List<ProcessStep> itemProps = ItemData.getItemProps(id);
-					double beautyValue = ItemData.getItemBeautyValue(id);
-					if (itemProps != null) {
-						for (ProcessStep step: itemProps) {
-							if (step.stepType.equals("Furniture")) {
-								normFurnitureScore *= step.modifier * beautyValue;
-							}
+			*/
+		}
+		
+		int minShelter = 20;
+		double normShelterScore = (double) Math.max(minShelter - shelterScore, 0) / minShelter;
+		societalNeed.addEmotion(NeedsGamut.SHELTER, normShelterScore);
+		
+		societalNeed.addEmotion(NeedsGamut.CLOTHING, 1.0);
+		
+		if (human.home == null) {
+			societalNeed.addEmotion(NeedsGamut.PERSONAL_HOME, 1.0);
+			societalNeed.addEmotion(NeedsGamut.FURNITURE, 0.8);
+		}
+		else {
+			double normFurnitureScore = 0;
+			//Collection<Vector3i> buildingSpaces = human.home.calculatedLocations;
+			for (int index = 0; index < human.home.buildingBlockIds.size(); index++) {
+				int id = human.home.buildingBlockIds.get(index);
+				List<ProcessStep> itemProps = ItemData.getItemProps(id);
+				double beautyValue = ItemData.getItemBeautyValue(id);
+				if (itemProps != null) {
+					for (ProcessStep step: itemProps) {
+						if (step.stepType.equals("Furniture")) {
+							normFurnitureScore *= step.modifier * beautyValue;
 						}
 					}
 				}
-				normFurnitureScore = Math.min(normFurnitureScore, 1.0);
-				societalNeed.addEmotion(NeedsGamut.PERSONAL_HOME, normFurnitureScore);
-				societalNeed.addEmotion(NeedsGamut.FURNITURE, normFurnitureScore / 3);
-			}	
-			
-			double beautyScore = this.primaryGrid.averageBeauty(human.location.coords);
-			societalNeed.addEmotion(NeedsGamut.BEAUTY, 1.0 - beautyScore);
+			}
+			normFurnitureScore = Math.min(normFurnitureScore, 1.0);
+			societalNeed.addEmotion(NeedsGamut.PERSONAL_HOME, normFurnitureScore);
+			societalNeed.addEmotion(NeedsGamut.FURNITURE, normFurnitureScore / 3);
+		}	
+		
+		double beautyScore = this.primaryGrid.averageBeauty(human.location.coords);
+		societalNeed.addEmotion(NeedsGamut.BEAUTY, 1.0 - beautyScore);
 
-			societalNeed.addEmotion(NeedsGamut.SOLDIER, 0.1);
-		}
+		societalNeed.addEmotion(NeedsGamut.SOLDIER, 0.1);
+
 		return societalNeed;
 	}
 	
