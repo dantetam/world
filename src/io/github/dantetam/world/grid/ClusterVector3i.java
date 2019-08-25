@@ -23,4 +23,26 @@ public class ClusterVector3i extends KdPoint {
 		this.clusterData = clusterData;
 	}
 	
+	@Override
+	public int hashCode() {
+		return this.center.hashCode();
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (!super.equals(obj))
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		ClusterVector3i other = (ClusterVector3i) obj;
+		if (clusterData == null) {
+			if (other.clusterData != null)
+				return false;
+		} else if (!clusterData.equals(other.clusterData))
+			return false;
+		return true;
+	}
+	
 }

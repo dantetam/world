@@ -34,7 +34,7 @@ public class InventoryItem {
 	*/
 	public LivingEntity currentUser; 
 	
-	private List<ItemSpecialProperty> itemSpecProperties;
+	public Properties itemSpecProperties;
 	
 	public InventoryItem(int id, int quantity, String name) {
 		this.itemId = id;
@@ -51,20 +51,8 @@ public class InventoryItem {
 		return "I: [" + ItemData.getNameFromId(itemId) + ", " + quantity + "]"; 
 	}
 	
-	public void addSpecItemProp(ItemSpecialProperty prop) {
-		if (itemSpecProperties == null) {
-			itemSpecProperties = new ArrayList<>();
-		}
-		itemSpecProperties.add(prop);
-	}
-	
-	public ItemSpecialProperty searchSpecItemProp(String name) {
-		for (ItemSpecialProperty prop: this.itemSpecProperties) {
-			if (prop.getClass().getName().equals(name)) {
-				return prop;
-			}
-		}
-		return null;
+	public List<ItemProperty> searchSpecItemProp(String name) {
+		return this.itemSpecProperties.getPropByName(name);
 	}
 	
 	public boolean beingHasAccessItem(LivingEntity human, Set<LivingEntity> otherOwners) {

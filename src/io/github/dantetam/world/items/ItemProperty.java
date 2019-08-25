@@ -5,9 +5,17 @@ import io.github.dantetam.world.civilization.artwork.ArtworkGraph;
 import io.github.dantetam.world.items.InventoryItem.ItemQuality;
 import io.github.dantetam.world.life.Human;
 
-public abstract class ItemSpecialProperty {
+public abstract class ItemProperty {
 	
-	public static class ItemArtProperty extends ItemSpecialProperty {
+	public final String propertyType;
+	public String propertyValue;
+	
+	public ItemProperty(String propertyType, String propertyValue) {
+		this.propertyType = propertyType;
+		this.propertyValue = propertyValue;
+	}
+	
+	public static class ItemArtProperty extends ItemProperty {
 		public String artworkName;
 		public Human author;
 		public String artworkGeneralStyle;
@@ -17,6 +25,7 @@ public abstract class ItemSpecialProperty {
 		
 		public ItemArtProperty(String artworkName, Human author, String artworkGeneralStyle, ItemQuality quality,
 				ArtworkGraph artGraph) {
+			super("Artwork", artworkName);
 			this.artworkName = artworkName;
 			this.author = author;
 			this.artworkGeneralStyle = artworkGeneralStyle;

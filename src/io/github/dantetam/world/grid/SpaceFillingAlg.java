@@ -24,7 +24,7 @@ import io.github.dantetam.world.civilization.gridstructure.PurposeAnnotatedBuild
 import io.github.dantetam.world.life.Human;
 import kdtreegeo.KdTree;
 
-TODO;
+//TODO;
 //Reform all these methods and definitions of land claims, purpose annotated rooms, and so on
 //Idea: annotated unbuilt land (home expansions?) or unannotated land in land claims for expansions
 
@@ -38,14 +38,14 @@ public class SpaceFillingAlg {
 	*/
 	
 	public static GridRectInterval expandAnnotatedComplex(LocalGrid grid, 
-			int desiredR, int desiredC, boolean sameLevel, Society society, Set<Human> validLandOwners,
+			Society society, Set<Human> validLandOwners,
 			PurposeAnnotatedBuild complex, AnnotatedRoom room) {
 		return findAvailSpaceCloseFactorClaims(grid, complex.singleLocation, 
 				room.desiredSize.x, room.desiredSize.y, true, 
 				society, validLandOwners, false,
 				false,
 				null,
-				complex.)
+				null);
 	}
 	
 	/**
@@ -200,7 +200,7 @@ public class SpaceFillingAlg {
 	}
 		
 	public static ClusterVector3i findSingleComponent(
-			LocalGrid grid, Vector3i coords) {
+			LocalGrid grid, Vector3i coords, NeighborMode mode) {
 
 		Set<Vector3i> visitedSet = new HashSet<>();
 
@@ -215,6 +215,11 @@ public class SpaceFillingAlg {
 				visitedSet.add(fringeVec);
 				singleComponent.add(fringeVec);
 				Set<Vector3i> neighbors = grid.getAllNeighbors6(fringeVec);
+				
+				if (mode == NeighborMode.ADJ_8) neighbors = grid.getAllNeighbors8(fringeVec);
+				else if (mode == NeighborMode.ADJ_14) neighbors = grid.getAllNeighbors14(fringeVec);
+				else if (mode == NeighborMode.ADJ_26) neighbors = grid.getAllNeighbors26(fringeVec);
+				
 				for (Vector3i neighborVec: neighbors) {
 					newFringe.add(neighborVec);
 				}
@@ -224,6 +229,9 @@ public class SpaceFillingAlg {
 		if (singleComponent.size() > 0)
 			return null;
 		return new ClusterVector3i(singleComponent.iterator().next(), singleComponent);
+	}
+	public static enum NeighborMode {
+		ADJ_6, ADJ_8, ADJ_14, ADJ_26
 	}
 	
 	/**

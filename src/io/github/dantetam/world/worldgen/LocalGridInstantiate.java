@@ -22,6 +22,7 @@ import io.github.dantetam.toolbox.log.CustomLog;
 import io.github.dantetam.vector.Vector3i;
 import io.github.dantetam.world.ai.RSRPathfinder;
 import io.github.dantetam.world.dataparse.ItemData;
+import io.github.dantetam.world.grid.ClusterVector3i;
 import io.github.dantetam.world.grid.LocalGrid;
 import io.github.dantetam.world.grid.LocalTile;
 import io.github.dantetam.world.grid.SpaceFillingAlg;
@@ -152,10 +153,14 @@ public class LocalGridInstantiate {
 		CustomLog.outPrintln(localGrid.rows + " " + localGrid.cols + " " + localGrid.heights);
 		CustomLog.outPrintln(gridTrees.size());
 		
-		localGrid.connectedCompsMap = VecGridUtil.contComponent3dSolids(null, null, localGrid);
-		localGrid.clustersList3d = new KdTree(VecGridUtil.contComp3dSolidsClustersSpec(null, null, localGrid));
+		List<ClusterVector3i> clusters = VecGridUtil.contComp3dSolidsClustersSpec(null, null, localGrid);
+		localGrid.clustersList3d = new KdTree(clusters);
+		localGrid.connectedCompsMap = VecGridUtil.convertGroupsToMap(clusters);
+		localGrid.compNumCounter = clusters.size();
 		
-		localGrid.clustersList2dSurfaces = new KdTree(SpaceFillingAlg.allFlatSurfaceContTiles(localGrid));
+		List<ClusterVector3i> clusters2d = SpaceFillingAlg.allFlatSurfaceContTiles(localGrid);
+		localGrid.clustersList2dSurfaces = new KdTree(clusters2d);
+		localGrid.connectedCompsMap2d = VecGridUtil.convertGroupsToMap(clusters2d);
 		
 		localGrid.tileIdCounts = new HashMap<>();
 		for (int r = 0; r < localGrid.rows; r++) {

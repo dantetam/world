@@ -8,8 +8,10 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
+import io.github.dantetam.toolbox.CollectionUtil;
 import io.github.dantetam.toolbox.MapUtil;
 import io.github.dantetam.toolbox.VecGridUtil;
 import io.github.dantetam.toolbox.VecGridUtil.RectangularSolid;
@@ -63,13 +65,19 @@ public class LocalGrid {
 	public List<LocalGridLandClaim> localLandClaims;
 	
 	//3d connected components
-	TODO;
 	//Update these two values below when the grid updates, using local (linear time in size of cluster) updates
 	
-	public Map<Vector3i, Integer> connectedCompsMap; //Mapping of all available vectors to a unique numbered space (a 3d volume)
+	//Mapping of all available vectors to a unique numbered space (a 3d volume)
+	//Note that these are NOT exactly the indices in any other list of clusters,
+	//but two keys with the same value always guarantee they share the same cluster.
+	//All connected, accessible 14-neighbors definition.
+	public Map<Vector3i, Integer> connectedCompsMap;
 	public KdTree<ClusterVector3i> clustersList3d;
+	public int compNumCounter = 0; //Always ensure that a new cluster can use this unused index
 	
 	//2d connected surfaces
+	//All connected, accessible 6-neighbors definition.
+	public Map<Vector3i, Integer> connectedCompsMap2d;
 	public KdTree<ClusterVector3i> clustersList2dSurfaces;
 	
 	public LocalGrid(Vector3i size) {
@@ -337,6 +345,10 @@ public class LocalGrid {
 		
 		LocalTile tile = getTile(coords);
 		int oldItemId = tile.tileBlockId;
+		
+		if (tile == null) {
+			tile = this.createTile(coords);
+		}
 		if (tile != null) {
 			tile.tileBlockId = newBlockId;
 			if (tile.tileBlockId != ItemData.ITEM_EMPTY_ID) {
@@ -356,6 +368,7 @@ public class LocalGrid {
 				}
 				markAllAdjAsExposed(coords);
 			}
+			updateClusterInfo(coords, oldItemId, newBlockId);
 		}
 		
 		//Do not create/modify RSR pathfinding nodes while world is being created
@@ -364,6 +377,182 @@ public class LocalGrid {
 		}
 		
 		updateTileAccessibility(coords);
+	}
+	
+	/**
+	 * Update the 2d and 3d memotized cluster data to maintain correct records of clusters
+	 * 
+	 * The first case handles the disappearance of the block, which merges all adjacent 2d and 3d clusters.
+	 * The second case handles a new placed block, which creates one or more split clusters.
+	 * 
+	 * @param coords
+	 * @param oldItemId
+	 * @param newItemId
+	 */
+	private void updateClusterInfo(Vector3i coords, int oldItemId, int newItemId) {
+		if (oldItemId == newItemId) return;
+		
+		Set<Vector3i> neighbors14 = this.getAllNeighbors14(coords);
+		Set<Vector3i> neighbors8 = this.getAllNeighbors8(coords);
+		
+		if (newItemId == ItemData.ITEM_EMPTY_ID) {
+			Map<Integer, Vector3i> firstVecInCluster = new HashMap<>();
+			Integer minComponentIndex = null;
+			
+			for (Vector3i neighbor: neighbors14) {
+				if (!this.connectedCompsMap.containsKey(neighbor)) {
+					continue;
+				}
+				int componentNum = this.connectedCompsMap.get(neighbor);
+				if (!firstVecInCluster.containsKey(componentNum)) {
+					firstVecInCluster.put(componentNum, neighbor);
+					if (minComponentIndex == null || componentNum < minComponentIndex) {
+						minComponentIndex = componentNum;
+					}
+				}
+			}
+			//Join the 3d clusters
+			if (firstVecInCluster.size() > 0) {
+				//Gather all vectors for the new joined together cluster
+				Set<ClusterVector3i> clustersToRemove = new HashSet<>();
+				for (ClusterVector3i cluster: this.clustersList3d) {
+					for (Entry<Integer, Vector3i> vecEntry: firstVecInCluster.entrySet()) {
+						if (cluster.clusterData.contains(vecEntry.getValue())) {
+							clustersToRemove.add(cluster);
+						}
+					}
+				}
+				Vector3i newRandomVec = null;
+				Set<Vector3i> newClusterVecs = new HashSet<>();
+				for (ClusterVector3i cluster: clustersToRemove) {
+					newClusterVecs.addAll(cluster.clusterData);
+					if (newRandomVec == null) {
+						newRandomVec = cluster.center;
+					}
+					//Change map number index
+					for (Vector3i vec: cluster.clusterData) {
+						this.connectedCompsMap.put(vec, minComponentIndex);
+					}
+					//Remove cluster from all clusters
+					this.clustersList3d.remove(cluster);
+				}
+				ClusterVector3i newCluster = new ClusterVector3i(newRandomVec, newClusterVecs);
+				this.clustersList3d.add(newCluster);
+			}
+			
+			firstVecInCluster = new HashMap<>();
+			minComponentIndex = null;
+			for (Vector3i neighbor: neighbors8) {
+				if (!this.connectedCompsMap2d.containsKey(neighbor)) {
+					continue;
+				}
+				int componentNum = this.connectedCompsMap2d.get(neighbor);
+				if (!firstVecInCluster.containsKey(componentNum)) {
+					firstVecInCluster.put(componentNum, neighbor);
+					if (minComponentIndex == null || componentNum < minComponentIndex) {
+						minComponentIndex = componentNum;
+					}
+				}
+			}
+			//Join the 2d clusters
+			if (firstVecInCluster.size() > 0) {
+				//Do the same for the 2d surfaces
+				//Gather all vectors for the new joined together cluster
+				Set<ClusterVector3i> clustersToRemove = new HashSet<>();
+				for (ClusterVector3i cluster: this.clustersList2dSurfaces) {
+					for (Entry<Integer, Vector3i> vecEntry: firstVecInCluster.entrySet()) {
+						if (cluster.clusterData.contains(vecEntry.getValue())) {
+							clustersToRemove.add(cluster);
+						}
+					}
+				}
+				Vector3i newRandomVec = null;
+				Set<Vector3i> newClusterVecs = new HashSet<>();
+				for (ClusterVector3i cluster: clustersToRemove) {
+					newClusterVecs.addAll(cluster.clusterData);
+					if (newRandomVec == null) {
+						newRandomVec = cluster.center;
+					}
+					//Change map number index
+					for (Vector3i vec: cluster.clusterData) {
+						this.connectedCompsMap.put(vec, minComponentIndex);
+					}
+					//Remove cluster from all clusters
+					this.clustersList2dSurfaces.remove(cluster);
+				}
+				ClusterVector3i cluster = new ClusterVector3i(newRandomVec, newClusterVecs);
+				this.clustersList2dSurfaces.add(cluster);
+			}
+		}
+		else {
+			ClusterVector3i clusterToRemove = null;
+			for (ClusterVector3i cluster: this.clustersList3d) {
+				if (cluster.clusterData.contains(coords)) {
+					clusterToRemove = cluster;
+					break;
+				}
+			}
+			this.clustersList3d.remove(clusterToRemove);
+			
+			List<ClusterVector3i> foundClusters = new ArrayList<>();
+			for (Vector3i neighbor: neighbors14) {
+				ClusterVector3i candidateCluster = SpaceFillingAlg.findSingleComponent(this, neighbor, 
+						SpaceFillingAlg.NeighborMode.ADJ_14);
+				boolean countedTwice = false;
+				for (ClusterVector3i otherCluster: foundClusters) {
+					if (CollectionUtil.colnsHasIntersect(candidateCluster.clusterData, otherCluster.clusterData)) {
+						countedTwice = true;
+						break;
+					}
+				}
+				if (!countedTwice) {
+					foundClusters.add(candidateCluster);
+				}
+			}
+			
+			for (ClusterVector3i cluster: foundClusters) {
+				for (Vector3i vec: cluster.clusterData) {
+					this.connectedCompsMap.put(vec, compNumCounter);
+				}
+				compNumCounter++;
+				this.clustersList3d.add(cluster);
+			}
+			
+			
+			//Do the same for 2d clusters
+			clusterToRemove = null;
+			for (ClusterVector3i cluster: this.clustersList2dSurfaces) {
+				if (cluster.clusterData.contains(coords)) {
+					clusterToRemove = cluster;
+					break;
+				}
+			}
+			this.clustersList2dSurfaces.remove(clusterToRemove);
+			 
+			foundClusters = new ArrayList<>();
+			for (Vector3i neighbor: neighbors8) {
+				ClusterVector3i candidateCluster = SpaceFillingAlg.findSingleComponent(this, neighbor, 
+						SpaceFillingAlg.NeighborMode.ADJ_8);
+				boolean countedTwice = false;
+				for (ClusterVector3i otherCluster: foundClusters) {
+					if (CollectionUtil.colnsHasIntersect(candidateCluster.clusterData, otherCluster.clusterData)) {
+						countedTwice = true;
+						break;
+					}
+				}
+				if (!countedTwice) {
+					foundClusters.add(candidateCluster);
+				}
+			}
+			
+			for (ClusterVector3i cluster: foundClusters) {
+				for (Vector3i vec: cluster.clusterData) {
+					this.connectedCompsMap2d.put(vec, compNumCounter);
+				}
+				compNumCounter++;
+				this.clustersList2dSurfaces.add(cluster);
+			}
+		}
 	}
 	
 	public void addItemRecordsToWorld(Vector3i coords, List<InventoryItem> items) {

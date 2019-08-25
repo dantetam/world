@@ -309,6 +309,17 @@ public class VecGridUtil {
 		return corners;
 	}
 	
+	public static Map<Vector3i, Integer> convertGroupsToMap(List<ClusterVector3i> clusters) {
+		Map<Vector3i, Integer> results = new HashMap<>();
+		for (int clusterNum = 0; clusterNum < clusters.size(); clusterNum++) {
+			Set<Vector3i> cluster = clusters.get(clusterNum).clusterData;
+			for (Vector3i vec: cluster) {
+				results.put(vec, clusterNum);
+			}
+		}
+		return results;
+	}
+	
 	/**
 	 * 
 	 * @param minBoundsInc  The minimum bounds of the space to separate into components. If not given, the most minimum point in the grid.
@@ -321,15 +332,8 @@ public class VecGridUtil {
 	 */
 	public static Map<Vector3i, Integer> contComponent3dSolids(Vector3i minBoundsInc,
 			Vector3i maxBoundsInc, LocalGrid grid) {
-		Map<Vector3i, Integer> results = new HashMap<>();
 		List<ClusterVector3i> clusters = contComp3dSolidsClustersSpec(minBoundsInc, maxBoundsInc, grid);
-		for (int clusterNum = 0; clusterNum < clusters.size(); clusterNum++) {
-			Set<Vector3i> cluster = clusters.get(clusterNum).clusterData;
-			for (Vector3i vec: cluster) {
-				results.put(vec, clusterNum);
-			}
-		}
-		return results;
+		return convertGroupsToMap(clusters);
 	}
 	/**
 	 * Much like VecGridUtil:contComponent3dSolids, but return a list of the cluster vectors

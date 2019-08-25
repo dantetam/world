@@ -37,7 +37,7 @@ import io.github.dantetam.world.grid.ItemMetricsUtil.*;
 import io.github.dantetam.world.items.Inventory;
 import io.github.dantetam.world.items.InventoryItem;
 import io.github.dantetam.world.items.InventoryItem.ItemQuality;
-import io.github.dantetam.world.items.ItemSpecialProperty;
+import io.github.dantetam.world.items.ItemProperty;
 import io.github.dantetam.world.life.Human;
 import io.github.dantetam.world.life.LivingEntity;
 import io.github.dantetam.world.process.LocalJob;
@@ -552,7 +552,10 @@ public class LocalGridTimeExecution {
 				AnnotatedRoom room = bestEntry.getValue();
 				Vector2i requiredSpace = new Vector2i(room.desiredSize.x, room.desiredSize.y);
 				
-				List<GridRectInterval> bestRectangles = ;
+				List<GridRectInterval> bestRectangles = new ArrayList<GridRectInterval>() {{
+						add(SpaceFillingAlg.expandAnnotatedComplex(grid, being.society,
+						validLandOwners, complex, room)); 
+						}};
 						
 				LinkedHashSet<Vector3i> borderRegion = VecGridUtil.getBorderRegionFromCoords(
 						Vector3i.getRange(bestRectangles));
@@ -661,7 +664,8 @@ public class LocalGridTimeExecution {
 					
 					grid.setInUseRoomSpace(bestRectangleVecs, true);
 					
-					PurposeAnnotatedBuild compound = new PurposeAnnotatedBuild("Home");
+					PurposeAnnotatedBuild compound = new PurposeAnnotatedBuild("Home", 
+							bestRectangleVecs.iterator().next());
 					compound.addRoom("Bedroom", bestRectangles, borderRegion, 
 							VecGridUtil.setUnderVecs(grid, Vector3i.getRange(bestRectangles)));
 					MapUtil.insertNestedListMap(ownerProducts.designatedBuildsByPurpose, "Home", compound);
@@ -804,7 +808,7 @@ public class LocalGridTimeExecution {
 			if (step.stepType.equals("OArtwork")) { //All output items are given art status and memory
 				for (InventoryItem item: outputItems) {
 					ArtworkGraph artGraph = ArtworkGraph.generateRandArtGraph(being, null);
-					item.addSpecItemProp(new ItemSpecialProperty.ItemArtProperty(
+					item.itemSpecProperties.addProperty(new ItemProperty.ItemArtProperty(
 							StringUtil.genAlphaNumericStr(20), being, StringUtil.genAlphaNumericStr(20), 
 							ItemQuality.NORMAL, artGraph));
 				}
@@ -910,7 +914,7 @@ public class LocalGridTimeExecution {
 			if (step.stepType.equals("OArtwork")) { //All output items are given art status and memory
 				for (InventoryItem item: outputItems) {
 					ArtworkGraph artGraph = ArtworkGraph.generateRandArtGraph(unsupervHuman, null);
-					item.addSpecItemProp(new ItemSpecialProperty.ItemArtProperty(
+					item.itemSpecProperties.addProperty(new ItemProperty.ItemArtProperty(
 							StringUtil.genAlphaNumericStr(20), unsupervHuman, StringUtil.genAlphaNumericStr(20), 
 							ItemQuality.NORMAL, artGraph));
 				}
