@@ -9,6 +9,7 @@ import java.util.Set;
 import java.util.Map.Entry;
 
 import io.github.dantetam.toolbox.MapUtil;
+import io.github.dantetam.world.civhumanai.GamutDataFields;
 import io.github.dantetam.world.civhumanai.StringDoubleGamut;
 
 /**
@@ -21,15 +22,18 @@ import io.github.dantetam.world.civhumanai.StringDoubleGamut;
  */
 
 public class EmotionGamut extends StringDoubleGamut {
-
-	public static Set<String> EMOTIONS = new HashSet<String>() {{
-		add("Kindness"); add("Honor"); add("Attraction"); add("Admiration");
-		add("Rationality"); 
-		add("Hate"); add("Indifference");
-	}};
+	
+	public static final String KINDNESS = "Kindness", HONOR = "Honor", ATTRACTION = "Attraction",
+			ADMIRATION = "Admiration", RATIONALITY = "Rationality", 
+			HATE = "Hate", INDIFFERENCE = "Indifference";
 	
 	public EmotionGamut() {
 		super();
+	}
+
+	@Override
+	public Set<String> getFields() {
+		return GamutDataFields.EMOTIONS;
 	}
 	
 }

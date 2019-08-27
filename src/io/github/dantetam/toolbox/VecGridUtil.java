@@ -420,6 +420,9 @@ public class VecGridUtil {
         return true;
 	}
 	
+	//TODO Make this method more time efficient
+	//From VisualVM: findBestRect(...) -> 10883 ms
+	//HashSet.contains() -> 5898 ms
 	public static Pair<Vector2i> findBestRect(Set<Vector3i> coords, int desiredR, int desiredC) {
 		Pair<Vector3i> bounds = findCoordBounds(coords);
 		Vector3i topLeftBound = bounds.first, bottomRightBound = bounds.second;

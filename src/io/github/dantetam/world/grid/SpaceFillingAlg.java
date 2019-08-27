@@ -226,7 +226,7 @@ public class SpaceFillingAlg {
 			}
 			fringe = newFringe;
 		}
-		if (singleComponent.size() > 0)
+		if (singleComponent.size() == 0)
 			return null;
 		return new ClusterVector3i(singleComponent.iterator().next(), singleComponent);
 	}

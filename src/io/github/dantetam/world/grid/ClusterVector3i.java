@@ -45,4 +45,13 @@ public class ClusterVector3i extends KdPoint {
 		return true;
 	}
 	
+	@Override
+	public String toString() {
+		return "Cluster, one vec: " + center.toString();
+	}
+	
+	public String longToString() {
+		return "Cluster: " + clusterData.toString();
+	}
+	
 }

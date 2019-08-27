@@ -550,11 +550,11 @@ public class LocalGridTimeExecution {
 						futureRoomNeedByScore(being, humanNeeds);
 				PurposeAnnotatedBuild complex = bestEntry.getKey();
 				AnnotatedRoom room = bestEntry.getValue();
-				Vector2i requiredSpace = new Vector2i(room.desiredSize.x, room.desiredSize.y);
 				
+				GridRectInterval bestSingleRect = SpaceFillingAlg.expandAnnotatedComplex(grid, being.society,
+						validLandOwners, complex, room);
 				List<GridRectInterval> bestRectangles = new ArrayList<GridRectInterval>() {{
-						add(SpaceFillingAlg.expandAnnotatedComplex(grid, being.society,
-						validLandOwners, complex, room)); 
+						add(bestSingleRect); 
 						}};
 						
 				LinkedHashSet<Vector3i> borderRegion = VecGridUtil.getBorderRegionFromCoords(
@@ -562,7 +562,7 @@ public class LocalGridTimeExecution {
 				Set<Integer> bestBuildingMaterials = society.getBestBuildingMaterials(society.calcUtility, 
 						being, borderRegion.size());
 					
-				if (bestRectangles != null) {
+				if (bestSingleRect != null) {
 					//Use land claims on the spaces not already claimed
 					for (GridRectInterval interval: bestRectangles) {
 						List<Human> claimants = grid.findClaimantToTiles(interval);

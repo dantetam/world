@@ -21,8 +21,6 @@ public class StringDoubleGamut {
 
 	private Map<String, Double> stringDoubleGamut;
 	
-	public static Set<String> EMOTIONS;
-	
 	protected StringDoubleGamut() {
 		this.stringDoubleGamut = new HashMap<>();
 	}
@@ -32,7 +30,7 @@ public class StringDoubleGamut {
 	}
 	
 	public void addEmotion(String emotion, double value) {
-		if (EMOTIONS.contains(emotion)) {
+		if (getFields().contains(emotion)) {
 			MapUtil.addNumMap(stringDoubleGamut, emotion, value);
 		}
 		else {
@@ -41,7 +39,7 @@ public class StringDoubleGamut {
 	}
 	
 	public boolean hasEmotion(String emotion) {
-		return EMOTIONS.contains(emotion);
+		return getFields().contains(emotion);
 	}
 	
 	public double getEmotion(String emotion) {
@@ -80,6 +78,10 @@ public class StringDoubleGamut {
 		StringDoubleGamut newGamut = new StringDoubleGamut(this);
 		MapUtil.addMapToMap(newGamut.stringDoubleGamut, gamut.stringDoubleGamut);
 		return newGamut;
+	}
+	
+	public Set<String> getFields() {
+		return null;
 	}
 	
 }

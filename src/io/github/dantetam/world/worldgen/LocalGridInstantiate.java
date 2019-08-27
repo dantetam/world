@@ -153,14 +153,7 @@ public class LocalGridInstantiate {
 		CustomLog.outPrintln(localGrid.rows + " " + localGrid.cols + " " + localGrid.heights);
 		CustomLog.outPrintln(gridTrees.size());
 		
-		List<ClusterVector3i> clusters = VecGridUtil.contComp3dSolidsClustersSpec(null, null, localGrid);
-		localGrid.clustersList3d = new KdTree(clusters);
-		localGrid.connectedCompsMap = VecGridUtil.convertGroupsToMap(clusters);
-		localGrid.compNumCounter = clusters.size();
-		
-		List<ClusterVector3i> clusters2d = SpaceFillingAlg.allFlatSurfaceContTiles(localGrid);
-		localGrid.clustersList2dSurfaces = new KdTree(clusters2d);
-		localGrid.connectedCompsMap2d = VecGridUtil.convertGroupsToMap(clusters2d);
+		localGrid.initClustersData();
 		
 		localGrid.tileIdCounts = new HashMap<>();
 		for (int r = 0; r < localGrid.rows; r++) {

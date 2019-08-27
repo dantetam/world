@@ -1,5 +1,6 @@
 package io.github.dantetam.world.grid;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -27,6 +28,8 @@ import io.github.dantetam.world.items.InventoryItem;
 import io.github.dantetam.world.life.Human;
 import io.github.dantetam.world.life.LivingEntity;
 import io.github.dantetam.world.process.LocalProcess;
+import io.github.dantetam.world.worldgen.LocalGridBiome;
+import io.github.dantetam.world.worldgen.LocalGridInstantiate;
 import kdtreegeo.KdTree;
 
 /**
@@ -344,11 +347,15 @@ public class LocalGrid {
 		}
 		
 		LocalTile tile = getTile(coords);
-		int oldItemId = tile.tileBlockId;
-		
+		int oldItemId;
 		if (tile == null) {
+			oldItemId = ItemData.ITEM_EMPTY_ID;
 			tile = this.createTile(coords);
 		}
+		else {
+			oldItemId = tile.tileBlockId;
+		}
+		
 		if (tile != null) {
 			tile.tileBlockId = newBlockId;
 			if (tile.tileBlockId != ItemData.ITEM_EMPTY_ID) {
@@ -411,22 +418,34 @@ public class LocalGrid {
 					}
 				}
 			}
+			
+			//System.err.println(coords);
+			//System.err.println(firstVecInCluster);
+			
 			//Join the 3d clusters
 			if (firstVecInCluster.size() > 0) {
 				//Gather all vectors for the new joined together cluster
 				Set<ClusterVector3i> clustersToRemove = new HashSet<>();
-				for (ClusterVector3i cluster: this.clustersList3d) {
-					for (Entry<Integer, Vector3i> vecEntry: firstVecInCluster.entrySet()) {
+				
+				//CustomLog.errPrintln(this.clustersList3d);
+				
+				for (Entry<Integer, Vector3i> vecEntry: firstVecInCluster.entrySet()) {
+					for (ClusterVector3i cluster: this.clustersList3d) {
 						if (cluster.clusterData.contains(vecEntry.getValue())) {
 							clustersToRemove.add(cluster);
+							break;
 						}
 					}
 				}
+				
+				//System.err.println(clustersToRemove);
+				
 				Vector3i newRandomVec = null;
 				Set<Vector3i> newClusterVecs = new HashSet<>();
 				for (ClusterVector3i cluster: clustersToRemove) {
 					newClusterVecs.addAll(cluster.clusterData);
 					if (newRandomVec == null) {
+						//System.err.println("Added cluster vec: " + cluster.center);
 						newRandomVec = cluster.center;
 					}
 					//Change map number index
@@ -498,6 +517,7 @@ public class LocalGrid {
 			for (Vector3i neighbor: neighbors14) {
 				ClusterVector3i candidateCluster = SpaceFillingAlg.findSingleComponent(this, neighbor, 
 						SpaceFillingAlg.NeighborMode.ADJ_14);
+				if (candidateCluster == null || candidateCluster.clusterData.size() == 0) continue;
 				boolean countedTwice = false;
 				for (ClusterVector3i otherCluster: foundClusters) {
 					if (CollectionUtil.colnsHasIntersect(candidateCluster.clusterData, otherCluster.clusterData)) {
@@ -533,6 +553,7 @@ public class LocalGrid {
 			for (Vector3i neighbor: neighbors8) {
 				ClusterVector3i candidateCluster = SpaceFillingAlg.findSingleComponent(this, neighbor, 
 						SpaceFillingAlg.NeighborMode.ADJ_8);
+				if (candidateCluster == null || candidateCluster.clusterData.size() == 0) continue;
 				boolean countedTwice = false;
 				for (ClusterVector3i otherCluster: foundClusters) {
 					if (CollectionUtil.colnsHasIntersect(candidateCluster.clusterData, otherCluster.clusterData)) {
@@ -553,6 +574,17 @@ public class LocalGrid {
 				this.clustersList2dSurfaces.add(cluster);
 			}
 		}
+	}
+	
+	public void initClustersData() {
+		List<ClusterVector3i> clusters = VecGridUtil.contComp3dSolidsClustersSpec(null, null, this);
+		this.clustersList3d = new KdTree(clusters);
+		this.connectedCompsMap = VecGridUtil.convertGroupsToMap(clusters);
+		this.compNumCounter = clusters.size();
+		
+		List<ClusterVector3i> clusters2d = SpaceFillingAlg.allFlatSurfaceContTiles(this);
+		this.clustersList2dSurfaces = new KdTree(clusters2d);
+		this.connectedCompsMap2d = VecGridUtil.convertGroupsToMap(clusters2d);
 	}
 	
 	public void addItemRecordsToWorld(Vector3i coords, List<InventoryItem> items) {
@@ -1056,6 +1088,45 @@ public class LocalGrid {
 		return this.findClaimantToTiles(new GridRectInterval(coords, coords));
 	}
 	
+	/**
+	 * Print the whole grid blocks in an aesthetically pleasing 3d format in the console,
+	 * tabbed to give the illusion of three dimensions (for easy indexing by r,c,h coordinates).
+	 * 
+	 * Small grids only
+	 */
+	public String smallGridToString() {
+		int numTilesToCheck = this.rows * this.cols * this.heights;
+		if (numTilesToCheck > 10000) {
+			throw new IllegalArgumentException("Cannot print grid of size: " + 
+					new Vector3i(rows, cols, heights) + ", or " + numTilesToCheck + " total entries.");
+		}
+		
+		int lastItemId = ItemData.generateItem("Test Potato");
+		int numDigits = (int) Math.ceil(Math.log10(lastItemId));
+		DecimalFormat numFormat = new DecimalFormat("0".repeat(numDigits));
+		
+		String totalString = "";
+		for (int h = 0; h < this.heights; h++) {
+			for (int r = 0; r < this.rows; r++) {
+				int numSpaces = (this.rows - 1 - r) * (numDigits + 1);
+				String rowStr = " ".repeat(numSpaces);
+				for (int c = 0; c < this.cols; c++) {
+					Vector3i coords = new Vector3i(r,c,h);
+					int tileId = 0;
+					LocalTile tile = this.getTile(coords);
+					if (tile != null) {
+						tileId = tile.tileBlockId == -1 ? 0 : tile.tileBlockId;
+					}
+					rowStr += numFormat.format(tileId) + " ";
+				}
+				rowStr += "\n";
+				totalString += rowStr;
+			}
+			totalString += "\n";
+		}
+		return totalString;
+	}
+	
 	public static void main(String[] args) {
 		WorldCsvParser.init();
 		
@@ -1081,6 +1152,38 @@ public class LocalGrid {
 		grid.removeBuilding(building);
 		
 		CustomLog.outPrintln(grid.getTile(new Vector3i(26,25,45)).building); //null
+		
+		
+		Vector3i smallVec = new Vector3i(6,6,6);
+		LocalGridBiome biome = LocalGridBiome.determineAllBiomeBroad(0, 0, 0, 0, 0, 0, 0);
+		LocalGrid smallGrid = new LocalGridInstantiate(smallVec, biome).setupGrid(false);
+		
+		int mods = (smallVec.x * smallVec.y * smallVec.z) / 3;
+		for (int i = 0; i < mods; i++) {
+			int r = (int) (Math.random() * smallVec.x);
+			int c = (int) (Math.random() * smallVec.y);
+			int h = (int) (Math.random() * smallVec.z);
+			smallGrid.putBlockIntoTile(new Vector3i(r,c,h), ItemData.ITEM_EMPTY_ID);
+		}
+		smallGrid.initClustersData();
+		
+		CustomLog.errPrintln(smallGrid.smallGridToString());
+		
+		CustomLog.errPrintln("-----------------------");
+		CustomLog.errPrintln(smallGrid.clustersList3d);
+		CustomLog.errPrintln("-----------------------");
+		CustomLog.errPrintln(smallGrid.connectedCompsMap);
+		CustomLog.errPrintln("-----------------------");
+		
+		smallGrid.putBlockIntoTile(new Vector3i(2,2,2), ItemData.ITEM_EMPTY_ID);
+		
+		CustomLog.errPrintln(smallGrid.connectedCompsMap);
+		
+		smallGrid.putBlockIntoTile(new Vector3i(2,2,2), ItemData.getIdFromName("Quartz"));
+		
+		CustomLog.errPrintln(smallGrid.connectedCompsMap);
+		
+		smallGrid.putBlockIntoTile(new Vector3i(2,2,2), ItemData.ITEM_EMPTY_ID);
 	}
 	
 }

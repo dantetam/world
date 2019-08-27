@@ -2,13 +2,16 @@ package io.github.dantetam.toolbox.log;
 
 public class CustomLog {
 
-	public static final PrintMode mode = PrintMode.OUT;
+	public static final PrintMode mode = PrintMode.ERR;
 	
 	public static void outPrintln() {
 		outPrintln("");
 	}
 	public static void outPrintln(Object object) {
-		outPrintln(object.toString());
+		if (object == null)
+			outPrintln("null");
+		else 
+			outPrintln(object.toString());
 	}
 	public static void outPrintln(String string) {
 		if (mode.equals(PrintMode.OUT)) {
