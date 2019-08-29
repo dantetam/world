@@ -115,23 +115,13 @@ public class GuiSystem extends BaseSystem {
 				else if (activeGrid.tileIsOccupied(aboveCoords)) {
 					listGuis.add(new GuiQuad(darknessTexture, guiPos, guiDim));
 				}
-				
-				//Vector3i coords = new Vector3i(x,z,candidateHeight);
-				if (activeGrid.inBounds(aboveCoords)) {
-					List<Human> claimants = activeGrid.findClaimantToTile(aboveCoords);
-					if (claimants != null && claimants.size() > 0) {
-						listGuis.add(new GuiQuad(landClaimOverlay, guiPos, guiDim));
-					}
-				}
 			}
 		}
 		
 		for (LocalBuilding building: activeGrid.getAllBuildings()) {
-			 
 			for (int i = 0; i < building.calculatedLocations.size(); i++) {
 				Vector3i coords = building.calculatedLocations.get(i);
-				//int emptyHeight = activeGrid.findLowestEmptyHeight(coords.x, coords.y);
-				
+
 				if (coords.z <= originalHeight && coords.x >= minX && coords.x <= maxX && coords.y >= minZ && coords.y <= maxZ) {
 					int blockId = building.buildingBlockIds.get(i);
 					Vector2f guiPos = new Vector2f(guiWidth * (coords.x - minX), guiHeight * (coords.y - minZ));
@@ -140,7 +130,37 @@ public class GuiSystem extends BaseSystem {
 					listGuis.add(new GuiQuad(tileTexture, guiPos, guiDim));
 				}
 			}
-			
+		}
+		
+		for (int x = minX; x <= maxX; x++) {
+			for (int z = minZ; z <= maxZ; z++) {
+				if (!activeGrid.inBounds(new Vector3i(x,z,0))) {
+					continue;
+				}
+				Vector2f guiPos = new Vector2f(guiWidth * (x - minX), guiHeight * (z - minZ)); 
+				int candidateHeight = originalHeight; //Find the highest height <= camera height, in the rendering style of DF
+				LocalTile tile;
+				while (candidateHeight > 0) {
+					tile = activeGrid.getTile(new Vector3i(x,z,candidateHeight));
+					if (tile != null) {
+						if (tile.tileBlockId != ItemData.ITEM_EMPTY_ID || 
+							tile.tileFloorId != ItemData.ITEM_EMPTY_ID ||
+							tile.itemsOnFloor.size() > 0 ||
+							tile.getPeople() != null && tile.getPeople().size() > 0) {
+							break;
+						}
+					}
+					candidateHeight--;
+				}
+				
+				Vector3i aboveCoords = new Vector3i(x,z,candidateHeight+1);
+				if (activeGrid.inBounds(aboveCoords)) {
+					List<Human> claimants = activeGrid.findClaimantToTile(aboveCoords);
+					if (claimants != null && claimants.size() > 0) {
+						listGuis.add(new GuiQuad(landClaimOverlay, guiPos, guiDim));
+					}
+				}
+			}
 		}
 		
 		allGuiQuad = listGuis;

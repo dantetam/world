@@ -13,6 +13,7 @@ import java.util.Map.Entry;
 import java.util.HashMap;
 
 import io.github.dantetam.toolbox.CollectionUtil;
+import io.github.dantetam.toolbox.MapUtil;
 import io.github.dantetam.toolbox.Pair;
 import io.github.dantetam.world.civhumanai.Ethos;
 import io.github.dantetam.world.civhumanai.EthosSet;
@@ -20,6 +21,8 @@ import io.github.dantetam.world.civhumanrelation.HumanHumanRel;
 import io.github.dantetam.world.civilization.Household;
 import io.github.dantetam.world.civilization.LocalExperience;
 import io.github.dantetam.world.civilization.Society;
+import io.github.dantetam.world.civilization.gridstructure.PurposeAnnotatedBuild;
+import io.github.dantetam.world.dataparse.ProcessData;
 import io.github.dantetam.world.dataparse.SkillData;
 import io.github.dantetam.world.grid.GridRectInterval;
 import io.github.dantetam.world.grid.LocalGrid;
@@ -32,7 +35,10 @@ public class FreeActionsHumans {
 	public static Map<String, FreeAction> freeActionsListHuman = new HashMap<String, FreeAction>() {{
 		put("formNewHouseMarriage", new FreeAction("formNewHouseMarriage", null, 30));
 		put("tryToHaveChild", new FreeAction("tryToHaveChild", null, 15));
-		put("claimNewLand", new FreeAction("claimNewLand", null, 15));
+		put("claimNewLand", new FreeAction("claimNewLand", null, 1));
+		
+		put("buildBasicHome", new FreeAction("buildBasicHome", null, 2));
+		put("improveComplex", new FreeAction("improveComplex", null, 2));
 		
 		put("chat", new FreeAction("chat", null, 1));
 		put("ideologicalEthosDebate", new FreeAction("ideologicalEthosDebate", null, 5));
@@ -100,6 +106,29 @@ public class FreeActionsHumans {
 						grid.claimTiles(human, interval.getStart(), interval.getEnd(), null);
 					//}
 				}
+			}
+			else if (name.equals("buildBasicHome")) {
+				int randIndex = (int) (Math.random() * humans.size());
+				Human randomHuman = humans.get(randIndex);
+				randomHuman.queuedProcesses.add(ProcessData.getProcessByName("Build Basic Home"));
+			}
+			else if (name.equals("improveComplex")) {
+				Map<Human, Double> humanImprScore = new HashMap<>();
+				for (Human human: humans) {
+					int num = human.designatedBuildsByPurpose.size();
+					if (num > 0) { 
+						double scoring = 0;
+						for (List<PurposeAnnotatedBuild> annoBuilds: human.designatedBuildsByPurpose.values()) {
+							for (PurposeAnnotatedBuild annoBuild: annoBuilds) {
+								scoring += 2 + annoBuild.totalArea();
+							}
+						}
+						humanImprScore.put(human, scoring);
+					}
+				}
+				humanImprScore = MapUtil.getSortedMapByValueDesc(humanImprScore);
+				Human randomHuman = MapUtil.randChoiceFromWeightMap(humanImprScore);
+				randomHuman.queuedProcesses.add(ProcessData.getProcessByName("Improve Complex"));
 			}
 			else if (name.equals("chat")) { //Temporarily represent chatting as an instaneous free action
 				List<Human[]> chatPairs = SocietalHumansActionsCalc.possibleCordialPairs(humans, date);

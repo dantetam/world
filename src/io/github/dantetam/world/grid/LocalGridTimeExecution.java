@@ -510,13 +510,13 @@ public class LocalGridTimeExecution {
 			
 			List<GridRectInterval> bestRectangles = findBestOpenRectSpace(
 					grid, society, validLandOwners, being.location.coords, requiredSpace);
-			LinkedHashSet<Vector3i> borderRegion = VecGridUtil.getBorderRegionFromCoords(
-					Vector3i.getRange(bestRectangles));
-			
-			Set<Integer> bestBuildingMaterials = society.getBestBuildingMaterials(society.calcUtility, 
-					being, borderRegion.size());
 				
 			if (bestRectangles != null && bestRectangles.size() > 0) {
+				LinkedHashSet<Vector3i> borderRegion = VecGridUtil.getBorderRegionFromCoords(
+						Vector3i.getRange(bestRectangles));
+				Set<Integer> bestBuildingMaterials = society.getBestBuildingMaterials(society.calcUtility, 
+						being, borderRegion.size());
+				
 				//Use land claims on the spaces not already claimed
 				for (GridRectInterval interval: bestRectangles) {
 					List<Human> claimants = grid.findClaimantToTiles(interval);
@@ -548,6 +548,7 @@ public class LocalGridTimeExecution {
 				NeedsGamut humanNeeds = societyNeeds.get(being);
 				Entry<PurposeAnnotatedBuild, AnnotatedRoom> bestEntry = PurposeAnnoBuildDesPriority.
 						futureRoomNeedByScore(being, humanNeeds);
+				if (bestEntry == null) return new ImpossiblePriority("Could not find complex to improve");
 				PurposeAnnotatedBuild complex = bestEntry.getKey();
 				AnnotatedRoom room = bestEntry.getValue();
 				
@@ -1293,26 +1294,37 @@ public class LocalGridTimeExecution {
 		}
 	}
 	private static void assignSingleHumanJob(Society society, Human human, Date date) {
-		Map<Integer, Double> calcUtility = society.findCompleteUtilityAllItems(human);
-		
-		Map<LocalProcess, Double> bestProcesses = society.prioritizeProcesses(calcUtility, human, NUM_JOBPROCESS_CONSIDER, null);
-		Map<LocalJob, Double> bestJobs = society.prioritizeJobs(human, bestProcesses, date);
-		
-		for (Entry<LocalProcess, Double> entry: bestProcesses.entrySet()) {
-			CustomLog.outPrintln(entry.getKey().name + " " + entry.getValue());
+		boolean moveJobQueue = false, moveProcQueue = false;
+		if (human.queuedJobs != null && human.queuedJobs.size() > 0) {
+			LocalJob job = human.queuedJobs.remove(0);
+			human.jobProcessProgress = job;
+			MapUtil.insertNestedSetMap(job.boss.workers, human, job); //TODO < ???
+			moveJobQueue = true;
+		}
+		if (human.queuedProcesses != null && human.queuedProcesses.size() > 0) {
+			LocalProcess process = human.queuedProcesses.remove(0);
+			human.processProgress = process;
+			moveProcQueue = true;
 		}
 		
-		Object potentialItem = MapUtil.randChoiceFromMaps(bestProcesses, bestJobs);
-		if (potentialItem instanceof LocalJob && human.jobProcessProgress == null) {
-			LocalJob potentialJob = (LocalJob) potentialItem;
-			human.jobProcessProgress = potentialJob;
-			MapUtil.insertNestedSetMap(potentialJob.boss.workers, human, potentialJob);
+		if (!moveJobQueue && !moveProcQueue) {
+			Map<Integer, Double> calcUtility = society.findCompleteUtilityAllItems(human);
+			Map<LocalProcess, Double> bestProcesses = society.prioritizeProcesses(calcUtility, human, NUM_JOBPROCESS_CONSIDER, null);
+			Map<LocalJob, Double> bestJobs = society.prioritizeJobs(human, bestProcesses, date);
+			for (Entry<LocalProcess, Double> entry: bestProcesses.entrySet()) {
+				CustomLog.outPrintln(entry.getKey().name + " " + entry.getValue());
+			}
+			
+			Object potentialItem = MapUtil.randChoiceFromMaps(bestProcesses, bestJobs);
+			if (potentialItem instanceof LocalJob && human.jobProcessProgress == null) {
+				LocalJob potentialJob = (LocalJob) potentialItem;
+				human.jobProcessProgress = potentialJob;
+				MapUtil.insertNestedSetMap(potentialJob.boss.workers, human, potentialJob);
+			}
+			else if (potentialItem instanceof LocalProcess && human.processProgress == null) {
+				human.processProgress = (LocalProcess) potentialItem;
+			}
 		}
-		else if (potentialItem instanceof LocalProcess && human.processProgress == null) {
-			human.processProgress = (LocalProcess) potentialItem;
-		}
-		//LocalProcess randBiasedChosenProcess = MapUtil.randChoiceFromWeightMap(bestProcesses);
-		//human.processProgress = randBiasedChosenProcess;
 	}
 	
 	private static void collectivelyAssignJobsSociety(Society society) {

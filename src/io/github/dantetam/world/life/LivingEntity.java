@@ -23,17 +23,20 @@ public abstract class LivingEntity {
 	private int id;
 	public LocalTile location;
 	public String name;
-
-	//TODO;
-	//An economic queue paradigm where the human keeps track of multiple viable process,
-	//as well as queued other 'free processes'/free actions (like, chat to this human sometime soon)
-	//and switch between them while no process is assigned.
 	
 	//A cloned Process object which keeps track of the remaining steps in the process cycle
 	public LocalProcess processProgress;
 	public Priority activePriority;
 	public List<Task> currentQueueTasks;
 	public LocalJob jobProcessProgress; //For activities mandated by a lord, employer, or society
+	
+	//TODO;
+	//An economic queue paradigm where the human keeps track of multiple viable process,
+	//as well as queued other 'free processes'/free actions (like, chat to this human sometime soon)
+	//and switch between them while no process is assigned.
+	public List<LocalJob> queuedJobs;
+	public List<LocalProcess> queuedProcesses;
+	//TODO;
 	
 	//Unsupervised tasks not currently active/assigned with this human, but can come back
 	//They are ticked in the unsupervised 'phase' of process reduction.
@@ -66,6 +69,8 @@ public abstract class LivingEntity {
 	public LivingEntity(String name) {
 		this.name = name;
 		inventory = new Inventory();
+		this.queuedJobs = new ArrayList<>();
+		this.queuedProcesses = new ArrayList<>();
 		unsupervisedJobs = new ArrayList<>();
 		unsupervisedProcesses = new ArrayList<>();
 		ownedBuildings = new ArrayList<>();

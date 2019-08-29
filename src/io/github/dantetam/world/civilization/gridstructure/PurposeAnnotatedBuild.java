@@ -55,4 +55,14 @@ public class PurposeAnnotatedBuild {
 		return false;
 	}
 	
+	public int totalArea() {
+		int curArea = 0;
+		for (List<AnnotatedRoom> rooms: this.roomsByPurpose.values()) {
+			for (AnnotatedRoom room: rooms) {
+				curArea += room.roomFloors.size();
+			}
+		}
+		return curArea;
+	}
+	
 }

@@ -31,6 +31,11 @@ public class PurposeAnnoBuildDesPriority {
 	
 	public static Entry<PurposeAnnotatedBuild, AnnotatedRoom> futureRoomNeedByScore(LivingEntity being, 
 			NeedsGamut humanNeedsCalc) {
+		if (being.designatedBuildsByPurpose == null || being.designatedBuildsByPurpose.size() == 0) {
+			System.err.println("Warning, PurposeAnnoBuildDesPriority::... method requires a being"
+					+ "that has annotated rooms");
+		}
+		
 		//Look all the complexes, and find the best room expansion candidate of each.
 		//Then compare these for the final best result.
 		Entry<PurposeAnnotatedBuild, AnnotatedRoom> bestEntry = null;

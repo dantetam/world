@@ -2,7 +2,7 @@ package io.github.dantetam.toolbox.log;
 
 public class CustomLog {
 
-	public static final PrintMode mode = PrintMode.ERR;
+	public static final PrintMode mode = PrintMode.OUT;
 	
 	public static void outPrintln() {
 		outPrintln("");
