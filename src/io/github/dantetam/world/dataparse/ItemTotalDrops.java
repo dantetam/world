@@ -95,6 +95,8 @@ public class ItemTotalDrops {
 		
 		/** 
 		 * TODO: Implement custom probability distributions
+		 * Also item quality considerations
+		 * 
 		 * @return The item id and item quantity, respectively
 		 */
 		public InventoryItem getItemDrop() {

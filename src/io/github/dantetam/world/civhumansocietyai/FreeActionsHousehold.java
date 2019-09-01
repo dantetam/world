@@ -15,8 +15,6 @@ import io.github.dantetam.world.grid.WorldGrid;
 import io.github.dantetam.world.life.Human;
 
 public class FreeActionsHousehold {
-
-	//TODO
 	
 	public static Map<String, FreeAction> freeActionsListHousehold = new HashMap<String, FreeAction>() {{
 		put("formSociety", new FreeAction("formSociety", null, 50));
@@ -25,13 +23,6 @@ public class FreeActionsHousehold {
 	public static Map<String, FreeAction> freeActionsListHuman = new HashMap<String, FreeAction>() {{
 		put("formNewHousehold", new FreeAction("formNewHousehold", null, 50));
 	}};
-	
-	/*
-	public static void considerAllFreeActions(WorldGrid world, LocalGrid grid, 
-			Society society, Date date) {
-		//TODO
-	}
-	*/
 	
 	public static void considerAllFreeActionsHouseholds(WorldGrid world, LocalGrid grid, 
 			List<Household> freeHouseholds, Date date) {

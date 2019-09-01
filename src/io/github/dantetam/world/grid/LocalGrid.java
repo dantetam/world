@@ -681,13 +681,27 @@ public class LocalGrid {
 		return this.buildIdQuickTileLookup.get(buildId);
 	}
 	
+	public boolean buildingWithinBounds(LocalBuilding building, Vector3i newPrimaryCoords) {
+		List<Vector3i> offsets = building.getLocationOffsets();
+		for (Vector3i offset: offsets) {
+			Vector3i candidate = newPrimaryCoords.getSum(offset);
+			if (!inBounds(candidate)) {
+				return false;
+			}
+		}
+		return true;
+	}
+	
 	public boolean buildingCanFitAt(LocalBuilding building, Vector3i newPrimaryCoords) {
+		if (!buildingWithinBounds(building, newPrimaryCoords)) {
+			return false;
+		}
 		//Check to see if the building fits
 		List<Vector3i> offsets = building.getLocationOffsets();
 		for (Vector3i offset: offsets) {
 			Vector3i candidate = newPrimaryCoords.getSum(offset);
 			LocalTile candidateTile = this.getTile(candidate);
-			if (!inBounds(candidate) || (candidateTile != null && candidateTile.building != null)) {
+			if (candidateTile != null && candidateTile.building != null) {
 				return false;
 			}
 		}
@@ -696,26 +710,32 @@ public class LocalGrid {
 	
 	public void addBuilding(LocalBuilding building, Vector3i newPrimaryCoords, boolean overrideGrid,
 			LivingEntity owner) {
-		if (buildingCanFitAt(building, newPrimaryCoords) || overrideGrid) {
+		if (buildingWithinBounds(building, newPrimaryCoords) && 
+				(buildingCanFitAt(building, newPrimaryCoords) || overrideGrid)) {
 			removeBuilding(building);
 			building.setPrimaryLocation(newPrimaryCoords);
 			Collection<Vector3i> newAbsLocations = building.calculatedLocations;
 
 			for (Vector3i newAbsLocation: newAbsLocations) {
 				LocalTile absTile = getTile(newAbsLocation);
+				int oldBuildingId = (absTile != null && absTile.building != null) ? 
+						absTile.building.buildingId : ItemData.ITEM_EMPTY_ID;
+				
 				if (absTile == null && this.inBounds(newAbsLocation)) {
 					absTile = createTile(newAbsLocation);
 					
 					absTile.building = building;
 					//absTile.tileBlockId = building.buildingBlockIds.get(buildingTileIndex);
 					
-					//TODO Update pathfinder correctly, use neighboring tiles
+					//Update pathfinder correctly, use neighboring tiles
 					if (this.pathfinder != null)
 						this.pathfinder.adjustRSR(newAbsLocation, true);
 				}
 				
-				if (this.inBounds(newAbsLocation))
+				if (this.inBounds(newAbsLocation)) {
+					updateClusterInfo(newAbsLocation, oldBuildingId, building.buildingId);
 					updateTileAccessibility(newAbsLocation);
+				}
 			} 
 			
 			allBuildings.add(building);
@@ -879,7 +899,7 @@ public class LocalGrid {
 		return emptySpaces;
 	}
 	
-	public void addHuman(LivingEntity human, Vector3i coords) {
+	public void addLivingEntity(LivingEntity human, Vector3i coords) {
 		LocalTile tile = getTile(coords);
 		
 		if (human.location != null) {

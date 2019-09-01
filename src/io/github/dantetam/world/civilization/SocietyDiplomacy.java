@@ -112,14 +112,13 @@ public class SocietyDiplomacy {
 	
 	//See FreeActionsSociety::considerAllFreeActions()
 	public void initiateTrade(Society host, Society target) {
-		//TODO
-		Map<Integer, Double> hostSocUtil = MapUtil.getSortedMapByValueDesc(host.calcUtility);
-		Map<Integer, Double> hostTarUtil = MapUtil.getSortedMapByValueDesc(target.calcUtility);
+		Map<Integer, Double> hostUtil = MapUtil.getSortedMapByValueDesc(host.calcUtility);
+		Map<Integer, Double> tarUtil = MapUtil.getSortedMapByValueDesc(target.calcUtility);
 		
-		Map<Integer, Double> hostSocCommon = MapUtil.getSortedMapByValueDesc(host.allEconomicUtil);
-		Map<Integer, Double> hostTarCommon = MapUtil.getSortedMapByValueDesc(target.allEconomicUtil);
+		Map<Integer, Double> hostAccess = MapUtil.getSortedMapByValueDesc(host.accessibleResUtil);
+		Map<Integer, Double> tarAccess = MapUtil.getSortedMapByValueDesc(target.accessibleResUtil);
 		
-		
+		TODO;
 	}
 	
 	public boolean isObligatedInDefCall(Society caller, Society ally, Society target) {

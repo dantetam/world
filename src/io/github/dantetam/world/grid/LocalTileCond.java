@@ -51,7 +51,7 @@ public abstract class LocalTileCond {
 		
 		@Override
 		public boolean isDesiredTile(LocalGrid grid, Vector3i coords) {
-			// TODO Auto-generated method stub
+			// Auto-generated method stub
 			Human tileOwner = society.getRecordClaimInGrid(grid, coords);
 			return this.validLandOwners.contains(tileOwner);
 		}
@@ -65,7 +65,7 @@ public abstract class LocalTileCond {
 		
 		@Override
 		public boolean isDesiredTile(LocalGrid grid, Vector3i coords) {
-			// TODO Auto-generated method stub
+			// Auto-generated method stub
 			for (ClusterVector3i cluster: validAreas) {
 				if (cluster.clusterData.contains(coords)) {
 					return true;

@@ -21,6 +21,7 @@ import io.github.dantetam.world.grid.LocalBuilding;
 import io.github.dantetam.world.grid.LocalGrid;
 import io.github.dantetam.world.grid.LocalTile;
 import io.github.dantetam.world.life.Human;
+import io.github.dantetam.world.life.LivingEntity;
 
 public class GuiSystem extends BaseSystem {
 
@@ -100,7 +101,28 @@ public class GuiSystem extends BaseSystem {
 							break;
 						}
 						if (tile.getPeople() != null && tile.getPeople().size() > 0) {
-							TextBox buildingTextBox = getDefaultTextBoxGui(guiDefaultTexture, "H!", "", guiPos.x, guiPos.y, guiWidth, guiHeight);
+							String iconAbbr = "";
+							if (tile.getPeople().size() >= 2) {
+								boolean humanFound = false;
+								for (LivingEntity being: tile.getPeople()) {
+									if (being instanceof Human) {
+										humanFound = true;
+										break;
+									}
+								}
+								iconAbbr = humanFound ? "!!" : "As";
+							}
+							else {
+								LivingEntity onlyBeing = tile.getPeople().get(0);
+								char firstChar = onlyBeing.body.highLevelSpeciesName.charAt(0);
+								firstChar = Character.toUpperCase(firstChar);
+								iconAbbr += firstChar;
+								if (onlyBeing instanceof Human) {
+									iconAbbr += "!";
+								}
+							}
+							
+							TextBox buildingTextBox = getDefaultTextBoxGui(guiDefaultTexture, iconAbbr, "", guiPos.x, guiPos.y, guiWidth, guiHeight);
 							listTexts.add(buildingTextBox);
 							break;
 						}

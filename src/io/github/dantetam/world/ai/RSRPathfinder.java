@@ -310,9 +310,9 @@ public class RSRPathfinder extends Pathfinder {
 			int r = (int) (Math.random() * 99), c = (int) (Math.random() * 99);
 			int h = activeLocalGrid.findHighestGroundHeight(r,c);
 			
-			Human human = new Human(testSociety, "Human" + j);
+			Human human = new Human(testSociety, "Human" + j, "Human");
 			people.add(human);
-			activeLocalGrid.addHuman(human, new Vector3i(r,c,h));
+			activeLocalGrid.addLivingEntity(human, new Vector3i(r,c,h));
 		}
 		testSociety.addHousehold(new Household(people));
 		

@@ -34,7 +34,6 @@ public class VecGridUtil {
 		
 		@Override
 		public int compare(Vector3i o1, Vector3i o2) {
-			// TODO Auto-generated method stub
 			return o1.manhattanDist(target) - o2.manhattanDist(target);
 		}
 	}
@@ -101,9 +100,7 @@ public class VecGridUtil {
 	}
 	
 	
-	//TODO generalize algorithm to finding maximal rects (for land claims?)
-	
-	
+	//Generalize algorithm to finding maximal rects (for land claims?)
 	/**
 	 * ("Breaking Path Symmetries on 4-Connected Grid Maps", Harabor and Botea, 2010)
 	 * In A* pathfinding, too many nodes can be expanded due to the fact that symmetric paths

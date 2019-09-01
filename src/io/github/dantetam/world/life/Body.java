@@ -24,6 +24,8 @@ public class Body {
 	
 	private Map<String, BodyTrait> bodyTraits = new HashMap<>();
 	
+	public String highLevelSpeciesName;
+	
 	public String combatStyle;
 	
 	//private Map<String, List<CombatItem>> heldItemsByBodyPart = new HashMap<>();
@@ -38,6 +40,7 @@ public class Body {
 	private String fightingStyle = ""; 
 	
 	public Body(String className) {
+		this.highLevelSpeciesName = className;
 		Set<BodyPart> speciesBodyParts = AnatomyData.initBeingNameAnatomy(className);
 		for (BodyPart speciesBodyPart: speciesBodyParts) {
 			bodyParts.put(speciesBodyPart.name, speciesBodyPart);

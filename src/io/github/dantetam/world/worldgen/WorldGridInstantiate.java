@@ -32,6 +32,7 @@ import io.github.dantetam.world.grid.LocalGrid;
 import io.github.dantetam.world.grid.LocalTile;
 import io.github.dantetam.world.grid.SpaceFillingAlg;
 import io.github.dantetam.world.grid.WorldGrid;
+import io.github.dantetam.world.life.Animal;
 import io.github.dantetam.world.life.Human;
 import io.github.dantetam.world.life.LivingEntity;
 import io.github.dantetam.world.worldgen.DNAGridGeneration.DNATileData;
@@ -141,17 +142,32 @@ public class WorldGridInstantiate {
 					availVec = grid.findHighestAccessibleHeight(r,c);
 				} while (availVec == null);
 				
-				Human human = new Human(testSociety, "Human" + j + " of House " + i);
+				Human human = new Human(testSociety, "Human" + j + " of House " + i, "Human");
 				people.add(human);
-				grid.addHuman(human, availVec);
+				grid.addLivingEntity(human, availVec);
 				
-				/*
+				if (Math.random() < 0.25) {
+					int numAnimals = (int) (Math.random() * 5) + 1;
+					for (int animal = 0; animal < numAnimals; animal++) {
+						LivingEntity being = new Animal("Cow", "Cow");
+						human.ownedAnimals.add(being);
+						
+						do {
+							r = (int) (Math.random() * grid.rows);
+							c = (int) (Math.random() * grid.cols);
+							availVec = grid.findHighestAccessibleHeight(r,c);
+						} while (availVec == null);
+						grid.addLivingEntity(human, availVec);
+					}
+				}
+				
+				
 				human.inventory.addItem(ItemData.randomBaseItem());
 				human.inventory.addItem(ItemData.randomBaseItem());
 				human.inventory.addItem(ItemData.randomBaseItem());
 				human.inventory.addItem(ItemData.randomBaseItem());
-				human.inventory.addItem(ItemData.randomItem());
-				*/
+				//human.inventory.addItem(ItemData.randomItem());
+				
 				human.inventory.addItem(ItemData.item("Wheat Seeds", 50));
 				human.inventory.addItem(ItemData.item("Pine Wood", 50));
 			}

@@ -47,6 +47,10 @@ import io.github.dantetam.world.process.priority.*;
 import io.github.dantetam.world.process.prioritytask.*;
 import kdtreegeo.KdTree;
 
+//TODO
+//Remove grid specific processes for humans and allow humans to considering doing jobs
+//transporting themselves, resources, etc. across grids. Also allow for people to travel between grids.
+
 public class LocalGridTimeExecution {
 	
 	public static int NUM_JOBPROCESS_CONSIDER = 40;
@@ -79,14 +83,20 @@ public class LocalGridTimeExecution {
 		//Every day, assign new jobs and new societal measures of utility
 		if (date.getHours() == 0 || society.calcUtility == null) {
 			society.createJobOffers();
-			assignAllHumanJobs(society, date);
+			assignAllHumanJobs(society, grid, date);
 			society.leadershipManager.workThroughSocietalPolitics();
 			
 			society.calcUtility = society.findCompleteUtilityAllItems(null);
-			society.allEconomicUtil = society.findAllAvailableResourceRarity(null);
+			society.accessibleResUtil = society.findAllAvailableResourceRarity(null);
 			society.groupItemRarity = society.findRawGroupsResRarity(null);
 			society.importantLocations = society.getImportantLocations(society.societyCenter);
+			
 			society.humanNeedsMap = society.findAllNeedsIntensityMap();
+			for (Entry<Human, NeedsGamut> entry: society.humanNeedsMap.entrySet()) {
+				Human human = entry.getKey();
+				NeedsGamut needs = entry.getValue();
+				human.shortTermNeeds = needs;
+			}
 		}
 		
 		CustomLog.outPrintln("################");
@@ -100,7 +110,7 @@ public class LocalGridTimeExecution {
 				deconstructionProcess(human, grid, society, date, human.processProgress);
 			}
 			else {
-				assignSingleHumanJob(society, human, date);
+				assignSingleHumanJob(society, grid, human, date);
 			}
 			
 			Iterator<LocalJob> uJobIter = human.unsupervisedJobs.iterator();
@@ -284,7 +294,7 @@ public class LocalGridTimeExecution {
 					process.processTile = null;
 					process.targetTile = null;
 				}
-				assignSingleHumanJob(society, human, date);
+				assignSingleHumanJob(society, grid, human, date);
 			}
 			else {
 				process.processStepIndex = 0;
@@ -294,7 +304,7 @@ public class LocalGridTimeExecution {
 		//Assign a new process. Note that a human may have a priority not linked to any higher structure,
 		//which we do not want to override or chain incorrectly to a new job.
 		if (human.processProgress == null && human.activePriority == null) {
-			assignSingleHumanJob(society, human, date);
+			assignSingleHumanJob(society, grid, human, date);
 		}
 		CustomLog.outPrintln();
 	}
@@ -859,9 +869,6 @@ public class LocalGridTimeExecution {
 		return priority;
 	}
 	
-	/**
-	 * TODO
-	 */
 	private static Priority getPriorForStepUnsupervBasic(LocalGrid grid, Human unsupervHuman, LocalProcess process, ProcessStep step) {
 		Priority priority = null;
 		
@@ -1287,18 +1294,18 @@ public class LocalGridTimeExecution {
 		}
 	}
 	
-	private static void assignAllHumanJobs(Society society, Date date) {
+	private static void assignAllHumanJobs(Society society, LocalGrid grid, Date date) {
 		List<Human> humans = society.getAllPeople();
 		for (Human human: humans) {
-			assignSingleHumanJob(society, human, date);
+			assignSingleHumanJob(society, grid, human, date);
 		}
 	}
-	private static void assignSingleHumanJob(Society society, Human human, Date date) {
+	private static void assignSingleHumanJob(Society society, LocalGrid grid, Human human, Date date) {
 		boolean moveJobQueue = false, moveProcQueue = false;
 		if (human.queuedJobs != null && human.queuedJobs.size() > 0) {
 			LocalJob job = human.queuedJobs.remove(0);
 			human.jobProcessProgress = job;
-			MapUtil.insertNestedSetMap(job.boss.workers, human, job); //TODO < ???
+			MapUtil.insertNestedSetMap(job.boss.workers, human, job);
 			moveJobQueue = true;
 		}
 		if (human.queuedProcesses != null && human.queuedProcesses.size() > 0) {
@@ -1309,7 +1316,8 @@ public class LocalGridTimeExecution {
 		
 		if (!moveJobQueue && !moveProcQueue) {
 			Map<Integer, Double> calcUtility = society.findCompleteUtilityAllItems(human);
-			Map<LocalProcess, Double> bestProcesses = society.prioritizeProcesses(calcUtility, human, NUM_JOBPROCESS_CONSIDER, null);
+			Map<LocalProcess, Double> bestProcesses = society.prioritizeProcesses(
+					calcUtility, grid, human, NUM_JOBPROCESS_CONSIDER, null);
 			Map<LocalJob, Double> bestJobs = society.prioritizeJobs(human, bestProcesses, date);
 			for (Entry<LocalProcess, Double> entry: bestProcesses.entrySet()) {
 				CustomLog.outPrintln(entry.getKey().name + " " + entry.getValue());
@@ -1328,8 +1336,9 @@ public class LocalGridTimeExecution {
 	}
 	
 	private static void collectivelyAssignJobsSociety(Society society) {
-		Map<Integer, Double> calcUtility = society.findCompleteUtilityAllItems(null);
-		Map<LocalProcess, Double> bestProcesses = society.prioritizeProcesses(calcUtility, null, NUM_JOBPROCESS_CONSIDER, null);
+		Map<Integer, Double> calcUtility = society.getCalcUtility();
+		Map<LocalProcess, Double> bestProcesses = society.prioritizeProcesses(
+				calcUtility, null, null, NUM_JOBPROCESS_CONSIDER, null);
 		List<Human> humans = society.getAllPeople();
 		
 		int humanIndex = 0;
@@ -1346,6 +1355,35 @@ public class LocalGridTimeExecution {
 				humanIndex++;
 			}
 		}
+	}
+	
+	public static boolean hasAccessToItem(LocalGrid grid, LivingEntity being, 
+			Map<Integer, Integer> itemsAmtNeeded) {
+		for (Entry<Integer, Integer> entry: itemsAmtNeeded.entrySet()) {
+			int itemId = entry.getKey();
+			int itemAmtNeeded = entry.getValue();
+			
+			KdTree<Vector3i> nearestItemsTree = grid.getKdTreeForItemId(itemId);
+			int recordsFound = nearestItemsTree == null ? 0 : nearestItemsTree.size();
+			//TODO: Use item numbers in counting for viable resources
+			
+			int numCandidates = Math.min(nearestItemsTree.size(), 10);
+			Collection<Vector3i> nearestCoords = nearestItemsTree.nearestNeighbourListSearch(
+					numCandidates, being.location.coords);
+			
+			boolean foundPath = false;
+			for (Vector3i coords: nearestCoords) {
+				//Compute a path from the being's location to this tile
+				if (grid.pathfinder.hasValidPath(being, being.location.coords, coords)) {
+					foundPath = true;
+					break;
+				}
+			}
+			if (!foundPath) {
+				return false;
+			}
+		}
+		return true;
 	}
 	
 	public static Priority progressToFindItem(LocalGrid grid, 

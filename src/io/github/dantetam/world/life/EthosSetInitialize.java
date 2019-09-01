@@ -85,7 +85,7 @@ public class EthosSetInitialize {
 		initValuesToHumanEthos(ethosSet);
 	}
 
-	//Assign random, sensible values to ethos, TODO
+	//Assign random, sensible values to ethos
 	private static void initValuesToHumanEthos(EthosSet ethosSet) {
 		for (Entry<String, Ethos> entry: ethosSet.greatEthos.entrySet()) {
 			Ethos ethos = entry.getValue();
@@ -118,7 +118,7 @@ public class EthosSetInitialize {
 	 * Experiences can individually affect one's perception of world, in the short and long term.
 	 */
 	public static void calculateHumanEthosExp(Human human) {
-		//TODO
+		
 	}
 
 	/**

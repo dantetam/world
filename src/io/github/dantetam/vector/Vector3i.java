@@ -27,6 +27,7 @@ import kdtreegeo.KdPoint;
  * 
  * //Syntax sugar for get any dimension programmatically?
  */
+
 public class Vector3i extends KdPoint {
 
 	public int x,y,z;

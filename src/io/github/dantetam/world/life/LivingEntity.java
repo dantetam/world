@@ -36,7 +36,6 @@ public abstract class LivingEntity {
 	//and switch between them while no process is assigned.
 	public List<LocalJob> queuedJobs;
 	public List<LocalProcess> queuedProcesses;
-	//TODO;
 	
 	//Unsupervised tasks not currently active/assigned with this human, but can come back
 	//They are ticked in the unsupervised 'phase' of process reduction.
@@ -76,6 +75,7 @@ public abstract class LivingEntity {
 		ownedBuildings = new ArrayList<>();
 		ownedItems = new ArrayList<>();
 		designatedBuildsByPurpose = new HashMap<>();
+		//this.body = new Body(this.getClass().getSimpleName());
 		age = 0;
 	}
 

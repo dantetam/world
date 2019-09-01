@@ -103,7 +103,7 @@ public class WorldGrid {
 		}
 		
 		for (Society society: this.societalDiplomacy.getAllSocieties()) {
-			//TODO //Tick for every society involved in this grid
+			//Tick for every society involved in this grid
 			LocalGridTimeExecution.tick(this, society.primaryGrid, society);
 			
 			FreeActionsHumans.considerAllFreeActionsHumans(this, society.primaryGrid, society,

@@ -31,6 +31,7 @@ import io.github.dantetam.world.grid.LocalGridTimeExecution;
 import io.github.dantetam.world.grid.LocalTile;
 import io.github.dantetam.world.items.InventoryItem;
 import io.github.dantetam.world.life.Human;
+import io.github.dantetam.world.life.LivingEntity;
 import io.github.dantetam.world.process.LocalJob;
 import io.github.dantetam.world.process.LocalProcess;
 import io.github.dantetam.world.process.LocalProcess.ProcessStep;
@@ -53,7 +54,7 @@ public class Society {
 	
 	//Societal utility of objects measured for this society, stored here
 	public Map<Integer, Double> calcUtility; //Sorted ascending
-	public Map<Integer, Double> allEconomicUtil; 
+	public Map<Integer, Double> accessibleResUtil; 
 	public Map<String, Double> groupItemRarity;
 	public List<Vector3i> importantLocations;
 	public Map<Human, NeedsGamut> humanNeedsMap; //Fill with the needs of humans calculated in needs intensity calc.
@@ -158,7 +159,7 @@ public class Society {
 	}
 	
 	public void createJobOffers() {
-		this.jobMarket.createJobOffers(this);
+		this.jobMarket.createJobOffers(this, primaryGrid);
 	}
 	
 	/**
@@ -170,7 +171,7 @@ public class Society {
 	 * @return
 	 */
 	public Map<LocalProcess, Double> prioritizeProcesses(Map<Integer, Double> allItemsUtility, 
-			Human human, int desiredNumProcess, Set<Integer> desiredItems) {
+			LocalGrid grid, Human human, int desiredNumProcess, Set<Integer> desiredItems) {
 		Map<Integer, Double> sortedUtility = MapUtil.getSortedMapByValueDesc(allItemsUtility);
 		Object[] sortedKeys = sortedUtility.keySet().toArray();
 		
@@ -181,7 +182,7 @@ public class Society {
 		while (i < sortedKeys.length) { //processByUtil.size() < desiredNumProcess
 			Integer itemId = (Integer) sortedKeys[i];
 			Map<LocalProcess, Double> bestProcesses = findBestProcess(allItemsUtility, rawResRarity, 
-					human, itemId);
+					grid, human, itemId);
 			
 			if (bestProcesses != null) {
 				if (desiredItems == null || desiredItems.contains(itemId)) {
@@ -197,7 +198,7 @@ public class Society {
 		//For leftover processes that have not been assigned a utility yet
 		NeedsGamut needsIntensity = finalTotalNeedsMap();
 		for (LocalProcess process: ProcessData.getAllProcesses()) {
-			if (!processByUtil.containsKey(process) && canCompleteProcess(process, rawResRarity)) {
+			if (!processByUtil.containsKey(process) && canCompleteProcess(process, rawResRarity, grid, human)) {
 				double heuristicActionScore = 0;
 				List<ProcessStep> resActions = process.processResActions;
 				if (resActions != null) {
@@ -249,7 +250,7 @@ public class Society {
 	 * @param human The human in question who has access to resources, buildings, etc.
 	 */
 	public Map<LocalProcess, Double> findBestProcess(Map<Integer, Double> allItemsUtility, 
-			Map<Integer, Double> rawResRarity, Human human, int outputItemId) {
+			Map<Integer, Double> rawResRarity, LocalGrid grid, Human human, int outputItemId) {
 		Set<Integer> visitedItemIds = new HashSet<>();
 		Set<Integer> fringe = new HashSet<>();
 		fringe.add(outputItemId);
@@ -287,7 +288,7 @@ public class Society {
 					for (InventoryItem input: inputs) {
 						double util = allItemsUtility.containsKey(input.itemId) ? 
 								allItemsUtility.get(input.itemId) : 0;
-						if (canCompleteProcess(process, rawResRarity)) {
+						if (canCompleteProcess(process, rawResRarity, grid, human)) {
 							MapUtil.insertKeepMaxMap(bestProcesses, process.clone(), util);
 							//CustomLog.outPrintln("COMPLETE process: " + process.name + " " + util);
 							continue;
@@ -316,7 +317,8 @@ public class Society {
 	}
 	
 	//Return the necessary items that are needed for a process
-	public boolean canCompleteProcess(LocalProcess process, Map<Integer, Double> rawResRarity) {
+	public boolean canCompleteProcess(LocalProcess process, Map<Integer, Double> rawResRarity,
+			LocalGrid grid, LivingEntity being) {
 		//Check for resources
 		List<InventoryItem> inputs = process.inputItems;
 		for (InventoryItem input: inputs) {
@@ -325,12 +327,11 @@ public class Society {
 				return false;
 			}
 			
-			/*
-			 * TODO
-			if (LocalGridTimeExecution.progressToFindItem(grid, being, owners, itemsAmtNeeded, scoringMetric)) {
-				
+			Map<Integer, Integer> itemsAmtNeeded = new HashMap<>();
+			itemsAmtNeeded.put(input.itemId, input.quantity);
+			if (!LocalGridTimeExecution.hasAccessToItem(grid, being, itemsAmtNeeded)) {
+				return false;
 			}
-			*/
 		}
 		
 		//Check for buildings
@@ -353,6 +354,22 @@ public class Society {
 		//TODO //Check for required location and/or site
 		return true;
 	}
+	
+	//Scrap the idea of storage since there is no good SWE way to track time of utility calculation
+	/*
+	public Map<Integer, Double> getCalcUtil() {
+		return this.getCalcUtil(null);
+	}
+	public Map<Integer, Double> getCalcUtil(Human human) {
+		if (human != null) {
+			return this.findCompleteUtilityAllItems(human);
+		}
+		if (this.calcUtility == null) {
+			this.calcUtility = this.findCompleteUtilityAllItems(null);
+		}
+		return this.calcUtility;
+	}
+	*/
 	
 	/**
 	 * @return A mapping of every item in the world available to its calcuated utility.

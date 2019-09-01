@@ -21,7 +21,7 @@ public abstract class HumanRelationship {
 	
 	public EmotionGamut emotionGamut;
 	public double opinion;
-	//TODO: Feel multiple types of opinions towards others, such as love, friendship, superiority, etc.
+	//Feel multiple types of opinions towards others, such as love, friendship, superiority, etc.
 	
 	public HumanRelationship() {
 		sharedExperiences = new ArrayList<>();

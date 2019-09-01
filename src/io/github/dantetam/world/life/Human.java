@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Set;
 
 import io.github.dantetam.toolbox.CollectionUtil;
+import io.github.dantetam.world.civhumanai.NeedsGamut;
 import io.github.dantetam.world.civhumanrelation.HumanHumanRel;
 import io.github.dantetam.world.civhumanrelation.HumanHumanRel.HumanHumanRelType;
 import io.github.dantetam.world.civilization.Household;
@@ -34,7 +35,7 @@ public class Human extends LivingEntity {
 	public String familyName;
 	
 	public HumanBrain brain;
-	public DNAHuman dna;
+	public DNAHuman dna; 
 	
 	//Used for convenient storage; all humans have relationships stored in HumanBrain::indexedRelationships
 	public Human lord;
@@ -43,13 +44,18 @@ public class Human extends LivingEntity {
 	
 	public Household household;
 	
+	public List<LivingEntity> ownedAnimals;
+	
 	public Properties properties; //Use traits like in DF to represent physical properties of a person, like sentience, or civilization,
 			//or aversion to water.
 	
-	//TODO; //Implement short-term (immediate), medium-term (job? current goals), 
+	public NeedsGamut shortTermNeeds, mediumTermNeeds, lifetimeNeeds;
+	
+			TODO;
+			//Implement short-term (immediate), medium-term (job? current goals), 
 			//and long-term (fulfillment and life-long) Maslow needs
 	
-	public Human(Society society, String name) {
+	public Human(Society society, String name, String speciesName) {
 		super(name);
 		this.society = society;
 		allClaims = new HashSet<>();
@@ -58,13 +64,17 @@ public class Human extends LivingEntity {
 		nutrition = 30;
 		rest = 80;
 		skillBook = new SkillBook();
-		body = new Body("Human");
+		body = new Body(speciesName);
 		brain = new HumanBrain(this);
 		EthosSetInitialize.initHumanBrain(brain.ethosSet);
-		dna = new DNAHuman("Human");
+		dna = new DNAHuman(speciesName);
 		servants = new ArrayList<>();
 		workers = new HashMap<>();
+		ownedAnimals = new ArrayList<>();
 		properties = new Properties();
+		shortTermNeeds = new NeedsGamut();
+		mediumTermNeeds = new NeedsGamut();
+		lifetimeNeeds = new NeedsGamut();
 	}
 	
 	public void feed(double standardUnitNutrition) {

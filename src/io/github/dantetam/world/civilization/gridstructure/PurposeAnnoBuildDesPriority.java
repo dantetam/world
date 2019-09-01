@@ -58,7 +58,7 @@ public class PurposeAnnoBuildDesPriority {
 		return bestEntry;
 	}
 	
-	//TODO: Implement Maslow's needs hierarchy object (different scoring of different needs)
+	//Implement Maslow's needs hierarchy object (different scoring of different needs)
 	public static LinkedHashMap<AnnotatedRoom, Double> futureRoomNeedByScore(LivingEntity being, 
 			PurposeAnnotatedBuild complex, NeedsGamut humanNeedsCalc) {
 		LinkedHashMap<AnnotatedRoom, Double> roomScoring = new LinkedHashMap<>();

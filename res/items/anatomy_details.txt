@@ -1,0 +1,14 @@
+Nested parts have their size and position (PosX, PosY, PosZ) as relative within their parent parts. 
+
+i.e. if the head is a free independent part and has the size 0.2, 
+and the brain is nested within the head with size 0.2, its real absolute size is 0.2*0.2 = 0.04.
+
+
+
+The coordinate system is designed for two different types of animals, standing (erect) and other animals.
+
+For standing beings, the being is mapped to a grid. The person is facing directly away from the camera.
+-X is left from being's POV, -Y is towards the ground, and -Z is away from the 'camera'.   
+
+For crawling beings, the being is crawling towards the left, with their head facing entirely left.
+-X is towards the front where the being is walking, -Y is towards the ground, and -Z is the being's right side (not facing the camera).

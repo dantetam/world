@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Set;
 
 import io.github.dantetam.world.civhumanai.EthosSet;
+import io.github.dantetam.world.civhumanrelation.EmotionGamut;
 import io.github.dantetam.world.civhumanrelation.HumanHumanRel;
 import io.github.dantetam.world.civhumanrelation.HumanHumanRel.HumanHumanRelType;
 import io.github.dantetam.world.civhumanrelation.HumanRelationship;
@@ -34,7 +35,7 @@ public class HumanBrain {
 	public Map<Human, HumanRelationship> indexedRelationships;
 	public Map<String, Double> languageCodesStrength;
 	
-	public Map<String, Double> feelingGamutWeights;
+	public EmotionGamut feelingGamutWeights;
 	
 	public HumanBrain(Human host) {
 		this.host = host;
@@ -62,12 +63,13 @@ public class HumanBrain {
 		return null;
 	}
 	
+	//TODO: Use these values to simulate non-human ethos i.e. feelings towards others in social situations?
 	private void initFeelingWeights() {
-		feelingGamutWeights = new HashMap<>();
-		feelingGamutWeights.put("Kindness", 1.5);
-		feelingGamutWeights.put("Admiration", 0.3);
-		feelingGamutWeights.put("Honor", 0.3);
-		feelingGamutWeights.put("Hate", -1.5);
+		feelingGamutWeights = new EmotionGamut();
+		feelingGamutWeights.addEmotion("Kindness", 1.5);
+		feelingGamutWeights.addEmotion("Admiration", 0.3);
+		feelingGamutWeights.addEmotion("Honor", 0.3);
+		feelingGamutWeights.addEmotion("Hate", -1.5);
 	}
 	
 }

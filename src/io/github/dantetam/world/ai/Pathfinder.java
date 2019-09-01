@@ -12,6 +12,7 @@ import java.util.Set;
 
 import io.github.dantetam.toolbox.log.CustomLog;
 import io.github.dantetam.vector.Vector3i;
+import io.github.dantetam.world.ai.Pathfinder.ScoredPath;
 import io.github.dantetam.world.civilization.Household;
 import io.github.dantetam.world.civilization.Society;
 import io.github.dantetam.world.dataparse.ItemData;
@@ -90,6 +91,12 @@ public class Pathfinder {
 	}
 	
 	//protected static final double 
+	
+	public boolean hasValidPath(LivingEntity being, Vector3i start, Vector3i end) {
+		ScoredPath scoredPath = grid.pathfinder.findPath(
+				being, start, end);
+		return scoredPath.isValid();
+	}
 	
 	public ScoredPath findPath(LivingEntity being, Vector3i start, Vector3i end) {
 		return findPath(being, grid.getTile(start), grid.getTile(end), null, null);
@@ -216,9 +223,9 @@ public class Pathfinder {
 			int r = (int) (Math.random() * 99), c = (int) (Math.random() * 99);
 			int h = activeLocalGrid.findHighestGroundHeight(r,c);
 			
-			Human human = new Human(testSociety, "Human" + j);
+			Human human = new Human(testSociety, "Human" + j, "Human");
 			people.add(human);
-			activeLocalGrid.addHuman(human, new Vector3i(r,c,h));
+			activeLocalGrid.addLivingEntity(human, new Vector3i(r,c,h));
 		}
 		testSociety.addHousehold(new Household(people));
 		
