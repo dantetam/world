@@ -1336,7 +1336,7 @@ public class LocalGridTimeExecution {
 	}
 	
 	private static void collectivelyAssignJobsSociety(Society society) {
-		Map<Integer, Double> calcUtility = society.getCalcUtility();
+		Map<Integer, Double> calcUtility = society.findCompleteUtilityAllItems(null);
 		Map<LocalProcess, Double> bestProcesses = society.prioritizeProcesses(
 				calcUtility, null, null, NUM_JOBPROCESS_CONSIDER, null);
 		List<Human> humans = society.getAllPeople();

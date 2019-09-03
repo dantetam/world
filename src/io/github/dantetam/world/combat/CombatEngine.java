@@ -16,11 +16,11 @@ import org.apache.commons.math3.distribution.UniformRealDistribution;
 import io.github.dantetam.toolbox.MapUtil;
 import io.github.dantetam.world.combat.CombatMod.CombatModActor;
 import io.github.dantetam.world.combat.CombatMod.CombatModCalc;
-import io.github.dantetam.world.dataparse.AnatomyData.BodyDamage;
 import io.github.dantetam.world.items.CombatItem;
 import io.github.dantetam.world.life.Body;
 import io.github.dantetam.world.life.BodyPart;
 import io.github.dantetam.world.life.LivingEntity;
+import io.github.dantetam.world.life.AnatomyData.BodyDamage;
 
 public class CombatEngine {
 

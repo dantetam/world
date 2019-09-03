@@ -5,12 +5,13 @@ import java.util.List;
 
 import org.lwjgl.util.vector.Vector3f;
 
-import io.github.dantetam.world.dataparse.AnatomyData.BodyDamage;
 import io.github.dantetam.world.items.CombatItem;
+import io.github.dantetam.world.life.AnatomyData.BodyDamage;
 
 public class BodyPart {
 	public String name;
 	public Vector3f position;
+	public boolean isMainBodyPart;
 	public double size;
 	public double vulnerability; //In terms of combat, the chance this part is hit (normalized)
 	public double health, maxHealth;
@@ -26,11 +27,12 @@ public class BodyPart {
 	
 	//Parent-child relationship for some body parts, which define a strict iff existence
 	//of the use of these two fields.
+	public List<BodyPart> neighboringParts;
 	public List<BodyPart> insideParts;
 	public BodyPart bodyPartParent;
 	
-	public BodyPart(String name, Vector3f position, double size, double vulnerability, 
-			double maxHealth, double dexterity) {
+	public BodyPart(String name, Vector3f position, boolean isMainBodyPart, double size, 
+			double vulnerability, double maxHealth, double dexterity) {
 		this.name = name;
 		this.position = position;
 		this.size = size;
@@ -40,6 +42,7 @@ public class BodyPart {
 		this.dexterity = dexterity;
 		damages = new ArrayList<>();
 		heldItems = new ArrayList<>();
+		neighboringParts = new ArrayList<>();
 		insideParts = new ArrayList<>();
 		bodyPartParent = null;
 	}
@@ -81,6 +84,11 @@ public class BodyPart {
 			sum += damage.damage;
 		}
 		return sum;
+	}
+	
+	public void addAdjacentPart(BodyPart part) {
+		this.neighboringParts.add(part);
+		part.neighboringParts.add(this);
 	}
 	
 	public BodyPart chainPartInside(BodyPart part) {

@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 public class CollectionUtil {
@@ -69,8 +70,40 @@ public class CollectionUtil {
 		return intersection;
 	}
 	
+	/**
+	 * 
+	 * @param collections
+	 * @return A collection containing elements found at least once in _any_ collection
+	 * 		e.g. (1, 2, 3) intersect (2, 3) intersect (1, 3, 4) = (1, 2, 3, 4)
+	 * 			 () union ... = ...
+ 	 */
+	public static <T> Set<T> colnsUnionUnique(Collection<T>... collections) {
+		if (collections == null || collections.length <= 1) {
+			throw new IllegalArgumentException("Collection intersection not defined for empty/null amount of collections");
+		}
+			
+		Set<T> intersection = null;
+		for (Collection<T> coln: collections) {
+			if (coln == null) { //Strictly define intersection with an empty/null set as none
+				continue;
+			}
+			
+		}
+		
+		return intersection;
+	}
+	
 	public static <T> boolean colnsHasIntersect(Collection<T>... collections) {
 		return colnsIntersection(collections).size() > 0;
+	}
+	
+	public static <T> T searchItemCond(Collection<T> data, Function<T, Boolean> condition) {
+		for (T item: data) {
+			if (condition.apply(item)) {
+				return item;
+			}
+		}
+		return null;
 	}
 	
 	public static <T> Set<T> newSet(T... elements) {

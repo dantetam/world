@@ -14,6 +14,7 @@ import java.util.stream.StreamSupport;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
+import org.lwjgl.util.vector.Vector3f;
 
 import io.github.dantetam.toolbox.StringUtil;
 import io.github.dantetam.vector.Vector3i;
@@ -28,6 +29,7 @@ public class WorldCsvParser {
 		EthosCSVParser.init();
 		SkillCSVParser.init();
 		AnnotatedRoomCSVParser.init();
+		AnatomyCSVParser.init();
 	}
 	
 	public static List<CSVRecord> parseCsvFile(String fileName) {
@@ -109,6 +111,16 @@ public class WorldCsvParser {
 					return null;
 				}
 			}
+		}
+		return results;
+	}
+	
+	public static Map<String, Double> parseNumbers(CSVRecord record, String... fields) {
+		Map<String, Double> results = new HashMap<>();
+		for (String field: fields) {
+			String string = record.get(field);
+			Double value = string.isBlank() ? 0 : Double.parseDouble(string);
+			results.put(field, value);
 		}
 		return results;
 	}

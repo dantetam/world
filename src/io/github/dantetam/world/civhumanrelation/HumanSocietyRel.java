@@ -24,6 +24,7 @@ public class HumanSocietyRel extends HumanRelationship {
 	
 	@Override
 	public double reevaluateOpinion(Date date) {
+		opinion = 0;
 		return 0;
 	}
 

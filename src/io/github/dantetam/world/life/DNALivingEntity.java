@@ -40,7 +40,7 @@ public abstract class DNALivingEntity {
 	public abstract Body getBodyFromDNA();
 	
 	//How two organisms (usually but not always the same species) give new DNA to their offspring
-	public abstract Map<String, String> recombineDNA(DNALivingEntity otherDNA);
+	public abstract DNALivingEntity recombineDNA(DNALivingEntity otherDNA);
 	
 	public double compareGenesDist(DNALivingEntity otherDna, String geneName) {
 		if (!this.dnaMap.containsKey(geneName) || !this.dnaMap.containsKey(geneName)) {

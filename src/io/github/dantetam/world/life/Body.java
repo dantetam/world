@@ -12,11 +12,10 @@ import io.github.dantetam.toolbox.MapUtil;
 import io.github.dantetam.world.combat.CombatData;
 import io.github.dantetam.world.combat.CombatEngine;
 import io.github.dantetam.world.combat.CombatMod;
-import io.github.dantetam.world.dataparse.AnatomyData;
-import io.github.dantetam.world.dataparse.AnatomyData.BodyTrait;
-import io.github.dantetam.world.dataparse.AnatomyData.MainBodyPart;
 import io.github.dantetam.world.items.CombatItem;
 import io.github.dantetam.world.items.InventoryItem;
+import io.github.dantetam.world.life.AnatomyData.BodyTrait;
+import io.github.dantetam.world.life.AnatomyData.MainBodyPart;
 
 public class Body {
 	private Map<String, BodyPart> bodyParts = new HashMap<>();

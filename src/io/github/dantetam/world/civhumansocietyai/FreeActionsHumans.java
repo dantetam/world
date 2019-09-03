@@ -18,6 +18,7 @@ import io.github.dantetam.toolbox.Pair;
 import io.github.dantetam.world.civhumanai.Ethos;
 import io.github.dantetam.world.civhumanai.EthosSet;
 import io.github.dantetam.world.civhumanrelation.HumanHumanRel;
+import io.github.dantetam.world.civhumanrelation.HumanHumanRel.HumanHumanRelType;
 import io.github.dantetam.world.civilization.Household;
 import io.github.dantetam.world.civilization.LocalExperience;
 import io.github.dantetam.world.civilization.Society;
@@ -28,6 +29,7 @@ import io.github.dantetam.world.grid.GridRectInterval;
 import io.github.dantetam.world.grid.LocalGrid;
 import io.github.dantetam.world.grid.LocalGridLandClaim;
 import io.github.dantetam.world.grid.WorldGrid;
+import io.github.dantetam.world.life.DNAHuman;
 import io.github.dantetam.world.life.Human;
 
 public class FreeActionsHumans {
@@ -89,7 +91,19 @@ public class FreeActionsHumans {
 				}
 			}
 			else if (name.equals("tryToHaveChild")) {
-				//TODO;
+				List<Human[]> makeChildPairs = SocietalHumansActionsCalc.possibleBirthChildPairs(humans, date);
+				if (makeChildPairs.size() == 0) continue;
+				int randIndex = (int) (Math.random() * makeChildPairs.size());
+				Human[] pair = makeChildPairs.get(randIndex);
+				Human proposer = pair[0], target = pair[1];
+				
+				DNAHuman newHumanDna = proposer.dna.recombineDNA(target.dna);
+				Human child = new Human(proposer.society, "Child " + proposer.household.size() + 
+						proposer.household.name, proposer.dna.speciesName);
+				proposer.household.addPeopleHouse(child);
+				
+				proposer.brain.addHumanRel(child, HumanHumanRelType.FAMILY);
+				//HumanHumanRel
 			}
 			else if (name.equals("claimNewLand")) {
 				Map<Human, GridRectInterval> humanClaimUtil = SocietalHumansActionsCalc

@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.apache.commons.math3.analysis.function.Sigmoid;
+
 import io.github.dantetam.world.civhumanai.Ethos;
 import io.github.dantetam.world.civhumanai.EthosSet;
 import io.github.dantetam.world.civilization.LocalExperience;
@@ -23,10 +25,10 @@ public class HumanHumanRel extends HumanRelationship {
 	public HumanHumanRelType relationshipType;
 	
 	public enum HumanHumanRelType {
-		NEUTRAL, FAMILY, MARRIAGE, FRIEND 
-		
+		NEUTRAL, FAMILY, MARRIAGE, FRIEND,
+		ENEMY
 	}
-	TODO; //: Initialize, implement, set to correct data field 
+	//TODO: Initialize, implement, set to correct data field 
 	
 	public HumanHumanRel(Human human, Human targetHuman, HumanHumanRelType relationshipType) {
 		super();
@@ -157,8 +159,28 @@ public class HumanHumanRel extends HumanRelationship {
 		
 		//Find dot product of this vector with current emotion range of person 
 		//to determine opinion sum.
-		Map<String, Double> weights = human.brain.feelingGamutWeights;
-		return emotionGamut.dotProduct(weights);
+		EmotionGamut weights = human.brain.feelingGamutWeights;
+		double finalRelValue = emotionGamut.dotProduct(weights);
+		
+		triggerEvalRelTypeVal(finalRelValue);
+		
+		opinion = finalRelValue;
+		
+		return finalRelValue;
+	}
+	
+	public void triggerEvalRelTypeVal(double relValue) {
+		if (this.relationshipType == HumanHumanRelType.NEUTRAL) {
+			double input = (relValue - 30) / 30;
+			double activValue = new Sigmoid(-1, 1).value(input);
+			activValue *= 0.1;
+			if (Math.random() < activValue) {
+				this.relationshipType = HumanHumanRelType.FRIEND;
+			}
+			else if (Math.random() < -activValue) {
+				this.relationshipType = HumanHumanRelType.ENEMY;
+			}
+		}
 	}
 
 	public boolean equals(Object other) {

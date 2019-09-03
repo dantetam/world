@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import io.github.dantetam.toolbox.CollectionUtil;
 import io.github.dantetam.toolbox.MapUtil;
 import io.github.dantetam.world.civhumanrelation.SocietySocietyRel;
 import io.github.dantetam.world.civhumanrelation.SocietySocietyRel.SocietalRelationMode;
@@ -112,13 +113,27 @@ public class SocietyDiplomacy {
 	
 	//See FreeActionsSociety::considerAllFreeActions()
 	public void initiateTrade(Society host, Society target) {
-		Map<Integer, Double> hostUtil = MapUtil.getSortedMapByValueDesc(host.calcUtility);
-		Map<Integer, Double> tarUtil = MapUtil.getSortedMapByValueDesc(target.calcUtility);
+		Map<Integer, Double> hostUtilMap = MapUtil.getSortedMapByValueDesc(host.calcUtility);
+		Map<Integer, Double> tarUtilMap = MapUtil.getSortedMapByValueDesc(target.calcUtility);
 		
-		Map<Integer, Double> hostAccess = MapUtil.getSortedMapByValueDesc(host.accessibleResUtil);
-		Map<Integer, Double> tarAccess = MapUtil.getSortedMapByValueDesc(target.accessibleResUtil);
+		Map<Integer, Double> hostAccessMap = MapUtil.getSortedMapByValueDesc(host.accessibleResUtil);
+		Map<Integer, Double> tarAccessMap = MapUtil.getSortedMapByValueDesc(target.accessibleResUtil);
 		
-		TODO;
+		Collection<Integer> relevantResIds = CollectionUtil.colnsIntersection(
+				hostAccessMap.keySet(), tarAccessMap.keySet());
+		
+		for (Integer resId: relevantResIds) {
+			double hostUtil = hostUtilMap.get(resId), tarUtil = tarUtilMap.get(resId);
+			double hostAccess = hostUtilMap.get(resId), tarAccess = tarUtilMap.get(resId);
+			
+			if (hostUtil > tarUtil) {
+				double askPrice
+				TODO;
+			}
+			else {
+				
+			}
+		}
 	}
 	
 	public boolean isObligatedInDefCall(Society caller, Society ally, Society target) {

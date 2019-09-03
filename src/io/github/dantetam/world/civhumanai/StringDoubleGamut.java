@@ -63,6 +63,9 @@ public class StringDoubleGamut {
 		}
 		return sum;
 	}
+	public double dotProduct(StringDoubleGamut gamut) {
+		return this.dotProduct(gamut.stringDoubleGamut);
+	}
 	
 	public Map<String, Double> productWeights(Map<String, Double> weights) {
 		Map<String, Double> newWeights = new HashMap<>();

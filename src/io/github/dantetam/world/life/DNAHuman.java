@@ -32,22 +32,31 @@ public class DNAHuman extends DNALivingEntity {
 		return null;
 	}
 
+	public boolean canReproduce(DNALivingEntity otherDNA) {
+		return this.speciesName.equals(otherDNA.speciesName);
+	}
+	
 	@Override
-	public Map<String, String> recombineDNA(DNALivingEntity otherDNA) {
-		Map<String, String> newDna = new HashMap<>();
+	public DNAHuman recombineDNA(DNALivingEntity otherDNA) {
+		if (!canReproduce(otherDNA)) {
+			throw new IllegalArgumentException("Cannot naturally reproduce together dna of two different species");
+		}
+		
+		DNAHuman newDna = new DNAHuman(this.speciesName);
+		Map<String, String> dnaMap = new HashMap<>();
 		
 		String[] keysFairlyMerged = {"race", "culture"};
 		for (String key: keysFairlyMerged) {
 			String race = this.dnaMap.get(key);
 			String otherRace = otherDNA.dnaMap.get(key);
-			
 			String newRace = StringUtil.randMergeStrs(race, otherRace);
 			if (Math.random() < RACE_MUTATE_FREQ) {
 				newRace = StringUtil.mutateAlphaNumStr(newRace);
 			}
-			
-			newDna.put(key, newRace);
+			dnaMap.put(key, newRace);
 		}
+		
+		newDna.dnaMap = dnaMap;
 		
 		return newDna;
 	}

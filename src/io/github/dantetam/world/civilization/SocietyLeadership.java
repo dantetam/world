@@ -12,8 +12,6 @@ import io.github.dantetam.world.life.Human;
  * 
  */
 
-TODO;
-
 public class SocietyLeadership {
 	
 	private Society society;

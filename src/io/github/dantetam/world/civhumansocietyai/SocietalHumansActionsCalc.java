@@ -15,6 +15,8 @@ import io.github.dantetam.vector.Vector3i;
 import io.github.dantetam.world.civhumanai.Ethos;
 import io.github.dantetam.world.civhumanai.EthosSet;
 import io.github.dantetam.world.civhumanrelation.HumanHumanRel;
+import io.github.dantetam.world.civhumanrelation.HumanHumanRel.HumanHumanRelType;
+import io.github.dantetam.world.civilization.Household;
 import io.github.dantetam.world.civilization.Society;
 import io.github.dantetam.world.dataparse.SkillData;
 import io.github.dantetam.world.grid.ClusterVector3i;
@@ -124,6 +126,53 @@ public class SocietalHumansActionsCalc {
 				if (prosA + prosB > 3) {
 					pairs.add(new Human[] {human, otherHuman});
 				}
+			}
+		}
+		return pairs;
+	}
+	
+	public static List<Human[]> possibleBirthChildPairs(List<Human> humans, Date date) {
+		List<Human[]> pairs = new ArrayList<>();
+		for (int i = 0; i < humans.size(); i++) {
+			double maxPros = 0;
+			Human bestHumanToMarry = null;
+			Human human = humans.get(i);
+			for (int j = 0; j < humans.size(); j++) {
+				Human otherHuman = humans.get(j);
+				if (human.equals(otherHuman)) {
+					continue;
+				}
+				HumanHumanRel rel = human.brain.getHumanRel(otherHuman);
+				
+				double prosA = calcPropensityToMarry(human, otherHuman, date);
+				double prosB = calcPropensityToMarry(otherHuman, human, date);
+				double prosTogether = rel.relationshipType == HumanHumanRelType.MARRIAGE ? 1.5 : 0;
+				
+				Household house = human.household;
+				if (human.household.equals(otherHuman.household)) {
+					if (house.size() > 3) {
+						prosTogether -= 0.5 * (house.size() - 3);
+					}
+				}
+				else {
+					Household otherHouse = otherHuman.household;
+					if (house.size() > 3) {
+						prosTogether -= 0.666 * 0.5 * (house.size() - 3);
+					}
+					if (otherHouse.size() > 3) {
+						prosTogether -= 0.666 * 0.5 * (otherHouse.size() - 3);
+					}
+				}
+				
+				if (prosA + prosB + prosTogether > 4 && prosA > 1 && prosB > 1) {
+					if (prosA + prosB > maxPros || bestHumanToMarry == null) {
+						maxPros = prosA + prosB;
+						bestHumanToMarry = otherHuman;
+					}
+				}
+			}
+			if (bestHumanToMarry != null) {
+				pairs.add(new Human[] {human, bestHumanToMarry});
 			}
 		}
 		return pairs;

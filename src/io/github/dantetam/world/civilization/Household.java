@@ -9,11 +9,13 @@ import io.github.dantetam.world.life.Human;
 public class Household {
 
 	public Society society;
+	public String name;
 	public Human headOfHousehold;
 	public List<Human> householdMembers; //Includes the head of the household as well
 	public HouseholdCoatOfArms coatOfArms;
 	
-	public Household(List<Human> householdMembers) {
+	public Household(String name, List<Human> householdMembers) {
+		this.name = name;
 		this.householdMembers = householdMembers;
 		coatOfArms = new HouseholdCoatOfArms();
 	}
@@ -39,6 +41,14 @@ public class Household {
 		}
 		return sumWealth;
  	}
+	
+	public int size() {
+		return this.householdMembers.size();
+	}
+	
+	public void addPeopleHouse(Human human) {
+		this.householdMembers.add(human);
+	}
 	
 	public void removePeopleOutHouse(Collection<Human> humans) {
 		householdMembers.removeAll(humans);
