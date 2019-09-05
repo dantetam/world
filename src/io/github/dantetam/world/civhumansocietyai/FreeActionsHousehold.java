@@ -70,16 +70,19 @@ public class FreeActionsHousehold {
 						divideHouseholdsBySeparating(house, separatingHumans, date);
 				//List<Human> housePeopleA = newHousePeople.get(0);
 				List<Human> housePeopleB = newHousePeople.get(1);
-				Household newHouse = new Household(housePeopleB);
-				house.removePeopleOutHouse(housePeopleB);
-				society.addHousehold(newHouse);
-				
-				LocalExperience newHouseExp = new LocalExperience("New Household");
-				for (Human human: housePeopleB) {
-					System.out.println(human);
-					System.out.println(human.brain);
-					System.out.println(human.brain.experiences);
-					human.brain.experiences.add(newHouseExp);
+				if (housePeopleB.size() > 0) {
+					Human firstPerson = housePeopleB.get(0);
+					Household newHouse = new Household(firstPerson.familyName + " Household", housePeopleB);
+					house.removePeopleOutHouse(housePeopleB);
+					society.addHousehold(newHouse);
+					
+					LocalExperience newHouseExp = new LocalExperience("New Household");
+					for (Human human: housePeopleB) {
+						System.out.println(human);
+						System.out.println(human.brain);
+						System.out.println(human.brain.experiences);
+						human.brain.experiences.add(newHouseExp);
+					}
 				}
 			}
 		}

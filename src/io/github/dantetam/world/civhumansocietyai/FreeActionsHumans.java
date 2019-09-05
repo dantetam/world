@@ -84,7 +84,8 @@ public class FreeActionsHumans {
 						allHumansHouseC.addAll(movingOutOfB);
 					}
 					if (allHumansHouseC.size() > 0) {
-						Household houseC = new Household(allHumansHouseC);
+						Human firstPerson = allHumansHouseC.get(0);
+						Household houseC = new Household(firstPerson.familyName + " Household", allHumansHouseC);
 						Society host = houseA.society;
 						host.addHousehold(houseC);
 					}
@@ -101,9 +102,18 @@ public class FreeActionsHumans {
 				Human child = new Human(proposer.society, "Child " + proposer.household.size() + 
 						proposer.household.name, proposer.dna.speciesName);
 				proposer.household.addPeopleHouse(child);
+				child.dna = newHumanDna;
 				
 				proposer.brain.addHumanRel(child, HumanHumanRelType.FAMILY);
-				//HumanHumanRel
+				
+				LocalExperience childExp = new LocalExperience("Child Birth");
+				Human father = proposer.dna.getDnaMapping("sex").equals("XY") ? proposer : target;
+				Human mother = proposer.equals(father) ? target : proposer;
+				childExp.beingRoles.put(father, CollectionUtil.newSet("Father"));
+				childExp.beingRoles.put(mother, CollectionUtil.newSet("Mother"));
+				
+				HumanHumanRel rel = proposer.brain.getHumanRel(target);
+				rel.sharedExperiences.add(childExp);
 			}
 			else if (name.equals("claimNewLand")) {
 				Map<Human, GridRectInterval> humanClaimUtil = SocietalHumansActionsCalc
@@ -187,7 +197,7 @@ public class FreeActionsHumans {
 					Pair<Ethos> debatingEthos = EthosSet.getClosestEthosWithDiffVal(
 							humanA.brain.ethosSet, humanB.brain.ethosSet, getDiffRating);
 					double convictionA = Math.log(debatingEthos.first.severity);
-					double convictionB = Math.log(debatingEthos.first.severity);
+					double convictionB = Math.log(debatingEthos.second.severity);
 					double civility = 0.5 * (relA.opinion + relB.opinion) / 30;
 					
 					double rheSkillA = humanA.skillBook.getSkillLevel("Rhetoric");

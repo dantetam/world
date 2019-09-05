@@ -171,7 +171,7 @@ public class WorldGridInstantiate {
 				human.inventory.addItem(ItemData.item("Wheat Seeds", 50));
 				human.inventory.addItem(ItemData.item("Pine Wood", 50));
 			}
-			testSociety.addHousehold(new Household(people));
+			testSociety.addHousehold(new Household("Test Household " + i, people));
 		}
 		
 		world.addSociety(testSociety);

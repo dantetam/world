@@ -1,7 +1,9 @@
 package io.github.dantetam.world.life;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.lwjgl.util.vector.Vector3f;
 
@@ -27,8 +29,8 @@ public class BodyPart {
 	
 	//Parent-child relationship for some body parts, which define a strict iff existence
 	//of the use of these two fields.
-	public List<BodyPart> neighboringParts;
-	public List<BodyPart> insideParts;
+	public Set<BodyPart> neighboringParts;
+	public Set<BodyPart> insideParts;
 	public BodyPart bodyPartParent;
 	
 	public BodyPart(String name, Vector3f position, boolean isMainBodyPart, double size, 
@@ -42,8 +44,8 @@ public class BodyPart {
 		this.dexterity = dexterity;
 		damages = new ArrayList<>();
 		heldItems = new ArrayList<>();
-		neighboringParts = new ArrayList<>();
-		insideParts = new ArrayList<>();
+		neighboringParts = new HashSet<>();
+		insideParts = new HashSet<>();
 		bodyPartParent = null;
 	}
 	

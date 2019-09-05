@@ -227,7 +227,7 @@ public class Pathfinder {
 			people.add(human);
 			activeLocalGrid.addLivingEntity(human, new Vector3i(r,c,h));
 		}
-		testSociety.addHousehold(new Household(people));
+		testSociety.addHousehold(new Household("", people));
 		
 		CustomLog.outPrintln("Start pathfinding time trial now");
 		

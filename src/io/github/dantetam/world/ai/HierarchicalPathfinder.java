@@ -574,7 +574,7 @@ public class HierarchicalPathfinder extends Pathfinder {
 			people.add(human);
 			activeLocalGrid.addLivingEntity(human, new Vector3i(r,c,h));
 		}
-		testSociety.addHousehold(new Household(people));
+		testSociety.addHousehold(new Household("", people));
 		
 		/*
 		for (int r = 0; r < hPath.abstractBlocks.length; r++) {

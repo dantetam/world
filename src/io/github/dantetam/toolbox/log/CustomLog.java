@@ -4,6 +4,21 @@ public class CustomLog {
 
 	public static final PrintMode mode = PrintMode.OUT;
 	
+	public static void outPrintSameLine() {
+		outPrintSameLine("");
+	}
+	public static void outPrintSameLine(Object object) {
+		if (object == null)
+			outPrintSameLine("null");
+		else 
+			outPrintSameLine(object.toString());
+	}
+	public static void outPrintSameLine(String string) {
+		if (mode.equals(PrintMode.OUT)) {
+			System.out.print(string);
+		}
+	}
+	
 	public static void outPrintln() {
 		outPrintln("");
 	}

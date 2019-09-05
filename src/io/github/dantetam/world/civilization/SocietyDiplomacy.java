@@ -113,27 +113,77 @@ public class SocietyDiplomacy {
 	
 	//See FreeActionsSociety::considerAllFreeActions()
 	public void initiateTrade(Society host, Society target) {
+		Map<Integer, Integer> resourceExchangeResult = new HashMap<>();
+		
 		Map<Integer, Double> hostUtilMap = MapUtil.getSortedMapByValueDesc(host.calcUtility);
 		Map<Integer, Double> tarUtilMap = MapUtil.getSortedMapByValueDesc(target.calcUtility);
 		
 		Map<Integer, Double> hostAccessMap = MapUtil.getSortedMapByValueDesc(host.accessibleResUtil);
 		Map<Integer, Double> tarAccessMap = MapUtil.getSortedMapByValueDesc(target.accessibleResUtil);
 		
-		Collection<Integer> relevantResIds = CollectionUtil.colnsIntersection(
+		Collection<Integer> relevantResIds = CollectionUtil.colnsUnionUnique(
 				hostAccessMap.keySet(), tarAccessMap.keySet());
 		
+		double tradeScore = 0;
+		List<Integer> potentialImportHost = new ArrayList<>(), potentialImportTar = new ArrayList<>();
+		int tradableHostUtil = 0, tradableTarUtil = 0; 
+		
+		//Look at all resources that both societies possess, and determine which side desires a resource more
+		//The host, who initiates the trade, has a slight advantage in their choice of goods,
+		//while the target has advantage in pricing.
+		//This is not founded in any real world research regarding trade, barter, or society.
 		for (Integer resId: relevantResIds) {
 			double hostUtil = hostUtilMap.get(resId), tarUtil = tarUtilMap.get(resId);
 			double hostAccess = hostUtilMap.get(resId), tarAccess = tarUtilMap.get(resId);
 			
-			if (hostUtil > tarUtil) {
-				double askPrice
-				TODO;
+			double finalHost = hostUtil / hostAccess;
+			double finalTar = tarUtil / tarAccess;
+			
+			double unitPrice = (hostUtil + tarUtil) / 2;
+			
+			if (hostUtil > tarUtil * 1.2 || finalHost > finalTar) {
+				potentialImportHost.add(resId);
+				tradableTarUtil += tarAccess * unitPrice;
 			}
-			else {
-				
+			else if (tarUtil > hostUtil * 1.2 || finalTar > finalHost) {
+				potentialImportTar.add(resId);
+				tradableHostUtil += hostAccess * unitPrice;
 			}
 		}
+		
+		//Balance out the trade utility by pulling items out that can be traded
+		//The map resourceExchangeResult contains positive entries for items that the host must import
+		while (potentialImportHost.size() > 0 && potentialImportTar.size() > 0) {
+			boolean hostMode = tradeScore <= 0;
+			int resId;
+			if (hostMode) {
+				resId = potentialImportHost.remove(0);
+			}
+			else {
+				resId = potentialImportTar.remove(0);
+			}
+			
+			double hostUtil = hostUtilMap.get(resId), tarUtil = tarUtilMap.get(resId);
+			double hostAccess = hostUtilMap.get(resId), tarAccess = tarUtilMap.get(resId);
+			double unitPrice = (hostUtil + tarUtil) / 2;
+			
+			if (hostMode) {
+				double scoreToAdd = Math.min(tradableHostUtil, tarAccess * unitPrice);
+				tradeScore += scoreToAdd;
+				int numUnits = (int) (scoreToAdd / unitPrice);
+				MapUtil.addNumMap(resourceExchangeResult, resId, numUnits);
+			}
+			else {
+				double scoreToAdd = Math.min(tradableTarUtil, hostAccess * unitPrice);
+				tradeScore -= scoreToAdd;
+				int numUnits = (int) (scoreToAdd / unitPrice);
+				MapUtil.addNumMap(resourceExchangeResult, resId, -numUnits);
+			}
+		}
+		
+		todo;
+		//Create a trade job that allows people to take the priority
+		//to ship goods between societies
 	}
 	
 	public boolean isObligatedInDefCall(Society caller, Society ally, Society target) {

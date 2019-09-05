@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -179,9 +180,17 @@ public class MapUtil {
 		data.put(1, 2);
 		data.put(3, 9);
 		data.put(4, 7);
+		data.put(6, 19);
+		data.put(7, 17);
 		data = getSortedMapByValueDesc(data);
 		CustomLog.outPrintln(data);
 		CustomLog.outPrintln(Arrays.toString(data.entrySet().toArray()));
+		
+		CustomLog.outPrintln();
+		Iterator<Integer> keys = data.keySet().iterator();
+		while (keys.hasNext()) {
+			CustomLog.outPrintSameLine(keys.next() + " ");
+		}
 	}
 	
 }

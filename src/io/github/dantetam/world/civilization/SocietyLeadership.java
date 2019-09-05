@@ -66,12 +66,13 @@ public class SocietyLeadership {
 	//e.g. a group of strong warlords believes there is high utility in
 	
 	public enum SocietyLeadershipMode {
-		DICTATORSHIP,  //An absolute unchecked dictator rules
-		GROUP, 		   //A council rules, mirroring classical Roman consuls, or elder councils
-		MONARCH,	   //Either a hereditary absolute/constitutional monarch rules, with advisors
-		PRESIDENT,     //A democratic president rules, with advisors
-		SENATE,        //A democratically elected group rules
-		FULL_DEMOCRACY //The people rule
+		DICTATORSHIP,   //An absolute unchecked dictator rules
+		GROUP, 		    //A council rules, mirroring classical Roman consuls, or elder councils
+		MONARCH,	    //Either a hereditary absolute/constitutional monarch rules, with advisors
+		
+		FULL_DEMOCRACY, //The people rule     
+		SENATE,         //A democratically elected group rules
+		PRESIDENT       //A democratic president rules, with advisors
 	}
 	
 	public enum SocSuccessionType {
@@ -79,6 +80,7 @@ public class SocietyLeadership {
 		PRESTIGE, //Society elevates those with the highest util. (i.e. wealth, army, heroic deeds, etc.)
 		HEREDITARY, //Ruling families and dynasties are favored, also with pretenders and new families
 		OLIGARCHIC, //Ruling and wealthy classes are favored, and fight with each other
+		
 		LANDED_DEMOCRACY, //Much like early US democracy, an oligarchic state where landed classes vote
 		REP_DEMOCRACY, //Citizens get votes for representatives, who ultimately make decisions
 		FULL_DEMOCRACY  //Decentralized democracy; for the most local, undeveloped, or anarchistic societies

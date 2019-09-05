@@ -314,7 +314,7 @@ public class RSRPathfinder extends Pathfinder {
 			people.add(human);
 			activeLocalGrid.addLivingEntity(human, new Vector3i(r,c,h));
 		}
-		testSociety.addHousehold(new Household(people));
+		testSociety.addHousehold(new Household("", people));
 		
 		RSRPathfinder pathfinder = new RSRPathfinder(activeLocalGrid);
 		

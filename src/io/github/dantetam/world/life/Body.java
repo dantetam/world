@@ -15,11 +15,9 @@ import io.github.dantetam.world.combat.CombatMod;
 import io.github.dantetam.world.items.CombatItem;
 import io.github.dantetam.world.items.InventoryItem;
 import io.github.dantetam.world.life.AnatomyData.BodyTrait;
-import io.github.dantetam.world.life.AnatomyData.MainBodyPart;
 
 public class Body {
 	private Map<String, BodyPart> bodyParts = new HashMap<>();
-	private Map<String, Set<String>> neighborBodyPartsMap = new HashMap<>();
 	
 	private Map<String, BodyTrait> bodyTraits = new HashMap<>();
 	
@@ -40,25 +38,15 @@ public class Body {
 	
 	public Body(String className) {
 		this.highLevelSpeciesName = className;
-		Set<BodyPart> speciesBodyParts = AnatomyData.initBeingNameAnatomy(className);
+		Set<BodyPart> speciesBodyParts = AnatomyData.getBeingNameAnatomy(className);
 		for (BodyPart speciesBodyPart: speciesBodyParts) {
 			bodyParts.put(speciesBodyPart.name, speciesBodyPart);
-			neighborBodyPartsMap.put(speciesBodyPart.name, new HashSet<>());
-		}
-		
-		Collection<String[]> neighborPairs = AnatomyData.getNeighborBodyParts(className);
-		for (String[] neighborPair: neighborPairs) {
-			neighborBodyPartsMap.get(neighborPair[0]).add(neighborPair[1]);
-			neighborBodyPartsMap.get(neighborPair[1]).add(neighborPair[0]);
 		}
 	}
 	
 	public Set<BodyPart> getNeighborBodyParts(String bodyPart) {
-		Set<BodyPart> results = new HashSet<>();
-		for (String neighbor: this.neighborBodyPartsMap.get(bodyPart)) {
-			results.add(bodyParts.get(neighbor));
-		}
-		return results;
+		BodyPart part = this.bodyParts.get(bodyPart);
+		return part.neighboringParts;
 	}
 	
 	public Collection<BodyPart> getAllBodyParts() {
@@ -67,7 +55,7 @@ public class Body {
 	
 	public int getWeaponNeed() {
 		for (BodyPart bodyPart: getAllBodyParts()) {
-			if (bodyPart instanceof MainBodyPart) {
+			if (bodyPart.isMainBodyPart) {
 				CombatItem item = CombatEngine.getWeaponPrecedent(bodyPart);
 				if (item != null) {
 					return 0;
@@ -80,7 +68,7 @@ public class Body {
 	public int getArmorNeed() {
 		int totalParts = 0, armoredParts = 0;
 		for (BodyPart bodyPart: getAllBodyParts()) {
-			if (bodyPart instanceof MainBodyPart) {
+			if (bodyPart.isMainBodyPart) {
 				totalParts++;
 				if (bodyPart.heldItems.size() > 0) {
 					armoredParts++;
@@ -93,7 +81,7 @@ public class Body {
 	public int getNumMainBodyParts() {
 		int totalParts = 0;
 		for (BodyPart bodyPart: getAllBodyParts()) {
-			if (bodyPart instanceof MainBodyPart) {
+			if (bodyPart.isMainBodyPart) {
 				totalParts++;
 			}
 		}

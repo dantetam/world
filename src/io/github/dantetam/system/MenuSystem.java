@@ -24,7 +24,7 @@ import io.github.dantetam.world.grid.WorldGrid;
 import io.github.dantetam.world.life.Human;
 import io.github.dantetam.world.life.LivingEntity;
 
-TODO;
+//TODO;
 //Recreate selection/info menus that can be opened, closed, and contain information
 //Create generic popup that can be populated with info about people, buildings, environment, etc.?
 

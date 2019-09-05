@@ -50,10 +50,9 @@ public class Human extends LivingEntity {
 			//or aversion to water.
 	
 	public NeedsGamut shortTermNeeds, mediumTermNeeds, lifetimeNeeds;
-	
-			TODO;
-			//Implement short-term (immediate), medium-term (job? current goals), 
-			//and long-term (fulfillment and life-long) Maslow needs
+	//TODO;
+	//Implement short-term (immediate), medium-term (job? current goals), 
+	//and long-term (fulfillment and life-long) Maslow needs
 	
 	public Human(Society society, String name, String speciesName) {
 		super(name);
