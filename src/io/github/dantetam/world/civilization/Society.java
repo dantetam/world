@@ -35,6 +35,7 @@ import io.github.dantetam.world.life.LivingEntity;
 import io.github.dantetam.world.process.LocalJob;
 import io.github.dantetam.world.process.LocalProcess;
 import io.github.dantetam.world.process.LocalProcess.ProcessStep;
+import io.github.dantetam.world.process.LocalSocietyJob;
 
 public class Society {
 
@@ -51,6 +52,7 @@ public class Society {
 	public String dominantCultureStr;
 	
 	public JobMarket jobMarket;
+	public Map<LocalProcess, LocalSocietyJob> societalJobQueue;
 	
 	//Societal utility of objects measured for this society, stored here
 	public Map<Integer, Double> calcUtility; //Sorted ascending
@@ -76,6 +78,7 @@ public class Society {
 		warsInvolved = new ArrayList<>();
 		this.leadershipManager = new SocietyLeadership(this);
 		this.jobMarket = new JobMarket();
+		this.societalJobQueue = new HashMap<>();
 	}
 	
 	public void addHousehold(Household house) {
@@ -236,6 +239,13 @@ public class Society {
 			double physicalUtil = processUtil.containsKey(entry.getKey()) ? processUtil.get(entry.getKey()) : 0;
 			double workProsUtil = SocietalHumansActionsCalc
 					.possibleEmployeeUtil(human, entry.getValue().boss, entry.getValue(), date);
+			rankedJobs.put(entry.getValue(), (physicalUtil + workProsUtil) / 2);
+		}
+		
+		for (Entry<LocalProcess, LocalSocietyJob> entry: this.societalJobQueue.entrySet()) {
+			double physicalUtil = processUtil.containsKey(entry.getKey()) ? processUtil.get(entry.getKey()) : 0;
+			double workProsUtil = SocietalHumansActionsCalc
+					.employeeSocietyUtil(human, entry.getValue().societyJob, entry.getValue(), date);
 			rankedJobs.put(entry.getValue(), (physicalUtil + workProsUtil) / 2);
 		}
 		

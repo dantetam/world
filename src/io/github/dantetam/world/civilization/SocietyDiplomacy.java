@@ -17,6 +17,7 @@ import io.github.dantetam.world.civhumanrelation.SocietySocietyRel.SocietalRelat
 import io.github.dantetam.world.civhumansocietyai.FreeActionsSociety;
 import io.github.dantetam.world.combat.War;
 import io.github.dantetam.world.grid.WorldGrid;
+import io.github.dantetam.world.process.LocalSocietyJob;
 
 public class SocietyDiplomacy {
 
@@ -181,9 +182,10 @@ public class SocietyDiplomacy {
 			}
 		}
 		
-		todo;
+		CaravanTradeProcess tradeProcess = new CaravanTradeProcess();
 		//Create a trade job that allows people to take the priority
 		//to ship goods between societies
+		LocalSocietyJob societyJob = new LocalSocietyJob();
 	}
 	
 	public boolean isObligatedInDefCall(Society caller, Society ally, Society target) {

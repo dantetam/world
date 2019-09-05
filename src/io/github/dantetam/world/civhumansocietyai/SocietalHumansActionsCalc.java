@@ -16,6 +16,7 @@ import io.github.dantetam.world.civhumanai.Ethos;
 import io.github.dantetam.world.civhumanai.EthosSet;
 import io.github.dantetam.world.civhumanrelation.HumanHumanRel;
 import io.github.dantetam.world.civhumanrelation.HumanHumanRel.HumanHumanRelType;
+import io.github.dantetam.world.civhumanrelation.HumanSocietyRel;
 import io.github.dantetam.world.civilization.Household;
 import io.github.dantetam.world.civilization.Society;
 import io.github.dantetam.world.dataparse.SkillData;
@@ -27,6 +28,7 @@ import io.github.dantetam.world.grid.SpaceFillingAlg;
 import io.github.dantetam.world.life.Human;
 import io.github.dantetam.world.process.LocalJob;
 import io.github.dantetam.world.process.LocalProcess;
+import io.github.dantetam.world.process.LocalSocietyJob;
 import io.github.dantetam.world.process.priority.SoldierPriority;
 
 /**
@@ -326,6 +328,33 @@ public class SocietalHumansActionsCalc {
 		emplBossRelUtil += numUtil + obedUtil; 
 		
 		return emplBossRelUtil;
+	}
+
+	//TODO: Factor in opinions of neighbors and other people who live in society?
+	public static double employeeSocietyUtil(Human employee, Society societyJob, LocalSocietyJob value,
+			Date date) {
+		double socUtil = 0;
+		HumanSocietyRel socRel = employee.brain.getSocRel(societyJob); 
+		socUtil += socRel.opinion;
+		
+		double avgUtil = 0;
+		List<Human> leaders = societyJob.leadershipManager.currentLeaders;
+		for (Human boss: leaders) {
+			double emplBossRelUtil = calcPropensityToMarry(employee, boss, date);
+			
+			double leadLevel = boss.skillBook.getSkillLevel("Leadership");
+			double leadershipCap = SkillData.leadershipCapPeople((int) leadLevel);
+			double distToCap = leadershipCap - boss.workers.size();
+			double numUtil = Math.min(distToCap / 10, 5.0);
+			
+			Ethos obedEthos = employee.brain.ethosSet.getEthosMapping().get("Obedient");
+			double obedUtil = obedEthos.getLogisticVal(-2.0, 2.0);
+			
+			avgUtil += emplBossRelUtil + numUtil + obedUtil; 
+		}
+		avgUtil /= leaders.size();
+		
+		return (socUtil + avgUtil) / 2;
 	}
 	
 }

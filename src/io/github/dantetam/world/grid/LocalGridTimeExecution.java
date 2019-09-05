@@ -43,6 +43,7 @@ import io.github.dantetam.world.life.LivingEntity;
 import io.github.dantetam.world.process.LocalJob;
 import io.github.dantetam.world.process.LocalProcess;
 import io.github.dantetam.world.process.LocalProcess.ProcessStep;
+import io.github.dantetam.world.process.LocalSocietyJob;
 import io.github.dantetam.world.process.priority.*;
 import io.github.dantetam.world.process.prioritytask.*;
 import kdtreegeo.KdTree;
@@ -1305,7 +1306,11 @@ public class LocalGridTimeExecution {
 		if (human.queuedJobs != null && human.queuedJobs.size() > 0) {
 			LocalJob job = human.queuedJobs.remove(0);
 			human.jobProcessProgress = job;
-			MapUtil.insertNestedSetMap(job.boss.workers, human, job);
+			if (job instanceof LocalSocietyJob) {
+				
+			}
+			else
+				MapUtil.insertNestedSetMap(job.boss.workers, human, job);
 			moveJobQueue = true;
 		}
 		if (human.queuedProcesses != null && human.queuedProcesses.size() > 0) {
@@ -1327,7 +1332,11 @@ public class LocalGridTimeExecution {
 			if (potentialItem instanceof LocalJob && human.jobProcessProgress == null) {
 				LocalJob potentialJob = (LocalJob) potentialItem;
 				human.jobProcessProgress = potentialJob;
-				MapUtil.insertNestedSetMap(potentialJob.boss.workers, human, potentialJob);
+				if (potentialJob instanceof LocalSocietyJob) {
+					
+				}
+				else
+					MapUtil.insertNestedSetMap(potentialJob.boss.workers, human, potentialJob);
 			}
 			else if (potentialItem instanceof LocalProcess && human.processProgress == null) {
 				human.processProgress = (LocalProcess) potentialItem;

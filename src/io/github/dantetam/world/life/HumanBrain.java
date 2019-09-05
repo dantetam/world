@@ -12,7 +12,9 @@ import io.github.dantetam.world.civhumanrelation.EmotionGamut;
 import io.github.dantetam.world.civhumanrelation.HumanHumanRel;
 import io.github.dantetam.world.civhumanrelation.HumanHumanRel.HumanHumanRelType;
 import io.github.dantetam.world.civhumanrelation.HumanRelationship;
+import io.github.dantetam.world.civhumanrelation.HumanSocietyRel;
 import io.github.dantetam.world.civilization.LocalExperience;
+import io.github.dantetam.world.civilization.Society;
 import io.github.dantetam.world.items.InventoryItem;
 import io.github.dantetam.world.process.LocalProcess;
 
@@ -32,7 +34,8 @@ public class HumanBrain {
 	
 	public List<LocalExperience> experiences;
 	
-	public Map<Human, HumanRelationship> indexedRelationships;
+	public Map<Human, HumanHumanRel> indexedHumanRelationships;
+	public Map<Society, HumanSocietyRel> indexedSocRelationships;
 	public Map<String, Double> languageCodesStrength;
 	
 	public EmotionGamut feelingGamutWeights;
@@ -41,7 +44,9 @@ public class HumanBrain {
 		this.host = host;
 		this.ethosSet = new EthosSet();
 		
-		indexedRelationships = new HashMap<>();
+		indexedHumanRelationships = new HashMap<>();
+		indexedSocRelationships = new HashMap<>();
+		
 		languageCodesStrength = new HashMap<>();
 		
 		experiences = new ArrayList<>();
@@ -53,12 +58,21 @@ public class HumanBrain {
 		addHumanRel(target, HumanHumanRelType.NEUTRAL);
 	}
 	public void addHumanRel(Human target, HumanHumanRelType relType) { 
-		indexedRelationships.put(target, new HumanHumanRel(this.host, target, relType));
+		indexedHumanRelationships.put(target, new HumanHumanRel(this.host, target, relType));
+	}
+	public HumanHumanRel getHumanRel(Human target) {
+		if (indexedHumanRelationships.containsKey(target)) {
+			return (HumanHumanRel) indexedHumanRelationships.get(target);
+		}
+		return null;
 	}
 	
-	public HumanHumanRel getHumanRel(Human target) {
-		if (indexedRelationships.containsKey(target)) {
-			return (HumanHumanRel) indexedRelationships.get(target);
+	public void addSocRel(Society target) { 
+		indexedSocRelationships.put(target, new HumanSocietyRel(this.host, target));
+	}
+	public HumanSocietyRel getSocRel(Society target) {
+		if (indexedHumanRelationships.containsKey(target)) {
+			return indexedSocRelationships.get(target);
 		}
 		return null;
 	}

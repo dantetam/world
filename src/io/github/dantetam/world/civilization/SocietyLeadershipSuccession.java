@@ -23,14 +23,42 @@ public class SocietyLeadershipSuccession {
 
 	public static List<Human> determineSuccessors(Society society, 
 			SocietyLeadershipMode mode, SocSuccessionType successType) {
-		TODO;
-		
 		Map<Human, Double> candidates = findCandidates(society, mode, successType);
-		
+		Iterator<Human> humanIter = candidates.keySet().iterator();
 		//Succession process, by the criteria and willingness of people to compete for power
 		
-		Human randHuman = candidates.get((int) (Math.random() * candidates.size()));
-		return new ArrayList<Human>() {{add(randHuman);}};
+		List<Human> finalLeaders = new ArrayList<>();
+		if (mode == SocietyLeadershipMode.GROUP || mode == SocietyLeadershipMode.SENATE ||
+				mode == SocietyLeadershipMode.FULL_DEMOCRACY) {
+			int numPeople = Math.min(candidates.size(), Math.min((int) (candidates.size() * 0.2), 5));
+			for (int i = 0; i < numPeople; i++) {
+				finalLeaders.add(humanIter.next());
+			}
+		}
+		else {
+			Human firstHuman = humanIter.next();
+			int numPeople = Math.min(candidates.size(), Math.min((int) (candidates.size() * 0.2), 5));
+			while (humanIter.hasNext() && finalLeaders.size() < numPeople) {
+				finalLeaders.add(firstHuman);
+				
+				double firstScore = candidates.get(firstHuman);
+				Human nextCompetitor = humanIter.next();
+				double nextScore = candidates.get(nextCompetitor);
+				
+				double relCompete = nextCompetitor.brain.getHumanRel(firstHuman).opinion;
+				
+				//TODO: Design custom multivariate functions for this use in mathematical util calculations
+				//Design a generic class that can be overridden with a multivariate function using
+				//string keys as variables
+				double competeUtil = 10 * (1 - nextScore / firstScore) + Math.max(-relCompete / 20, 0);
+				
+				//Repeat the cycle, guaranteeing an addition and bringing in another competitor
+				if (competeUtil > 3) {
+					firstHuman = nextCompetitor;
+				}
+			}
+		}
+		return finalLeaders;
 	}
 	
 	public static Map<Human, Double> findCandidates(Society society, 
