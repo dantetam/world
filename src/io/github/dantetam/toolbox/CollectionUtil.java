@@ -58,7 +58,7 @@ public class CollectionUtil {
 			boolean itemFoundAll = true;
 			for (Collection<T> coln: collections) {
 				if (coln.equals(minSizeColn)) continue;
-				if (!minSizeColn.contains(item)) {
+				if (!coln.contains(item)) {
 					itemFoundAll = false; 
 					break;
 				}
@@ -68,6 +68,19 @@ public class CollectionUtil {
 			}
 		}
 		return intersection;
+	}
+	
+	public static <T> boolean colnsHasIntersect(Collection<T>... collections) {
+		return colnsIntersection(collections).size() > 0;
+	}
+	
+	public static <T> T searchItemCond(Collection<T> data, Function<T, Boolean> condition) {
+		for (T item: data) {
+			if (condition.apply(item)) {
+				return item;
+			}
+		}
+		return null;
 	}
 	
 	/**
@@ -93,19 +106,6 @@ public class CollectionUtil {
 		return intersection;
 	}
 	
-	public static <T> boolean colnsHasIntersect(Collection<T>... collections) {
-		return colnsIntersection(collections).size() > 0;
-	}
-	
-	public static <T> T searchItemCond(Collection<T> data, Function<T, Boolean> condition) {
-		for (T item: data) {
-			if (condition.apply(item)) {
-				return item;
-			}
-		}
-		return null;
-	}
-	
 	public static <T> Set<T> newSet(T... elements) {
 		Set<T> set = new HashSet<T>();
 		for (T element: elements) {
@@ -120,6 +120,15 @@ public class CollectionUtil {
 			set.add(element);
 		}
 		return set;
+	}
+	
+	
+	public static void main(String[] args) {
+		Set<Integer> setA = new HashSet<Integer>() {{add(1); add(2); add(3);}};
+		Set<Integer> setB = new HashSet<Integer>() {{add(2); add(3);}};
+		Set<Integer> setC = new HashSet<Integer>() {{add(1); add(3); add(4);}};
+		Collection<Integer> intersect = colnsIntersection(setA, setB, setC); 
+		System.err.println(intersect);
 	}
 	
 }

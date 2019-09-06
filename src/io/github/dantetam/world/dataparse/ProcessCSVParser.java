@@ -50,7 +50,7 @@ public class ProcessCSVParser extends WorldCsvParser {
 				
 				List<String> groupNames = ItemCSVParser.groupSyntaxShortcuts.get(groupName);
 				if (groupNames == null) {
-					CustomLog.errPrintln("Could not find group name: " + groupName);
+					CustomLog.errPrintln("(ProcessCSVParser) Could not find group name: " + groupName);
 				}
 				else {
 					for (String groupItemName: groupNames) {

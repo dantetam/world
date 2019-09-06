@@ -10,6 +10,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.StreamSupport;
 
 import org.apache.commons.csv.CSVFormat;
@@ -125,6 +127,18 @@ public class WorldCsvParser {
 		return results;
 	}
 	
-	
+	public static String getGroupNameFromStr(String name) {
+		String pattern = "\\<(.*?)\\>";
+	    Matcher matcher = Pattern.compile(pattern).matcher(name);
+	    
+		//If the group <caret> notation is present
+		if (matcher.find()) {
+			String groupName = matcher.group(1);
+			return groupName;
+		}
+		else {
+			return name;
+		}
+	}
 	
 }

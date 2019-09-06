@@ -37,7 +37,7 @@ public abstract class LocalTileCond {
 		public boolean isDesiredTile(LocalGrid grid, Vector3i coords) {
 			LocalTile belowTile = grid.getTile(coords.getSum(0, -1, 0));
 			return grid.tileIsAccessible(coords) && 
-					ItemData.getGroupIds("BuildingMaterial").contains(belowTile.tileBlockId);
+					ItemData.getIdsFromNameOrGroup("BuildingMaterial").contains(belowTile.tileBlockId);
 		}
 	}
 	

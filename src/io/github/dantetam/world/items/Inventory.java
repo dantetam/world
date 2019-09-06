@@ -84,7 +84,7 @@ public class Inventory {
 	public int findItemCountGroup(String groupName, LivingEntity mainHuman, Set<LivingEntity> otherOwners) {
 		if (items == null) return 0;
 		int sum = 0;
-		Set<Integer> groupIds = ItemData.getGroupIds(groupName);
+		Set<Integer> groupIds = ItemData.getIdsFromNameOrGroup(groupName);
 		for (InventoryItem item: items) {
 			if (groupIds.contains(item.itemId)) {
 				if (item.beingHasAccessItem(mainHuman, otherOwners)) {

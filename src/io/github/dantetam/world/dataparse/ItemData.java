@@ -76,10 +76,28 @@ public class ItemData {
 	}
 	
 	public static int getIdFromName(String name) {
+		if (name.contains("<") && name.contains(">")) {
+			throw new IllegalArgumentException("Gave group name for item id, perhaps use getIdsFromName(Stirng name)");
+		}
 		if (!itemNamesToIds.containsKey(name)) {
 			throw new IllegalArgumentException("Could not find item name: " + name);
 		}
 		return itemNamesToIds.get(name);
+	}
+	
+	
+	public static Set<Integer> getIdsFromNameOrGroup(String name) {
+		Set<Integer> list = new HashSet<>();
+		if (name.contains("<") && name.contains(">")) {
+			return itemGroups.get(WorldCsvParser.getGroupNameFromStr(name));
+		}
+		else if (isGroup(name)) {
+			return itemGroups.get(name);
+		}
+		else {
+			list.add(getIdFromName(name));
+			return list;
+		}
 	}
 	
 	public static String getNameFromId(int id) {
@@ -212,13 +230,6 @@ public class ItemData {
 		addItemToDatabase(GENERATED_BASE_ID, name, false, null, 15, ItemData.ITEM_EMPTY_ID, 
 				null, 100, 0.0, 1.0, null, null, null);
 		return GENERATED_BASE_ID;
-	}
-	
-	public static Set<Integer> getGroupIds(String name) {
-		if (!isGroup(name)) {
-			throw new IllegalArgumentException("Could not find group name: " + name);
-		}
-		return itemGroups.get(name);
 	}
 	
 	public static Set<String> getGroupNameById(int id) {

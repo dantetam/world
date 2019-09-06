@@ -14,6 +14,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
+import io.github.dantetam.toolbox.CollectionUtil;
 import io.github.dantetam.toolbox.MapUtil;
 import io.github.dantetam.vector.Vector3i;
 import io.github.dantetam.world.civhumanai.Ethos;
@@ -283,11 +284,14 @@ public class Society {
 					List<InventoryItem> inputs = new ArrayList<>();
 					
 					if (process.requiredBuildNameOrGroup != null) {
-						inputs.add(ItemData.item(process.requiredBuildNameOrGroup, 1));
+						for (Integer id: ItemData.getIdsFromNameOrGroup(process.requiredBuildNameOrGroup)) {
+							inputs.add(ItemData.createItem(id, 1));
+						}
 					}
 					if (process.requiredTileNameOrGroup != null) {
-						//CustomLog.outPrintln(ItemData.item(process.requiredTileNameOrGroup, 1) + ":processed->" + process.requiredTileNameOrGroup + "<<<<");
-						inputs.add(ItemData.item(process.requiredTileNameOrGroup, 1));
+						for (Integer id: ItemData.getIdsFromNameOrGroup(process.requiredTileNameOrGroup)) {
+							inputs.add(ItemData.createItem(id, 1));
+						}
 					}
 					for (InventoryItem input: process.inputItems) {
 						inputs.add(input);
@@ -295,6 +299,7 @@ public class Society {
 					
 					//CustomLog.outPrintln("Looking at process: " + process.toString());
 					
+					//TODO: Factor in counts into util. backprop calc.
 					for (InventoryItem input: inputs) {
 						double util = allItemsUtility.containsKey(input.itemId) ? 
 								allItemsUtility.get(input.itemId) : 0;
@@ -346,18 +351,44 @@ public class Society {
 		
 		//Check for buildings
 		if (process.requiredBuildNameOrGroup != null) {
-			int buildingId = ItemData.getIdFromName(process.requiredBuildNameOrGroup);
-			if (!rawResRarity.containsKey(buildingId) || rawResRarity.get(buildingId) == 0) {
+			Set<Integer> buildingIds = ItemData.getIdsFromNameOrGroup(process.requiredBuildNameOrGroup);
+			Collection<Integer> intersectIds = CollectionUtil.colnsIntersection(rawResRarity.keySet(), 
+					buildingIds);
+			if (intersectIds.size() == 0) {
 				//CustomLog.outPrintln("No req building");
 				return false;
+			}
+			else {
+				boolean foundItem = false;
+				for (Integer id: intersectIds) {
+					if (rawResRarity.get(id) > 0) {
+						foundItem = true;
+					}
+				}
+				if (!foundItem) {
+					return false;
+				}
 			}
 		}
 		
 		if (process.requiredTileNameOrGroup != null) {
-			int tileHarvestId = ItemData.getIdFromName(process.requiredTileNameOrGroup);
-			if (!rawResRarity.containsKey(tileHarvestId) || rawResRarity.get(tileHarvestId) == 0) {
-				//CustomLog.outPrintln("No required tile");
+			Set<Integer> buildingIds = ItemData.getIdsFromNameOrGroup(process.requiredTileNameOrGroup);
+			Collection<Integer> intersectIds = CollectionUtil.colnsIntersection(rawResRarity.keySet(), 
+					buildingIds);
+			if (intersectIds.size() == 0) {
+				//CustomLog.outPrintln("No req tile");
 				return false;
+			}
+			else {
+				boolean foundItem = false;
+				for (Integer id: intersectIds) {
+					if (rawResRarity.get(id) > 0) {
+						foundItem = true;
+					}
+				}
+				if (!foundItem) {
+					return false;
+				}
 			}
 		}
 			

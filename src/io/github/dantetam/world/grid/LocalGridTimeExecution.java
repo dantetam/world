@@ -1376,6 +1376,8 @@ public class LocalGridTimeExecution {
 			int recordsFound = nearestItemsTree == null ? 0 : nearestItemsTree.size();
 			//TODO: Use item numbers in counting for viable resources
 			
+			if (nearestItemsTree == null) continue;
+				
 			int numCandidates = Math.min(nearestItemsTree.size(), 10);
 			Collection<Vector3i> nearestCoords = nearestItemsTree.nearestNeighbourListSearch(
 					numCandidates, being.location.coords);
@@ -1540,7 +1542,7 @@ public class LocalGridTimeExecution {
 			String itemGroupName = entry.getKey();
 			int amountNeeded = entry.getValue();
 
-			Set<Integer> groupIds = ItemData.getGroupIds(itemGroupName);
+			Set<Integer> groupIds = ItemData.getIdsFromNameOrGroup(itemGroupName);
 
 			for (int groupId: groupIds) {
 				List<LocalProcess> outputItemProcesses = ProcessData.getProcessesByOutput(groupId);

@@ -45,7 +45,8 @@ public class SocietyLeadershipSuccession {
 				Human nextCompetitor = humanIter.next();
 				double nextScore = candidates.get(nextCompetitor);
 				
-				double relCompete = nextCompetitor.brain.getHumanRel(firstHuman).opinion;
+				HumanHumanRel rel = nextCompetitor.brain.getHumanRel(firstHuman);
+				double relCompete = rel != null ? rel.opinion : 0;
 				
 				//TODO: Design custom multivariate functions for this use in mathematical util calculations
 				//Design a generic class that can be overridden with a multivariate function using

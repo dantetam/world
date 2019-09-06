@@ -36,7 +36,7 @@ public class ItemMetricsUtil {
 				MapUtil.insertKeepMaxMap(itemAmtNeeded, entry.getKey(), entry.getValue());
 			}
 			for (Entry<String, Integer> entry: itemGroupsAmtNeeded.entrySet()) {
-				Set<Integer> groupIds = ItemData.getGroupIds(entry.getKey());
+				Set<Integer> groupIds = ItemData.getIdsFromNameOrGroup(entry.getKey());
 				for (Integer groupId: groupIds) {
 					itemsNeededIds.add(groupId);
 					MapUtil.insertKeepMaxMap(itemAmtNeeded, groupId, entry.getValue());
