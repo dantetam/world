@@ -20,6 +20,9 @@ public class BodyPart {
 	public double dexterity; //The ability of this limb to hold and manuever items
 			//This stat is to discourage people from holding weapons with their mouths,
 			//and also provide bonuses to non-human creatures and sentient beings.
+	public double importance; //In terms of bodily anatomy, this part's ability to hold life, blood,
+			//and its weighted factor considering injuries and diseases of the body.
+	
 	public List<BodyDamage> damages; //The current total rate of damage,
 			//Blood loss, disease, and corruption that affects the whole body
 	
@@ -34,7 +37,7 @@ public class BodyPart {
 	public BodyPart bodyPartParent;
 	
 	public BodyPart(String name, Vector3f position, boolean isMainBodyPart, double size, 
-			double vulnerability, double maxHealth, double dexterity) {
+			double vulnerability, double maxHealth, double dexterity, double importance) {
 		this.name = name;
 		this.position = position;
 		this.size = size;
@@ -42,6 +45,7 @@ public class BodyPart {
 		this.maxHealth = maxHealth;
 		this.health = maxHealth;
 		this.dexterity = dexterity;
+		this.importance = importance;
 		damages = new ArrayList<>();
 		heldItems = new ArrayList<>();
 		neighboringParts = new HashSet<>();
@@ -117,4 +121,18 @@ public class BodyPart {
 	public int hashCode() {
 		return this.name.hashCode();
 	}
+	
+	public String toString() {
+		String rep = "BodyPart: " + this.name + ", " + health + "/" + maxHealth + " hp, ";
+		if (this.bodyPartParent != null) {
+			rep += "contained within " + this.bodyPartParent.name;
+		}
+		if (this.insideParts != null && this.insideParts.size() > 0) {
+			for (BodyPart part: this.insideParts) {
+				rep += "\n" + part.toString();
+			}
+		}
+		return rep;
+	}
+	
 }

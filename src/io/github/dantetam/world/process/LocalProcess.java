@@ -86,7 +86,7 @@ public class LocalProcess {
 			itemIds.add(item.itemId);
 		}
 		if (requiredBuildNameOrGroup != null) {
-			itemIds.add(ItemData.getIdFromName(requiredBuildNameOrGroup));
+			itemIds.add(ItemData.getIdFromName(requiredBuildNameOrGroup)); TODO //See error whilst inputting group
 		}
 		if (requiredTileNameOrGroup != null) {
 			itemIds.add(ItemData.getIdFromName(requiredTileNameOrGroup));

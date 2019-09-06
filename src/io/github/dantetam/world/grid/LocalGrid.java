@@ -398,6 +398,7 @@ public class LocalGrid {
 	 */
 	private void updateClusterInfo(Vector3i coords, int oldItemId, int newItemId) {
 		if (oldItemId == newItemId) return;
+		if (this.connectedCompsMap == null) return; //Cluster data not initialized yet
 		
 		Set<Vector3i> neighbors14 = this.getAllNeighbors14(coords);
 		Set<Vector3i> neighbors8 = this.getAllNeighbors8(coords);
@@ -904,11 +905,11 @@ public class LocalGrid {
 		
 		if (human.location != null) {
 			human.location.removePerson(human);
-			human.location = null;
 			if (human.location.getPeople().size() == 0) {
 				peopleLookup.remove(human.location.coords);
 				allLivingBeings.remove(human);
 			}
+			human.location = null;
 		}
 		
 		if (tile == null) {

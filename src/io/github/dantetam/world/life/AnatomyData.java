@@ -69,7 +69,7 @@ public class AnatomyData {
 	}
 	private static void traverseParts(Set<BodyPart> storeNewParts, BodyPart part) {
 		storeNewParts.add(new BodyPart(part.name, part.position, part.isMainBodyPart, part.size, 
-				part.vulnerability, part.maxHealth, part.dexterity));
+				part.vulnerability, part.maxHealth, part.dexterity, part.importance));
 		for (BodyPart insidePart: part.insideParts) {
 			traverseParts(storeNewParts, insidePart);
 		}

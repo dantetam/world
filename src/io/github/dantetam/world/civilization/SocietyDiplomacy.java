@@ -182,10 +182,11 @@ public class SocietyDiplomacy {
 			}
 		}
 		
-		CaravanTradeProcess tradeProcess = new CaravanTradeProcess();
+		//TODO;
+		//CaravanTradeProcess tradeProcess = new CaravanTradeProcess();
 		//Create a trade job that allows people to take the priority
 		//to ship goods between societies
-		LocalSocietyJob societyJob = new LocalSocietyJob();
+		//LocalSocietyJob societyJob = new LocalSocietyJob();
 	}
 	
 	public boolean isObligatedInDefCall(Society caller, Society ally, Society target) {
