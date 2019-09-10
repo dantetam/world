@@ -77,7 +77,7 @@ public class WorldGridInstantiate {
 		//TODO Create all grids instantiated with
 		//new societies, DNA/races/cultures, biomes/flora/fauna, and intersocietal interactions across grids;
 				
-		Vector3i gridSizes = new Vector3i(200,200,60);
+		Vector3i gridSizes = new Vector3i(100,100,60);
 		
 		
 		for (int r = 0; r < worldSize.x; r++) {

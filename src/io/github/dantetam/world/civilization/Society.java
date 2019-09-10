@@ -59,6 +59,7 @@ public class Society {
 	public Map<Integer, Double> calcUtility; //Sorted ascending
 	public Map<Integer, Double> accessibleResUtil; 
 	public Map<String, Double> groupItemRarity;
+	public Map<Integer, Double> adjEconomicUtility;
 	public List<Vector3i> importantLocations;
 	public Map<Human, NeedsGamut> humanNeedsMap; //Fill with the needs of humans calculated in needs intensity calc.
 	
@@ -417,7 +418,8 @@ public class Society {
 	 */
 	public Map<Integer, Double> findCompleteUtilityAllItems(Human human) {
 		Map<Integer, Double> allRarity = findAllAvailableResourceRarity(human);
-		Map<Integer, Double> economicRarityMap = findAdjEconomicRarity();
+		Map<Integer, Double> economicRarityMap = this.adjEconomicUtility == null ? 
+				findAdjEconomicRarity() : this.adjEconomicUtility;
 		Set<Integer> availableItemIds = economicRarityMap.keySet();
 		
 		NeedsGamut needsIntensity = finalTotalNeedsMap();
@@ -435,8 +437,9 @@ public class Society {
 		Map<Integer, Double> finalOutputUtility = new HashMap<>();
 		
 		for (int itemId : availableItemIds) {
-			double itemRarity = allRarity.containsKey(itemId) ? new Double(Math.log10(allRarity.get(itemId))) : -10;
-			double economicRarity = new Double(Math.log10(economicRarityMap.get(itemId)));
+			double itemRarity = allRarity.containsKey(itemId) ? Math.max(0, Math.log10(allRarity.get(itemId))) : 0;
+			double economicRarity = economicRarityMap.containsKey(itemId) ? 
+					Math.max(0, Math.log10(economicRarityMap.get(itemId))) : 0;
 			
 			itemRarity = Math.min(itemRarity, 1);
 			economicRarity = Math.min(economicRarity, 1);
@@ -447,7 +450,7 @@ public class Society {
 			for (Entry<String, Double> e: needsUtilityFromItems.entrySet()) {
 				Double intensity = productWeights.get(e.getKey());
 				if (intensity == null) {
-					intensity = new Double(0.5);
+					intensity = 0.5;
 				}
 				//double needWeight = needWeights.containsKey(e.getKey()) ? needWeights.get(e.getKey()) : 0.5;
 				double util = (e.getValue() * intensity) - (itemRarity * economicRarity);
@@ -567,8 +570,11 @@ public class Society {
 	 * too many people produce the same resource, i.e. if wooden walls are the most
 	 * profitable good when there are none, but 
 	 */
-	private Map<Integer, Double> findAdjEconomicRarity() {
-		Map<Integer, Double> itemRarity = this.findAllAvailableResourceRarity(null);
+	public Map<Integer, Double> findAdjEconomicRarity() {
+		Map<Integer, Double> itemRarity = this.accessibleResUtil == null ? 
+				this.findAllAvailableResourceRarity(null) : this.accessibleResUtil;
+		
+		//Make this method more efficient
 		for (LocalGrid grid: this.allGrids) {
 			for (LocalBuilding building: grid.getAllBuildings()) {
 				for (int itemId: building.buildingBlockIds) {
@@ -803,8 +809,8 @@ public class Society {
 			societalNeed.addEmotion(NeedsGamut.FURNITURE, normFurnitureScore / 3);
 		}	
 		
-		double beautyScore = this.primaryGrid.averageBeauty(human.location.coords);
-		societalNeed.addEmotion(NeedsGamut.BEAUTY, 1.0 - beautyScore);
+		//double beautyScore = this.primaryGrid.averageBeauty(human.location.coords);
+		//societalNeed.addEmotion(NeedsGamut.BEAUTY, 1.0 - beautyScore);
 
 		societalNeed.addEmotion(NeedsGamut.SOLDIER, 0.1);
 

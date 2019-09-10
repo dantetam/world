@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.HashMap;
 
+import io.github.dantetam.toolbox.log.CustomLog;
 import io.github.dantetam.world.civilization.Household;
 import io.github.dantetam.world.civilization.LocalExperience;
 import io.github.dantetam.world.civilization.Society;
@@ -59,7 +60,7 @@ public class FreeActionsHousehold {
 			if (!entry.getValue().fireChanceExecute()) continue;
 			String name = entry.getKey();
 			if (name.equals("formNewHousehold")) {
-				System.err.println(">>>>>%: " + house.householdMembers.toString());
+				//CustomLog.errPrintln(">>>>>%: " + house.householdMembers.toString());
 				
 				Human splitHuman = EmergentHouseholdCalc.calcBestHouseholdSplit(house, date);
 				if (splitHuman == null) continue;

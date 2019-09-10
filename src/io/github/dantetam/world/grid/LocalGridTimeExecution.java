@@ -91,6 +91,7 @@ public class LocalGridTimeExecution {
 			society.accessibleResUtil = society.findAllAvailableResourceRarity(null);
 			society.groupItemRarity = society.findRawGroupsResRarity(null);
 			society.importantLocations = society.getImportantLocations(society.societyCenter);
+			society.adjEconomicUtility = society.findAdjEconomicRarity();
 			
 			society.humanNeedsMap = society.findAllNeedsIntensityMap();
 			for (Entry<Human, NeedsGamut> entry: society.humanNeedsMap.entrySet()) {
@@ -442,7 +443,7 @@ public class LocalGridTimeExecution {
 	 * 
 	 * @return The harvest tile, followed by the tile to move to (within <= 1 distance)
 	 */
-	private static Pair<LocalTile> assignTile(LocalGrid grid, LivingEntity being, 
+	private static Pair<LocalTile> assignTile (LocalGrid grid, LivingEntity being, 
 			Set<Human> validOwners, LocalProcess process) {
 		
 		String tileName = process.requiredTileNameOrGroup;
@@ -1345,7 +1346,7 @@ public class LocalGridTimeExecution {
 	}
 	
 	private static void collectivelyAssignJobsSociety(Society society) {
-		Map<Integer, Double> calcUtility = society.findCompleteUtilityAllItems(null);
+		Map<Integer, Double> calcUtility = society.calcUtility;
 		Map<LocalProcess, Double> bestProcesses = society.prioritizeProcesses(
 				calcUtility, null, null, NUM_JOBPROCESS_CONSIDER, null);
 		List<Human> humans = society.getAllPeople();
@@ -1433,6 +1434,8 @@ public class LocalGridTimeExecution {
 
 			for (Vector3i itemCoords: nearestCoords) {
 				LocalTile tile = grid.getTile(itemCoords);
+				if (tile.harvestInUse) continue;
+				
 				double score = scoringMetric.score(being, owners, grid, tile, 
 						itemsAmtNeeded, null);
 				

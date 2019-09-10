@@ -421,17 +421,21 @@ public class VecGridUtil {
 	//From VisualVM: findBestRect(...) -> 10883 ms
 	//HashSet.contains() -> 5898 ms
 	public static Pair<Vector2i> findBestRect(Set<Vector3i> coords, int desiredR, int desiredC) {
+		if (coords.size() < desiredR * desiredC) return null;
+		
 		Pair<Vector3i> bounds = findCoordBounds(coords);
 		Vector3i topLeftBound = bounds.first, bottomRightBound = bounds.second;
 		int rows = bottomRightBound.x - topLeftBound.x + 1;
 		int cols = bottomRightBound.y - topLeftBound.y + 1;
+		
+		if (rows < desiredR || cols < desiredC) return null;
+		
 		int[][] convertedOffsetVec = new int[rows][cols];
-		for (int r = 0; r < rows; r++) {
-			for (int c = 0; c < cols; c++) {
-				if (coords.contains(topLeftBound.getSum(new Vector3i(r,c,0)))) {
-					convertedOffsetVec[r][c] = 1;
-				}
-			}
+		
+		for (Vector3i coord: coords) {
+			int r = coord.x - topLeftBound.x;
+			int c = coord.y - topLeftBound.y;
+			convertedOffsetVec[r][c] = 1;
 		}
 		
 		Pair<Vector2i> zeroCenteredRect = findClosestSubRect(convertedOffsetVec, desiredR, desiredC);
@@ -503,6 +507,12 @@ public class VecGridUtil {
 	 * @param M 2D boolean array
 	 * @return The smallest rectangle greater than dimensions (targetR, targetC) containing all true, 
 	 * at top-left starting location (r,c) and sizes (rows, cols)
+	 * 
+	 * 
+		CustomLog.outPrintln("S (col): ###########################");
+		CustomLog.outPrintlnArr(S);
+		CustomLog.outPrintln("T (row): ###########################");
+		CustomLog.outPrintlnArr(T);
 	 */
 	public static Pair<Vector2i> findClosestSubRect(int M[][], int targetR, int targetC) 
     { 
@@ -530,6 +540,12 @@ public class VecGridUtil {
                 if (M[i][j] == 1) {
                 	S[i][j] = Math.min(S[i-1][j-1], S[i][j-1]) + 1;
                 	T[i][j] = Math.min(T[i-1][j-1], T[i-1][j]) + 1; 
+                	if (S[i][j] >= targetC && T[i][j] >= targetR) {
+                		return new Pair<Vector2i>(
+                        		new Vector2i(i - T[i][j] + 1, j - S[i][j] + 1),
+                        		new Vector2i(T[i][j], S[i][j])
+                        		);
+                	}
                 }
                 else {
                     S[i][j] = 0;
@@ -537,28 +553,8 @@ public class VecGridUtil {
                 }
             }  
         }
-        
-        int maxR = -1, maxC = -1, curDist = 0, rows = 0, cols = 0;
-        for (int r = 0; r < R; r++) {
-        	for (int c = 0; c < C; c++) {
-        		int imprDist = (T[r][c] - targetR) + (S[r][c] - targetC);
-        		if (T[r][c] >= targetR && S[r][c] >= targetC) {
-	        		if (maxR == -1 || maxC == -1 || imprDist < curDist) {
-	        			maxR = r;
-	        			maxC = c;
-	        			curDist = imprDist;
-	        			rows = T[r][c];
-	        			cols = S[r][c];
-	        		}
-        		}
-        	}
-        }
          
-        if (maxR == -1 || maxC == -1) return null;
-        return new Pair<Vector2i>(
-        		new Vector2i(maxR - rows + 1, maxC - cols + 1),
-        		new Vector2i(rows, cols)
-        		);
+        return null;
     }  
 	
 	public static List<Set<Vector2i>> getConnectedComponents(boolean[][] data, boolean target) {
@@ -618,7 +614,7 @@ public class VecGridUtil {
 	}
 	
 	public static void main(String[] args) {
-		cont3dCompTest();
+		matrixAndComp2DTest();
 	}
 	
 	public static void cont3dCompTest() {
@@ -643,7 +639,7 @@ public class VecGridUtil {
 		//CustomLog.outPrintln(components);
 	}
 	
-	public void matrixAndComp2DTest() {
+	public static void matrixAndComp2DTest() {
 		boolean[][] matrix = {
 				{true, true, false, false, true},
 				{true, false, false, false, false},
@@ -653,6 +649,7 @@ public class VecGridUtil {
 		};
 		
 		int A[][] = { 
+				{0, 0, 0, 0}, 
 				{0, 1, 1, 0}, 
                 {0, 1, 1, 1}, 
                 {1, 1, 1, 1}, 
@@ -660,13 +657,25 @@ public class VecGridUtil {
               }; 
 		CustomLog.outPrintln(findMaxSubRect(A).toString());
 		
-		CustomLog.outPrintln(findClosestSubRect(A, 2, 2).toString());
+		CustomLog.outPrintln("Closest sub rect (2,2): " + findClosestSubRect(A, 2, 2).toString());
+		CustomLog.outPrintln("Closest sub rect (2,1): " + findClosestSubRect(A, 2, 1).toString());
+		CustomLog.outPrintln("Closest sub rect (1,2): " + findClosestSubRect(A, 1, 2).toString());
+		
+		
+		int B[][] = { 
+				{0, 0, 1, 0}, 
+				{0, 1, 1, 0}, 
+                {0, 1, 1, 1}
+              };
+		CustomLog.outPrintln("Closest sub rect (2,2): " + findClosestSubRect(B, 2, 2).toString());
+		
+		
 		
 		List<Vector3i> coords = new ArrayList<>();
 		coords.add(new Vector3i(1,1,1));
 		coords.add(new Vector3i(5,-1,1));
 		coords.add(new Vector3i(2,1,4));
-		CustomLog.outPrintln(VecGridUtil.findCoordBounds(coords).toString());
+		CustomLog.outPrintln("Bounds: " + VecGridUtil.findCoordBounds(coords).toString());
 		
 		
 		Set<Vector2i> cornerCoordsTest = new HashSet<>();

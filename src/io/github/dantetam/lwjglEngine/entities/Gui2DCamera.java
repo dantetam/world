@@ -17,7 +17,7 @@ public class Gui2DCamera {
 	public static float tileMoveLateralSpeed = 0.7f, tileHeightSpeed = 0.1f;
 
 	public Gui2DCamera() {
-		tileLocationPosition = new Vector3f(100,30,100);
+		tileLocationPosition = new Vector3f(50,30,50);
 		numTilesX = 32;
 		numTilesZ = 20;
 	}

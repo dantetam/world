@@ -143,11 +143,19 @@ public class SpaceFillingAlg {
 				}
 			}
 		}
-		List<GridRectInterval> componentMaxSubRect = new ArrayList<>();
-		Map<Integer, Integer> componentScore = new HashMap<>();
 		
-		int componentIndex = 0;
-		for (ClusterVector3i cluster: closestClusters) {
+		List<ClusterVector3i> clustersList = new ArrayList<ClusterVector3i>(closestClusters);
+		Collections.sort(clustersList, 
+				new Comparator<ClusterVector3i>() {
+			
+				@Override
+				public int compare(ClusterVector3i o1, ClusterVector3i o2) {
+					//Ascending sort in distance
+					return o1.center.manhattanDist(center) - o2.center.manhattanDist(center);
+				}
+		});
+		
+		for (ClusterVector3i cluster: clustersList) {
 			int height = cluster.center.z;
 			Set<Vector3i> component = cluster.clusterData;
 			
@@ -165,10 +173,9 @@ public class SpaceFillingAlg {
 						new LocalTileCond.IsWithinIntervalsStrict(mustBeWithinAreas));
 			}
 			
-			if (component.size() == 0) continue; //After all the filtering has been done
+			//After all the filtering has been done, check if the area is 
+			if (component.size() == 0) continue; 
 			
-			
-			//int[] maxSubRect = AlgUtil.findMaxRect(component);
 			Pair<Vector2i> maxSubRect = VecGridUtil.findBestRect(component, desiredR, desiredC);
 			
 			if (maxSubRect == null || maxSubRect.second.x < desiredR || maxSubRect.second.y < desiredC) 
@@ -180,21 +187,16 @@ public class SpaceFillingAlg {
 					maxSubRect.first.y + maxSubRect.second.y - 1, 
 					height);
 			GridRectInterval interval = new GridRectInterval(start, end);
-			componentMaxSubRect.add(interval);
 			
 			Vector3i centerRectSpace = interval.avgVec();
 			int dist = (int) Math.ceil(centerRectSpace.dist(center));
 			int verticalDist = Math.abs(center.z - height) * 5;
 			
-			componentScore.put(componentIndex, interval.get2dSize() - dist - verticalDist);
-			componentIndex++;
-		}
-		
-		if (componentScore.size() > 0) {
-			componentScore = MapUtil.getSortedMapByValueDesc(componentScore);
-			Integer bestSpaceIndex = (Integer) componentScore.keySet().toArray()[0];
-			GridRectInterval bestSpace = componentMaxSubRect.get(bestSpaceIndex);
-			return bestSpace;
+			double finalScore = interval.get2dSize() - dist - verticalDist;
+			
+			if (finalScore > 0) {
+				return interval;
+			}
 		}
 		return null;
 	}

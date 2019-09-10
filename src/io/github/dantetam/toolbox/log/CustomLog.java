@@ -1,8 +1,11 @@
 package io.github.dantetam.toolbox.log;
 
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+
 public class CustomLog {
 
-	public static final PrintMode mode = PrintMode.OUT;
+	public static final PrintMode mode = PrintMode.ERR;
 	
 	public static void outPrintSameLine() {
 		outPrintSameLine("");
@@ -31,6 +34,23 @@ public class CustomLog {
 	public static void outPrintln(String string) {
 		if (mode.equals(PrintMode.OUT)) {
 			System.out.println(string);
+		}
+	}
+	
+	public static void outPrintlnArr(int[][] arr) {
+		int maxDigits = 0;
+		for (int r = 0; r < arr.length; r++) {
+			for (int c = 0; c < arr[0].length; c++) {
+				maxDigits = Math.max((int) Math.floor(arr[r][c]), maxDigits);
+			}
+		}
+		NumberFormat formatter = new DecimalFormat("0".repeat(maxDigits));
+		
+		for (int r = 0; r < arr.length; r++) {
+			for (int c = 0; c < arr[0].length; c++) {
+				CustomLog.outPrintSameLine(formatter.format(arr[r][c]) + " ");
+			}
+			CustomLog.outPrintln();
 		}
 	}
 	

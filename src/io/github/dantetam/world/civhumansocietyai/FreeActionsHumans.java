@@ -152,7 +152,8 @@ public class FreeActionsHumans {
 				}
 				humanImprScore = MapUtil.getSortedMapByValueDesc(humanImprScore);
 				Human randomHuman = MapUtil.randChoiceFromWeightMap(humanImprScore);
-				randomHuman.queuedProcesses.add(ProcessData.getProcessByName("Improve Complex"));
+				if (randomHuman != null)
+					randomHuman.queuedProcesses.add(ProcessData.getProcessByName("Improve Complex"));
 			}
 			else if (name.equals("chat")) { //Temporarily represent chatting as an instaneous free action
 				List<Human[]> chatPairs = SocietalHumansActionsCalc.possibleCordialPairs(humans, date);

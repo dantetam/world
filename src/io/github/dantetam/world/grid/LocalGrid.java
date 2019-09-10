@@ -58,6 +58,7 @@ public class LocalGrid {
 	private KdTree<Vector3i> buildingLookup;
 	public Map<Integer, Double> tileIdCounts; //Updated per tile update
 	private boolean[][][] accessibleTileRecord;
+	//TODO: Memotize beauty data and other properties of tiles for lookup later
 	
 	private Map<Integer, KdTree<Vector3i>> buildIdQuickTileLookup;
 	
