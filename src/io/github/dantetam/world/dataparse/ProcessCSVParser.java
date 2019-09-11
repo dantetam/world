@@ -115,17 +115,17 @@ public class ProcessCSVParser extends WorldCsvParser {
 					 */
 					
 					/*
-					Map<String, String> copyRecord = new HashMap<>(record);
-					copyRecord.put("Required Location", groupName);
-					preprocessExpandingRecipe(copyRecord);
-					*/
-					
 					for (String groupItemName: groupNames) {
 						Map<String, String> copyRecord = new HashMap<>(record);
 						String newBuildingName = requiredLocation.replaceFirst("\\<(.*?)\\>", groupItemName);
 						copyRecord.put("Required Location", newBuildingName);
 						preprocessExpandingRecipe(copyRecord);
 					}
+					*/
+					
+					Map<String, String> copyRecord = new HashMap<>(record);
+					copyRecord.put("Required Location", groupName);
+					preprocessExpandingRecipe(copyRecord);
 				}
 			}
 			else { //No more groups to expand within this recipe, actually begin to process a 'pure' recipe

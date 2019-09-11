@@ -38,13 +38,13 @@ public class CollectionUtil {
 	 * 		e.g. (1, 2, 3) intersect (2, 3) intersect (1, 3, 4) = (3)
 	 * 			 () intersect ... = ()
  	 */
-	public static <T> Collection<T> colnsIntersection(Collection<T>... collections) {
+	public static <T> Collection<T> colnsIntersection(Collection<? extends T>... collections) {
 		if (collections == null || collections.length <= 1) {
 			throw new IllegalArgumentException("Collection intersection not defined for empty/null amount of collections");
 		}
 			
-		Collection<T> minSizeColn = null;
-		for (Collection<T> coln: collections) {
+		Collection<? extends T> minSizeColn = null;
+		for (Collection<? extends T> coln: collections) {
 			if (coln == null) { //Strictly define intersection with an empty/null set as none
 				return new ArrayList<>();
 			}
@@ -56,7 +56,7 @@ public class CollectionUtil {
 		Collection<T> intersection = new ArrayList<>();
 		for (T item: minSizeColn) {
 			boolean itemFoundAll = true;
-			for (Collection<T> coln: collections) {
+			for (Collection<? extends T> coln: collections) {
 				if (coln.equals(minSizeColn)) continue;
 				if (!coln.contains(item)) {
 					itemFoundAll = false; 
@@ -70,7 +70,7 @@ public class CollectionUtil {
 		return intersection;
 	}
 	
-	public static <T> boolean colnsHasIntersect(Collection<T>... collections) {
+	public static <T> boolean colnsHasIntersect(Collection<? extends T>... collections) {
 		return colnsIntersection(collections).size() > 0;
 	}
 	

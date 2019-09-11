@@ -212,7 +212,7 @@ public class SpaceFillingAlg {
 			Set<Vector3i> newFringe = new HashSet<>();
 			for (Vector3i fringeVec: fringe) {
 				if (visitedSet.contains(fringeVec)) continue;
-				if (!grid.tileIsAccessible(fringeVec)) continue;
+				if (!grid.tileIsFullyAccessible(fringeVec)) continue;
 				
 				visitedSet.add(fringeVec);
 				singleComponent.add(fringeVec);
@@ -254,7 +254,7 @@ public class SpaceFillingAlg {
 						Set<Vector3i> newFringe = new HashSet<>();
 						for (Vector3i fringeVec: fringe) {
 							if (visitedSet.contains(fringeVec)) continue;
-							if (!grid.tileIsAccessible(fringeVec)) continue;
+							if (!grid.tileIsFullyAccessible(fringeVec)) continue;
 							
 							visitedSet.add(fringeVec);
 							singleComponent.add(fringeVec);

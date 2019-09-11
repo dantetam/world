@@ -291,34 +291,34 @@ public class HierarchicalPathfinder extends Pathfinder {
 		for (int c = 0; c < ABSTRACT_BLOCK_SIZE; c++) {
 			for (int h = 0; h < ABSTRACT_BLOCK_SIZE; h++) {
 				if (dimension == 'r') {
-					firstBlockAccess[c][h] = this.grid.tileIsAccessible(new Vector3i(
+					firstBlockAccess[c][h] = this.grid.tileIsFullyAccessible(new Vector3i(
 							firstR,
 							mainBlock.minBound.y + c,
 							mainBlock.minBound.z + h
 							));
-					secondBlockAccess[c][h] = this.grid.tileIsAccessible(new Vector3i(
+					secondBlockAccess[c][h] = this.grid.tileIsFullyAccessible(new Vector3i(
 							secondR,
 							mainBlock.minBound.y + c,
 							mainBlock.minBound.z + h
 							));
 				} else if (dimension == 'c') {
-					firstBlockAccess[c][h] = this.grid.tileIsAccessible(new Vector3i(
+					firstBlockAccess[c][h] = this.grid.tileIsFullyAccessible(new Vector3i(
 							mainBlock.minBound.x + c,
 							firstR,
 							mainBlock.minBound.z + h
 							));
-					secondBlockAccess[c][h] = this.grid.tileIsAccessible(new Vector3i(
+					secondBlockAccess[c][h] = this.grid.tileIsFullyAccessible(new Vector3i(
 							mainBlock.minBound.x + c,
 							secondR,
 							mainBlock.minBound.z + h
 							));
 				} else {
-					firstBlockAccess[c][h] = this.grid.tileIsAccessible(new Vector3i(
+					firstBlockAccess[c][h] = this.grid.tileIsFullyAccessible(new Vector3i(
 							mainBlock.minBound.x + c,
 							mainBlock.minBound.y + h,
 							firstR
 							));
-					secondBlockAccess[c][h] = this.grid.tileIsAccessible(new Vector3i(
+					secondBlockAccess[c][h] = this.grid.tileIsFullyAccessible(new Vector3i(
 							mainBlock.minBound.x + c,
 							mainBlock.minBound.y + h,
 							secondR
@@ -621,7 +621,7 @@ public class HierarchicalPathfinder extends Pathfinder {
 				blockEnd = hPath.abstractBlocks[randEndCoords.x][randEndCoords.y][randEndCoords.z];
 				startVec = VecGridUtil.getRandVecInBounds(blockStart.minBound, blockStart.maxBound);
 				endVec = VecGridUtil.getRandVecInBounds(blockEnd.minBound, blockEnd.maxBound);
-				if (activeLocalGrid.tileIsAccessible(startVec) && activeLocalGrid.tileIsAccessible(endVec))
+				if (activeLocalGrid.tileIsFullyAccessible(startVec) && activeLocalGrid.tileIsFullyAccessible(endVec))
 					if (activeLocalGrid.getTile(startVec).exposedToAir && activeLocalGrid.getTile(endVec).exposedToAir)
 						break;
 			}

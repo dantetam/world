@@ -194,10 +194,10 @@ public class RSRPathfinder extends Pathfinder {
 	}
 	
 	public void adjustRSR(Vector3i coords, boolean isSolidBlock) {
-		for (Vector3i neighbor: this.grid.getAllNeighbors26(coords)) {
-			if (grid.tileIsAccessible(neighbor)) {
-				this.tempNodeInRectSolid(coords, isSolidBlock);
-			}
+		for (Vector3i neighbor: this.grid.getAllNeighbors14(coords)) {
+			//if (grid.tileIsAccessible(neighbor)) {
+			this.tempNodeInRectSolid(neighbor, isSolidBlock);
+			//}
 		}
  	}
 	
@@ -207,7 +207,7 @@ public class RSRPathfinder extends Pathfinder {
 		//Implement the ability to traverse tiles that need to be dug (add accessibility penalty)
 		//Also try to improve height and diagonal height walking across terrain
 		
-		Set<LocalTile> candidates = grid.getAccessibleNeighbors(tile);
+		Set<LocalTile> candidates = grid.getAllTiles14(tile.coords);
 		if (macroEdgeConnections.containsKey(tile.coords)) {
 			Set<Vector3i> coords = macroEdgeConnections.get(tile.coords);
 			for (Vector3i coord: coords) {
@@ -226,7 +226,8 @@ public class RSRPathfinder extends Pathfinder {
 		return filtered;
 	}
 	
-	//Generate distance between two neighboring tiles, assuming they're adjacent
+	//Generate distance between two neighboring tiles
+	@Override
 	protected double getTileDist(LocalTile a, LocalTile b) {
 		return a.coords.manhattanDist(b.coords);
 	}

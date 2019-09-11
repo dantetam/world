@@ -5,7 +5,7 @@ import java.text.NumberFormat;
 
 public class CustomLog {
 
-	public static final PrintMode mode = PrintMode.ERR;
+	public static final PrintMode mode = PrintMode.OUT;
 	
 	public static void outPrintSameLine() {
 		outPrintSameLine("");

@@ -201,7 +201,7 @@ public class VecGridUtil {
 			throw new IllegalArgumentException("Direction parameter must be one of 'r','c','h', got: " + direction);
 		}
 		for (Vector3i vec: face) {
-			if (!grid.inBounds(vec) || !grid.tileIsAccessible(vec) || solidData[vec.x][vec.y][vec.z] != -1 ||
+			if (!grid.inBounds(vec) || !grid.tileIsFullyAccessible(vec) || solidData[vec.x][vec.y][vec.z] != -1 ||
 					(validSetVec != null && !validSetVec.contains(vec))
 					) {
 				return false;
@@ -359,7 +359,7 @@ public class VecGridUtil {
 						if (!visited.contains(first) && 
 								grid.inBounds(first) && vecInBounds(minBoundsInc, maxBoundsInc, first)) {
 							visited.add(first);
-							if (grid.tileIsAccessible(first)) {
+							if (grid.tileIsFullyAccessible(first)) {
 								componentVecs.add(first);
 								Set<Vector3i> neighbors = grid.getAllNeighbors14(first);
 								for (Vector3i neighbor: neighbors) {

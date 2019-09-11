@@ -218,8 +218,9 @@ public class LocalGridTimeExecution {
 			if (human.currentQueueTasks != null && human.currentQueueTasks.size() > 0)
 				CustomLog.outPrintln(human.currentQueueTasks.get(0).getClass());
 			if (human.currentQueueTasks instanceof DoneTaskPlaceholder ||
-				human.currentQueueTasks instanceof ImpossibleTaskPlaceholder) {
+					human.currentQueueTasks instanceof ImpossibleTaskPlaceholder) {
 				human.activePriority = null;
+				human.currentQueueTasks = null;
 			}
 		}
 
@@ -327,6 +328,44 @@ public class LocalGridTimeExecution {
 		}
 		else if (process.requiredTileNameOrGroup != null && process.processTile == null) {
 			assignTile(grid, human, capitalOwners, process);
+		}
+		
+		if (human.currentQueueTasks != null && human.currentQueueTasks.size() > 0) {
+			Task task = human.currentQueueTasks.get(0);
+			CustomLog.outPrintln(human.name + " has " + human.currentQueueTasks.size() + " tasks."); 
+			if (task.taskTime <= 0) {
+				CustomLog.outPrintln(human.name + " FINISHED task: " + task.toString());
+				human.currentQueueTasks.remove(0);
+				executeTask(grid, human, task);
+				if (human.currentQueueTasks.size() == 0) {
+					human.activePriority = null;
+				}
+			}
+			else {
+				task.taskTime--;
+				CustomLog.outPrintln(human.name + " task in progress: " 
+						+ task.getClass().getSimpleName() + " (" + task.taskTime + ")");
+			}
+		}
+		if (human.activePriority != null && //Assign tasks if there are none (do not overwrite existing tasks)
+				(human.currentQueueTasks == null || human.currentQueueTasks.size() == 0)) {
+			human.currentQueueTasks = getTasksFromPriority(grid, human, human.activePriority);
+			
+			if (human.currentQueueTasks != null) {
+				String firstTaskString = human.currentQueueTasks.size() > 0 ? human.currentQueueTasks.get(0).toString() : "tasks is empty";
+				CustomLog.outPrintln(human.name + " was assigned " + human.currentQueueTasks.size() + " tasks, first: " + firstTaskString); 
+			}
+			else {
+				CustomLog.outPrintln(human.name + " was assigned NULL tasks"); 
+			}
+			
+			if (human.currentQueueTasks != null && human.currentQueueTasks.size() > 0)
+				CustomLog.outPrintln(human.currentQueueTasks.get(0).getClass());
+			if (human.currentQueueTasks instanceof DoneTaskPlaceholder ||
+					human.currentQueueTasks instanceof ImpossibleTaskPlaceholder) {
+				human.activePriority = null;
+				human.currentQueueTasks = null;
+			}
 		}
 		
 		//Follow through with one step, deconstruct into a priority, and get its status back.
@@ -443,7 +482,7 @@ public class LocalGridTimeExecution {
 	 * 
 	 * @return The harvest tile, followed by the tile to move to (within <= 1 distance)
 	 */
-	private static Pair<LocalTile> assignTile (LocalGrid grid, LivingEntity being, 
+	private static Pair<LocalTile> assignTile(LocalGrid grid, LivingEntity being, 
 			Set<Human> validOwners, LocalProcess process) {
 		
 		String tileName = process.requiredTileNameOrGroup;
@@ -453,7 +492,7 @@ public class LocalGridTimeExecution {
 		KdTree<Vector3i> items = grid.getKdTreeForItemGroup(tileName);
 		if (items == null) return null;
 		
-		Collection<Vector3i> candidates = items.nearestNeighbourListSearch(20, being.location.coords);
+		Collection<Vector3i> candidates = items.nearestNeighbourListSearch(50, being.location.coords);
 		
 		//Collect pair objects: the actual location of interest, followed by an accessible neighbor
 		for (Vector3i candidate: candidates) {
@@ -857,7 +896,7 @@ public class LocalGridTimeExecution {
 			CustomLog.outPrintln("Built building: " + building.name + " at place: " + itemMode);
 			
 			Vector3i aboveTargetLocation = targetLocation.getSum(0, 1, 0);
-			if (grid.inBounds(aboveTargetLocation) || grid.tileIsAccessible(aboveTargetLocation)) {
+			if (grid.inBounds(aboveTargetLocation) || grid.tileIsFullyAccessible(aboveTargetLocation)) {
 				grid.addBuilding(building, targetLocation, true, ownerProducts);
 				return new DonePriority();
 			}
@@ -1465,9 +1504,12 @@ public class LocalGridTimeExecution {
 				
 				if (process.name.startsWith("Harvest Tile ")) {
 					CustomLog.outPrintln(process);
-					int inputTileId = ItemData.getIdFromName(process.requiredTileNameOrGroup);
+					Set<Integer> inputTileIds = ItemData.getIdsFromNameOrGroup(process.requiredTileNameOrGroup);
 					effectiveNum = Math.min(amountNeeded, expectedNumItem);
-					itemTree = grid.getKdTreeForTile(inputTileId);
+					for (int inputTileId: inputTileIds) {
+						itemTree = grid.getKdTreeForTile(inputTileId);
+						if (itemTree != null && itemTree.size() > 0) break; 
+					}
 				}
 				else if (process.name.startsWith("Harvest Building ")) {
 					int buildId = ItemData.getIdFromName(process.requiredBuildNameOrGroup);
@@ -1476,14 +1518,18 @@ public class LocalGridTimeExecution {
 				}
 				
 				if (itemTree == null || itemTree.size() == 0 || effectiveNum == 0) continue;
-				int numCandidates = Math.min(itemTree.size(), 10);
+				int numCandidates = Math.min(itemTree.size(), 20);
 				Collection<Vector3i> nearestCoords = itemTree.nearestNeighbourListSearch(
 						numCandidates, being.location.coords);
 				for (Vector3i itemCoords: nearestCoords) {
-					int distUtil = being.location.coords.manhattanDist(itemCoords);
-					if (bestLocation == null || distUtil < bestScore) {
-						bestLocation = itemCoords;
-						bestScore = distUtil - effectiveNum;
+					LocalTile tile = grid.getTile(itemCoords);
+					List<Human> claimants = grid.findClaimantToTile(itemCoords);
+					if (CollectionUtil.colnsHasIntersect(claimants, owners) && !tile.harvestInUse) {
+						int distUtil = being.location.coords.manhattanDist(itemCoords);
+						if (bestLocation == null || distUtil < bestScore) {
+							bestLocation = itemCoords;
+							bestScore = distUtil - effectiveNum;
+						}
 					}
 				}
 			}
@@ -1551,24 +1597,26 @@ public class LocalGridTimeExecution {
 				List<LocalProcess> outputItemProcesses = ProcessData.getProcessesByOutput(groupId);
 				for (LocalProcess process: outputItemProcesses) {
 					if (process.name.startsWith("Harvest ")) {
-						int inputTileId = ItemData.getIdFromName(process.requiredTileNameOrGroup);
+						Set<Integer> inputTileIds = ItemData.getIdsFromNameOrGroup(process.requiredTileNameOrGroup);
 						//double pickupTime = ItemData.getPickupTime(inputTileId);
-						double expectedNumItem = process.outputItems.itemExpectation().get(inputTileId);
-						double effectiveNum = Math.min(amountNeeded, expectedNumItem);
-						
-						KdTree<Vector3i> itemTree = grid.getKdTreeForTile(inputTileId);
-						int numCandidates = Math.min(itemTree.size(), 10);
-						Collection<Vector3i> nearestCoords = itemTree.nearestNeighbourListSearch(
-								numCandidates, being.location.coords);
-						for (Vector3i itemCoords: nearestCoords) {
-							int distUtil = being.location.coords.manhattanDist(itemCoords);
+						for (int inputTileId: inputTileIds) {
+							double expectedNumItem = process.outputItems.itemExpectation().get(inputTileId);
+							double effectiveNum = Math.min(amountNeeded, expectedNumItem);
 							
-							double score = distUtil - effectiveNum;
-							
-							if (score < bestScore || bestGroupToFind == null) {
-								bestGroupToFind = itemGroupName;
-								bestScore = score;
-								bestLocation = itemCoords;
+							KdTree<Vector3i> itemTree = grid.getKdTreeForTile(inputTileId);
+							int numCandidates = Math.min(itemTree.size(), 10);
+							Collection<Vector3i> nearestCoords = itemTree.nearestNeighbourListSearch(
+									numCandidates, being.location.coords);
+							for (Vector3i itemCoords: nearestCoords) {
+								int distUtil = being.location.coords.manhattanDist(itemCoords);
+								
+								double score = distUtil - effectiveNum;
+								
+								if (score < bestScore || bestGroupToFind == null) {
+									bestGroupToFind = itemGroupName;
+									bestScore = score;
+									bestLocation = itemCoords;
+								}
 							}
 						}
 					}

@@ -24,7 +24,7 @@ public class LocalTile {
 	public boolean exposedToAir = false;
 	public Inventory itemsOnFloor;
 	
-	public boolean harvestInUse = false;
+	public boolean harvestInUse = false; //TODO; //Convert this into a livingentity slot
 	
 	public LocalTile(Vector3i coords) {
 		this.coords = coords;

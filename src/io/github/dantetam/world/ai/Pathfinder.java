@@ -57,7 +57,7 @@ public class Pathfinder {
 	 * @return
 	 */
 	protected Set<LocalTile> validNeighbors(LivingEntity being, LocalTile tile) {
-		Set<LocalTile> candidates = grid.getAccessibleNeighbors(tile);
+		Set<LocalTile> candidates = grid.getAllTiles14(tile.coords); //grid.getAccessibleNeighbors(tile);
 		return candidates;
 	}
 	
@@ -83,7 +83,7 @@ public class Pathfinder {
 		if (tile.building != null) {
 			if (tile.building.calculatedLocations != null) {
 				if (tile.building.calculatedLocations.contains(tile.coords)) {
-					return 1000;
+					return 10;
 				}
 			}
 		}
@@ -141,7 +141,7 @@ public class Pathfinder {
                 return (
                 		1 * (dist.get(n1) - dist.get(n2)) + 
                 		1.05 * (getTileDist(end, n1) - getTileDist(end, n2)) + 
-                		0 * (accessScore1 - accessScore2)
+                		1 * (accessScore1 - accessScore2)
                 		) > 0 ? 1 : -1;
             }
         });
