@@ -186,6 +186,20 @@ public class LocalGridTimeExecution {
 				", num items: " + human.ownedItems.size());
 		CustomLog.outPrintln("Priority: " + human.activePriority);
 		
+		Set<Human> capitalOwners = new HashSet<Human>() {{
+			add(human); 
+			if (human.household != null) {
+				addAll(human.household.householdMembers);
+			}
+		}};
+		//Assign the location of the process where the steps are undertaken
+		if (human.processProgress.requiredBuildNameOrGroup != null && process.processBuilding == null) {
+			assignBuilding(grid, human, human.processProgress, capitalOwners, human.processProgress.requiredBuildNameOrGroup);
+		}
+		else if (human.processProgress.requiredTileNameOrGroup != null && process.processTile == null) {
+			assignTile(grid, human, capitalOwners, human.processProgress);
+		}
+		
 		if (human.currentQueueTasks != null && human.currentQueueTasks.size() > 0) {
 			Task task = human.currentQueueTasks.get(0);
 			CustomLog.outPrintln(human.name + " has " + human.currentQueueTasks.size() + " tasks."); 
@@ -222,21 +236,6 @@ public class LocalGridTimeExecution {
 				human.activePriority = null;
 				human.currentQueueTasks = null;
 			}
-		}
-
-		Set<Human> capitalOwners = new HashSet<Human>() {{
-			add(human); 
-			if (human.household != null) {
-				addAll(human.household.householdMembers);
-			}
-		}};
-		
-		//Assign the location of the process where the steps are undertaken
-		if (human.processProgress.requiredBuildNameOrGroup != null && process.processBuilding == null) {
-			assignBuilding(grid, human, human.processProgress, capitalOwners, human.processProgress.requiredBuildNameOrGroup);
-		}
-		else if (human.processProgress.requiredTileNameOrGroup != null && process.processTile == null) {
-			assignTile(grid, human, capitalOwners, human.processProgress);
 		}
 		
 		//Follow through with one step, deconstruct into a priority, and get its status back.
