@@ -75,8 +75,7 @@ public class Pathfinder {
 		if (tile == null) return 0;
 
 		if (tile.tileBlockId != ItemData.ITEM_EMPTY_ID) {
-			String blockName = ItemData.getNameFromId(tile.tileBlockId);
-			int harvestTime = ProcessData.getProcessByName("Harvest Tile " + blockName).totalTime();
+			int harvestTime = ItemData.getPickupTime(tile.tileBlockId);
 			return harvestTime;
 		}
 

@@ -197,6 +197,22 @@ public class LocalGrid {
 		}
 	}
 	
+	public Vector3i getRandomNearAccessTile(Vector3i base, int squareDist) {
+		int trials = 15;
+		Vector3i target = null;
+		do {
+			trials--;
+			int dr = (int) (Math.random() * squareDist * 2) - squareDist;
+			int dc = (int) (Math.random() * squareDist * 2) - squareDist;
+			target = new Vector3i(base.x + dr, base.y + dc, base.z);
+			if (!inBounds(target)) {
+				continue;
+			}
+			target.z = this.findHighestEmptyHeight(target.x, target.y);
+		} while (!tileIsFullyAccessible(target) && trials > 0);
+		return target;
+	}
+	
 	private Set<Vector3i> getAllNeighbors(Vector3i coords, Set<Vector3i> vecNeighbors) {
 		Set<Vector3i> candidates = new HashSet<>();
 		for (Vector3i adjOffset: vecNeighbors) {

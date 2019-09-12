@@ -20,11 +20,6 @@ public class AnatomyData {
 	
 	private static Map<String, Set<BodyPart>> allBodies = new HashMap<>();
 	
-	public static Set<String> species = new HashSet<String>() {{
-		add("Human");
-		add("Cow");
-	}};
-	
 	/*
 	 * For storing where armor and weapons go, e.g. pants go on legs and swords go into 'hands', 
 	 * or any part of the hand group, like hands, wooden hooks, claws, and so on.

@@ -73,7 +73,19 @@ public class LocalGridTimeExecution {
 		//Fix unsupervised work bug by bringing tasks into the 'grid queue', 
 		//and when human input is needed, shift the task back into the human's queue.
 		
-		
+		for (LivingEntity being: grid.getAllLivingBeings()) {
+			if (!(being instanceof Human)) {
+				if (being.processProgress == null) {
+					if (Math.random() < 0.5) {
+						being.processProgress = ProcessData.getProcessByName("Eat Plants");
+					}
+					else {
+						being.processProgress = ProcessData.getProcessByName("Wander Around");
+					}
+				}
+				deconstructionProcessGeneric(being, grid, being.processProgress);
+			}
+		}
 	}
 	
 	public static void tick(WorldGrid world, LocalGrid grid, Society society) {
@@ -141,7 +153,7 @@ public class LocalGridTimeExecution {
 		//but made generic with no humans involved.
 		 * @return true if the process is done and must be removed from all queues
 	 */
-	public static boolean deconstructionProcessGeneric(Human unsupervHuman, LocalGrid grid, LocalProcess process) {
+	public static boolean deconstructionProcessGeneric(LivingEntity unsupervHuman, LocalGrid grid, LocalProcess process) {
 		//Follow through with one step, deconstruct into a priority, and get its status back.
 		if (process.processStepIndex >= 0 && process.processStepIndex < process.processSteps.size()) {
 			ProcessStep step = process.processSteps.get(process.processStepIndex);
@@ -175,8 +187,9 @@ public class LocalGridTimeExecution {
 		return false;
 	}
 	
-	public static void deconstructionProcess(Human human, LocalGrid grid, Society society, Date date, LocalProcess process) {
-		String processName = human.processProgress == null ? "null" : human.processProgress.name;
+	public static void deconstructionProcess(Human human, LocalGrid grid, Society society, Date date, 
+			LocalProcess process) {
+		String processName = process == null ? "null" : process.name;
 		CustomLog.outPrintln(human.name + " located at " + human.location.coords + 
 				", with process: " + processName); 
 		CustomLog.outPrintln("Inventory (counts): " + human.inventory.toUniqueItemsMap());
@@ -193,11 +206,13 @@ public class LocalGridTimeExecution {
 			}
 		}};
 		//Assign the location of the process where the steps are undertaken
-		if (human.processProgress.requiredBuildNameOrGroup != null && process.processBuilding == null) {
-			assignBuilding(grid, human, human.processProgress, capitalOwners, human.processProgress.requiredBuildNameOrGroup);
+		if (process.requiredBuildNameOrGroup != null && process.processBuilding == null) {
+			assignBuilding(grid, human, process, capitalOwners, process.requiredBuildNameOrGroup);
 		}
-		else if (human.processProgress.requiredTileNameOrGroup != null && process.processTile == null) {
-			assignTile(grid, human, capitalOwners, human.processProgress);
+		else if (process.requiredTileNameOrGroup != null && process.processTile == null) {
+			assignTile(grid, human, capitalOwners, process);
+			System.err.println("_>>>>>>>>>>>>>>>>>>> + processTile (" + process.requiredTileNameOrGroup + 
+					"): " + process.processTile + "\n");
 		}
 		
 		if (human.currentQueueTasks != null && human.currentQueueTasks.size() > 0) {
@@ -519,8 +534,17 @@ public class LocalGridTimeExecution {
 							pair.first.harvestInUse = true;
 							return pair;
 						}
+						else {
+							System.err.println("Tile not reachable: " + tile.coords);
+						}
 					}
 				}
+				else {
+					System.err.println("Tile in use: " + tile.coords);
+				}
+			}
+			else {
+				System.err.println("Tile claimed: " + tile.coords);
 			}
 		}
 		
@@ -551,6 +575,9 @@ public class LocalGridTimeExecution {
 		
 		Set<Human> validLandOwners = new HashSet<>();
 		validLandOwners.add(being); validLandOwners.add(ownerProducts);
+		
+		Set<LivingEntity> validEntitiesBeings = new HashSet<>();
+		validEntitiesBeings.add(being); validEntitiesBeings.add(ownerProducts);
 		
 		//CustomLog.outPrintln("Figuring out priority, for process: " + process);
 		
@@ -657,6 +684,13 @@ public class LocalGridTimeExecution {
 			itemMode = "Personal";
 		}
 		else {
+			if (process.requiredTileNameOrGroup != null && process.processTile == null) {
+				return progressToFindItemGroups(grid, being, validEntitiesBeings, 
+						new HashMap<String, Integer>() {{put(process.requiredTileNameOrGroup, 1);}},
+						new ItemMetricsUtil.DefaultItemMetric()
+						);
+			}
+			
 			CustomLog.errPrintln("Warning, building and/or tile required: " + 
 					process.toString() + ", tile/building may not be assigned");
 			return new ImpossiblePriority("Warning, could not find case for process. Tile/building may not be assigned");
@@ -909,8 +943,14 @@ public class LocalGridTimeExecution {
 		return priority;
 	}
 	
-	private static Priority getPriorForStepUnsupervBasic(LocalGrid grid, Human unsupervHuman, LocalProcess process, ProcessStep step) {
+	private static Priority getPriorForStepUnsupervBasic(LocalGrid grid, LivingEntity unsupervHuman, 
+			LocalProcess process, ProcessStep step) {
 		Priority priority = null;
+		
+		if (process.name.equals("Wander Around")) {
+			Vector3i target = grid.getRandomNearAccessTile(unsupervHuman.location.coords, 10);
+			return new MovePriority(target);
+		}
 		
 		Vector3i primaryLocation = null;
 		String itemMode = "";
@@ -960,11 +1000,14 @@ public class LocalGridTimeExecution {
 				item.owner = unsupervHuman;
 			}
 			if (step.stepType.equals("OArtwork")) { //All output items are given art status and memory
-				for (InventoryItem item: outputItems) {
-					ArtworkGraph artGraph = ArtworkGraph.generateRandArtGraph(unsupervHuman, null);
-					item.itemSpecProperties.addProperty(new ItemProperty.ItemArtProperty(
-							StringUtil.genAlphaNumericStr(20), unsupervHuman, StringUtil.genAlphaNumericStr(20), 
-							ItemQuality.NORMAL, artGraph));
+				if (unsupervHuman instanceof Human) {
+					Human artist = (Human) unsupervHuman;
+					for (InventoryItem item: outputItems) {
+						ArtworkGraph artGraph = ArtworkGraph.generateRandArtGraph(artist, null);
+						item.itemSpecProperties.addProperty(new ItemProperty.ItemArtProperty(
+								StringUtil.genAlphaNumericStr(20), artist, StringUtil.genAlphaNumericStr(20), 
+								ItemQuality.NORMAL, artGraph));
+					}
 				}
 			}
 			
@@ -1423,6 +1466,9 @@ public class LocalGridTimeExecution {
 			
 			boolean foundPath = false;
 			for (Vector3i coords: nearestCoords) {
+				LocalTile tile = grid.getTile(coords);
+				if (tile.harvestInUse) continue;
+				
 				//Compute a path from the being's location to this tile
 				if (grid.pathfinder.hasValidPath(being, being.location.coords, coords)) {
 					foundPath = true;
@@ -1599,10 +1645,14 @@ public class LocalGridTimeExecution {
 						Set<Integer> inputTileIds = ItemData.getIdsFromNameOrGroup(process.requiredTileNameOrGroup);
 						//double pickupTime = ItemData.getPickupTime(inputTileId);
 						for (int inputTileId: inputTileIds) {
-							double expectedNumItem = process.outputItems.itemExpectation().get(inputTileId);
+							Map<Integer, Double> itemDrops = process.outputItems.itemExpectation();
+							double expectedNumItem = itemDrops.containsKey(inputTileId) ? 
+									itemDrops.get(inputTileId) : 0;
 							double effectiveNum = Math.min(amountNeeded, expectedNumItem);
 							
 							KdTree<Vector3i> itemTree = grid.getKdTreeForTile(inputTileId);
+							if (itemTree == null || itemTree.size() == 0) continue;
+							
 							int numCandidates = Math.min(itemTree.size(), 10);
 							Collection<Vector3i> nearestCoords = itemTree.nearestNeighbourListSearch(
 									numCandidates, being.location.coords);

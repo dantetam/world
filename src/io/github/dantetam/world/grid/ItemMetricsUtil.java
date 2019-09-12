@@ -46,7 +46,8 @@ public class ItemMetricsUtil {
 			double utility = 0;
 			for (Integer itemId: itemsNeededIds) {
 				int tileInvCount = tile.itemsOnFloor.findItemCount(itemId, being, owners);
-				tileInvCount = tile.building.inventory.findItemCount(itemId, being, owners);
+				if (tile.building != null)
+					tileInvCount += tile.building.inventory.findItemCount(itemId, being, owners);
 				
 				int effCount = Math.min(tileInvCount, itemAmtNeeded.get(itemId)); 
 				utility += effCount;

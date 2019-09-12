@@ -16,6 +16,7 @@ import java.util.function.Supplier;
 
 import io.github.dantetam.toolbox.CollectionUtil;
 import io.github.dantetam.toolbox.MapUtil;
+import io.github.dantetam.toolbox.log.CustomLog;
 import io.github.dantetam.vector.Vector3i;
 import io.github.dantetam.world.civhumanai.Ethos;
 import io.github.dantetam.world.civhumanai.NeedsGamut;
@@ -328,7 +329,7 @@ public class Society {
 			fringe = newFringe;
 		}
 		
-		bestProcesses = MapUtil.getSortedMapByValue(bestProcesses);
+		bestProcesses = MapUtil.getSortedMapByValueAsc(bestProcesses);
 		return bestProcesses;
 	}
 	
@@ -437,12 +438,13 @@ public class Society {
 		Map<Integer, Double> finalOutputUtility = new HashMap<>();
 		
 		for (int itemId : availableItemIds) {
-			double itemRarity = allRarity.containsKey(itemId) ? Math.max(0, Math.log10(allRarity.get(itemId))) : 0;
+			double itemRarity = allRarity.containsKey(itemId) ? 
+					Math.max(0, Math.log10(allRarity.get(itemId))) : 0;
 			double economicRarity = economicRarityMap.containsKey(itemId) ? 
 					Math.max(0, Math.log10(economicRarityMap.get(itemId))) : 0;
 			
-			itemRarity = Math.min(itemRarity, 1);
-			economicRarity = Math.min(economicRarity, 1);
+			itemRarity = Math.min(itemRarity, 10);
+			economicRarity = Math.min(economicRarity, 10);
 					
 			//Develop a basic utility value: item use * need for item use / rareness
 			Map<String, Double> needsUtilityFromItems = findUtilityByNeed(itemId);
@@ -453,7 +455,7 @@ public class Society {
 					intensity = 0.5;
 				}
 				//double needWeight = needWeights.containsKey(e.getKey()) ? needWeights.get(e.getKey()) : 0.5;
-				double util = (e.getValue() * intensity) - (itemRarity * economicRarity);
+				double util = (e.getValue() * intensity) / (itemRarity * economicRarity + 1);
 				needsUtilityFromItems.put(e.getKey(), util);
 			}
 			
@@ -475,7 +477,7 @@ public class Society {
 		
 		Map<Integer, Double> propogatedFinalUtil = backpropUtilToComponents(
 				finalOutputUtility, availableItemIds, human);
-		propogatedFinalUtil = MapUtil.getSortedMapByValue(propogatedFinalUtil);
+		propogatedFinalUtil = MapUtil.getSortedMapByValueAsc(propogatedFinalUtil);
 		return propogatedFinalUtil;
 	}
 	
@@ -665,6 +667,10 @@ public class Society {
 	
 	private Map<Integer, Double> backpropUtilToComponents(Map<Integer, Double> finalOutputUtility, 
 			Set<Integer> availableItemIds, Human human) {
+		
+		System.err.println("####################:");
+		System.err.println(MapUtil.getSortedMapByValueAsc(finalOutputUtility));
+		
 		Map<Integer, Double> newFinalUtility = new HashMap<>(finalOutputUtility);
 
 		Set<Integer> expandedItemIds = new HashSet<>();
@@ -672,7 +678,7 @@ public class Society {
 		while (fringe.size() > 0) {
 			Set<Integer> newFringe = new HashSet<>();
 			for (int outputItemId: fringe) {
-				double outputUtil = new Double((double) newFinalUtility.get(outputItemId));
+				double outputUtil = newFinalUtility.get(outputItemId);
 				
 				//CustomLog.outPrintln("-------------------------------------");
 				//CustomLog.outPrintln("Starting item: " + ItemData.getNameFromId(outputItemId) + ", " + outputUtil);
@@ -725,7 +731,7 @@ public class Society {
 					}
 				}
 				
-				//CustomLog.outPrintln("");
+				CustomLog.outPrintln("");
 			}
 			fringe = newFringe;
 		}

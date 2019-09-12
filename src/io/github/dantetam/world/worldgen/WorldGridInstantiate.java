@@ -157,7 +157,7 @@ public class WorldGridInstantiate {
 							c = (int) (Math.random() * grid.cols);
 							availVec = grid.findHighestAccessibleHeight(r,c);
 						} while (availVec == null);
-						grid.addLivingEntity(human, availVec);
+						grid.addLivingEntity(being, availVec);
 					}
 				}
 				

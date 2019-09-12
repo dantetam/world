@@ -135,7 +135,7 @@ public class MapUtil {
 	}
 
 	//Ascending sort on a generic mapping
-	public static <K, V extends Comparable<? super V>> LinkedHashMap<K, V> getSortedMapByValue(Map<K, V> map) {
+	public static <K, V extends Comparable<? super V>> LinkedHashMap<K, V> getSortedMapByValueAsc(Map<K, V> map) {
         List<Entry<K, V>> list = new ArrayList<>(map.entrySet());
         list.sort(Entry.comparingByValue());
 
