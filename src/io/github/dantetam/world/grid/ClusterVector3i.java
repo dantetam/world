@@ -1,5 +1,6 @@
 package io.github.dantetam.world.grid;
 
+import java.util.Iterator;
 import java.util.Set;
 
 import io.github.dantetam.vector.Vector3i;
@@ -21,6 +22,13 @@ public class ClusterVector3i extends KdPoint {
 		super(center.x, center.y, center.z);
 		this.center = center;
 		this.clusterData = clusterData;
+	}
+	
+	public ClusterVector3i(Vector3i center, Iterator<Vector3i> vecIter) {
+		super(center.x, center.y, center.z);
+		this.center = center;
+		
+		vecIter.forEachRemaining(clusterData::add);
 	}
 	
 	@Override

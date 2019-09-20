@@ -7,6 +7,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -1092,8 +1093,9 @@ public class LocalGrid {
 		localLandClaims.add(newLandClaim);
 		human.allClaims.add(newLandClaim);
 		
-		Set<Vector3i> range = Vector3i.getRange(newLandClaim.boundary);
-		for (Vector3i vec: range) {
+		Iterator<Vector3i> rangeIter = Vector3i.getRange(newLandClaim.boundary);
+		while (rangeIter.hasNext()) {
+			Vector3i vec = rangeIter.next();
 			if (this.inBounds(vec)) 
 				human.society.recordClaimInGrid(human, this, vec);
 		}
@@ -1115,8 +1117,9 @@ public class LocalGrid {
 		claim.boundary = null;
 		claim.claimant = null;
 		
-		Set<Vector3i> range = Vector3i.getRange(claim.boundary);
-		for (Vector3i vec: range) {
+		Iterator<Vector3i> rangeIter = Vector3i.getRange(claim.boundary);
+		while (rangeIter.hasNext()) {
+			Vector3i vec = rangeIter.next();
 			if (this.inBounds(vec)) 
 				claim.claimant.society.recordClaimInGrid(null, this, vec);
 		}

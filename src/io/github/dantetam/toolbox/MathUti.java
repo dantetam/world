@@ -27,4 +27,8 @@ public class MathUti {
 		return a > 0 ? a : 0;
 	}
 	
+	public static double clamp(double a, double min, double max) {
+		return Math.max(min, Math.min(max, a));
+	}
+	
 }

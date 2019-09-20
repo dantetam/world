@@ -1,5 +1,6 @@
 package io.github.dantetam.world.grid;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -71,7 +72,7 @@ public class GridRectInterval {
 		return x * y;
 	}
 	
-	public List<Vector3i> getRange() {
+	public Iterator<Vector3i> getRange() {
 		return Vector3i.getRange(start, end);
 	}
 	

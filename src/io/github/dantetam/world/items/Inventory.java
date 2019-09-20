@@ -169,13 +169,31 @@ public class Inventory {
 		return hasItems(items);
 	}
 	public boolean hasItems(List<InventoryItem> requiredItems) {
-		if (items == null || requiredItems.size() > items.size()) return false;
+		if (items == null) return false;
 		Object[] itemNeedData = findRemainingItemsNeeded(requiredItems);
 		Map<Integer, Integer> regularItemNeeds = (Map) itemNeedData[0]; 
 		Map<String, Integer> groupItemNeeds = (Map) itemNeedData[1];
 		return regularItemNeeds.size() == 0 && groupItemNeeds.size() == 0;
 	}
 	
+	//Find the items with 
+	public List<InventoryItem> subtractItem(String groupOrItemName, int count) {
+		if (this.findItemCountGroup(groupOrItemName) >= count) {
+			if (items == null) return null;
+			
+			List<InventoryItem> foundItems = new ArrayList<>();
+			Set<Integer> groupIds = ItemData.getIdsFromNameOrGroup(groupOrItemName);
+			for (InventoryItem item: items) {
+				if (groupIds.contains(item.itemId)) {
+					foundItems.add(item);
+				}
+			}
+			return foundItems;
+		}
+		else {
+			return null;
+		}
+	}
 	public void subtractItem(InventoryItem item) {
 		List<InventoryItem> items = new ArrayList<>();
 		items.add(item);

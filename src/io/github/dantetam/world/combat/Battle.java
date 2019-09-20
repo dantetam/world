@@ -31,11 +31,13 @@ public class Battle {
 	
 	public Battle(List<Set<LivingEntity>> combatantTeams) {
 		this.combatantTeams = combatantTeams;
+		/*
 		for (Set<LivingEntity> team: combatantTeams) {
 			for (LivingEntity entity: team) {
-				
-			}
+				TODO?
+			} 
 		}
+		*/
 	}
 	
 	public List<LivingEntity> getCombatantsWithNoNeighbors() {

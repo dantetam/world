@@ -7,12 +7,12 @@ import io.github.dantetam.world.life.LivingEntity;
 
 public class BuildingPlacePriority extends Priority {
 
-	public InventoryItem buildingItem;
+	public String buildingName;
 	public LivingEntity owner;
 	
-	public BuildingPlacePriority(Vector3i coords, InventoryItem id, LivingEntity owner) {
+	public BuildingPlacePriority(Vector3i coords, String name, LivingEntity owner) {
 		super(coords);
-		buildingItem = id;
+		buildingName = name;
 		this.owner = owner;
 	}
 

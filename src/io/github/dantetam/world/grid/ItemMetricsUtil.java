@@ -10,6 +10,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import io.github.dantetam.toolbox.MapUtil;
+import io.github.dantetam.toolbox.MathUti;
 import io.github.dantetam.world.dataparse.ItemData;
 import io.github.dantetam.world.items.InventoryItem;
 import io.github.dantetam.world.life.LivingEntity;
@@ -58,6 +59,8 @@ public class ItemMetricsUtil {
 		}
 	}
 	
+	//TODO; //Use and impl. in LocalGridTimeExecution when deconst. process "Put On Armor" (or in combat?)
+	//TODO; //Use armor metrics in combat data/combat engine execution
 	public static class AvailFitArmorMetric extends DefaultItemMetric {
 
 		@Override
@@ -81,14 +84,51 @@ public class ItemMetricsUtil {
 			
 			return baseScore;
 		}
-		
+	}
+	
+	//TODO; //Use and impl. in LocalGridTimeExecution when deconst. process "Put On Armor" (or in combat?)
+	public static class AvailClothingMetric extends DefaultItemMetric {
+
+		@Override
+		public double score(LivingEntity being, Set<LivingEntity> owners, LocalGrid grid, LocalTile tile, 
+				Map<Integer, Integer> itemsNeeded, Map<String, Integer> itemGroupsNeeded) {
+			Map<String, Integer> armorMapping = new HashMap<>();
+			armorMapping.put("Clothing", 1);
+			double baseScore = super.score(being, owners, grid, tile, itemsNeeded, armorMapping);
+
+			//Use metrics of clothing utility, including wealth, 
+			//i.e. find clothing which matches the wealth of a person
+			double humanWealth = being.getTotalPowerPrestige(); 
+			
+			//Fit log-quadratic, 500 -> 0.2, 50000 -> 0.02, beyond 50000 -> 0.2
+			double desiredTotalWealthClothing = 0.02 + 0.18 * (1 - Math.pow(Math.log10(humanWealth), 2) / 25);
+			desiredTotalWealthClothing = MathUti.clamp(desiredTotalWealthClothing, 0.02, 0.2);
+			
+			boolean foundWearableItem = false;
+			List<InventoryItem> items = tile.itemsOnFloor.getItems();
+			for (InventoryItem item: items) {
+				if (being.body.canWearClothes(item)) {
+					foundWearableItem = true;
+					
+					double wealthItem = ItemData.getBaseItemValue(item.itemId);
+					double wealthDifferential = Math.abs(Math.log10(wealthItem) - Math.log10(desiredTotalWealthClothing)); 
+					
+					baseScore -= wealthDifferential;
+					
+					break;
+				}
+			}
+			if (!foundWearableItem) {
+				baseScore = 0;
+			}
+			
+			return baseScore;
+		}
 	}
 	
 	public static class GroupAndUtilMetric extends DefaultItemMetric {
-		
 		public String[] itemGroups;
 		public String useUtilityTypePref;
-		
 		public GroupAndUtilMetric(String useUtil, String[] groups) {
 			this.useUtilityTypePref = useUtil;
 			this.itemGroups = groups;

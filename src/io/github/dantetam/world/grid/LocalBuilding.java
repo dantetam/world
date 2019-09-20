@@ -18,7 +18,7 @@ public class LocalBuilding {
 	private Vector3i primaryLocation;
 	private List<Vector3i> locationOffsets; //Contains every location, including primary
 	public List<Vector3i> calculatedLocations; //Contains the absolute location of every part of this building
-	public List<Integer> buildingBlockIds;
+	public List<Integer> buildingBlockIds; //Respective one-to-one relationship with calculated locations
 	
 	public LivingEntity owner;
 	public LivingEntity currentUser;
@@ -73,6 +73,12 @@ public class LocalBuilding {
 	
 	public List<Vector3i> getLocationOffsets() {
 		return locationOffsets;
+	}
+	
+	public Integer getRespectiveBlockId(Vector3i location) {
+		int index = calculatedLocations.indexOf(location);
+		if (index == -1) return null;
+		return this.buildingBlockIds.get(index);
 	}
 	
 }

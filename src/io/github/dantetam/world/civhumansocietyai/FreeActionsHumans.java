@@ -33,7 +33,7 @@ import io.github.dantetam.world.life.DNAHuman;
 import io.github.dantetam.world.life.Human;
 
 public class FreeActionsHumans {
-
+	
 	public static Map<String, FreeAction> freeActionsListHuman = new HashMap<String, FreeAction>() {{
 		put("formNewHouseMarriage", new FreeAction("formNewHouseMarriage", null, 30));
 		put("tryToHaveChild", new FreeAction("tryToHaveChild", null, 15));
@@ -51,6 +51,12 @@ public class FreeActionsHumans {
 	
 	public static void considerAllFreeActionsHumans(WorldGrid world, LocalGrid grid, Society society,
 			List<Human> humans, Date date) {
+		
+		//TODO;
+		//Create a new social need in the needs gamut
+		//Convert these free actions into full processes,
+		//that affect relationships, and also contain memories
+		
 		for (Entry<String, FreeAction> entry: freeActionsListHuman.entrySet()) {
 			if (!entry.getValue().fireChanceExecute()) continue;
 			String name = entry.getKey();

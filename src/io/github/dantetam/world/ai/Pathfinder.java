@@ -76,13 +76,15 @@ public class Pathfinder {
 
 		if (tile.tileBlockId != ItemData.ITEM_EMPTY_ID) {
 			int harvestTime = ItemData.getPickupTime(tile.tileBlockId);
-			return harvestTime;
+			return (int) Math.max(1, Math.log10(harvestTime));
 		}
 
 		if (tile.building != null) {
 			if (tile.building.calculatedLocations != null) {
 				if (tile.building.calculatedLocations.contains(tile.coords)) {
-					return 10;
+					int tileId = tile.building.getRespectiveBlockId(tile.coords);
+					int harvestTime = ItemData.getPickupTime(tileId);
+					return (int) Math.max(1, Math.log10(harvestTime));
 				}
 			}
 		}

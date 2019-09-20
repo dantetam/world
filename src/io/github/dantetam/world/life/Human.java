@@ -18,7 +18,7 @@ import io.github.dantetam.world.civilization.Society;
 import io.github.dantetam.world.dataparse.ItemData;
 import io.github.dantetam.world.grid.LocalBuilding;
 import io.github.dantetam.world.grid.LocalGridLandClaim;
-import io.github.dantetam.world.grid.LocalGridTimeExecution;
+import io.github.dantetam.world.grid.execute.LocalGridTimeExecution;
 import io.github.dantetam.world.items.Properties;
 import io.github.dantetam.world.process.LocalJob;
 import io.github.dantetam.world.process.LocalProcess;

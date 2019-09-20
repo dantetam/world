@@ -53,6 +53,27 @@ public class MapUtil {
 		}
 	}
 	
+	public static <T, U extends Number> Map<T, U> 
+			getMapSubtractByMap(Map<T, U> baseMap, Map<T, U> subtractions) {
+		Map<T, U> results = new HashMap<>();
+		for (Entry<T, U> base: baseMap.entrySet()) {
+			T key = base.getKey();
+			if (subtractions.containsKey(base)) {
+				results.put(key, (U) new Double(base.getValue().doubleValue() - subtractions.get(key).doubleValue()));
+			}
+			else {
+				results.put(key, (U) new Double(base.getValue().doubleValue()));
+			}
+		}
+		for (Entry<T, U> subtraction: subtractions.entrySet()) {
+			T key = subtraction.getKey();
+			if (!baseMap.containsKey(key)) {
+				results.put(key, (U) new Double(-subtractions.get(key).doubleValue()));
+			}
+		}
+		return results;
+	}
+	
 	public static <T, U> boolean checkKeyValue(Map<T, U> map, T key, U value) {
 		if (!map.containsKey(key)) {
 			return false;
@@ -122,6 +143,24 @@ public class MapUtil {
 			if (random <= counter) return key; 
 		}
 		return null;
+	}
+	
+	/**
+	 * @param map A mapping of items to probabilities, not necessarily normalized
+	 * @return A random choice with uniform probability across the keys. Null iff the map is empty
+	 */
+	public static <T, U> T randChoiceFromMapUniform(Map<T, U> map) {
+		if (map.size() == 0)
+			return null;
+ 		int index = (int) (Math.random() * map.size());
+ 		Iterator<T> keys = map.keySet().iterator();
+ 		while (keys.hasNext()) { //Return the key in the numbered index
+ 			T key = keys.next();
+ 			if (index == 0) {
+ 				return key;
+ 			}
+ 		}
+ 		return null;
 	}
 	
 	public static <U extends Number> Object randChoiceFromMaps(Map<?, U>... maps) {

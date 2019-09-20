@@ -48,7 +48,7 @@ public class CombatEngine {
 		
 		//Cycle through battle modes once the phase timers are up
 		battle.battlePhaseTicksLeft--;
-		if (battle.battlePhaseTicksLeft == 0) {
+		if (battle.battlePhaseTicksLeft <= 0) {
 			if (battle.battlePhase == Battle.BattleMode.PREPARE) {
 				battle.battlePhase = Battle.BattleMode.SHOCK;
 				battle.battlePhaseTicksLeft = BATTLE_PHASE_SHOCK;
@@ -66,15 +66,21 @@ public class CombatEngine {
 	
 	public static void calculateDamageHealth(Body body) {
 		for (BodyPart bodyPart: body.getAllBodyParts()) {
-			double damageVal = bodyPart.getDamageValue();
-			if (damageVal > 0) {
-				bodyPart.health -= damageVal;
-				if (bodyPart.health <= 0) {
-					Set<BodyPart> neighbors = body.getNeighborBodyParts(bodyPart.name);
-					//TODO Add damage to neighboring body parts
+			double damageVal = bodyPart.getDamageValue() * Math.random();
+			damageBodyPart(body, bodyPart, damageVal);
+		}
+	}
+	private static void damageBodyPart(Body body, BodyPart bodyPart, double damageVal) {
+		if (damageVal > 0) {
+			bodyPart.health -= damageVal;
+			if (bodyPart.health <= 0) {
+				//Add damage to neighboring body parts, that potentially spreads out
+				Set<BodyPart> neighbors = body.getNeighborBodyParts(bodyPart.name);
+				for (BodyPart neighbor: neighbors) {
+					damageBodyPart(body, neighbor, damageVal * Math.random() * 0.3);
 				}
-				body.health -= damageVal;
 			}
+			body.health -= damageVal;
 		}
 	}
 	

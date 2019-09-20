@@ -6,7 +6,7 @@ import java.util.Map.Entry;
 
 import io.github.dantetam.world.civhumanai.Ethos;
 import io.github.dantetam.world.grid.LocalGrid;
-import io.github.dantetam.world.grid.LocalGridTimeExecution;
+import io.github.dantetam.world.grid.execute.LocalGridTimeExecution;
 import io.github.dantetam.world.life.Human;
 import io.github.dantetam.world.process.LocalJob;
 import io.github.dantetam.world.process.LocalProcess;

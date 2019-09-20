@@ -3,7 +3,9 @@ package io.github.dantetam.vector;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 
@@ -129,18 +131,39 @@ public class Vector3i extends KdPoint {
 		return new Vector2i(x, y);
 	}
 	
-	public static List<Vector3i> getRange(Vector3i v1, Vector3i v2) {
-		List<Vector3i> data = new ArrayList<>();
-		Vector3i minVec = new Vector3i(Math.min(v1.x, v2.x), Math.min(v1.y, v2.y), Math.min(v1.z, v2.z));
-		Vector3i maxVec = new Vector3i(Math.max(v1.x, v2.x), Math.max(v1.y, v2.y), Math.max(v1.z, v2.z));
-		for (int r = minVec.x; r <= maxVec.x; r++) {
-			for (int c = minVec.y; c <= maxVec.y; c++) {
-				for (int h = minVec.z; h <= maxVec.z; h++) {
-					data.add(new Vector3i(r,c,h));
-				}
+	public static Iterator<Vector3i> getRange(Vector3i v1, Vector3i v2) {
+		final Vector3i minVec = new Vector3i(Math.min(v1.x, v2.x), Math.min(v1.y, v2.y), Math.min(v1.z, v2.z));
+		final Vector3i maxVec = new Vector3i(Math.max(v1.x, v2.x), Math.max(v1.y, v2.y), Math.max(v1.z, v2.z));
+		
+		return new Iterator<Vector3i>() {
+			private final Vector3i min = minVec, max = maxVec;
+			private Vector3i currentPointer = min.clone();
+			
+			@Override
+			public boolean hasNext() {
+				return currentPointer != null;
 			}
-		}
-		return data;
+	
+			@Override
+			public Vector3i next() {
+				if (currentPointer == null) return null;
+				Vector3i pointerToReturn = currentPointer.clone();
+				currentPointer.x++;
+				if (currentPointer.x > max.x) {
+					currentPointer.x = min.x;
+					currentPointer.y++;
+					if (currentPointer.y > max.y) {
+						currentPointer.x = min.x;
+						currentPointer.y = min.y;
+						currentPointer.z++;
+						if (currentPointer.z > max.z) {
+							currentPointer = null;
+						}
+					}
+				}
+				return pointerToReturn;
+			}
+		};
 	}
 	
 	/**
@@ -148,10 +171,8 @@ public class Vector3i extends KdPoint {
 	 * @param interval
 	 * @return
 	 */
-	public static Set<Vector3i> getRange(GridRectInterval interval) {
-		Set<Vector3i> total = new HashSet<>();
-		total.addAll(interval.getRange());
-		return new HashSet<>(total);
+	public static Iterator<Vector3i> getRange(GridRectInterval interval) {
+		return interval.getRange();
 	}
 	
 	/**
@@ -159,12 +180,37 @@ public class Vector3i extends KdPoint {
 	 * @param intervals
 	 * @return
 	 */
-	public static Set<Vector3i> getRange(List<GridRectInterval> intervals) {
-		Set<Vector3i> total = new HashSet<>();
-		for (GridRectInterval interval: intervals) {
-			total.addAll(interval.getRange());
+	public static Iterator<Vector3i> getRange(List<GridRectInterval> intervals) {
+		if (intervals == null || intervals.size() == 0) {
+			throw new IllegalArgumentException("Cannot find a vector3i iterator over a list of null or size 0");
 		}
-		return new HashSet<>(total);
+		
+		List<Iterator<Vector3i>> iterators = new ArrayList<>();
+		for (GridRectInterval interval: intervals) {
+			iterators.add(Vector3i.getRange(interval));
+		}
+		
+		return new Iterator<Vector3i>() {
+			private int index = 0;
+			private List<Iterator<Vector3i>> iteratorsRemaining = iterators;
+			
+			@Override
+			public boolean hasNext() {
+				return index != -1 && index < iteratorsRemaining.size();
+			}
+	
+			@Override
+			public Vector3i next() {
+				Iterator<Vector3i> curIter = iterators.get(index);
+				if (curIter.hasNext()) {
+					return curIter.next();
+				}
+				else {
+					index++;
+					return null;
+				}
+			}
+		};
 	}
 	
 	public static Set<Vector3i> getAllBoundingBoxCorners(Set<Vector3i> vecs) {

@@ -3,8 +3,11 @@ package io.github.dantetam.toolbox;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -81,6 +84,27 @@ public class CollectionUtil {
 			}
 		}
 		return null;
+	}
+	
+	public static <K, V> Map<K, V> searchMapCondByKey(Map<K, V> map, 
+			Function<K, Boolean> condition) {
+		Map<K, V> results = new HashMap<>();
+		for (Entry<K, V> entry: map.entrySet()) {
+			if (condition.apply(entry.getKey())) {
+				results.put(entry.getKey(), entry.getValue());
+			}
+		}
+		return results;
+	}
+	public static <K, V> Map<K, V> searchMapCondByValue(Map<K, V> map, 
+			Function<V, Boolean> condition) {
+		Map<K, V> results = new HashMap<>();
+		for (Entry<K, V> entry: map.entrySet()) {
+			if (condition.apply(entry.getValue())) {
+				results.put(entry.getKey(), entry.getValue());
+			}
+		}
+		return results;
 	}
 	
 	/**

@@ -1,4 +1,4 @@
-package io.github.dantetam.world.grid;
+package io.github.dantetam.world.grid.execute;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -33,6 +33,13 @@ import io.github.dantetam.world.civilization.gridstructure.PurposeAnnoBuildDesPr
 import io.github.dantetam.world.civilization.gridstructure.PurposeAnnotatedBuild;
 import io.github.dantetam.world.dataparse.ItemData;
 import io.github.dantetam.world.dataparse.ProcessData;
+import io.github.dantetam.world.grid.GridRectInterval;
+import io.github.dantetam.world.grid.ItemMetricsUtil;
+import io.github.dantetam.world.grid.LocalBuilding;
+import io.github.dantetam.world.grid.LocalGrid;
+import io.github.dantetam.world.grid.LocalTile;
+import io.github.dantetam.world.grid.SpaceFillingAlg;
+import io.github.dantetam.world.grid.WorldGrid;
 import io.github.dantetam.world.grid.ItemMetricsUtil.*;
 import io.github.dantetam.world.items.Inventory;
 import io.github.dantetam.world.items.InventoryItem;
@@ -581,6 +588,11 @@ public class LocalGridTimeExecution {
 		
 		//CustomLog.outPrintln("Figuring out priority, for process: " + process);
 		
+		TODO;
+		//Use the battle class and advance it with the combatengine either here or in global world ticking,
+		//when the necessary conditions are met, usually at least two hostile people in proximity with one another.
+		//Also for hunting priorities and situations where one party can initiate a fight.
+		
 		if (process.name.equals("Build Basic Home")) {
 			int width = (int) Math.ceil(Math.sqrt(being.ownedBuildings.size() + being.inventory.size() + 8));
 			Vector2i requiredSpace = new Vector2i(width, width);
@@ -623,46 +635,18 @@ public class LocalGridTimeExecution {
 				society.findAllNeedsIntensityMap(); 
 			if (societyNeeds.containsKey(being)) {
 				NeedsGamut humanNeeds = societyNeeds.get(being);
-				Entry<PurposeAnnotatedBuild, AnnotatedRoom> bestEntry = PurposeAnnoBuildDesPriority.
-						futureRoomNeedByScore(being, humanNeeds);
-				if (bestEntry == null) return new ImpossiblePriority("Could not find complex to improve");
-				PurposeAnnotatedBuild complex = bestEntry.getKey();
-				AnnotatedRoom room = bestEntry.getValue();
-				
-				GridRectInterval bestSingleRect = SpaceFillingAlg.expandAnnotatedComplex(grid, being.society,
-						validLandOwners, complex, room);
-				List<GridRectInterval> bestRectangles = new ArrayList<GridRectInterval>() {{
-						add(bestSingleRect); 
-						}};
-						
-				LinkedHashSet<Vector3i> borderRegion = VecGridUtil.getBorderRegionFromCoords(
-						Vector3i.getRange(bestRectangles));
-				Set<Integer> bestBuildingMaterials = society.getBestBuildingMaterials(society.calcUtility, 
-						being, borderRegion.size());
-					
-				if (bestSingleRect != null) {
-					//Use land claims on the spaces not already claimed
-					for (GridRectInterval interval: bestRectangles) {
-						List<Human> claimants = grid.findClaimantToTiles(interval);
-						if (claimants == null || claimants.size() == 0) {
-							grid.claimTiles(ownerProducts, interval.getStart(), interval.getEnd(), process);
-						}
-					}
-					
-					complex.addRoom(room.purpose, bestRectangles, borderRegion, 
-							VecGridUtil.setUnderVecs(grid, Vector3i.getRange(bestRectangles)));
-					MapUtil.insertNestedListMap(ownerProducts.designatedBuildsByPurpose, room.purpose, complex);
-					
-					priority = new ConstructRoomPriority(borderRegion, bestBuildingMaterials);
-				}
-				else {
-					priority = new ImpossiblePriority("Could not find open rectangular space");
-				}
-				
+				return AnnoRoomProcDeconst.improveComplex(grid, society, 
+						being, ownerProducts, validLandOwners, validEntitiesBeings, humanNeeds);
 			}
 		}
 		else if (process.name.equals("Local Soldier Duty")) {
 			return new SoldierPriority(society.societyCenter, being);
+		}
+		else if (process.name.equals("Put On Clothes")) {
+			return progressToFindItemGroups(grid, being, validEntitiesBeings, 
+					new HashMap<String, Integer>() {{put("Clothing", 1);}},
+					new ItemMetricsUtil.AvailClothingMetric()
+					);
 		}
 		
 		Vector3i primaryLocation = null;
@@ -779,7 +763,7 @@ public class LocalGridTimeExecution {
 				}
 				else { //implies process.requiredBuildNameOrGroup != null -> buildingId is valid
 					priority = new BuildingPlacePriority(newBuildCoords, 
-							ItemData.createItem(buildingId, 1), ownerProducts);
+							process.requiredBuildNameOrGroup, ownerProducts);
 					return priority;
 				}
 			}
@@ -1125,17 +1109,18 @@ public class LocalGridTimeExecution {
 					return new ImpossibleTaskPlaceholder();
 				}
 				
-				if (being.inventory.hasItem(buildPriority.buildingItem) &&
+				if (being.inventory.findItemCountGroup(buildPriority.buildingName) >= 1 &&
 						tile.building == null) {
-					being.inventory.subtractItem(buildPriority.buildingItem);
-					LocalBuilding newBuilding = ItemData.building(buildPriority.buildingItem.itemId);
+					List<InventoryItem> items = being.inventory.subtractItem(buildPriority.buildingName, 1);
+					InventoryItem item = items.get(0);
+					LocalBuilding newBuilding = ItemData.building(item.itemId);
 					grid.addBuilding(newBuilding, buildPriority.coords, false, buildPriority.owner);
 					return new DoneTaskPlaceholder();
 				}
 				else {
-					Priority itemSearchPriority = progressToFindItem(grid, being, new HashSet<LivingEntity>() {{add(being);}}, 
-							new HashMap<Integer, Integer>() {{
-								put(buildPriority.buildingItem.itemId, 1);
+					Priority itemSearchPriority = progressToFindItemGroups(grid, being, new HashSet<LivingEntity>() {{add(being);}}, 
+							new HashMap<String, Integer>() {{
+								put(buildPriority.buildingName, 1);
 							}}, 
 							new DefaultItemMetric());
 					return getTasksFromPriority(grid, being, itemSearchPriority);
@@ -1210,6 +1195,96 @@ public class LocalGridTimeExecution {
 				}
 			}
 			return new ImpossibleTaskPlaceholder();
+		}
+		else if (priority instanceof ImproveRoomPriority) {
+			ImproveRoomPriority improveRoomPriority = (ImproveRoomPriority) priority;
+			AnnotatedRoom room = improveRoomPriority.room;
+			Set<LivingEntity> validEntities = improveRoomPriority.validEntitiesOwners;
+			
+			Priority newResultPriority = null; 
+			Map<String, Integer> chosenNeedsMap = null;
+			boolean isBuildingCase = false;
+			
+			Map<String, Integer> desiredBuildCounts = CollectionUtil.searchMapCondByValue(
+					room.desiredBuildCounts, (x) -> x > 0);
+			if (desiredBuildCounts.size() > 0) {
+				newResultPriority = LocalGridTimeExecution.progressToFindItemGroups(grid, being, validEntities, 
+						desiredBuildCounts, new ItemMetricsUtil.DefaultItemMetric());
+				chosenNeedsMap = room.desiredBuildCounts;
+				isBuildingCase = true;
+			}
+			
+			if (newResultPriority == null) {
+				Map<String, Integer> desiredItemStorage = CollectionUtil.searchMapCondByValue(
+						room.desiredItemStorage, (x) -> x > 0);
+				if (desiredItemStorage.size() > 0) {
+					newResultPriority = LocalGridTimeExecution.progressToFindItemGroups(grid, being, validEntities, 
+							desiredItemStorage, new ItemMetricsUtil.DefaultItemMetric());
+					chosenNeedsMap = room.desiredItemStorage;
+					isBuildingCase = false;
+				}
+			}
+			
+			if (newResultPriority == null) {
+				Map<String, Integer> desiredBuildCountsOpt = CollectionUtil.searchMapCondByValue(
+						room.desiredBuildCountsOpt, (x) -> x > 0);
+				if (desiredBuildCountsOpt.size() > 0) {
+					newResultPriority = LocalGridTimeExecution.progressToFindItemGroups(grid, being, validEntities, 
+							desiredBuildCountsOpt, new ItemMetricsUtil.DefaultItemMetric());
+					chosenNeedsMap = room.desiredBuildCountsOpt;
+					isBuildingCase = true;
+				}
+			}
+			
+			if (newResultPriority == null) {
+				Map<String, Integer> desiredItemStorageOpt = CollectionUtil.searchMapCondByValue(
+						room.desiredItemStorageOpt, (x) -> x > 0);
+				if (desiredItemStorageOpt.size() > 0) {
+					newResultPriority = LocalGridTimeExecution.progressToFindItemGroups(grid, being, validEntities, 
+							desiredItemStorageOpt, new ItemMetricsUtil.DefaultItemMetric());
+					chosenNeedsMap = room.desiredItemStorageOpt;
+					isBuildingCase = false;
+				}
+			}
+			
+			if (newResultPriority instanceof DonePriority) {
+				if (isBuildingCase) {
+					newResultPriority = new PlaceBuildingAnnoRoomPriority(room, chosenNeedsMap);
+				} else {
+					newResultPriority = new PlaceItemAnnoRoomPriority(room, chosenNeedsMap);
+				}
+			}
+			
+			//Need to progress towards finding items, or placing the items down within the room
+			return getTasksFromPriority(grid, being, newResultPriority);
+		}
+		else if (priority instanceof PlaceBuildingAnnoRoomPriority) {
+			PlaceBuildingAnnoRoomPriority placePriority = (PlaceBuildingAnnoRoomPriority) priority;
+			AnnotatedRoom room = placePriority.room;
+			
+			for (GridRectInterval interval: room.fullRoom) {
+				Iterator<Vector3i> rangeOfVecs = interval.getRange();
+				while (rangeOfVecs.hasNext()) {
+					Vector3i vec = rangeOfVecs.next();
+					if (room.reservedBuiltSpace.containsKey(vec) && room.reservedBuiltSpace.get(vec) != null) {
+						continue;
+					}
+					else if (!grid.tileIsFullyAccessible(vec)) {
+						continue;
+					}
+					else {
+						Map<String, Integer> buildings = placePriority.chosenNeedsMap;
+						String chosenBuilding = MapUtil.randChoiceFromMapUniform(buildings);
+						return getTasksFromPriority(grid, being, 
+								new BuildingPlacePriority(vec, chosenBuilding, being));
+					}
+				}
+			}
+			
+			return new ImpossibleTaskPlaceholder("Room has no accessible places to put buildings/items");
+		}
+		else if (priority instanceof PlaceItemAnnoRoomPriority) {
+			
 		}
 		else if (priority instanceof MovePriority) {
 			MovePriority movePriority = (MovePriority) priority;
@@ -1491,6 +1566,14 @@ public class LocalGridTimeExecution {
 		int bestItemIdToFind = -1;
 		Vector3i bestLocation = null;
 
+		List<InventoryItem> requiredItems = new ArrayList<>();
+		for (Entry<Integer, Integer> entry: itemsAmtNeeded.entrySet()) {
+			requiredItems.add(ItemData.createItem(entry.getKey(), entry.getValue()));
+		}
+		if (being.inventory.hasItems(requiredItems)) {
+			return new DonePriority();
+		}
+			
 		//Sort amounts needed by item heuristic and item record counts
 		Map<Integer, Double> sortedItemIdsByScore = new HashMap<>();
 		for (Entry<Integer, Integer> entry: itemsAmtNeeded.entrySet()) {
@@ -1589,7 +1672,7 @@ public class LocalGridTimeExecution {
 	 * 
 	 * @param grid
 	 * @param being
-	 * @param owners
+	 * @param owners               List of people, from whom the items can be owned
 	 * @param itemGroupsAmtNeeded  A mapping of group names to quantity required
 	 * @param scoringMetric        The DefaultItemMetric object/subclass which calculates a score based on features
 	 * 							   (See ItemMetricsUtil.java)
