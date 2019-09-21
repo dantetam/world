@@ -58,7 +58,9 @@ public class CustomLog {
 		errPrintln("");
 	}
 	public static void errPrintln(Object object) {
-		outPrintln(object.toString());
+		if (object == null) 
+			errPrintln("null");
+		errPrintln(object.toString());
 	}
 	public static void errPrintln(String string) {
 		if (!mode.equals(PrintMode.NONE))

@@ -130,7 +130,7 @@ public class SpaceFillingAlg {
 			if (validLandOwners == null || validLandOwners.size() <= 0) {
 				KdTree<ClusterVector3i> componentsTree = grid.clustersList2dSurfaces;
 				closestClusters = componentsTree.nearestNeighbourListSearch(10, 
-						new ClusterVector3i(center, null));
+						new ClusterVector3i(center, new HashSet<>()));
 			}
 			else {
 				closestClusters = new ArrayList<>();
@@ -212,7 +212,7 @@ public class SpaceFillingAlg {
 			Set<Vector3i> newFringe = new HashSet<>();
 			for (Vector3i fringeVec: fringe) {
 				if (visitedSet.contains(fringeVec)) continue;
-				if (!grid.tileIsFullyAccessible(fringeVec)) continue;
+				if (!grid.tileIsPartAccessible(fringeVec)) continue;
 				
 				visitedSet.add(fringeVec);
 				singleComponent.add(fringeVec);
@@ -254,7 +254,7 @@ public class SpaceFillingAlg {
 						Set<Vector3i> newFringe = new HashSet<>();
 						for (Vector3i fringeVec: fringe) {
 							if (visitedSet.contains(fringeVec)) continue;
-							if (!grid.tileIsFullyAccessible(fringeVec)) continue;
+							if (!grid.tileIsPartAccessible(fringeVec)) continue;
 							
 							visitedSet.add(fringeVec);
 							singleComponent.add(fringeVec);

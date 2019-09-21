@@ -7,6 +7,7 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -201,7 +202,7 @@ public class VecGridUtil {
 			throw new IllegalArgumentException("Direction parameter must be one of 'r','c','h', got: " + direction);
 		}
 		for (Vector3i vec: face) {
-			if (!grid.inBounds(vec) || !grid.tileIsFullyAccessible(vec) || solidData[vec.x][vec.y][vec.z] != -1 ||
+			if (!grid.inBounds(vec) || !grid.tileIsPartAccessible(vec) || solidData[vec.x][vec.y][vec.z] != -1 ||
 					(validSetVec != null && !validSetVec.contains(vec))
 					) {
 				return false;
@@ -264,6 +265,13 @@ public class VecGridUtil {
 			}
 		}
 		return perimeter;
+	}
+	public static LinkedHashSet<Vector3i> getBorderRegionFromCoords(Iterator<Vector3i> coords) {
+		Set<Vector3i> vecSet = new HashSet<>();
+		while (coords.hasNext()) {
+			vecSet.add(coords.next());
+		}
+		return getBorderRegionFromCoords(vecSet);
 	}
 	public static Set<Vector2i> getBorderRegionFromCoords2d(Set<Vector2i> coords) {
 		Set<Vector2i> perimeter = new HashSet<>();
@@ -359,7 +367,7 @@ public class VecGridUtil {
 						if (!visited.contains(first) && 
 								grid.inBounds(first) && vecInBounds(minBoundsInc, maxBoundsInc, first)) {
 							visited.add(first);
-							if (grid.tileIsFullyAccessible(first)) {
+							if (grid.tileIsPartAccessible(first)) {
 								componentVecs.add(first);
 								Set<Vector3i> neighbors = grid.getAllNeighbors14(first);
 								for (Vector3i neighbor: neighbors) {
@@ -591,6 +599,19 @@ public class VecGridUtil {
 	}
 	
 	public static Set<Vector3i> setUnderVecs(final LocalGrid grid, Collection<Vector3i> collection) {
+		return Vector3i.uniqueMapCollectionVec(collection, new Function<Vector3i, Vector3i>() {
+
+			@Override
+			public Vector3i apply(Vector3i t) {
+				Vector3i belowCoords = t.getSum(0, -1, 0);
+				if (grid.inBounds(belowCoords))
+					return belowCoords;
+				return null;
+			}
+			
+		});
+	}
+	public static Set<Vector3i> setUnderVecs(final LocalGrid grid, Iterator<Vector3i> collection) {
 		return Vector3i.uniqueMapCollectionVec(collection, new Function<Vector3i, Vector3i>() {
 
 			@Override

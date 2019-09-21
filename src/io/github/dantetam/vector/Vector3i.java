@@ -13,6 +13,7 @@ import org.lwjgl.util.vector.Vector3f;
 
 import io.github.dantetam.toolbox.Pair;
 import io.github.dantetam.toolbox.VecGridUtil;
+import io.github.dantetam.toolbox.log.CustomLog;
 import io.github.dantetam.world.grid.GridRectInterval;
 import io.github.dantetam.world.grid.LocalGrid;
 import kdtreegeo.KdPoint;
@@ -196,7 +197,7 @@ public class Vector3i extends KdPoint {
 			
 			@Override
 			public boolean hasNext() {
-				return index != -1 && index < iteratorsRemaining.size();
+				return !(index >= iteratorsRemaining.size() - 1 && !iterators.get(index).hasNext());
 			}
 	
 			@Override
@@ -207,7 +208,9 @@ public class Vector3i extends KdPoint {
 				}
 				else {
 					index++;
-					return null;
+					if (index >= iteratorsRemaining.size()) return null;
+					curIter = iterators.get(index);
+					return curIter.next();
 				}
 			}
 		};
@@ -247,6 +250,33 @@ public class Vector3i extends KdPoint {
 				results.add(result);
 		}
 		return results;
+	}
+	public static Set<Vector3i> uniqueMapCollectionVec(Iterator<Vector3i> collection, 
+			Function<Vector3i, Vector3i> func) {
+		Set<Vector3i> results = new HashSet<>();
+		while (collection.hasNext()) {
+			Vector3i result = func.apply(collection.next());
+			if (result != null)
+				results.add(result);
+		}
+		return results;
+	}
+	
+	public static void main(String[] args) {
+		GridRectInterval interval = new GridRectInterval(new Vector3i(3), new Vector3i(4));
+		GridRectInterval interval2 = new GridRectInterval(new Vector3i(4), new Vector3i(5));
+		Iterator<Vector3i> iter = interval.getRange();
+		while (iter.hasNext()) {
+			CustomLog.errPrintln(iter.next());
+		}
+		CustomLog.errPrintln("----------------");
+		
+		Iterator<Vector3i> combineIter = Vector3i.getRange(new ArrayList<GridRectInterval>() {{
+			add(interval); add(interval2);
+		}});
+		while (combineIter.hasNext()) {
+			CustomLog.errPrintln(combineIter.next());
+		}
 	}
 	
 }

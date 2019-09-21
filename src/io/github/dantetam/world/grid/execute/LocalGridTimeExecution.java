@@ -542,7 +542,7 @@ public class LocalGridTimeExecution {
 							return pair;
 						}
 						else {
-							System.err.println("Tile not reachable: " + tile.coords);
+							System.err.println("Tile not reachable: " + neighbor);
 						}
 					}
 				}
@@ -588,7 +588,7 @@ public class LocalGridTimeExecution {
 		
 		//CustomLog.outPrintln("Figuring out priority, for process: " + process);
 		
-		TODO;
+		//TODO;
 		//Use the battle class and advance it with the combatengine either here or in global world ticking,
 		//when the necessary conditions are met, usually at least two hostile people in proximity with one another.
 		//Also for hunting priorities and situations where one party can initiate a fight.
@@ -715,7 +715,10 @@ public class LocalGridTimeExecution {
 						being.location.coords, requiredSpace);
 				
 				if (bestRectangles != null && bestRectangles.size() > 0) {
-					Set<Vector3i> bestRectangleVecs = Vector3i.getRange(bestRectangles);
+					Set<Vector3i> bestRectangleVecs = new HashSet<>();
+					Iterator<Vector3i> iter = Vector3i.getRange(bestRectangles);
+					iter.forEachRemaining(bestRectangleVecs::add);
+					
 					LinkedHashSet<Vector3i> borderRegion = VecGridUtil.getBorderRegionFromCoords(
 							Vector3i.getRange(bestRectangles));
 					
@@ -913,7 +916,7 @@ public class LocalGridTimeExecution {
 			CustomLog.outPrintln("Built building: " + building.name + " at place: " + itemMode);
 			
 			Vector3i aboveTargetLocation = targetLocation.getSum(0, 1, 0);
-			if (grid.inBounds(aboveTargetLocation) || grid.tileIsFullyAccessible(aboveTargetLocation)) {
+			if (grid.inBounds(aboveTargetLocation) || grid.tileIsFullAccessible(aboveTargetLocation)) {
 				grid.addBuilding(building, targetLocation, true, ownerProducts);
 				return new DonePriority();
 			}
@@ -1269,7 +1272,7 @@ public class LocalGridTimeExecution {
 					if (room.reservedBuiltSpace.containsKey(vec) && room.reservedBuiltSpace.get(vec) != null) {
 						continue;
 					}
-					else if (!grid.tileIsFullyAccessible(vec)) {
+					else if (!grid.tileIsFullAccessible(vec)) {
 						continue;
 					}
 					else {

@@ -76,7 +76,7 @@ public class Pathfinder {
 
 		if (tile.tileBlockId != ItemData.ITEM_EMPTY_ID) {
 			int harvestTime = ItemData.getPickupTime(tile.tileBlockId);
-			return (int) Math.max(1, Math.log10(harvestTime));
+			return (int) Math.max(1, Math.log10(harvestTime) + 1);
 		}
 
 		if (tile.building != null) {

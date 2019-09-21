@@ -12,7 +12,7 @@ public class CaravanTradeProcess extends LocalProcess {
 			boolean site, List<ProcessStep> steps) {
 		super(name, input, null, buildingName, site, null, steps, null, 1);
 		// Auto-generated constructor stub
-		TODO;
+		//TODO;
 	}
 	
 }

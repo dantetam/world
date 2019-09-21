@@ -58,7 +58,11 @@ public class LocalGrid {
 	private Map<Integer, KdTree<Vector3i>> globalTileBlockLookup;
 	private KdTree<Vector3i> buildingLookup;
 	public Map<Integer, Double> tileIdCounts; //Updated per tile update
-	private boolean[][][] accessibleTileRecord;
+	
+	//Updated per tile, accessibility records defined by this enum
+	public enum LocalGridAccess {FULL_ACCESS, IF_HARVEST_ACCESS, NO_ACCESS};
+	private LocalGridAccess[][][] accessibleTileRecord;
+	
 	//TODO: Memotize beauty data and other properties of tiles for lookup later
 	
 	private Map<Integer, KdTree<Vector3i>> buildIdQuickTileLookup;
@@ -98,7 +102,7 @@ public class LocalGrid {
 		globalTileBlockLookup = new HashMap<>();
 		buildingLookup = new KdTree<>();
 		tileIdCounts = new HashMap<>();
-		accessibleTileRecord = new boolean[rows][cols][heights];
+		accessibleTileRecord = new LocalGridAccess[rows][cols][heights];
 		
 		buildIdQuickTileLookup = new HashMap<>();
 		
@@ -139,46 +143,59 @@ public class LocalGrid {
 	 * Precondition of this method: tile access records must be updated with
 	 * LocalGrid::updateAllTilesAccessInit();
 	 */
-	public boolean tileIsFullyAccessible(Vector3i coords) {
+	private LocalGridAccess tileIsFullyAccessible(Vector3i coords) {
 		if (!this.inBounds(coords))
-			return false;
+			return LocalGridAccess.NO_ACCESS;
 		return this.accessibleTileRecord[coords.x][coords.y][coords.z];
 	}
+	public boolean tileIsFullAccessible(Vector3i coords) {
+		if (!this.inBounds(coords))
+			return false;
+		return this.accessibleTileRecord[coords.x][coords.y][coords.z] == LocalGridAccess.FULL_ACCESS;
+	}
+	public boolean tileIsPartAccessible(Vector3i coords) {
+		if (!this.inBounds(coords))
+			return false;
+		return this.accessibleTileRecord[coords.x][coords.y][coords.z] == LocalGridAccess.FULL_ACCESS;
+	}
 	
-	private boolean determineTileIsAccessible(Vector3i coords) {
+	private LocalGridAccess determineTileIsAccessible(Vector3i coords) {
 		LocalTile tile = getTile(coords);
 		
 		if (!this.inBounds(coords))
-			return false;
+			return LocalGridAccess.NO_ACCESS;
 		
 		Vector3i belowCoords = new Vector3i(coords.x, coords.y, coords.z - 1);
 		
 		if (tile == null) {
 			if (inBounds(belowCoords)) {
-				return tileIsOccupied(belowCoords);
+				return tileIsOccupied(belowCoords) ? LocalGridAccess.FULL_ACCESS : LocalGridAccess.NO_ACCESS;
 			}
 			else {
-				return false;
+				return LocalGridAccess.NO_ACCESS;
 			}
 		}
 		
-		if (tile.tileBlockId != ItemData.ITEM_EMPTY_ID) return false;
+		if (tile.tileBlockId != ItemData.ITEM_EMPTY_ID) {
+			//Check for not traversable blocks, i.e. air, water, etc.
+			return LocalGridAccess.IF_HARVEST_ACCESS;
+		}
 		if (tile.building != null) {
 			if (tile.building.calculatedLocations != null) {
 				if (tile.building.calculatedLocations.contains(coords)) {
-					return false;
+					return LocalGridAccess.NO_ACCESS;
 				}
 			}
 		}
 		if (tile.tileFloorId != ItemData.ITEM_EMPTY_ID) {
-			return true;
+			return LocalGridAccess.FULL_ACCESS;
 		}
 		
 		if (inBounds(belowCoords)) {
-			return tileIsOccupied(belowCoords);
+			return tileIsOccupied(belowCoords) ? LocalGridAccess.FULL_ACCESS : LocalGridAccess.NO_ACCESS;
 		}
 		else {
-			return false;
+			return LocalGridAccess.NO_ACCESS;
 		}
 	}
 	
@@ -210,7 +227,7 @@ public class LocalGrid {
 				continue;
 			}
 			target.z = this.findHighestEmptyHeight(target.x, target.y);
-		} while (!tileIsFullyAccessible(target) && trials > 0);
+		} while (tileIsFullyAccessible(target) == LocalGridAccess.NO_ACCESS && trials > 0);
 		return target;
 	}
 	
@@ -268,7 +285,7 @@ public class LocalGrid {
 		Set<Vector3i> neighbors = this.getAllNeighbors14(tile.coords);
 		Set<LocalTile> candidateTiles = new HashSet<>();
 		for (Vector3i neighbor: neighbors) {
-			if (this.tileIsFullyAccessible(neighbor)) {
+			if (this.tileIsFullyAccessible(neighbor) != LocalGridAccess.NO_ACCESS) {
 				LocalTile neighborTile = getTile(neighbor);
 				if (neighborTile == null) {
 					neighborTile = createTile(neighbor);
@@ -923,7 +940,7 @@ public class LocalGrid {
 	public Set<Vector3i> getFreeSpace(LocalBuilding building) {
 		Set<Vector3i> emptySpaces = new HashSet<>();
 		for (Vector3i location: building.calculatedLocations) {
-			if (this.tileIsFullyAccessible(location)) {
+			if (this.tileIsFullyAccessible(location) == LocalGridAccess.FULL_ACCESS) {
 				emptySpaces.add(location);
 			}
 		}
@@ -989,7 +1006,7 @@ public class LocalGrid {
 	public Vector3i findLowestAccessibleHeight(int r, int c) {
 		for (int h = 0; h < heights; h++) {
 			Vector3i coords = new Vector3i(r,c,h);
-			if (this.tileIsFullyAccessible(coords)) {
+			if (this.tileIsFullyAccessible(coords) == LocalGridAccess.FULL_ACCESS) {
 				return coords;
 			}
 		}
@@ -1000,7 +1017,7 @@ public class LocalGrid {
 	public Vector3i findHighestAccessibleHeight(int r, int c) {
 		for (int h = heights - 1; h >= 0; h--) {
 			Vector3i coords = new Vector3i(r,c,h);
-			if (this.tileIsFullyAccessible(coords)) {
+			if (this.tileIsFullyAccessible(coords) == LocalGridAccess.FULL_ACCESS) {
 				return coords;
 			}
 		}
@@ -1012,7 +1029,7 @@ public class LocalGrid {
 	public int findHighestGroundHeight(int r, int c) {
 		//Set<Integer> groundGroup = ItemData.getGroupIds("Ground");
 		for (int h = heights - 1; h >= 0; h--) {
-			if (this.tileIsFullyAccessible(new Vector3i(r, c, h))) {
+			if (this.tileIsFullyAccessible(new Vector3i(r, c, h)) == LocalGridAccess.FULL_ACCESS) {
 				return h;
 			}
 		}
@@ -1074,7 +1091,7 @@ public class LocalGrid {
 			for (int c = -dist*2; c <= dist*2; c++) {
 				if (inBounds(new Vector3i(r,c,0))) {
 					int h = findHighestGroundHeight(r,c);
-					if (this.tileIsFullyAccessible(new Vector3i(r,c,h))) {
+					if (this.tileIsFullyAccessible(new Vector3i(r,c,h)) == LocalGridAccess.FULL_ACCESS) {
 						return new Vector3i(r,c,h);
 					}
 				}
