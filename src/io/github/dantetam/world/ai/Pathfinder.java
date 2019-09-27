@@ -192,7 +192,7 @@ public class Pathfinder {
         return new ScoredPath(null, 999);
     }
     
-    public static class ScoredPath {
+    public static class ScoredPath implements Comparable<ScoredPath> {
     	public List<LocalTile> path;
     	public double score;
     	public ScoredPath(List<LocalTile> path, double score) {
@@ -205,6 +205,12 @@ public class Pathfinder {
     	public boolean isValid() {
     		return this.path != null && this.path.size() > 0;
     	}
+    	
+		@Override
+		public int compareTo(ScoredPath o) {
+			//Auto-generated method stub
+			return (int) (o.score - this.score); //Inverted for higher score/longer distance = less ranking
+		}
     }
     
     //Pathfinding trials for analysis, since pathfinding is an intensive and ubiquitous calculation.

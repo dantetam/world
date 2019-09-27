@@ -635,6 +635,15 @@ public class LocalGrid {
 		this.connectedCompsMap2d = VecGridUtil.convertGroupsToMap(clusters2d);
 	}
 	
+	public ClusterVector3i find3dClusterWithCoord(Vector3i coords) {
+		for (ClusterVector3i cluster: this.clustersList3d) {
+			if (cluster.clusterData.contains(coords)) {
+				return cluster;
+			}
+		}
+		return null;
+	}
+	
 	public void addItemRecordsToWorld(Vector3i coords, List<InventoryItem> items) {
 		for (InventoryItem item: items) {
 			addItemRecordToWorld(coords, item);

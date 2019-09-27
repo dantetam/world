@@ -585,24 +585,25 @@ public class LocalGridTimeExecution {
 					List<Vector3i> neighbors = grid.getAll14NeighborsSorted(candidate, being.location.coords);
 					neighbors.add(candidate);
 					
-					TODO //Implement a batch-pathfinding problem to prune this place and its neighbors i.e.
-					//if A -> X returns no valid path, then batch all accessible neighbors/clustered vecs Y,Z,etc.
-					//and prune these paths by returning no path for A -> Y, A -> Z, even if they seem viable.
+					List<LocalTile> listEndGoals = new ArrayList<>();
+					for (Vector3i vec: neighbors) listEndGoals.add(grid.getTile(vec));
+					//Use batch pathfinder in speeding up this calculation
+					Map<LocalTile, ScoredPath> paths = grid.pathfinder.batchPathfinding(
+							being, being.location, listEndGoals);
 					
-					for (Vector3i neighbor: neighbors) {
+					for (Entry<LocalTile, ScoredPath> entry: paths.entrySet()) {
+						LocalTile dest = entry.getKey();
 						ScoredPath scoredPath = grid.pathfinder.findPath(
-								being, being.location, grid.getTile(neighbor));
+								being, being.location, dest);
 						if (scoredPath.isValid()) {
-							Pair<LocalTile> pair = new Pair<>(grid.getTile(candidate), grid.getTile(neighbor));
+							Pair<LocalTile> pair = new Pair<>(grid.getTile(candidate), dest);
 							process.processTile = pair.second;
 							process.targetTile = pair.first;
 							pair.first.harvestInUse = true;
 							return pair;
 						}
-						else {
-							System.err.println("Tile not reachable: " + neighbor);
-						}
 					}
+					System.err.println("Tile not reachable: " + candidate);
 				}
 				else {
 					System.err.println("Tile in use: " + tile.coords);

@@ -5,6 +5,7 @@ import java.util.Calendar;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
@@ -19,6 +20,7 @@ import io.github.dantetam.world.civilization.Household;
 import io.github.dantetam.world.civilization.Society;
 import io.github.dantetam.world.dataparse.ProcessData;
 import io.github.dantetam.world.dataparse.WorldCsvParser;
+import io.github.dantetam.world.grid.ClusterVector3i;
 import io.github.dantetam.world.grid.LocalGrid;
 import io.github.dantetam.world.grid.LocalTile;
 import io.github.dantetam.world.life.Human;
@@ -307,10 +309,39 @@ public class RSRPathfinder extends Pathfinder {
 		return path;
 	}
 	
+	//Implement a batch-pathfinding problem to prune this place and its neighbors i.e.
+	//if A -> X returns no valid path, then batch all accessible neighbors/clustered vecs Y,Z,etc.
+	//and prune these paths by returning no path for A -> Y, A -> Z, even if they seem viable.
 	public Map<LocalTile, ScoredPath> batchPathfinding(LivingEntity being, LocalTile start, 
 			List<LocalTile> listEndGoals,
     		Vector3i minRestrict, Vector3i maxRestrict) {
-		
+		Map<LocalTile, ScoredPath> scoring = new HashMap<>();
+		for (LocalTile end: listEndGoals) {
+			if (scoring.containsKey(end)) {
+				continue;
+			}
+			ScoredPath path = this.findPath(being, start, end, minRestrict, maxRestrict);
+			if (path.isValid()) {
+				scoring.put(end, path);
+			}
+			else {
+				scoring.put(end, null);
+				//Prune paths to all of the cluster, which should be inaccessible as well
+				ClusterVector3i cluster = this.grid.find3dClusterWithCoord(end.coords);
+				for (LocalTile pruneCand: listEndGoals) {
+					if (!scoring.containsKey(pruneCand)) {
+						if (cluster.clusterData.contains(pruneCand.coords)) {
+							scoring.put(pruneCand, null);
+						}
+					}
+				}
+			}
+		}	
+		return MapUtil.getSortedMapByValueAsc(scoring);
+	}
+	public Map<LocalTile, ScoredPath> batchPathfinding(LivingEntity being, LocalTile start, 
+			List<LocalTile> listEndGoals) {
+		return this.batchPathfinding(being, start, listEndGoals, null, null);
 	}
 		
     //Pathfinding trials for analysis, since pathfinding is an intensive and ubiquitous calculation.

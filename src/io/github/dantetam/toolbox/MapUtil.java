@@ -13,6 +13,8 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import io.github.dantetam.toolbox.log.CustomLog;
+import io.github.dantetam.world.ai.Pathfinder.ScoredPath;
+import io.github.dantetam.world.grid.LocalTile;
 
 public class MapUtil {
 
