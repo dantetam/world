@@ -16,7 +16,7 @@ import io.github.dantetam.lwjglEngine.terrain.ForestGeneration.BiomeData;
 import io.github.dantetam.lwjglEngine.terrain.ForestGeneration.ProceduralTree;
 import io.github.dantetam.lwjglEngine.terrain.RasterizeVoronoi;
 import io.github.dantetam.toolbox.MapUtil;
-import io.github.dantetam.toolbox.MathUti;
+import io.github.dantetam.toolbox.MathAndDistrUti;
 import io.github.dantetam.toolbox.VecGridUtil;
 import io.github.dantetam.toolbox.log.CustomLog;
 import io.github.dantetam.vector.Vector3i;
@@ -48,7 +48,7 @@ public class LocalGridInstantiate {
 	
 	public LocalGridInstantiate(Vector3i sizes, LocalGridBiome biome) {
 		localGrid = new LocalGrid(sizes);
-		generatedTerrainLen = (int) MathUti.roundToPower2(Math.max(Math.max(sizes.x, sizes.y), sizes.z));
+		generatedTerrainLen = (int) MathAndDistrUti.roundToPower2(Math.max(Math.max(sizes.x, sizes.y), sizes.z));
 		localGridBiome = biome;
 	}
 	

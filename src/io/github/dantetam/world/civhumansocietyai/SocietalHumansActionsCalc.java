@@ -10,7 +10,7 @@ import java.util.Map;
 import java.util.Set;
 
 import io.github.dantetam.toolbox.MapUtil;
-import io.github.dantetam.toolbox.MathUti;
+import io.github.dantetam.toolbox.MathAndDistrUti;
 import io.github.dantetam.vector.Vector3i;
 import io.github.dantetam.world.civhumanai.Ethos;
 import io.github.dantetam.world.civhumanai.EthosSet;
@@ -203,7 +203,7 @@ public class SocietalHumansActionsCalc {
 				//but also talk to others of their ideology.
 				double utilGood = prosA + prosB;
 				
-				double possNegRel = Math.min(MathUti.relu(-prosA - prosB), Math.max(prosA, prosB));
+				double possNegRel = Math.min(MathAndDistrUti.relu(-prosA - prosB), Math.max(prosA, prosB));
 				double utilDivide = possNegRel * 0.3 + ideoDivide;
 				
 				if (utilGood > 3 || utilDivide > 3) {

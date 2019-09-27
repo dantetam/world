@@ -63,6 +63,7 @@ public class Society {
 	public Map<Integer, Double> adjEconomicUtility;
 	public List<Vector3i> importantLocations;
 	public Map<Human, NeedsGamut> humanNeedsMap; //Fill with the needs of humans calculated in needs intensity calc.
+	public NeedsGamut totalNeedsGamut;
 	
 	//This society's unique claims on areas of land
 	//This can conflict and overlap with other societies' deeds and claims to all global land
@@ -399,20 +400,12 @@ public class Society {
 	}
 	
 	//Scrap the idea of storage since there is no good SWE way to track time of utility calculation
-	/*
 	public Map<Integer, Double> getCalcUtil() {
-		return this.getCalcUtil(null);
-	}
-	public Map<Integer, Double> getCalcUtil(Human human) {
-		if (human != null) {
-			return this.findCompleteUtilityAllItems(human);
-		}
 		if (this.calcUtility == null) {
 			this.calcUtility = this.findCompleteUtilityAllItems(null);
 		}
 		return this.calcUtility;
 	}
-	*/
 	
 	/**
 	 * @return A mapping of every item in the world available to its calcuated utility.
@@ -819,6 +812,9 @@ public class Society {
 		//societalNeed.addEmotion(NeedsGamut.BEAUTY, 1.0 - beautyScore);
 
 		societalNeed.addEmotion(NeedsGamut.SOLDIER, 0.1);
+		
+		TODO
+		//Compute social and sleep needs ("REST")
 
 		return societalNeed;
 	}

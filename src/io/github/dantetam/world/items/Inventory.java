@@ -16,6 +16,8 @@ public class Inventory {
 	private List<InventoryItem> items; 
 	//Assumed that the owner of this inventory has access to all items in this inventory
 	
+	
+	
 	public Inventory() {
 	
 	}
@@ -43,7 +45,7 @@ public class Inventory {
 			}
 			if (inventoryIndex < items.size()) {
 				InventoryItem invItem = items.get(inventoryIndex);
-				if (invItem.itemId == addItem.itemId) {
+				if (invItem.itemId == addItem.itemId && invItem.quality == addItem.quality) {
 					int currentAdded = Math.min(maxStack - invItem.quantity, amountToAdd);
 					amountToAdd -= currentAdded;
 					invItem.quantity += currentAdded;
@@ -56,7 +58,7 @@ public class Inventory {
 		while (amountToAdd > 0) {
 			int currentAdded = Math.min(maxStack, amountToAdd);
 			amountToAdd -= currentAdded;
-			items.add(new InventoryItem(addItem.itemId, currentAdded, addItem.name));
+			items.add(new InventoryItem(addItem.itemId, currentAdded, addItem.quality, addItem.name));
 		}
 	}
 	
@@ -95,6 +97,8 @@ public class Inventory {
 		return sum;
 	}
 	
+	TODO
+	//Find an algorithm that factors in quality, by choosing the items that have the lowest viable quality
 	/**
 	 * @param requiredItems A list of items with id and quantity.
 	 * @return Two maps containing the items needed to complete the request that are not in this inventory

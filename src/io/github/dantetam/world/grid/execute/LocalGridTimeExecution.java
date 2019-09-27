@@ -16,16 +16,23 @@ import java.util.Set;
 import java.util.LinkedHashSet;
 import java.util.function.Function;
 
+import org.apache.commons.math3.distribution.NormalDistribution;
+
 import io.github.dantetam.toolbox.VecGridUtil;
 import io.github.dantetam.toolbox.log.CustomLog;
 import io.github.dantetam.toolbox.CollectionUtil;
 import io.github.dantetam.toolbox.MapUtil;
+import io.github.dantetam.toolbox.MathAndDistrUti;
 import io.github.dantetam.toolbox.Pair;
 import io.github.dantetam.toolbox.StringUtil;
 import io.github.dantetam.vector.Vector2i;
 import io.github.dantetam.vector.Vector3i;
 import io.github.dantetam.world.ai.Pathfinder.ScoredPath;
+import io.github.dantetam.world.civhumanai.Ethos;
 import io.github.dantetam.world.civhumanai.NeedsGamut;
+import io.github.dantetam.world.civhumanrelation.HumanHumanRel;
+import io.github.dantetam.world.civhumanrelation.HumanHumanRel.HumanHumanRelType;
+import io.github.dantetam.world.civilization.LocalExperience;
 import io.github.dantetam.world.civilization.Society;
 import io.github.dantetam.world.civilization.artwork.ArtworkGraph;
 import io.github.dantetam.world.civilization.gridstructure.AnnotatedRoom;
@@ -118,6 +125,7 @@ public class LocalGridTimeExecution {
 				NeedsGamut needs = entry.getValue();
 				human.shortTermNeeds = needs;
 			}
+			society.totalNeedsGamut = society.finalTotalNeedsMap();
 		}
 		
 		CustomLog.outPrintln("################");
@@ -323,6 +331,8 @@ public class LocalGridTimeExecution {
 			else {
 				process.processStepIndex = 0;
 			}
+			
+			calcFinishedProcess(society, grid, human, process);
 		}
 		
 		//Assign a new process. Note that a human may have a priority not linked to any higher structure,
@@ -456,12 +466,55 @@ public class LocalGridTimeExecution {
 			else {
 				process.processStepIndex = 0;
 			}
+			
+			calcFinishedProcess(society, grid, human, process);
 		}
 	}
 	
+	/**
+	 * Fires when any process is completed by a human. 
+	 * 
+	 * @param society
+	 * @param grid
+	 * @param human
+	 * @param process
+	 */
+	private static void calcFinishedProcess(Society society, LocalGrid grid, Human human, LocalProcess process) {
+		//Change both human and societal ethos of this process
+		Map<Integer, Double> goodsProduced = process.outputItems.itemDropExpectation;
+		Map<Integer, Double> societalUtil = society.getCalcUtil();  
+		double score = MapUtil.dotProductOfMaps(goodsProduced, societalUtil);
+		
+		Map<String, Integer> actionNamesMap = new HashMap<>();
+		for (ProcessStep step: process.processResActions) {
+			MapUtil.addNumMap(actionNamesMap, step.stepType, step.modifier);
+		}
+		NeedsGamut needsGamut = society.humanNeedsMap.get(human);
+		if (needsGamut == null) needsGamut = society.totalNeedsGamut;
+		score += needsGamut.dotProduct(actionNamesMap);
+		
+		int supervTime = process.totalSupervisedTime();
+		score /= supervTime;
+		score /= ((process.totalTime() - supervTime) * 0.2);
+		
+		double logScore = Math.log10(score);
+		
+		//Change human ethos with calculated scoring/utility
+		Ethos ethos = human.brain.ethosSet.ethosTowardsProcesses.get(process);
+		if (ethos != null) {
+			ethos.severity += logScore;
+			ethos.ethosLifetimeHappiness += logScore;
+		}
+		
+		//Create an experience for people in their heads
+		LocalExperience processExp = new LocalExperience(process.name);
+		processExp.severity = Math.max(1, logScore);
+		processExp.beingRoles.put(human, CollectionUtil.newSet("Worker"));
+		human.brain.experiences.add(processExp);
+	}
 	
 	
-	
+
 	private static LocalBuilding assignBuilding(LocalGrid grid, LivingEntity being, LocalProcess process,
 			Set<Human> capitalOwners, String buildingName) {
 		int id = ItemData.getIdFromName(buildingName);
@@ -531,6 +584,11 @@ public class LocalGridTimeExecution {
 				if (!tile.harvestInUse) {
 					List<Vector3i> neighbors = grid.getAll14NeighborsSorted(candidate, being.location.coords);
 					neighbors.add(candidate);
+					
+					TODO //Implement a batch-pathfinding problem to prune this place and its neighbors i.e.
+					//if A -> X returns no valid path, then batch all accessible neighbors/clustered vecs Y,Z,etc.
+					//and prune these paths by returning no path for A -> Y, A -> Z, even if they seem viable.
+					
 					for (Vector3i neighbor: neighbors) {
 						ScoredPath scoredPath = grid.pathfinder.findPath(
 								being, being.location, grid.getTile(neighbor));
@@ -813,6 +871,9 @@ public class LocalGridTimeExecution {
 				else {
 					priority = new WaitPriority();
 				}
+				
+				String skillName = step.stepType.substring(1);
+				being.skillBook.addExperienceToSkill(skillName, 1);
 			}
 			else {
 				priority = new MoveTolDistOnePriority(targetLocation);
@@ -876,6 +937,16 @@ public class LocalGridTimeExecution {
 			List<InventoryItem> outputItems = process.outputItems.getOneItemDrop();
 			for (InventoryItem item: outputItems) {
 				item.owner = ownerProducts;
+				ownerProducts.ownedItems.add(item);
+				
+				//Factor in ethos, skill, person, and later, technology, into the output quality and quantity of goods
+				//Also provide a skill based distribution of goods in the process CSV
+				ItemQuality[] qualityArr = ItemQuality.values();
+				NormalDistribution normal = new NormalDistribution(qualityArr.length / 2.0, qualityArr.length / 8.0);
+				int sample = (int) normal.sample();
+				int indexChosen = (int) MathAndDistrUti.clamp(sample, 0, qualityArr.length - 1);
+				ItemQuality quality = qualityArr[indexChosen];
+				item.quality = quality;
 			}
 			if (step.stepType.equals("OArtwork")) { //All output items are given art status and memory
 				for (InventoryItem item: outputItems) {
@@ -887,6 +958,7 @@ public class LocalGridTimeExecution {
 			}
 			
 			CustomLog.outPrintln("Dropped items: " + new Inventory(outputItems) + " at place: " + itemMode);
+			
 			
 			if (being.inventory.canFitItems(outputItems) && (itemMode.equals("Personal") || itemMode.equals("Tile"))) {
 				being.inventory.addItems(outputItems);
@@ -1617,7 +1689,8 @@ public class LocalGridTimeExecution {
 			}	
 		}
 		if (bestLocation != null) {
-			InventoryItem itemClone = new InventoryItem(bestItemIdToFind, itemsAmtNeeded.get(bestItemIdToFind), ItemData.getNameFromId(bestItemIdToFind));
+			InventoryItem itemClone = new InventoryItem(bestItemIdToFind, 
+					itemsAmtNeeded.get(bestItemIdToFind), ItemData.getNameFromId(bestItemIdToFind));
 			return new ItemPickupPriority(bestLocation, itemClone);
 		}
 		

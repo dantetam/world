@@ -1,6 +1,7 @@
 package io.github.dantetam.world.items;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,12 +40,21 @@ public class InventoryItem {
 	public InventoryItem(int id, int quantity, String name) {
 		this.itemId = id;
 		this.quantity = quantity;
+		this.quality = ItemQuality.NORMAL;
+		this.name = name;
+		itemSpecProperties = null;
+	}
+	
+	public InventoryItem(int id, int quantity, ItemQuality quality, String name) {
+		this.itemId = id;
+		this.quantity = quantity;
+		this.quality = quality;
 		this.name = name;
 		itemSpecProperties = null;
 	}
 	
 	public InventoryItem clone() {
-		return new InventoryItem(this.itemId, this.quantity, this.name);
+		return new InventoryItem(this.itemId, this.quantity, this.quality, this.name);
 	}
 	
 	public String toString() {
@@ -68,7 +78,18 @@ public class InventoryItem {
 	}
 	
 	public enum ItemQuality {
-		TERRIBLE, NORMAL, GOOD, GREAT, LEGENDARY
+		TERRIBLE, NORMAL, GOOD, GREAT, LEGENDARY; 
+		//Note these should be in order from worst to best quality
+		
+		public static boolean equalOrBetter(ItemQuality goal, ItemQuality inspect) {
+			if (inspect == null) {
+				throw new IllegalArgumentException("Invalid ItemQuality enum input: " + inspect);
+			}
+			List<ItemQuality> enumList = Arrays.asList(ItemQuality.values());
+			return enumList.indexOf(inspect) >= enumList.indexOf(goal);
+		}
 	}
+	
+	
 	
 }

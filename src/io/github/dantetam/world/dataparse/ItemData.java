@@ -68,7 +68,7 @@ public class ItemData {
 		return cloneItem(item, item.quantity);
 	}
 	public static InventoryItem cloneItem(InventoryItem item, int quantity) {
-		return new InventoryItem(item.itemId, quantity, item.name);
+		return new InventoryItem(item.itemId, quantity, item.quality, item.name);
 	}
 	
 	public static Collection<InventoryItem> getAllItems() {

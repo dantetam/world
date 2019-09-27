@@ -46,7 +46,7 @@ public class StringUtil {
 
 	public static char getNextCharOffset(char base, int offset) {
 		int index = getIndexOfChar(base);
-		index = MathUti.trueMod(index + offset, alphanum.length());
+		index = MathAndDistrUti.trueMod(index + offset, alphanum.length());
 		return alphanum.charAt(index);
 	}
 	

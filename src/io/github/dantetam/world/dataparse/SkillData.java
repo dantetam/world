@@ -9,6 +9,9 @@ import org.apache.commons.math3.distribution.NormalDistribution;
 import io.github.dantetam.world.civilization.Skill;
 import io.github.dantetam.world.civilization.SkillBook;
 
+TODO;
+//Fix skillbook data, abbreviations, and associations with certain processes, other human activities.
+
 public class SkillData {
 
 	private static Map<String, Skill> allSkills = new HashMap<>();

@@ -54,11 +54,11 @@ public class StringDoubleGamut {
 		}
 	}
 	
-	public double dotProduct(Map<String, Double> weights) {
+	public <U extends Number> double dotProduct(Map<String, U> weights) {
 		double sum = 0;
 		for (Entry<String, Double> emotion: stringDoubleGamut.entrySet()) {
 			if (weights.containsKey(emotion.getKey())) {
-				sum += weights.get(emotion.getKey()) * emotion.getValue();
+				sum += weights.get(emotion.getKey()).doubleValue() * emotion.getValue();
 			}
 		}
 		return sum;

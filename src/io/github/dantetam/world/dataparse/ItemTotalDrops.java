@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import io.github.dantetam.toolbox.MathUti;
+import io.github.dantetam.toolbox.MathAndDistrUti;
 import io.github.dantetam.world.items.InventoryItem;
 
 /**
@@ -105,7 +105,7 @@ public class ItemTotalDrops {
 			for (ItemDrop itemDrop : itemDrops) {
 				rollingSum += itemDrop.probability;
 				if (chosenRandom < rollingSum) {
-					int quantity = MathUti.discreteUniform(itemDrop.min, itemDrop.max);
+					int quantity = MathAndDistrUti.discreteUniform(itemDrop.min, itemDrop.max);
 					return ItemData.createItem(itemDrop.itemId, quantity);
 				}
 			}

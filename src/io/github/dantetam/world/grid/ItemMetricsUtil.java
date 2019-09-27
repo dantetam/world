@@ -10,7 +10,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import io.github.dantetam.toolbox.MapUtil;
-import io.github.dantetam.toolbox.MathUti;
+import io.github.dantetam.toolbox.MathAndDistrUti;
 import io.github.dantetam.world.dataparse.ItemData;
 import io.github.dantetam.world.items.InventoryItem;
 import io.github.dantetam.world.life.LivingEntity;
@@ -102,7 +102,7 @@ public class ItemMetricsUtil {
 			
 			//Fit log-quadratic, 500 -> 0.2, 50000 -> 0.02, beyond 50000 -> 0.2
 			double desiredTotalWealthClothing = 0.02 + 0.18 * (1 - Math.pow(Math.log10(humanWealth), 2) / 25);
-			desiredTotalWealthClothing = MathUti.clamp(desiredTotalWealthClothing, 0.02, 0.2);
+			desiredTotalWealthClothing = MathAndDistrUti.clamp(desiredTotalWealthClothing, 0.02, 0.2);
 			
 			boolean foundWearableItem = false;
 			List<InventoryItem> items = tile.itemsOnFloor.getItems();

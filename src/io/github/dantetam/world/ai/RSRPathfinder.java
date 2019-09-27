@@ -28,6 +28,12 @@ import io.github.dantetam.world.worldgen.LocalGridInstantiate;
 
 /**
  * 
+ * An implementation of rectangular symmetry pathfinding, which aims to lessen the number of paths considered,
+ * by creating straight lines that hide nodes in between.
+ * 
+ * This is pathfinding research found in the paper 
+ * D. Harabor, A. Botea, and P. Kilby. Path Symmetries in Uniform-cost Grid Maps. 2011.
+ * 
  * @author Dante
  *
  */
@@ -233,7 +239,14 @@ public class RSRPathfinder extends Pathfinder {
 	}
 	
 	
-	
+	/**
+	 * The main RSR pathfinding routine:
+	 * 1) prune by quickly exiting when the path is known to be impossible;
+	 * 2) insert nodes into the RSR memotized structure per the paper; 
+	 * 3) find a path through normal A* in the augmented graph;
+	 * 4) fix the graph by removing temporary nodes added in 2);
+	 * 5) return the resulting path if one exists.
+	 */
 	@Override
 	public ScoredPath findPath(LivingEntity being, LocalTile start, LocalTile end,
     		Vector3i minRestrict, Vector3i maxRestrict) {
@@ -289,11 +302,17 @@ public class RSRPathfinder extends Pathfinder {
 		}
 		else if (endSolid != null) {
 			tempNodeInRectSolid(endSolid, end.coords, false);
-		}
+		}	
 		
 		return path;
 	}
 	
+	public Map<LocalTile, ScoredPath> batchPathfinding(LivingEntity being, LocalTile start, 
+			List<LocalTile> listEndGoals,
+    		Vector3i minRestrict, Vector3i maxRestrict) {
+		
+	}
+		
     //Pathfinding trials for analysis, since pathfinding is an intensive and ubiquitous calculation.
     public static void main(String[] args) {
     	WorldCsvParser.init();

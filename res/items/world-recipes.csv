@@ -204,3 +204,6 @@ Debase Currency,"5 Imperial Coin, 1 Iron Bar",,Coin Mint,,,"I / Ssmith, 120 / O"
 Wander Around,,,,,,Wander,,,,
 Eat Plants,,,,,<Plant>,HTile,,Eat,,
 Put On Clothes,,,,,,,,"Clothing, 0, 1.0",,
+,,,,,,,,,,
+,,,,,,,,,,
+Rest In Bed,,,<Bed>,Y,,Sleep,,"Sleep, 0, 1.0",,

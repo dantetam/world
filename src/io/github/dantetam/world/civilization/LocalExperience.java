@@ -26,6 +26,7 @@ public class LocalExperience {
 	public double opinion;
 	public String type;
 	public Map<LivingEntity, Set<String>> beingRoles;
+	public double severity; //The weight of this memory compared to others, and its influence on sentient thought later on
 	
 	public List<String> modifiers; //Extra words to describe this event
 	public Map<String, Double> valueModifiers; //Extra key value pairs for data
@@ -39,6 +40,7 @@ public class LocalExperience {
 		
 		this.events = events;
 		opinion = 0;
+		severity = 1;
 		for (LocalEvent event: events) {
 			opinion += event.opinion;
 		}

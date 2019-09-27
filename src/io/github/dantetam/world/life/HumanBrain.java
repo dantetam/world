@@ -77,7 +77,7 @@ public class HumanBrain {
 		return null;
 	}
 	
-	//TODO: Use these values to simulate non-human ethos i.e. feelings towards others in social situations?
+	//TODO: Use these values to simulate non-human ethos i.e. sentient non-human feelings towards others in social situations?
 	private void initFeelingWeights() {
 		feelingGamutWeights = new EmotionGamut();
 		feelingGamutWeights.addEmotion("Kindness", 1.5);
@@ -85,5 +85,12 @@ public class HumanBrain {
 		feelingGamutWeights.addEmotion("Honor", 0.3);
 		feelingGamutWeights.addEmotion("Hate", -1.5);
 	}
+	
+	TODO
+	//Factor in local experiences into ethos, debates, chats (reminiscing and telling others memories), and so on
+	//Use their weights as well
+	
+	//Have more things impacted by human relations: ability to influence/learn ethos, probabilities to do activities like chat and fight, and so on
+	
 	
 }

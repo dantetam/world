@@ -1,6 +1,6 @@
 package io.github.dantetam.toolbox;
 
-public class MathUti {
+public class MathAndDistrUti {
 
 	public static int trueMod(int a, int m) {
 		int i = a % m;
@@ -22,7 +22,7 @@ public class MathUti {
 		int range = b - a + 1;
 		return (int) (Math.random() * range) + a;
 	}
-
+	
 	public static double relu(double a) {
 		return a > 0 ? a : 0;
 	}

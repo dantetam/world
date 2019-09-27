@@ -17,7 +17,7 @@ import io.github.dantetam.lwjglEngine.terrain.ForestGeneration.BiomeData;
 import io.github.dantetam.lwjglEngine.terrain.ForestGeneration.ProceduralTree;
 import io.github.dantetam.lwjglEngine.terrain.RasterizeVoronoi;
 import io.github.dantetam.toolbox.MapUtil;
-import io.github.dantetam.toolbox.MathUti;
+import io.github.dantetam.toolbox.MathAndDistrUti;
 import io.github.dantetam.toolbox.StringUtil;
 import io.github.dantetam.toolbox.VecGridUtil;
 import io.github.dantetam.toolbox.log.CustomLog;
@@ -57,7 +57,7 @@ public class WorldGridInstantiate {
 	
 	public WorldGridInstantiate(Vector2i worldSize) {
 		this.worldSize = worldSize;
-		generatedTerrainLen = (int) MathUti.roundToPower2(Math.max(worldSize.x, worldSize.y));
+		generatedTerrainLen = (int) MathAndDistrUti.roundToPower2(Math.max(worldSize.x, worldSize.y));
 	}
 	
 	public WorldGrid setupGrid() {

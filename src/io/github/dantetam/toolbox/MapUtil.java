@@ -46,6 +46,18 @@ public class MapUtil {
 		}
 	}
 	
+	public static <T, U extends Number> double 
+			dotProductOfMaps(Map<T, U> mapA, Map<T, U> mapB) {
+		double product = 0;
+		for (Entry<T, U> entry: mapA.entrySet()) {
+			T key = entry.getKey();
+			if (mapB.containsKey(key)) {
+				product += mapA.get(key).doubleValue() * mapB.get(key).doubleValue();
+			}
+		}
+		return product;
+	}
+	
 	public static <T, U extends Number> void 
 			addMapToMap(Map<T, U> baseMap, Map<T, U> additions) {
 		for (Entry<T, U> addition: additions.entrySet()) {
@@ -115,6 +127,16 @@ public class MapUtil {
 		if (map.containsKey(key)) {
 			map.get(key).remove(value);
 		}
+	}
+	
+	public static <K, V> List<V> getAllItemsNestMap(Map<K, Collection<V>> map) {
+		List<V> items = new ArrayList<>();
+		for (Entry<K,Collection<V>> entry: map.entrySet()) {
+			for (V value: entry.getValue()) {
+				items.add(value);
+			}
+		}
+		return items;
 	}
 	
 	public static <T, U extends Number> Map<T, Double> getNormalizedMap(Map<T, U> map) {

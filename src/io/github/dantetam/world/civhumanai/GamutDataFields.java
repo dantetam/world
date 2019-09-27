@@ -10,7 +10,7 @@ public class GamutDataFields {
 	public static Set<String> NEEDS = new HashSet<String>() {{
 		add(NeedsGamut.EAT); add(NeedsGamut.SHELTER); add(NeedsGamut.CLOTHING);
 		add(NeedsGamut.PERSONAL_HOME); add(NeedsGamut.FURNITURE); add(NeedsGamut.BEAUTY);
-		add(NeedsGamut.SOLDIER);
+		add(NeedsGamut.SOLDIER); add(NeedsGamut.SOCIAL); add(NeedsGamut.REST);
 	}};
 	
 	public static Set<String> EMOTIONS = new HashSet<String>() {{

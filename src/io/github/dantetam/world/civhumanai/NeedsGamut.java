@@ -7,7 +7,7 @@ public class NeedsGamut extends StringDoubleGamut {
 
 	public static final String EAT = "Eat", SHELTER = "Shelter", CLOTHING = "Clothing",
 			PERSONAL_HOME = "Personal Home", FURNITURE = "Furniture", BEAUTY = "Beauty",
-			SOLDIER = "Soldier", SOCIAL = "Social";
+			SOLDIER = "Soldier", SOCIAL = "Social", REST = "Rest";
 	
 	public NeedsGamut() {
 		super();
