@@ -38,6 +38,11 @@ public class LocalProcess {
 	public LocalTile processTile; //Person should move directly to this tile
 	public LocalTile targetTile; //Person should target this tile for harvest, operations, etc.
 	
+	TODO;
+	//Add a skill distribution consideration here i.e.
+	//a probabilistic mapping of skill levels and requirements, into the possible outcomes a process,
+	//such as item quality, quantity, residual action effects strength, and so on.
+	
 	public LocalProcess(String name, List<InventoryItem> input, ItemTotalDrops output, 
 			String buildingName, boolean site, String tileFloorId, 
 			List<ProcessStep> steps, List<ProcessStep> processResActions,

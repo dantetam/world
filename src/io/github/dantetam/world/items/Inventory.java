@@ -4,7 +4,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
+import java.util.Iterator;
 
 import io.github.dantetam.toolbox.MapUtil;
 import io.github.dantetam.world.dataparse.ItemData;
@@ -13,17 +15,18 @@ import io.github.dantetam.world.life.LivingEntity;
 
 public class Inventory {
 
-	private List<InventoryItem> items; 
+	private Map<Integer, List<InventoryItem>> itemsMappedById; 
 	//Assumed that the owner of this inventory has access to all items in this inventory
 	
 	
 	
 	public Inventory() {
-	
+		this.itemsMappedById = new HashMap<>();
 	}
 	
 	public Inventory(List<InventoryItem> listItems) {
-		items = listItems;
+		this();
+		addItems(listItems);
 	}
 	
 	public void addItems(List<InventoryItem> items) {
@@ -35,17 +38,23 @@ public class Inventory {
 	}
 	public void addItem(InventoryItem addItem) {
 		if (addItem == null) return; //For the case where an item drop returns nothing
-		if (items == null) items = new ArrayList<>();
-		int inventoryIndex = 0;
+		
 		int amountToAdd = addItem.quantity;
 		int maxStack = ItemData.getMaxStackSize(addItem.itemId);
+		
+		if (!itemsMappedById.containsKey(addItem.itemId)) {
+			itemsMappedById.put(addItem.itemId, new ArrayList<>());
+		}
+		List<InventoryItem> itemsWithId = itemsMappedById.get(addItem.itemId);
+		
+		int inventoryIndex = 0;
 		while (true) {
 			if (amountToAdd <= 0) {
 				break;
 			}
-			if (inventoryIndex < items.size()) {
-				InventoryItem invItem = items.get(inventoryIndex);
-				if (invItem.itemId == addItem.itemId && invItem.quality == addItem.quality) {
+			if (inventoryIndex < itemsWithId.size()) {
+				InventoryItem invItem = itemsWithId.get(inventoryIndex);
+				if (invItem.quality == addItem.quality) {
 					int currentAdded = Math.min(maxStack - invItem.quantity, amountToAdd);
 					amountToAdd -= currentAdded;
 					invItem.quantity += currentAdded;
@@ -58,7 +67,8 @@ public class Inventory {
 		while (amountToAdd > 0) {
 			int currentAdded = Math.min(maxStack, amountToAdd);
 			amountToAdd -= currentAdded;
-			items.add(new InventoryItem(addItem.itemId, currentAdded, addItem.quality, addItem.name));
+			InventoryItem item = new InventoryItem(addItem.itemId, currentAdded, addItem.quality, addItem.name);
+			itemsWithId.add(item);
 		}
 	}
 	
@@ -71,24 +81,24 @@ public class Inventory {
 	}
 	
 	public int findItemCount(int itemId, LivingEntity mainHuman, Set<LivingEntity> otherOwners) {
-		if (items == null) return 0;
+		if (!(itemsMappedById.containsKey(itemId))) return 0;
+		List<InventoryItem> items = itemsMappedById.get(itemId);
 		int sum = 0;
 		for (InventoryItem item: items) {
-			if (item.itemId == itemId) {
-				if (item.beingHasAccessItem(mainHuman, otherOwners)) {
-					sum += item.quantity;
-				}
+			if (item.beingHasAccessItem(mainHuman, otherOwners)) {
+				sum += item.quantity;
 			}
 		}
 		return sum;
 	}
 	
 	public int findItemCountGroup(String groupName, LivingEntity mainHuman, Set<LivingEntity> otherOwners) {
-		if (items == null) return 0;
+		if (itemsMappedById == null) return 0;
 		int sum = 0;
-		Set<Integer> groupIds = ItemData.getIdsFromNameOrGroup(groupName);
-		for (InventoryItem item: items) {
-			if (groupIds.contains(item.itemId)) {
+		Set<Integer> groupItemIds = ItemData.getIdsFromNameOrGroup(groupName);
+			for (Integer itemId: groupItemIds) {
+			List<InventoryItem> items = itemsMappedById.get(itemId);
+			for (InventoryItem item: items) {
 				if (item.beingHasAccessItem(mainHuman, otherOwners)) {
 					sum += item.quantity;
 				}
@@ -97,7 +107,7 @@ public class Inventory {
 		return sum;
 	}
 	
-	TODO
+	TODO;
 	//Find an algorithm that factors in quality, by choosing the items that have the lowest viable quality
 	/**
 	 * @param requiredItems A list of items with id and quantity.
@@ -235,15 +245,52 @@ public class Inventory {
 	}
 	
 	public int size() {
-		if (items == null) return 0;
-		return items.size();
+		if (itemsMappedById == null) return 0;
+		int sum = 0;
+		for (Entry<Integer, List<InventoryItem>> entry: itemsMappedById.entrySet()) {
+			sum += entry.getValue().size();
+		}
+		return sum;
+	}
+	
+	public Iterator<InventoryItem> iterator() {
+		return new Iterator<InventoryItem>() {
+
+			Iterator<Integer> keyIter = itemsMappedById.keySet().iterator();
+			Integer currentItemId = keyIter.next();
+			int index = 0;
+			
+			@Override
+			public boolean hasNext() {
+				// TODO Auto-generated method stub
+				return !(currentItemId == null || 
+						(itemsMappedById.get(currentItemId).size() >= index && !keyIter.hasNext()));
+			}
+	
+			@Override
+			public InventoryItem next() {
+				List<InventoryItem> curList = itemsMappedById.get(currentItemId);
+				InventoryItem item = curList.get(index);
+				
+				index++;
+				if (index >= curList.size()) {
+					index = 0;
+					currentItemId = keyIter.next();
+				}
+				
+				return item;
+			}
+		
+		};
 	}
 	
 	public String toString() {
 		String itemsList = "Inventory: [";
-		if (items != null) {
-			for (InventoryItem item: items) {
-				itemsList += item.toString() + "; ";
+		if (itemsMappedById != null) {
+			for (Entry<Integer, List<InventoryItem>> entry: itemsMappedById.entrySet()) {
+				for (InventoryItem item: entry.getValue()) {
+					itemsList += item.toString() + "; ";
+				}
 			}
 		}
 		return itemsList + "]";
@@ -251,9 +298,11 @@ public class Inventory {
 	
 	public int hashCode() {
 		int h = 0;
-        for (InventoryItem item: items) {
-            h = 31 * h + item.name.hashCode() * item.quantity;
-        }
+        for (Entry<Integer, List<InventoryItem>> entry: itemsMappedById.entrySet()) {
+			for (InventoryItem item: entry.getValue()) {
+				h = 31 * h + item.name.hashCode() * item.quantity;
+			}
+		}
 	    return h;
 	}
 	
