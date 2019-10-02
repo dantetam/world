@@ -225,7 +225,10 @@ public class Inventory {
 	}
 	
 	public List<InventoryItem> getItems() {
-		return items == null ? new ArrayList<>() : items;
+		if (itemsMappedById == null) return new ArrayList<>();
+		List<InventoryItem> items = new ArrayList<>();
+		this.iterator().forEachRemaining(items::add);
+		return items;
 	}
 	
 	public boolean canFitItems(List<InventoryItem> items) {
@@ -235,9 +238,10 @@ public class Inventory {
 	//Pure utility wealth. See Society.java for the also relevant measure of "societal utility wealth",
 	//which factors in the scarcity and needs of resources in a society.
 	public double getTotalWealth() {
-		if (this.items == null) return 0;
+		if (this.itemsMappedById == null) return 0;
 		double sumWealth = 0;
-		for (InventoryItem item: this.items) {
+		for (Iterator<InventoryItem> itemIter = this.iterator(); itemIter.hasNext(); ) {
+			InventoryItem item = itemIter.next();
 			double wealth = ItemData.getBaseItemValue(item.itemId);
 			sumWealth += wealth * item.quantity;
 		}
@@ -308,11 +312,12 @@ public class Inventory {
 	
 	public Map<String, Integer> toUniqueItemsMap() {
 		Map<String, Integer> uniqueCounts = new HashMap<>();
-		if (items != null) {
-			for (InventoryItem item: items) {
-				MapUtil.addNumMap(uniqueCounts, ItemData.getNameFromId(item.itemId), item.quantity);
-			}
+		
+		for (Iterator<InventoryItem> itemIter = this.iterator(); itemIter.hasNext(); ) {
+			InventoryItem item = itemIter.next();
+			MapUtil.addNumMap(uniqueCounts, ItemData.getNameFromId(item.itemId), item.quantity);
 		}
+		
 		return uniqueCounts;
 	}
 	

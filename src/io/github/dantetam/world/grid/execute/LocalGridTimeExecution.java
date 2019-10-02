@@ -831,6 +831,14 @@ public class LocalGridTimeExecution {
 			}
 		}
 		
+		if (step.stepType.equals("SleepInBed")) {
+			if (being.location.coords.areAdjacent14(primaryLocation)) {
+				return new SleepInBedPriority();
+			}
+			else {
+				priority = new MoveTolDistOnePriority(primaryLocation);
+			}
+		}
 		if (step.stepType.equals("I")) {
 			if (process.processBuilding != null && process.processBuilding.inventory.hasItems(process.inputItems)) {
 				process.processBuilding.inventory.subtractItems(process.inputItems);
@@ -1228,10 +1236,13 @@ public class LocalGridTimeExecution {
 					);
 		}
 		else if (priority instanceof RestPriority) {
-			return getTasksFromPriority(grid, being, 
-					progressToFindItemGroups(grid, being, new HashSet<LivingEntity>() {{add(being);}}, 
-							new HashMap<String, Integer>() {{put("Bed", 1);}}, new BedRestMetric())
-					);
+			being.rest(1);
+			if (being.rest >= being.maxRest * 0.8) {
+				return new DoneTaskPlaceholder();
+			}
+			else {
+				return tasks;
+			}
 		}
 		else if (priority instanceof ConstructRoomPriority) {
 			ConstructRoomPriority consPriority = (ConstructRoomPriority) priority;
@@ -1360,7 +1371,7 @@ public class LocalGridTimeExecution {
 			return new ImpossibleTaskPlaceholder("Room has no accessible places to put buildings/items");
 		}
 		else if (priority instanceof PlaceItemAnnoRoomPriority) {
-			
+			TODO;
 		}
 		else if (priority instanceof MovePriority) {
 			MovePriority movePriority = (MovePriority) priority;
@@ -1570,9 +1581,11 @@ public class LocalGridTimeExecution {
 				}
 				else
 					MapUtil.insertNestedSetMap(potentialJob.boss.workers, human, potentialJob);
+				human.jobProcessProgress.jobWorkProcess.applySkillProcessDistr(human);
 			}
 			else if (potentialItem instanceof LocalProcess && human.processProgress == null) {
 				human.processProgress = (LocalProcess) potentialItem;
+				human.processProgress.applySkillProcessDistr(human);
 			}
 		}
 	}

@@ -46,6 +46,9 @@ public class FreeActionsHumans {
 		put("ideologicalEthosDebate", new FreeAction("ideologicalEthosDebate", null, 5));
 	}};
 	
+	//TODO;
+	//Convert chat, debate, human interaction, and playing, into processes that take time in the world
+	
 	//Implement more human to human interactions, and for all interactions, take into account
 	//the situation, the relationships, and relevant personality traits.
 	

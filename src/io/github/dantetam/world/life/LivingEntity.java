@@ -104,6 +104,10 @@ public abstract class LivingEntity {
 		rest = Math.max(rest - LIVE_CONST_LOSS_TICK, 0);
 	}
 	
+	public double raceSimilarityScore(LivingEntity being) {
+		return this.dna.compareGenesDist(being.dna, "race");
+	}
+	
 	public double getTotalPowerPrestige() {
 		return getTotalWealth();
 	}

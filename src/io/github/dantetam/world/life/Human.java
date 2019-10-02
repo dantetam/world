@@ -76,24 +76,10 @@ public class Human extends LivingEntity {
 		lifetimeNeeds = new NeedsGamut();
 	}
 	
-	public void feed(double standardUnitNutrition) {
-		nutrition = Math.min(nutrition + standardUnitNutrition*NUTRITION_CONSTANT, 
-				maxNutrition);
-	}
-	
-	public void rest(double standardRestUnit) {
-		rest = Math.min(rest + standardRestUnit*REST_CONSTANT_TICK, maxRest);
-	}
-	
-	public void spendNutrition() {
-		nutrition = Math.max(nutrition - NUTRI_CONST_LOSS_TICK, 0);
-	}
-	
-	public void spendEnergy() {
-		rest = Math.max(rest - LIVE_CONST_LOSS_TICK, 0);
-	}
-	
+	//A special metric for physical differences for sentient beings
+	//Note that this does not involve ethos, as ethos are calculated and used elsewhere
 	public double raceSimilarityScore(Human human) {
+		TODO; //Use culture and outward appearance ("sentient" judgement of beauty) to do this calculation
 		return this.dna.compareGenesDist(human.dna, "race");
 	}
 	

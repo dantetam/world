@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import io.github.dantetam.world.civilization.SkillProcessDistribution;
 import io.github.dantetam.world.items.InventoryItem;
 import io.github.dantetam.world.process.LocalProcess;
 import io.github.dantetam.world.process.LocalProcess.ProcessStep;
@@ -19,10 +20,10 @@ public class ProcessData {
 	public static void addProcess(String name, List<InventoryItem> input, ItemTotalDrops output, 
 			String buildingName, boolean site, String tileFloor, 
 			List<ProcessStep> steps, List<ProcessStep> processResActions,
-			int recRepeats) {
+			int recRepeats, SkillProcessDistribution skillProcDistr) {
 		int index = processes.size();
 		processes.add(new LocalProcess(name, input, output, buildingName, 
-				site, tileFloor, steps, processResActions, recRepeats));
+				site, tileFloor, steps, processResActions, recRepeats, skillProcDistr));
 		if (input != null) {
 			for (InventoryItem inputItem: input) {
 				if (!recipesByInput.containsKey(inputItem.itemId)) {

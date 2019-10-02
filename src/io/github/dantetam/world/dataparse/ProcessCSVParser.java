@@ -13,6 +13,13 @@ import java.util.stream.Collectors;
 import org.apache.commons.csv.CSVRecord;
 
 import io.github.dantetam.toolbox.log.CustomLog;
+import io.github.dantetam.world.civilization.SkillProcessDistribution;
+import io.github.dantetam.world.civilization.SkillProcessDistribution.BasicFunction;
+import io.github.dantetam.world.civilization.SkillProcessDistribution.NoiseDistribution;
+import io.github.dantetam.world.civilization.SkillProcessDistribution.NoiseDistributionType;
+import io.github.dantetam.world.civilization.SkillProcessDistribution.ProcessModKey;
+import io.github.dantetam.world.civilization.SkillProcessDistribution.SkillOutFunction;
+import io.github.dantetam.world.civilization.SkillProcessDistribution.SkillProcessMod;
 import io.github.dantetam.world.items.InventoryItem;
 import io.github.dantetam.world.process.LocalProcess.ProcessStep;
 
@@ -182,8 +189,20 @@ public class ProcessCSVParser extends WorldCsvParser {
 			recRepeat = Integer.parseInt(recRepeatStr);
 		}
 		
+		String skillProcString = record.get("Skill Process Distribution");
+		SkillProcessDistribution skillProcDistr = null;
+		if (!skillProcString.isBlank()) {
+			skillProcDistr = parseSkillProcDistr(skillProcString);
+		}
+		else {
+			TODO;
+			//Generate a default skill process distribution based on the skills used in the process,
+			//if any skills were used.
+			
+		}
+		
 		ProcessData.addProcess(processName, inputItems, processOutput, 
-				buildingNamesString, site, tileFloorId, steps, processResActions, recRepeat);
+				buildingNamesString, site, tileFloorId, steps, processResActions, recRepeat, skillProcDistr);
 	}
 	
 	static List<ProcessStep> getProcessingSteps(String processString) {		
@@ -211,6 +230,44 @@ public class ProcessCSVParser extends WorldCsvParser {
 			steps.add(step);
 		}
 		return steps;
+	}
+	
+	/**
+	 * See SkillProcessDistribution.java for a complete explanation on creating this object.
+	 */
+	static SkillProcessDistribution parseSkillProcDistr(String string) {
+		if (string.isBlank()) return null;
+		SkillProcessDistribution distr = new SkillProcessDistribution();
+		String[] mods = string.split(";");
+		for (String mod: mods) {
+			String[] tokens = mod.split(",");
+			if (tokens.length != 6 || tokens.length != 9) {
+				throw new IllegalArgumentException("Skill Proc Distribution Parsing takes 6 or 9 args: "
+						+ "see documentation in SkillProcessDistribution.java");
+			}
+			
+			try {
+				SkillOutFunction skillFunc = new SkillOutFunction(
+						Double.parseDouble(tokens[2]), Double.parseDouble(tokens[3]), 
+						BasicFunction.valueOf(tokens[4]), Double.parseDouble(tokens[5])
+						);
+				SkillProcessMod skillProcMod = new SkillProcessMod(tokens[0].strip(), 
+						ProcessModKey.valueOf(tokens[1].strip()), skillFunc);
+				if (tokens.length == 9) {
+					skillProcMod.noise = new NoiseDistribution(
+							NoiseDistributionType.valueOf(tokens[6].strip()), 
+							Double.parseDouble(tokens[7]), Double.parseDouble(tokens[8])
+							);
+				}
+				distr.skillProcessMods.add(skillProcMod);
+			} catch (NumberFormatException e2) {
+				e2.printStackTrace();
+			} catch (IllegalArgumentException e) {
+				e.printStackTrace();
+			} 
+		}
+		
+		return distr;
 	}
 	
 }

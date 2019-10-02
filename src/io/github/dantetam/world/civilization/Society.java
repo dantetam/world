@@ -813,8 +813,9 @@ public class Society {
 
 		societalNeed.addEmotion(NeedsGamut.SOLDIER, 0.1);
 		
-		TODO
 		//Compute social and sleep needs ("REST")
+		double restScore = 2.0 - human.rest / human.maxRest;
+		societalNeed.addEmotion(NeedsGamut.REST, restScore);
 
 		return societalNeed;
 	}

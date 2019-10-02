@@ -1,4 +1,4 @@
-package io.github.dantetam.world.civhumanai;
+  package io.github.dantetam.world.civhumanai;
 
 import java.util.Collection;
 import java.util.HashMap;

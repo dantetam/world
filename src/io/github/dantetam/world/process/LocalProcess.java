@@ -2,14 +2,21 @@
 package io.github.dantetam.world.process;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import io.github.dantetam.toolbox.MapUtil;
+import io.github.dantetam.world.civilization.SkillProcessDistribution;
+import io.github.dantetam.world.civilization.SkillProcessDistribution.ProcessModKey;
+import io.github.dantetam.world.civilization.SkillProcessDistribution.SkillProcessMod;
 import io.github.dantetam.world.dataparse.ItemData;
 import io.github.dantetam.world.dataparse.ItemTotalDrops;
 import io.github.dantetam.world.grid.LocalBuilding;
 import io.github.dantetam.world.grid.LocalTile;
 import io.github.dantetam.world.items.Inventory;
 import io.github.dantetam.world.items.InventoryItem;
+import io.github.dantetam.world.life.Human;
 
 /**
  * A process or flow which a person can take up and complete.
@@ -38,15 +45,18 @@ public class LocalProcess {
 	public LocalTile processTile; //Person should move directly to this tile
 	public LocalTile targetTile; //Person should target this tile for harvest, operations, etc.
 	
-	TODO;
 	//Add a skill distribution consideration here i.e.
 	//a probabilistic mapping of skill levels and requirements, into the possible outcomes a process,
 	//such as item quality, quantity, residual action effects strength, and so on.
+	public SkillProcessDistribution skillProcDistr;
+	public Map<ProcessModKey, Double> currentSkillProcOutput; //Store for the current human working on this,
+		//various modifiers to the process, gained through skills, circumstances, world conditions like climate, etc.
+	TODO; //Implement all keys of currentSkillProcOutput in LocalGridTimeExecution
 	
 	public LocalProcess(String name, List<InventoryItem> input, ItemTotalDrops output, 
 			String buildingName, boolean site, String tileFloorId, 
 			List<ProcessStep> steps, List<ProcessStep> processResActions,
-			int recRepeats) {
+			int recRepeats, SkillProcessDistribution skillProcDistr) {
 		this.name = name;
 		this.inputItems = input;
 		this.outputItems = output;
@@ -56,7 +66,17 @@ public class LocalProcess {
 		this.processSteps = steps;
 		this.processResActions = processResActions;
 		this.recRepeats = recRepeats;
+		this.skillProcDistr = skillProcDistr;
 		processStepIndex = 0;
+	}
+	
+	//Change the values in currentSkillProcOutput to update for the human
+	public void applySkillProcessDistr(Human human) {
+		this.currentSkillProcOutput = new HashMap<>();
+		for (SkillProcessMod mod: this.skillProcDistr.skillProcessMods) {
+			double value = mod.func.eval(human.skillBook.getSkillLevel(mod.skillName));
+			MapUtil.addNumMap(this.currentSkillProcOutput, mod.processKey, value);
+		}
 	}
 	
 	public ProcessStep findStepName(String stepType) {
@@ -139,7 +159,7 @@ public class LocalProcess {
 		}
 		LocalProcess clone = new LocalProcess(this.name, this.inputItems, this.outputItems, 
 				this.requiredBuildNameOrGroup, this.isCreatedAtSite, this.requiredTileNameOrGroup,
-				new ArrayList<>(steps), this.processResActions, this.recRepeats);
+				new ArrayList<>(steps), this.processResActions, this.recRepeats, this.skillProcDistr);
 		return clone;
 	}
 	
