@@ -10,8 +10,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Set;
+import java.util.Map.Entry;
 
 import io.github.dantetam.toolbox.MapUtil;
+import io.github.dantetam.toolbox.Pair;
 import io.github.dantetam.toolbox.VecGridUtil;
 import io.github.dantetam.toolbox.VecGridUtil.RectangularSolid;
 import io.github.dantetam.toolbox.log.CustomLog;
@@ -309,13 +311,25 @@ public class RSRPathfinder extends Pathfinder {
 		return path;
 	}
 	
-	//Implement a batch-pathfinding problem to prune this place and its neighbors i.e.
-	//if A -> X returns no valid path, then batch all accessible neighbors/clustered vecs Y,Z,etc.
-	//and prune these paths by returning no path for A -> Y, A -> Z, even if they seem viable.
-	public Map<LocalTile, ScoredPath> batchPathfinding(LivingEntity being, LocalTile start, 
+	
+	/**
+	 * 
+	 * @param being
+	 * @param start
+	 * @param listEndGoals
+	 * @param minRestrict
+	 * @param maxRestrict
+	   //Implement a batch-pathfinding problem to prune this place and its neighbors i.e.
+	   //if A -> X returns no valid path, then batch all accessible neighbors/clustered vecs Y,Z,etc.
+	   //and prune these paths by returning no path for A -> Y, A -> Z, even if they seem viable.
+	 * @return A pair of localTile -> scoredPath maps: the first indicates normal paths, 
+	 * 	   the second indicates impossible paths. 
+	 */
+	public Pair<Map<LocalTile, ScoredPath>> batchPathfinding(LivingEntity being, LocalTile start, 
 			List<LocalTile> listEndGoals,
     		Vector3i minRestrict, Vector3i maxRestrict) {
 		Map<LocalTile, ScoredPath> scoring = new HashMap<>();
+		Map<LocalTile, ScoredPath> impossiblePaths = new HashMap<>();
 		for (LocalTile end: listEndGoals) {
 			if (scoring.containsKey(end)) {
 				continue;
@@ -325,21 +339,27 @@ public class RSRPathfinder extends Pathfinder {
 				scoring.put(end, path);
 			}
 			else {
-				scoring.put(end, null);
+				impossiblePaths.put(end, null);
 				//Prune paths to all of the cluster, which should be inaccessible as well
 				ClusterVector3i cluster = this.grid.find3dClusterWithCoord(end.coords);
+				if (cluster == null) continue;
 				for (LocalTile pruneCand: listEndGoals) {
 					if (!scoring.containsKey(pruneCand)) {
 						if (cluster.clusterData.contains(pruneCand.coords)) {
-							scoring.put(pruneCand, null);
+							impossiblePaths.put(pruneCand, null);
 						}
 					}
 				}
 			}
 		}	
-		return MapUtil.getSortedMapByValueAsc(scoring);
+		for (Entry<LocalTile, ScoredPath> entry: scoring.entrySet()) {
+			System.err.println(entry.getKey());
+			System.err.println(entry.getValue());
+			System.err.println("---------------");
+		}
+		return new Pair<Map<LocalTile, ScoredPath>>(MapUtil.getSortedMapByValueAsc(scoring), impossiblePaths);
 	}
-	public Map<LocalTile, ScoredPath> batchPathfinding(LivingEntity being, LocalTile start, 
+	public Pair<Map<LocalTile, ScoredPath>> batchPathfinding(LivingEntity being, LocalTile start, 
 			List<LocalTile> listEndGoals) {
 		return this.batchPathfinding(being, start, listEndGoals, null, null);
 	}

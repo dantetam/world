@@ -1,15 +1,19 @@
 package io.github.dantetam.world.items;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Iterator;
+import java.util.Comparator;
 
 import io.github.dantetam.toolbox.MapUtil;
 import io.github.dantetam.world.dataparse.ItemData;
+import io.github.dantetam.world.items.InventoryItem.ItemQuality;
 import io.github.dantetam.world.life.Human;
 import io.github.dantetam.world.life.LivingEntity;
 
@@ -18,10 +22,13 @@ public class Inventory {
 	private Map<Integer, List<InventoryItem>> itemsMappedById; 
 	//Assumed that the owner of this inventory has access to all items in this inventory
 	
+	private Map<Integer, Boolean> currentSortedQualityMapId; 
+	//Keep track of when it is necessary to sort item by quality
 	
 	
 	public Inventory() {
 		this.itemsMappedById = new HashMap<>();
+		this.currentSortedQualityMapId = new HashMap<>();
 	}
 	
 	public Inventory(List<InventoryItem> listItems) {
@@ -70,6 +77,8 @@ public class Inventory {
 			InventoryItem item = new InventoryItem(addItem.itemId, currentAdded, addItem.quality, addItem.name);
 			itemsWithId.add(item);
 		}
+		
+		this.currentSortedQualityMapId.put(addItem.itemId, false);
 	}
 	
 	public int findItemCount(int itemId) {
@@ -107,74 +116,67 @@ public class Inventory {
 		return sum;
 	}
 	
-	TODO;
 	//Find an algorithm that factors in quality, by choosing the items that have the lowest viable quality
 	/**
 	 * @param requiredItems A list of items with id and quantity.
 	 * @return Two maps containing the items needed to complete the request that are not in this inventory
+	 *  	The inventory items that can be used to fulfill this request, if possible
 	 */
-	public Object[] findRemainingItemsNeeded(List<InventoryItem> requiredItems) {
-		//Tally up all required needed items
-		Map<Integer, Integer> regularItemNeeds = new HashMap<>();
-		Map<String, Integer> groupItemNeeds = new HashMap<>();
-		for (InventoryItem requiredItem : requiredItems) {
-			int reqId = requiredItem.itemId;
-			String reqItemName = ItemData.getNameFromId(reqId);
-			if (ItemData.isGroup(reqItemName)) {
-				if (!groupItemNeeds.containsKey(reqItemName)) {
-					groupItemNeeds.put(reqItemName, 0);
-				}
-				groupItemNeeds.put(reqItemName, groupItemNeeds.get(reqItemName) + requiredItem.quantity);
-			}
-			else {
-				if (!regularItemNeeds.containsKey(reqId)) {
-					regularItemNeeds.put(reqId, 0);
-				}
-				regularItemNeeds.put(reqId, regularItemNeeds.get(reqId) + requiredItem.quantity);
-			}
+	public Object[] findRemainingItemsNeeded(List<InventoryItem> requiredItems) {		
+		List<InventoryItem> neededItems = new ArrayList<>();
+		for (InventoryItem reqItem: requiredItems) {
+			neededItems.add(reqItem.clone());
 		}
 		
-		List<InventoryItem> cloneInv = new ArrayList<>();
+		Collections.sort(neededItems, new Comparator<InventoryItem>() {
+			public int compare(InventoryItem o1, InventoryItem o2) {
+				return ItemQuality.getIndex(o2.quality) - ItemQuality.getIndex(o1.quality);
+			}
+		});
+		
+		Map<InventoryItem, Integer> countedItems = new HashMap<>();
+		
 		//Clone the inventory and use items as necessary to reduce the demand count
-		if (items != null) {
-			for (InventoryItem invItem : items) {
-				InventoryItem cloneInvItem = invItem.clone();
-				cloneInv.add(cloneInvItem);
-				int itemId = cloneInvItem.itemId;
-				Set<String> candidateGroups = ItemData.getGroupNameById(itemId);
-				if (candidateGroups != null) {
-					for (String candidateGroup: candidateGroups) {
-						if (candidateGroup != null && groupItemNeeds.containsKey(candidateGroup)) {
-							int requiredQuantity = groupItemNeeds.get(candidateGroup);
-							int subtract = Math.min(requiredQuantity, Math.max(0, cloneInvItem.quantity));
-							cloneInvItem.quantity -= subtract;
-							if (requiredQuantity - subtract > 0)
-								groupItemNeeds.put(candidateGroup, requiredQuantity - subtract);
-							else 
-								groupItemNeeds.remove(candidateGroup);
+		if (itemsMappedById != null) {
+			for (Entry<Integer, List<InventoryItem>> inventoryEntry: itemsMappedById.entrySet()) {
+				//Sort the items in this inventory by quality ascending
+				int itemId = inventoryEntry.getKey();
+				if (this.currentSortedQualityMapId.containsKey(itemId) &&
+						this.currentSortedQualityMapId.get(itemId)) {
+					Collections.sort(inventoryEntry.getValue(), new Comparator<InventoryItem>() {
+						public int compare(InventoryItem o1, InventoryItem o2) {
+							return ItemQuality.getIndex(o1.quality) - ItemQuality.getIndex(o2.quality);
+						}
+					});
+					this.currentSortedQualityMapId.put(itemId, true);
+				}
+				
+				List<InventoryItem> itemsWithId = inventoryEntry.getValue();
+				
+				Iterator<InventoryItem> itemIter = neededItems.iterator();
+				while (itemIter.hasNext()) {
+					InventoryItem neededItem = itemIter.next();
+					if (neededItem.itemId == itemId) {
+						for (InventoryItem haveItem: itemsWithId) {
+							if (ItemQuality.equalOrBetter(neededItem.quality, haveItem.quality)) {
+								int amountToTake = Math.min(neededItem.quantity, haveItem.quantity);
+								countedItems.put(neededItem, amountToTake);
+								neededItem.quantity -= amountToTake;
+								if (neededItem.quantity <= 0) {
+									itemIter.remove();
+									break;
+								}
+							}
+							else {
+								continue;
+							}
 						}
 					}
 				}
-				if (regularItemNeeds.containsKey(itemId)) {
-					int requiredQuantity = regularItemNeeds.get(itemId);
-					int subtract = Math.min(requiredQuantity, Math.max(0, cloneInvItem.quantity));
-					cloneInvItem.quantity -= subtract;
-					if (requiredQuantity - subtract > 0)
-						regularItemNeeds.put(itemId, requiredQuantity - subtract);
-					else 
-						regularItemNeeds.remove(itemId);
-				}
-			}
-			
-			for (int itemIndex = items.size() - 1; itemIndex >= 0; itemIndex--) {
-				InventoryItem item = items.get(itemIndex);
-				if (item.quantity <= 0) {
-					items.remove(itemIndex);
-				}
 			}
 		}
 		
-		return new Object[] {regularItemNeeds, groupItemNeeds, cloneInv};
+		return new Object[] {neededItems.size() != 0, countedItems, neededItems};
 	}
 	
 	public boolean hasItem(InventoryItem item) {
@@ -183,13 +185,13 @@ public class Inventory {
 		return hasItems(items);
 	}
 	public boolean hasItems(List<InventoryItem> requiredItems) {
-		if (items == null) return false;
+		if (itemsMappedById == null) return false;
 		Object[] itemNeedData = findRemainingItemsNeeded(requiredItems);
-		Map<Integer, Integer> regularItemNeeds = (Map) itemNeedData[0]; 
-		Map<String, Integer> groupItemNeeds = (Map) itemNeedData[1];
-		return regularItemNeeds.size() == 0 && groupItemNeeds.size() == 0;
+		Boolean foundItems = (Boolean) itemNeedData[0]; 
+		return foundItems;
 	}
 	
+	/*
 	//Find the items with 
 	public List<InventoryItem> subtractItem(String groupOrItemName, int count) {
 		if (this.findItemCountGroup(groupOrItemName) >= count) {
@@ -208,20 +210,29 @@ public class Inventory {
 			return null;
 		}
 	}
-	public void subtractItem(InventoryItem item) {
+	*/
+	public Set<InventoryItem> subtractItem(InventoryItem item) {
 		List<InventoryItem> items = new ArrayList<>();
 		items.add(item);
-		subtractItems(items);
+		return subtractItems(items);
 	}
-	public void subtractItems(List<InventoryItem> requiredItems) {
+	public Set<InventoryItem> subtractItems(List<InventoryItem> requiredItems) {
 		Object[] itemNeedData = findRemainingItemsNeeded(requiredItems);
-		Map<Integer, Integer> regularItemNeeds = (Map) itemNeedData[0]; 
-		Map<String, Integer> groupItemNeeds = (Map) itemNeedData[1];
-		List<InventoryItem> cloneInv = (List) itemNeedData[2];
-		if (regularItemNeeds.size() == 0 && groupItemNeeds.size() == 0) {
-			this.items = cloneInv;
-			if (cloneInv.size() == 0) this.items = null;
+		Boolean foundItems = (Boolean) itemNeedData[0]; 
+		Map<InventoryItem, Integer> requestedItems = (Map) itemNeedData[1];
+		if (foundItems) {
+			for (Entry<InventoryItem, Integer> entry: requestedItems.entrySet()) {
+				InventoryItem item = entry.getKey();
+				Integer amountSubtract = entry.getValue();
+				item.quantity -= amountSubtract;
+				if (item.quantity == 0) {
+					List<InventoryItem> itemsWithId = this.itemsMappedById.get(item.itemId);
+					itemsWithId.remove(item);
+				}
+			}
+			return requestedItems.keySet();
 		}
+		return null;
 	}
 	
 	public List<InventoryItem> getItems() {
@@ -261,7 +272,7 @@ public class Inventory {
 		return new Iterator<InventoryItem>() {
 
 			Iterator<Integer> keyIter = itemsMappedById.keySet().iterator();
-			Integer currentItemId = keyIter.next();
+			Integer currentItemId = keyIter.hasNext() ? keyIter.next() : null; //For the case of empty inventory
 			int index = 0;
 			
 			@Override

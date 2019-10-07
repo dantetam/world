@@ -1,5 +1,6 @@
 package io.github.dantetam.world.dataparse;
 
+import java.util.Set;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -21,6 +22,10 @@ public class SkillData {
 	 */
 	public static Map<String, Skill> getAllSkills() {
 		return allSkills;
+	}
+	
+	public static Set<String> getSkillNamesStrings() {
+		return allSkills.keySet();
 	}
 
 	public static void addSkill(String name, boolean isCoreSkill) {

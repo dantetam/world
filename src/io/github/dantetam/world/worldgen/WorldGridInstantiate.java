@@ -79,7 +79,6 @@ public class WorldGridInstantiate {
 				
 		Vector3i gridSizes = new Vector3i(100,100,60);
 		
-		
 		for (int r = 0; r < worldSize.x; r++) {
 			for (int c = 0; c < worldSize.y; c++) {
 				LocalGridBiome assignedBiome = LocalGridBiome.determineAllBiomeBroad(

@@ -16,6 +16,7 @@ import java.util.function.Supplier;
 
 import io.github.dantetam.toolbox.CollectionUtil;
 import io.github.dantetam.toolbox.MapUtil;
+import io.github.dantetam.toolbox.Pair;
 import io.github.dantetam.toolbox.log.CustomLog;
 import io.github.dantetam.vector.Vector3i;
 import io.github.dantetam.world.civhumanai.Ethos;
@@ -205,7 +206,7 @@ public class Society {
 		//For leftover processes that have not been assigned a utility yet
 		NeedsGamut needsIntensity = finalTotalNeedsMap();
 		for (LocalProcess process: ProcessData.getAllProcesses()) {
-			if (!processByUtil.containsKey(process) && canCompleteProcess(process, rawResRarity, grid, human)) {
+			if (!processByUtil.containsKey(process)) {
 				double heuristicActionScore = 0;
 				List<ProcessStep> resActions = process.processResActions;
 				if (resActions != null) {
@@ -284,44 +285,34 @@ public class Society {
 				
 				List<LocalProcess> processes = ProcessData.getProcessesByOutput(fringeId);
 				for (LocalProcess process: processes) {
-					List<InventoryItem> inputs = new ArrayList<>();
-					
-					if (process.requiredBuildNameOrGroup != null) {
-						for (Integer id: ItemData.getIdsFromNameOrGroup(process.requiredBuildNameOrGroup)) {
-							inputs.add(ItemData.createItem(id, 1));
-						}
-					}
-					if (process.requiredTileNameOrGroup != null) {
-						for (Integer id: ItemData.getIdsFromNameOrGroup(process.requiredTileNameOrGroup)) {
-							inputs.add(ItemData.createItem(id, 1));
-						}
-					}
-					for (InventoryItem input: process.inputItems) {
-						inputs.add(input);
-					}
-					
-					//CustomLog.outPrintln("Looking at process: " + process.toString());
-					
 					//TODO: Factor in counts into util. backprop calc.
-					for (InventoryItem input: inputs) {
-						double util = allItemsUtility.containsKey(input.itemId) ? 
-								allItemsUtility.get(input.itemId) : 0;
-						if (canCompleteProcess(process, rawResRarity, grid, human)) {
+					if (canCompleteProcess(process, rawResRarity, grid, human)) {
+						List<InventoryItem> inputs = new ArrayList<>();
+						if (process.requiredBuildNameOrGroup != null) {
+							for (Integer id: ItemData.getIdsFromNameOrGroup(process.requiredBuildNameOrGroup)) {
+								inputs.add(ItemData.createItem(id, 1));
+							}
+						}
+						if (process.requiredTileNameOrGroup != null) {
+							for (Integer id: ItemData.getIdsFromNameOrGroup(process.requiredTileNameOrGroup)) {
+								inputs.add(ItemData.createItem(id, 1));
+							}
+						}
+						for (InventoryItem input: process.inputItems) {
+							inputs.add(input);
+						}
+						
+						for (InventoryItem input: inputs) {
+							double util = allItemsUtility.containsKey(input.itemId) ? 
+									allItemsUtility.get(input.itemId) : 0;
+							
 							MapUtil.insertKeepMaxMap(bestProcesses, process.clone(), util);
-							//CustomLog.outPrintln("COMPLETE process: " + process.name + " " + util);
-							continue;
-						}
-						else {
-							//CustomLog.outPrintln("Could not complete process: " + process);
-						}
-						//if (util > 0)
-							//CustomLog.outPrintln("Found utility for base item: " + util);
-						//else 
-							//CustomLog.outPrintln("terminal");
-						if (!visitedItemIds.contains(input.itemId)) {
-							if (util > 0)
-								newFringe.add(input.itemId);
-								//CustomLog.outPrintln("Expanding from " + ItemData.getNameFromId(fringeId) + " -----> " + ItemData.getNameFromId(input.itemId));
+	
+							if (!visitedItemIds.contains(input.itemId)) {
+								if (util > 0)
+									newFringe.add(input.itemId);
+									//CustomLog.outPrintln("Expanding from " + ItemData.getNameFromId(fringeId) + " -----> " + ItemData.getNameFromId(input.itemId));
+							}
 						}
 					}
 				}
@@ -383,15 +374,23 @@ public class Society {
 				return false;
 			}
 			else {
-				boolean foundItem = false;
 				for (Integer id: intersectIds) {
 					if (rawResRarity.get(id) > 0) {
-						foundItem = true;
+						//The preliminary item finding test is successful
+						//Use the full access/tile search algorithm to determine truly if the process has a tile
+						//return true;
+						//TODO
+						
+						Pair<LocalTile> potentialTiles = LocalGridTimeExecution.assignTile(
+								grid, being, new HashSet<Human>() {{
+									if (being instanceof Human)
+										add((Human) being);
+								}}, process);
+						return potentialTiles != null;
+						
 					}
 				}
-				if (!foundItem) {
-					return false;
-				}
+				return false;
 			}
 		}
 			

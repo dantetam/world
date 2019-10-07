@@ -92,7 +92,10 @@ public class SkillProcessDistribution {
 		//Return y = a * F(x) + b
 		public double eval(double x) {
 			double fx = 0;
-			if (func == BasicFunction.POWER) {
+			if (func == BasicFunction.LINEAR) {
+				fx = x * n;
+			}
+			else if (func == BasicFunction.POWER) {
 				fx = Math.pow(x, n);
 			}
 			else if (func == BasicFunction.LOG) {
@@ -106,8 +109,8 @@ public class SkillProcessDistribution {
 	}
 	
 	public enum BasicFunction {
-		//x^n, log_n(x), sin(nx)
-		POWER, LOG, SIN
+		//nx, x^n, log_n(x), sin(nx)
+		LINEAR, POWER, LOG, SIN
 	}
 	
 	public static class NoiseDistribution {

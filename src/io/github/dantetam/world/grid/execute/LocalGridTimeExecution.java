@@ -481,13 +481,17 @@ public class LocalGridTimeExecution {
 	 */
 	private static void calcFinishedProcess(Society society, LocalGrid grid, Human human, LocalProcess process) {
 		//Change both human and societal ethos of this process
-		Map<Integer, Double> goodsProduced = process.outputItems.itemDropExpectation;
+		Map<Integer, Double> goodsProduced = new HashMap<>();
+		if (process.outputItems != null)
+			goodsProduced = process.outputItems.itemDropExpectation;
 		Map<Integer, Double> societalUtil = society.getCalcUtil();  
 		double score = MapUtil.dotProductOfMaps(goodsProduced, societalUtil);
 		
 		Map<String, Integer> actionNamesMap = new HashMap<>();
-		for (ProcessStep step: process.processResActions) {
-			MapUtil.addNumMap(actionNamesMap, step.stepType, step.modifier);
+		if (process.processResActions != null) {
+			for (ProcessStep step: process.processResActions) {
+				MapUtil.addNumMap(actionNamesMap, step.stepType, step.modifier);
+			}
 		}
 		NeedsGamut needsGamut = society.humanNeedsMap.get(human);
 		if (needsGamut == null) needsGamut = society.totalNeedsGamut;
@@ -556,7 +560,7 @@ public class LocalGridTimeExecution {
 	 * 
 	 * @return The harvest tile, followed by the tile to move to (within <= 1 distance)
 	 */
-	private static Pair<LocalTile> assignTile(LocalGrid grid, LivingEntity being, 
+	public static Pair<LocalTile> assignTile(LocalGrid grid, LivingEntity being, 
 			Set<Human> validOwners, LocalProcess process) {
 		
 		String tileName = process.requiredTileNameOrGroup;
@@ -588,10 +592,11 @@ public class LocalGridTimeExecution {
 					List<LocalTile> listEndGoals = new ArrayList<>();
 					for (Vector3i vec: neighbors) listEndGoals.add(grid.getTile(vec));
 					//Use batch pathfinder in speeding up this calculation
-					Map<LocalTile, ScoredPath> paths = grid.pathfinder.batchPathfinding(
+					Pair<Map<LocalTile, ScoredPath>> allPathingData = grid.pathfinder.batchPathfinding(
 							being, being.location, listEndGoals);
+					Map<LocalTile, ScoredPath> validPaths = allPathingData.first;
 					
-					for (Entry<LocalTile, ScoredPath> entry: paths.entrySet()) {
+					for (Entry<LocalTile, ScoredPath> entry: validPaths.entrySet()) {
 						LocalTile dest = entry.getKey();
 						ScoredPath scoredPath = grid.pathfinder.findPath(
 								being, being.location, dest);
@@ -603,14 +608,14 @@ public class LocalGridTimeExecution {
 							return pair;
 						}
 					}
-					System.err.println("Tile not reachable: " + candidate);
+					//System.err.println("Tile not reachable: " + candidate);
 				}
 				else {
-					System.err.println("Tile in use: " + tile.coords);
+					//System.err.println("Tile in use: " + tile.coords);
 				}
 			}
 			else {
-				System.err.println("Tile claimed: " + tile.coords);
+				//System.err.println("Tile claimed/no societal access: " + tile.coords);
 			}
 		}
 		
@@ -831,7 +836,7 @@ public class LocalGridTimeExecution {
 			}
 		}
 		
-		if (step.stepType.equals("SleepInBed")) {
+		if (step.stepType.equals("sleepInBed")) {
 			if (being.location.coords.areAdjacent14(primaryLocation)) {
 				return new SleepInBedPriority();
 			}
@@ -859,12 +864,17 @@ public class LocalGridTimeExecution {
 			}
 			else {
 				Object[] invData = being.inventory.findRemainingItemsNeeded(process.inputItems);
-				Map<Integer, Integer> regularItemNeeds = (Map) invData[0];
-				
+
+				List<InventoryItem> regularItemNeeds = (List) invData[2];
 				CustomLog.outPrintln("Searching for: " + regularItemNeeds);
+
+				if (regularItemNeeds.size() == 0) {
+					return new DonePriority();
+				}
 				
-				int firstItemNeeded = (Integer) regularItemNeeds.keySet().toArray()[0];
-				int amountNeeded = regularItemNeeds.get(firstItemNeeded);
+				InventoryItem chosenItem = regularItemNeeds.get(0);
+				int firstItemNeeded = chosenItem.itemId;
+				int amountNeeded = chosenItem.quantity;
 				
 				return progressToFindItem(grid, being, new HashSet<LivingEntity>() {{add(being);}}, 
 						new HashMap<Integer, Integer>() {{put(firstItemNeeded, amountNeeded);}}, 
@@ -1195,8 +1205,10 @@ public class LocalGridTimeExecution {
 				
 				if (being.inventory.findItemCountGroup(buildPriority.buildingName) >= 1 &&
 						tile.building == null) {
-					List<InventoryItem> items = being.inventory.subtractItem(buildPriority.buildingName, 1);
-					InventoryItem item = items.get(0);
+					Set<InventoryItem> items = being.inventory.subtractItem(
+							ItemData.item(buildPriority.buildingName, 1));
+					if (items == null || items.size() == 0) return new ImpossibleTaskPlaceholder();
+					InventoryItem item = items.iterator().next();
 					LocalBuilding newBuilding = ItemData.building(item.itemId);
 					grid.addBuilding(newBuilding, buildPriority.coords, false, buildPriority.owner);
 					return new DoneTaskPlaceholder();
@@ -1368,10 +1380,34 @@ public class LocalGridTimeExecution {
 				}
 			}
 			
-			return new ImpossibleTaskPlaceholder("Room has no accessible places to put buildings/items");
+			return new ImpossibleTaskPlaceholder("Room has no accessible places to put buildings");
 		}
 		else if (priority instanceof PlaceItemAnnoRoomPriority) {
-			TODO;
+			PlaceItemAnnoRoomPriority placePriority = (PlaceItemAnnoRoomPriority) priority;
+			AnnotatedRoom room = placePriority.room;
+			
+			for (GridRectInterval interval: room.fullRoom) {
+				Iterator<Vector3i> rangeOfVecs = interval.getRange();
+				while (rangeOfVecs.hasNext()) {
+					Vector3i vec = rangeOfVecs.next();
+					if (room.reservedBuiltSpace.containsKey(vec) && room.reservedBuiltSpace.get(vec) != null) {
+						continue;
+					}
+					else if (!grid.tileIsFullAccessible(vec)) {
+						continue;
+					}
+					else {
+						Map<String, Integer> items = placePriority.chosenNeedsMap;
+						String chosenItem = MapUtil.randChoiceFromMapUniform(items);
+						Inventory inventory = new Inventory();
+						inventory.addItem(ItemData.item(chosenItem, items.get(chosenItem)));
+						return getTasksFromPriority(grid, being, 
+								new ItemDeliveryPriority(vec, inventory));
+					}
+				}
+			}
+			
+			return new ImpossibleTaskPlaceholder("Room has no accessible places to put items");
 		}
 		else if (priority instanceof MovePriority) {
 			MovePriority movePriority = (MovePriority) priority;

@@ -12,6 +12,7 @@ public class SkillBook {
 	static int[] experienceNeeded = new int[MAX_LEVEL+2]; 
 	
 	private Map<String, Skill> skillMapping;
+	public static Map<String, String> skillAbbrev = new HashMap<>(); //Map shorter name -> full name
 	
 	//Use skill in implementing process efficiency/competency/quality,
 	//i.e. ability to do so, quality, time, wasted resources, etc.
@@ -34,16 +35,25 @@ public class SkillBook {
 		}
 	}
 	
-	public int getSkillLevel(String skillName) {
-		if (!skillMapping.containsKey(skillName)) {
-			System.err.println(this.skillMapping);
-			throw new IllegalArgumentException("Could not find skill name: " + skillName);
+	public Skill getSkill(String skillKey) {
+		if (!skillMapping.containsKey(skillKey)) {
+			if (skillAbbrev.containsKey(skillKey)) {
+				skillKey = skillAbbrev.get(skillKey);
+			}
 		}
-		return skillMapping.get(skillName).level;
+		if (!skillMapping.containsKey(skillKey)) {
+			System.err.println(skillMapping);
+			throw new IllegalArgumentException("Could not find skill name: " + skillKey);
+		}
+		return skillMapping.get(skillKey);
+	}
+	
+	public int getSkillLevel(String skillKey) {
+		return this.getSkill(skillKey).level;
 	}
 	
 	public void addExperienceToSkill(String skillName, int experience) {
-		Skill skill = skillMapping.get(skillName);
+		Skill skill = this.getSkill(skillName);
 		skill.allExp += experience;
 		if (experience > 0) {
 			if (skill.allExp >= experienceNeeded[skill.level + 1]) {
@@ -53,7 +63,7 @@ public class SkillBook {
 	}
 	
 	public void setSkillLevel(String skillName, int level) {
-		Skill skill = skillMapping.get(skillName);
+		Skill skill = this.getSkill(skillName);
 		skill.level = level;
 		skill.allExp = experienceNeeded[level + 1];
 	}

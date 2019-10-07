@@ -79,8 +79,8 @@ public class Human extends LivingEntity {
 	//A special metric for physical differences for sentient beings
 	//Note that this does not involve ethos, as ethos are calculated and used elsewhere
 	public double raceSimilarityScore(Human human) {
-		TODO; //Use culture and outward appearance ("sentient" judgement of beauty) to do this calculation
-		return this.dna.compareGenesDist(human.dna, "race");
+		//Use culture and outward appearance ("sentient" judgement of beauty) to do this calculation
+		return (this.dna.compareGenesDist(human.dna, "race") + this.dna.compareGenesDist(human.dna, "culture")) / 2.0;
 	}
 	
 	@Override

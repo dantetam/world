@@ -51,7 +51,7 @@ public class LocalProcess {
 	public SkillProcessDistribution skillProcDistr;
 	public Map<ProcessModKey, Double> currentSkillProcOutput; //Store for the current human working on this,
 		//various modifiers to the process, gained through skills, circumstances, world conditions like climate, etc.
-	TODO; //Implement all keys of currentSkillProcOutput in LocalGridTimeExecution
+	//TODO; //Implement all keys of currentSkillProcOutput in LocalGridTimeExecution
 	
 	public LocalProcess(String name, List<InventoryItem> input, ItemTotalDrops output, 
 			String buildingName, boolean site, String tileFloorId, 
@@ -73,9 +73,11 @@ public class LocalProcess {
 	//Change the values in currentSkillProcOutput to update for the human
 	public void applySkillProcessDistr(Human human) {
 		this.currentSkillProcOutput = new HashMap<>();
-		for (SkillProcessMod mod: this.skillProcDistr.skillProcessMods) {
-			double value = mod.func.eval(human.skillBook.getSkillLevel(mod.skillName));
-			MapUtil.addNumMap(this.currentSkillProcOutput, mod.processKey, value);
+		if (this.skillProcDistr != null) {
+			for (SkillProcessMod mod: this.skillProcDistr.skillProcessMods) {
+				double value = mod.func.eval(human.skillBook.getSkillLevel(mod.skillName));
+				MapUtil.addNumMap(this.currentSkillProcOutput, mod.processKey, value);
+			}
 		}
 	}
 	

@@ -4,6 +4,8 @@ import java.util.List;
 
 import org.apache.commons.csv.CSVRecord;
 
+import io.github.dantetam.world.civilization.SkillBook;
+
 public class SkillCSVParser extends WorldCsvParser {
 
 	public static void init() {
@@ -18,6 +20,13 @@ public class SkillCSVParser extends WorldCsvParser {
 			boolean isCoreSkill = isCoreSkillStr != null && !isCoreSkillStr.isBlank();
 			
 			SkillData.addSkill(name, isCoreSkill);
+			
+			String abbrev = record.get("Abbreviation");
+			if (!abbrev.isBlank()) {
+				if (!SkillBook.skillAbbrev.containsKey(abbrev)) {
+					SkillBook.skillAbbrev.put(abbrev, name);
+				}
+			}
 		}
 	}
 	

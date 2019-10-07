@@ -195,10 +195,26 @@ public class ProcessCSVParser extends WorldCsvParser {
 			skillProcDistr = parseSkillProcDistr(skillProcString);
 		}
 		else {
-			TODO;
 			//Generate a default skill process distribution based on the skills used in the process,
 			//if any skills were used.
+			List<String> skillNames = new ArrayList<>();
+			for (ProcessStep step: steps) {
+				if (step.stepType.startsWith("S") || step.stepType.startsWith("U")) {
+					String skillName = step.stepType.substring(1);
+					skillNames.add(skillName);
+				}
+			}
 			
+			if (skillNames.size() != 0) { 	
+				//Separated loops, in case of a multivariate function later on that requires all skill names at once
+				String inputModsString = "";
+				for (String skillName: skillNames) {
+					inputModsString += skillName + ",outQuality,1,0.3,LINEAR," + (1.7 / 20) + ";";
+					inputModsString += skillName + ",outQuantMulti,1,0.75,LINEAR," + (2.25 / 20) + ";";
+					inputModsString += skillName + ",timeSupMul,1,1,LINEAR," + (-0.5 / 20) + ";";
+				}
+				skillProcDistr = parseSkillProcDistr(inputModsString);
+			}
 		}
 		
 		ProcessData.addProcess(processName, inputItems, processOutput, 
@@ -240,10 +256,11 @@ public class ProcessCSVParser extends WorldCsvParser {
 		SkillProcessDistribution distr = new SkillProcessDistribution();
 		String[] mods = string.split(";");
 		for (String mod: mods) {
+			if (mod.isBlank()) continue;
 			String[] tokens = mod.split(",");
-			if (tokens.length != 6 || tokens.length != 9) {
-				throw new IllegalArgumentException("Skill Proc Distribution Parsing takes 6 or 9 args: "
-						+ "see documentation in SkillProcessDistribution.java");
+			if (tokens.length != 6 && tokens.length != 9) {
+				throw new IllegalArgumentException("Skill Proc Distribution Parsing takes 6 or 9 args, "
+						+ "see documentation in SkillProcessDistribution.java. Given input: " + mod);
 			}
 			
 			try {

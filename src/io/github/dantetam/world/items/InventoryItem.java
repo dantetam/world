@@ -88,6 +88,10 @@ public class InventoryItem {
 			List<ItemQuality> enumList = Arrays.asList(ItemQuality.values());
 			return enumList.indexOf(inspect) >= enumList.indexOf(goal);
 		}
+		
+		public static int getIndex(ItemQuality quality) {
+			return Arrays.asList(ItemQuality.values()).indexOf(quality);
+		}
 	}
 	
 	
