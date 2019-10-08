@@ -226,7 +226,7 @@ public class ItemData {
 	
 	public static int generateItem(String name) {
 		GENERATED_BASE_ID++;
-		CustomLog.outPrintln("Generated item: " + GENERATED_BASE_ID);
+		CustomLog.outPrintln("Generated item of name: " + name + ", id: " + GENERATED_BASE_ID);
 		addItemToDatabase(GENERATED_BASE_ID, name, false, null, 15, ItemData.ITEM_EMPTY_ID, 
 				null, 100, 0.0, 1.0, null, null, null);
 		return GENERATED_BASE_ID;

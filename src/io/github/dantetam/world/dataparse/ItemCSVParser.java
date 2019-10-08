@@ -104,6 +104,7 @@ public class ItemCSVParser extends WorldCsvParser {
 		double beautyValue = beautyValueStr.isBlank() ? 1.0 : Double.parseDouble(beautyValueStr);
 		
 		String processString = record.get("Action");
+		
 		List<ProcessStep> itemActions = null;
 		if (!processString.isBlank()) {
 			itemActions = ProcessCSVParser.getProcessingSteps(processString);

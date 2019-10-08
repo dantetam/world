@@ -352,11 +352,13 @@ public class RSRPathfinder extends Pathfinder {
 				}
 			}
 		}	
+		/*
 		for (Entry<LocalTile, ScoredPath> entry: scoring.entrySet()) {
 			System.err.println(entry.getKey());
 			System.err.println(entry.getValue());
 			System.err.println("---------------");
 		}
+		*/
 		return new Pair<Map<LocalTile, ScoredPath>>(MapUtil.getSortedMapByValueAsc(scoring), impossiblePaths);
 	}
 	public Pair<Map<LocalTile, ScoredPath>> batchPathfinding(LivingEntity being, LocalTile start, 

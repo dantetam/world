@@ -39,6 +39,7 @@ import io.github.dantetam.world.process.LocalJob;
 import io.github.dantetam.world.process.LocalProcess;
 import io.github.dantetam.world.process.LocalProcess.ProcessStep;
 import io.github.dantetam.world.process.LocalSocietyJob;
+import kdtreegeo.KdTree;
 
 public class Society {
 
@@ -220,6 +221,18 @@ public class Society {
 				}
 				if (heuristicActionScore > 0)
 					processByUtil.put(process.clone(), heuristicActionScore);
+			}
+		}
+		
+		//Manual changing of some processes' utility to create more vibrance / 
+		//decrease artifacts of mathematical algorithm e.g. too many Consume Item... processes
+		//having too much weight in this system.
+		for (Entry<LocalProcess, Double> procEntry: processByUtil.entrySet()) {
+			LocalProcess proc = procEntry.getKey();
+			if (proc.name.startsWith("Consume Item")) {
+				double newValue = procEntry.getValue() * 0.1;
+				newValue = Math.min(newValue, 0.5);
+				procEntry.setValue(newValue);
 			}
 		}
 		
@@ -660,8 +673,8 @@ public class Society {
 	private Map<Integer, Double> backpropUtilToComponents(Map<Integer, Double> finalOutputUtility, 
 			Set<Integer> availableItemIds, Human human) {
 		
-		System.err.println("####################:");
-		System.err.println(MapUtil.getSortedMapByValueAsc(finalOutputUtility));
+		//System.err.println("####################:");
+		//System.err.println(MapUtil.getSortedMapByValueAsc(finalOutputUtility));
 		
 		Map<Integer, Double> newFinalUtility = new HashMap<>(finalOutputUtility);
 
@@ -723,7 +736,7 @@ public class Society {
 					}
 				}
 				
-				CustomLog.outPrintln("");
+				//CustomLog.outPrintln("");
 			}
 			fringe = newFringe;
 		}
@@ -865,7 +878,7 @@ public class Society {
 		
 		for (Entry<Integer, Double> entry: rawResRarity.entrySet()) {
 			int itemId = entry.getKey();
-			if (ItemData.isPlaceable(itemId) && ItemData.isValidBuildingMaterial(itemId)) {
+			if (ItemData.isPlaceable(itemId)) { //ItemData.isValidBuildingMaterial(itemId)
 				int pickupTime = ItemData.getPickupTime(itemId);
 				double strength = Math.pow(pickupTime / 100.0, 1.5);
 				bestBuildingMaterials.put(itemId, rawResRarity.get(itemId) * strength);

@@ -952,7 +952,13 @@ public class LocalGridTimeExecution {
 				return new UnsupervisedDesignation();
 			}
 		}
-		else if (step.stepType.equals("O") || step.stepType.equals("OArtwork")) {
+		else if (step.stepType.equals("O") || step.stepType.equals("OArtwork") || step.stepType.equals("D")) {
+			if (step.stepType.equals("D")) {
+				if (process.processBuilding != null) {
+					grid.removeBuilding(process.processBuilding);
+				}
+			}
+			
 			List<InventoryItem> outputItems = process.outputItems.getOneItemDrop();
 			for (InventoryItem item: outputItems) {
 				item.owner = ownerProducts;
@@ -1072,7 +1078,14 @@ public class LocalGridTimeExecution {
 				return new UnsupervisedDesignation();
 			}
 		}
-		else if (step.stepType.equals("O") || step.stepType.equals("OArtwork")) {
+		else if (step.stepType.equals("O") || step.stepType.equals("OArtwork") || step.stepType.equals("D")) {
+			if (step.stepType.equals("D")) {
+				if (process.processBuilding != null) {
+					grid.removeBuilding(process.processBuilding);
+					
+					//TODO; //Fix "D" so that it factors into process backprop
+				}
+			}
 			List<InventoryItem> outputItems = process.outputItems.getOneItemDrop();
 			for (InventoryItem item: outputItems) {
 				item.owner = unsupervHuman;
@@ -1189,9 +1202,18 @@ public class LocalGridTimeExecution {
 		}
 		else if (priority instanceof TilePlacePriority) {
 			TilePlacePriority tilePriority = (TilePlacePriority) priority;
+			LocalTile tile = grid.getTile(tilePriority.coords);
 			
-			int placeTime = 10;
-			tasks.add(new PlaceBlockTileTask(placeTime, tilePriority.coords, tilePriority.materialId));
+			if (tile != null && tile.tileBlockId == tilePriority.materialId) {
+				return new DoneTaskPlaceholder();
+			}
+			if (tilePriority.coords.areAdjacent14(being.location.coords)) {
+				int placeTime = 10;
+				tasks.add(new PlaceBlockTileTask(placeTime, tilePriority.coords, tilePriority.materialId));
+			}
+			else {
+				return getTasksFromPriority(grid, being, new MoveTolDistOnePriority(tilePriority.coords));
+			}
 		}
 		else if (priority instanceof BuildingPlacePriority) {
 			BuildingPlacePriority buildPriority = (BuildingPlacePriority) priority;
@@ -1258,14 +1280,11 @@ public class LocalGridTimeExecution {
 		}
 		else if (priority instanceof ConstructRoomPriority) {
 			ConstructRoomPriority consPriority = (ConstructRoomPriority) priority;
-			if (consPriority.remainingBuildCoords.size() == 0) {
-				grid.setInUseRoomSpace(consPriority.allBuildingCoords, true);
-				return new DoneTaskPlaceholder();
-			}
 			
 			Vector3i bestLocation = null;
-			while (bestLocation == null || grid.getTile(bestLocation).tileFloorId == ItemData.ITEM_EMPTY_ID) {
+			while (bestLocation == null || !grid.tileIsPartAccessible(bestLocation)) {
 				if (consPriority.remainingBuildCoords.size() == 0) {
+					grid.setInUseRoomSpace(consPriority.allBuildingCoords, true);
 					return new DoneTaskPlaceholder();
 				}
 				bestLocation = consPriority.remainingBuildCoords.iterator().next();
@@ -1280,7 +1299,8 @@ public class LocalGridTimeExecution {
 			}
 			
 			for (int materialId: rankedMaterials) {
-				Priority itemSearchPriority = progressToFindItem(grid, being, new HashSet<LivingEntity>() {{add(being);}}, 
+				Priority itemSearchPriority = progressToFindItem(grid, being, 
+						new HashSet<LivingEntity>() {{add(being);}}, 
 						new HashMap<Integer, Integer>() {{
 							put(materialId, consPriority.remainingBuildCoords.size());
 						}}, 
@@ -1293,6 +1313,7 @@ public class LocalGridTimeExecution {
 							);
 				}
 			}
+			
 			return new ImpossibleTaskPlaceholder();
 		}
 		else if (priority instanceof ImproveRoomPriority) {

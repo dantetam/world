@@ -24,6 +24,7 @@ import io.github.dantetam.world.ai.RSRPathfinder;
 import io.github.dantetam.world.civilization.Society;
 import io.github.dantetam.world.dataparse.ItemData;
 import io.github.dantetam.world.dataparse.WorldCsvParser;
+import io.github.dantetam.world.grid.SpaceFillingAlg.NeighborMode;
 import io.github.dantetam.world.items.Inventory;
 import io.github.dantetam.world.items.InventoryItem;
 import io.github.dantetam.world.life.Human;
@@ -561,23 +562,10 @@ public class LocalGrid {
 			}
 			this.clustersList3d.remove(clusterToRemove);
 			
-			List<ClusterVector3i> foundClusters = new ArrayList<>();
-			for (Vector3i neighbor: neighbors14) {
-				ClusterVector3i candidateCluster = SpaceFillingAlg.findSingleComponent(this, neighbor, 
-						SpaceFillingAlg.NeighborMode.ADJ_14);
-				if (candidateCluster == null || candidateCluster.clusterData.size() == 0) continue;
-				boolean countedTwice = false;
-				for (ClusterVector3i otherCluster: foundClusters) {
-					if (CollectionUtil.colnsHasIntersect(candidateCluster.clusterData, otherCluster.clusterData)) {
-						countedTwice = true;
-						break;
-					}
-				}
-				if (!countedTwice) {
-					foundClusters.add(candidateCluster);
-				}
-			}
-			
+			//Replace the cluster with one or more clusters, which is possible if a cluster becomes separated
+			//from itself i.e. there is no path from some tile A -> B
+			List<ClusterVector3i> foundClusters = SpaceFillingAlg.findAllComponents(
+					this, neighbors14, NeighborMode.ADJ_14);
 			for (ClusterVector3i cluster: foundClusters) {
 				for (Vector3i vec: cluster.clusterData) {
 					this.connectedCompsMap.put(vec, compNumCounter);
@@ -588,33 +576,10 @@ public class LocalGrid {
 			
 			
 			//Do the same for 2d clusters
-			clusterToRemove = null;
-			for (ClusterVector3i cluster: this.clustersList2dSurfaces) {
-				if (cluster.clusterData.contains(coords)) {
-					clusterToRemove = cluster;
-					break;
-				}
-			}
-			this.clustersList2dSurfaces.remove(clusterToRemove);
-			 
-			foundClusters = new ArrayList<>();
-			for (Vector3i neighbor: neighbors8) {
-				ClusterVector3i candidateCluster = SpaceFillingAlg.findSingleComponent(this, neighbor, 
-						SpaceFillingAlg.NeighborMode.ADJ_8);
-				if (candidateCluster == null || candidateCluster.clusterData.size() == 0) continue;
-				boolean countedTwice = false;
-				for (ClusterVector3i otherCluster: foundClusters) {
-					if (CollectionUtil.colnsHasIntersect(candidateCluster.clusterData, otherCluster.clusterData)) {
-						countedTwice = true;
-						break;
-					}
-				}
-				if (!countedTwice) {
-					foundClusters.add(candidateCluster);
-				}
-			}
+			List<ClusterVector3i> foundClusters8 = SpaceFillingAlg.findAllComponents(
+					this, neighbors8, NeighborMode.ADJ_8);
 			
-			for (ClusterVector3i cluster: foundClusters) {
+			for (ClusterVector3i cluster: foundClusters8) {
 				for (Vector3i vec: cluster.clusterData) {
 					this.connectedCompsMap2d.put(vec, compNumCounter);
 				}
@@ -736,6 +701,13 @@ public class LocalGrid {
 	
 	public KdTree<Vector3i> getKdTreeForBuildings(Integer buildId) {
 		return this.buildIdQuickTileLookup.get(buildId);
+	}
+	
+	/**
+	 * For information only, no modification of this data set
+	 */
+	public Map<Integer, KdTree<Vector3i>> getInfoMapBuildings() {
+		return this.buildIdQuickTileLookup;
 	}
 	
 	public boolean buildingWithinBounds(LocalBuilding building, Vector3i newPrimaryCoords) {

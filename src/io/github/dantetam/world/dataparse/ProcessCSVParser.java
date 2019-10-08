@@ -57,6 +57,7 @@ public class ProcessCSVParser extends WorldCsvParser {
 				
 				List<String> groupNames = ItemCSVParser.groupSyntaxShortcuts.get(groupName);
 				if (groupNames == null) {
+					CustomLog.errPrintln("(ProcessCSVParser) Given input: " + record.toString());
 					CustomLog.errPrintln("(ProcessCSVParser) Could not find group name: " + groupName);
 				}
 				else {

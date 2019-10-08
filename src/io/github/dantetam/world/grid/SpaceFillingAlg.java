@@ -203,7 +203,6 @@ public class SpaceFillingAlg {
 		
 	public static ClusterVector3i findSingleComponent(
 			LocalGrid grid, Vector3i coords, NeighborMode mode) {
-
 		Set<Vector3i> visitedSet = new HashSet<>();
 
 		Set<Vector3i> singleComponent = new HashSet<>();
@@ -234,6 +233,46 @@ public class SpaceFillingAlg {
 	}
 	public static enum NeighborMode {
 		ADJ_6, ADJ_8, ADJ_14, ADJ_26
+	}
+	
+	/**
+	 * Return all connected components spreading from a set of vectors.
+	 * Note that all vectors reachable from the starting set, are linked to exactly one cluster 
+	 */
+	public static List<ClusterVector3i> findAllComponents(
+			LocalGrid grid, Set<Vector3i> multipleCoords, NeighborMode mode) {
+		Set<Vector3i> visitedSet = new HashSet<>();
+		List<ClusterVector3i> components = new ArrayList<>();
+		
+		for (Vector3i coords: multipleCoords) {
+			Set<Vector3i> singleComponent = new HashSet<>();
+			Set<Vector3i> fringe = new HashSet<Vector3i>() {{add(coords);}};
+			while (fringe.size() > 0) {
+				Set<Vector3i> newFringe = new HashSet<>();
+				for (Vector3i fringeVec: fringe) {
+					if (visitedSet.contains(fringeVec)) continue;
+					if (!grid.tileIsPartAccessible(fringeVec)) continue;
+					
+					visitedSet.add(fringeVec);
+					singleComponent.add(fringeVec);
+					Set<Vector3i> neighbors = grid.getAllNeighbors6(fringeVec);
+					
+					if (mode == NeighborMode.ADJ_8) neighbors = grid.getAllNeighbors8(fringeVec);
+					else if (mode == NeighborMode.ADJ_14) neighbors = grid.getAllNeighbors14(fringeVec);
+					else if (mode == NeighborMode.ADJ_26) neighbors = grid.getAllNeighbors26(fringeVec);
+					
+					for (Vector3i neighborVec: neighbors) {
+						newFringe.add(neighborVec);
+					}
+				}
+				fringe = newFringe;
+			}
+			if (singleComponent.size() != 0) {
+				components.add(new ClusterVector3i(singleComponent.iterator().next(), singleComponent));
+			}
+		}
+		
+		return components;
 	}
 	
 	/**
