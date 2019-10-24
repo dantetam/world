@@ -41,6 +41,15 @@ public class AnnotatedRoom {
 		return false;
 	}
 	
+	/**
+	 * @return A tile within the interior (not the walls or floors) of this room,
+	 * 		for pathfinding purposes.
+	 */
+	public Vector3i getVecInterior() {
+		GridRectInterval randInterval = fullRoom.get((int) (fullRoom.size() * Math.random()));
+		return randInterval.getStart().getSum(1,1,0);
+	}
+	
 	public void initBuildStoreNeeds(Map<String, Integer> placeBuilds, Map<String, Integer> optBuilds,
 			Map<String, Integer> reqStorage, Map<String, Integer> optStorage) {
 		this.origBuildCounts = placeBuilds;

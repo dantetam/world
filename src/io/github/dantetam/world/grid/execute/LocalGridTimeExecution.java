@@ -166,13 +166,21 @@ public class LocalGridTimeExecution {
 		//While a process is in 'grid queue' i.e. it is unsupervised,
 		//tick it down using the same LocalGridTimeExecution::getPriorityForStep(...) protocols,
 		//but made generic with no humans involved.
-		 * @return true if the process is done and must be removed from all queues
+		@return true if the process is done and must be removed from all queues
 	 */
 	public static boolean deconstructionProcessGeneric(LivingEntity unsupervHuman, LocalGrid grid, LocalProcess process) {
+		//Assign the location of the process where the steps are undertaken
+		if (process.requiredBuildNameOrGroup != null && process.processBuilding == null) {
+			assignBuilding(grid, unsupervHuman, process, null, process.requiredBuildNameOrGroup);
+		}
+		else if (process.requiredTileNameOrGroup != null && process.processTile == null) {
+			assignTile(grid, unsupervHuman, null, process);
+		}
+		
 		//Follow through with one step, deconstruct into a priority, and get its status back.
 		if (process.processStepIndex >= 0 && process.processStepIndex < process.processSteps.size()) {
 			ProcessStep step = process.processSteps.get(process.processStepIndex);
-
+			
 			Priority activePriority = getPriorForStepUnsupervBasic(grid, unsupervHuman, process, step);
 			
 			if (activePriority instanceof DonePriority || 
@@ -249,6 +257,7 @@ public class LocalGridTimeExecution {
 		}
 		if (human.activePriority != null && //Assign tasks if there are none (do not overwrite existing tasks)
 				(human.currentQueueTasks == null || human.currentQueueTasks.size() == 0)) {
+			CustomLog.outPrintln(human.name + ", needs new tasks from priority: " + human.activePriority.toString()); 
 			human.currentQueueTasks = getTasksFromPriority(grid, human, human.activePriority);
 			
 			if (human.currentQueueTasks != null) {
@@ -275,6 +284,7 @@ public class LocalGridTimeExecution {
 				human.activePriority = getPriorityForStep(society, grid, human, human, process, step);
 				String priorityName = human.activePriority == null ? "null" : human.activePriority.toString();
 				CustomLog.outPrintln(human.name + ", for its process: " + process.toString() + ", ");
+						CustomLog.outPrintln("on process step: " + process.processSteps.get(process.processStepIndex));
 						CustomLog.outPrintln("was given the PRIORITY: " + priorityName);
 			}
 			if (human.activePriority instanceof UnsupervisedDesignation) {
@@ -380,10 +390,12 @@ public class LocalGridTimeExecution {
 		}
 		if (human.activePriority != null && //Assign tasks if there are none (do not overwrite existing tasks)
 				(human.currentQueueTasks == null || human.currentQueueTasks.size() == 0)) {
+			CustomLog.outPrintln(human.name + ", needs new tasks from priority: " + human.activePriority.toString()); 
 			human.currentQueueTasks = getTasksFromPriority(grid, human, human.activePriority);
 			
 			if (human.currentQueueTasks != null) {
-				String firstTaskString = human.currentQueueTasks.size() > 0 ? human.currentQueueTasks.get(0).toString() : "tasks is empty";
+				String firstTaskString = human.currentQueueTasks.size() > 0 ? 
+						human.currentQueueTasks.get(0).toString() : "tasks is empty: " + human.currentQueueTasks.toString();
 				CustomLog.outPrintln(human.name + " was assigned " + human.currentQueueTasks.size() + " tasks, first: " + firstTaskString); 
 			}
 			else {
@@ -517,9 +529,8 @@ public class LocalGridTimeExecution {
 		human.brain.experiences.add(processExp);
 	}
 	
-	
 
-	private static LocalBuilding assignBuilding(LocalGrid grid, LivingEntity being, LocalProcess process,
+	public static LocalBuilding assignBuilding(LocalGrid grid, LivingEntity being, LocalProcess process,
 			Set<Human> capitalOwners, String buildingName) {
 		int id = ItemData.getIdFromName(buildingName);
 		KdTree<Vector3i> nearestItemsTree = grid.getKdTreeForBuildings(id);
@@ -1172,6 +1183,20 @@ public class LocalGridTimeExecution {
 				return getTasksFromPriority(grid, being, new MoveTolDistOnePriority(itemPriority.coords));
 			}
 		}
+		else if (priority instanceof ItemGroupPickupPriority) {
+			ItemGroupPickupPriority itemPriority = (ItemGroupPickupPriority) priority;
+			if (itemPriority.coords.areAdjacent14(being.location.coords)) {
+				TODO;
+				//grid.getTile(itemPriority.coords).building.inventory.subtractItem(itemPriority.item);
+				//being.inventory.addItem(itemPriority.item);
+				
+				//grid.removeItemRecordToWorld(itemPriority.coords, itemPriority.item);
+				return new DoneTaskPlaceholder();
+			}
+			else {
+				return getTasksFromPriority(grid, being, new MoveTolDistOnePriority(itemPriority.coords));
+			}
+		}
 		else if (priority instanceof ItemDeliveryBuildingPriority) {
 			ItemDeliveryBuildingPriority itemPriority = (ItemDeliveryBuildingPriority) priority;
 			if (itemPriority.coords.areAdjacent14(being.location.coords)) {
@@ -1546,6 +1571,8 @@ public class LocalGridTimeExecution {
 		else if (priority instanceof DonePriority) {
 			return new DoneTaskPlaceholder();
 		}
+		
+		CustomLog.errPrintln("Warning, no handling of the priority: " + priority.toString());
 		return tasks;
 	}
 	

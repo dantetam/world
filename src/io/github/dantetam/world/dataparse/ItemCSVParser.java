@@ -198,7 +198,7 @@ public class ItemCSVParser extends WorldCsvParser {
 				} catch (NullPointerException e) {
 					//e.printStackTrace();
 					CustomLog.errPrintln("Could not find item name: " + itemName);
-					id = ItemData.generateItem(itemName);
+					id = ItemData.generateNewItemId(itemName);
 				}
 				
 				try {

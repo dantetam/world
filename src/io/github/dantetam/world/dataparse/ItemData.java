@@ -64,6 +64,15 @@ public class ItemData {
 		return null;
 	}
 	
+	public static InventoryItem createItemFromName(String name, int quantity) {
+		if (!itemNamesToIds.containsKey(name)) {
+			throw new IllegalArgumentException("Cannot create item instance from name: " + name);
+		}
+		int id = itemNamesToIds.get(name);
+		InventoryItem item = allItemsById.get(id);
+		return cloneItem(item, quantity);
+	}
+	
 	public static InventoryItem cloneItem(InventoryItem item) {
 		return cloneItem(item, item.quantity);
 	}
@@ -224,7 +233,7 @@ public class ItemData {
 		GENERATED_BASE_ID = Math.max(GENERATED_BASE_ID, id); 
 	}
 	
-	public static int generateItem(String name) {
+	public static int generateNewItemId(String name) {
 		GENERATED_BASE_ID++;
 		CustomLog.outPrintln("Generated item of name: " + name + ", id: " + GENERATED_BASE_ID);
 		addItemToDatabase(GENERATED_BASE_ID, name, false, null, 15, ItemData.ITEM_EMPTY_ID, 
@@ -232,6 +241,9 @@ public class ItemData {
 		return GENERATED_BASE_ID;
 	}
 	
+	/**
+	 * @return all group names associated with this id. Null implies this item id is not within any group.
+	 */
 	public static Set<String> getGroupNameById(int id) {
 		return groupNameById.get(id);
 	}

@@ -1,5 +1,6 @@
 package io.github.dantetam.world.items;
 
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -13,6 +14,7 @@ import java.util.Comparator;
 
 import io.github.dantetam.toolbox.MapUtil;
 import io.github.dantetam.world.dataparse.ItemData;
+import io.github.dantetam.world.dataparse.WorldCsvParser;
 import io.github.dantetam.world.items.InventoryItem.ItemQuality;
 import io.github.dantetam.world.life.Human;
 import io.github.dantetam.world.life.LivingEntity;
@@ -175,8 +177,199 @@ public class Inventory {
 				}
 			}
 		}
-		
 		return new Object[] {neededItems.size() != 0, countedItems, neededItems};
+	}
+	
+	//Find an algorithm that factors in quality, by choosing the items that have the lowest viable quality
+	/**
+	 * @param requiredGroups A list of GroupItem with group names and quantity counts (split by quality).
+	 * 		For now, the quality matches are strictly equal or better.
+	 * 
+	 * This has to be a much more complex constraint satisfaction problem (CSP), 
+	 * because of the following case:
+	 * 
+	 * Consider a desire for items of group A, 5 good quality, and group B, 3 normal quality.
+	 * Consider two items 
+	 * (group A/B, 3) (group B, 5)
+	 * 
+	 * If a naive searching/greedy alg. picks group A/B, 3 to fill the desire for B,
+	 * then there are no more items to fill the desire for item A. 
+	 * A solution group A/B, 3 -> A and group B, 3 -> B clearly exists here.
+	 * 
+	 * @return Two maps containing the items needed to complete the request that are not in this inventory
+	 *  	The inventory items that can be used to fulfill this request, if possible
+	 */
+	public Object[] findRemainingGroupsNeeded(List<GroupItem> requiredGroupsOrig) {		
+		List<GroupItem> reqGroups = new ArrayList<>();
+		for (GroupItem reqItem: requiredGroupsOrig) {
+			reqGroups.add(reqItem.clone());
+		}
+		
+		//Map<GroupItem, Set<InventoryItem>> countedItems = new HashMap<>();
+		
+		//Clone the inventory and use items as necessary to reduce the demand count
+		if (itemsMappedById != null) {
+			Map<InventoryItem, Set<Integer>> ableSatisfyItemToNeedIndex = new HashMap<>();
+			
+			for (Entry<Integer, List<InventoryItem>> inventoryEntry: itemsMappedById.entrySet()) {
+				//Sort the items in this inventory by quality DEscending
+				int itemId = inventoryEntry.getKey();
+				
+				if (this.currentSortedQualityMapId.containsKey(itemId) &&
+						this.currentSortedQualityMapId.get(itemId)) {
+					Collections.sort(inventoryEntry.getValue(), new Comparator<InventoryItem>() {
+						public int compare(InventoryItem o1, InventoryItem o2) {
+							return ItemQuality.getIndex(o2.quality) - ItemQuality.getIndex(o1.quality);
+						}
+					});
+					this.currentSortedQualityMapId.put(itemId, true);
+				}
+				
+				List<InventoryItem> itemsWithId = inventoryEntry.getValue();
+				
+				for (InventoryItem invItem: itemsWithId) {
+					if (invItem.quantity <= 0) continue;
+					for (int groupReqIndex = 0; groupReqIndex < reqGroups.size(); groupReqIndex++) {
+						GroupItem reqItem = reqGroups.get(groupReqIndex);
+						if (reqItem.desiredCount <= 0) continue;
+						if (ItemQuality.equalOrBetter(reqItem.qualityMin, invItem.quality)) {
+							MapUtil.insertNestedSetMap(ableSatisfyItemToNeedIndex, invItem.clone(), groupReqIndex);
+						}
+						else {
+							break;
+						}
+					}
+				}
+			}
+			
+			//A graph is contained within ableSatisfyItemToNeedIndex,
+			//which contains every item mapped to every possible need that the item can fulfill.
+			//Now, start a CSP backtracking process where the items that fulfill the least needs,
+			//are "used" first to fulfill needs. 
+			//Backtrack one decision if the current solution is impossible.
+			//End either once a solution is found,
+			//or there are no more satisfying relationships (no solution).
+			
+			List<ItemSatisfy> storedStackUsedNeeds = new ArrayList<>();
+			Set<Entry<InventoryItem, GroupItem>> forbiddenSat = new HashSet<>();
+			
+			//Use this to hold a record of the best current fulfillment of the needs,
+			//based on item counts and item type counts that were matched.
+			//This result is important for returning a good guess of what more to get,
+			//to fulfill the request fully.
+			List<ItemSatisfy> bestPartialMatchTrack = null;
+			
+			int needsSatisfied = 0;
+			
+			while (true) { //ableSatisfyItemToNeedIndex.size() > 0
+				Entry<InventoryItem, Set<Integer>> minEntry = null;
+				for (Entry<InventoryItem, Set<Integer>> entry: ableSatisfyItemToNeedIndex.entrySet()) {
+					if (minEntry == null || minEntry.getValue().size() < entry.getValue().size()) {
+						minEntry = entry;
+					}
+				}
+				
+				InventoryItem usedItem = minEntry.getKey();
+				
+				boolean foundMatching = false;
+				for (int randomNeedIndex : minEntry.getValue()) {
+					GroupItem need = reqGroups.get(randomNeedIndex);
+					
+					if (forbiddenSat.contains(new AbstractMap.SimpleEntry<>(usedItem, need))) {
+						continue;
+					}
+					
+					if (need.desiredCount > 0) {
+						int use = Math.min(need.desiredCount, usedItem.quantity);
+						need.desiredCount -= use;
+						usedItem.quantity -= use;
+						
+						ItemSatisfy chosenFulfill = new ItemSatisfy(usedItem, need, use);
+						storedStackUsedNeeds.add(chosenFulfill);
+						
+						//Update bestPartialMatchTrack with the current longest result
+						if (bestPartialMatchTrack == null || bestPartialMatchTrack.size() < storedStackUsedNeeds.size()) {
+							//Use a clone because storedStackUsedNeeds can modify and add more to its sequence
+							bestPartialMatchTrack = new ArrayList<>(storedStackUsedNeeds);
+						}
+						
+						if (usedItem.quantity == 0) {
+							ableSatisfyItemToNeedIndex.remove(usedItem);
+							needsSatisfied++;
+							if (needsSatisfied == reqGroups.size()) { //Found a solution
+								Map<InventoryItem, Integer> itemUsage = new HashMap<>();
+								for (ItemSatisfy itemUse: storedStackUsedNeeds) {
+									MapUtil.addNumMap(itemUsage, itemUse.itemUsed, itemUse.numUsed);
+								}
+								return new Object[] {true, itemUsage, new ArrayList<>()};
+							}
+						}
+						
+						foundMatching = true;
+						break;
+					}
+				}
+				if (!foundMatching) {
+					if (storedStackUsedNeeds.size() == 0) {
+						//No solution, return the best partial match
+						Map<InventoryItem, Integer> itemUsage = new HashMap<>();
+						for (ItemSatisfy itemUse: bestPartialMatchTrack) {
+							MapUtil.addNumMap(itemUsage, itemUse.itemUsed, itemUse.numUsed);
+							
+							//Return a copy of all the needs that need to be satisfied
+							reqGroups.remove(itemUse.needSatisfied);
+						}
+						return new Object[] {false, bestPartialMatchTrack, reqGroups};
+					}
+					else {
+						//This item satisfaction is guaranteed to not lead to a solution
+						//i.e. a sequence of item satisfactions [i_1, i_2, ..., i_N-1, i_N],
+						//then a solution cannot exist with this sequence, iff we cannot expand
+						//more item satisfactions from i_N.
+						//We should backtrack to [...i_N-1], and mark i_N as impossible.
+						
+						//TODO: ^Needs proof
+						
+						ItemSatisfy backtrack = storedStackUsedNeeds.remove(storedStackUsedNeeds.size() - 1);
+						backtrack.itemUsed.quantity += backtrack.numUsed;
+						backtrack.needSatisfied.desiredCount += backtrack.numUsed;
+						
+						needsSatisfied--;
+						
+						forbiddenSat.add(new AbstractMap.SimpleEntry<>(backtrack.itemUsed, backtrack.needSatisfied));
+					}
+				}
+			}
+		}
+		
+		//No solution because no items
+		return new Object[] {false, new HashMap<>(), requiredGroupsOrig};
+	}
+	public static class GroupItem { //A representation of a desire for some group items
+		public String group;
+		public ItemQuality qualityMin;
+		public int desiredCount;
+		public GroupItem(String group) {
+			this(group, null, 0);
+		}
+		public GroupItem(String group, ItemQuality qualityMin, int desiredCount) {
+			this.group = group;
+			this.qualityMin = qualityMin;
+			this.desiredCount = desiredCount;
+		}
+		public GroupItem clone() {
+			return new GroupItem(this.group, this.qualityMin, this.desiredCount);
+		}
+	}
+	public static class ItemSatisfy { //Used in the group selection/search algorithm
+		public InventoryItem itemUsed;
+		public GroupItem needSatisfied;
+		public int numUsed;
+		public ItemSatisfy(InventoryItem itemUsed, GroupItem needSatisfied, int numUsed) {
+			this.itemUsed = itemUsed;
+			this.needSatisfied = needSatisfied;
+			this.numUsed = numUsed;
+		}
 	}
 	
 	public boolean hasItem(InventoryItem item) {
@@ -221,18 +414,39 @@ public class Inventory {
 		Boolean foundItems = (Boolean) itemNeedData[0]; 
 		Map<InventoryItem, Integer> requestedItems = (Map) itemNeedData[1];
 		if (foundItems) {
-			for (Entry<InventoryItem, Integer> entry: requestedItems.entrySet()) {
-				InventoryItem item = entry.getKey();
-				Integer amountSubtract = entry.getValue();
-				item.quantity -= amountSubtract;
-				if (item.quantity == 0) {
-					List<InventoryItem> itemsWithId = this.itemsMappedById.get(item.itemId);
-					itemsWithId.remove(item);
-				}
-			}
+			removeItems(requestedItems);
 			return requestedItems.keySet();
 		}
 		return null;
+	}
+	public Set<InventoryItem> subtractItemsGroups(List<GroupItem> requiredGroups) {
+		Object[] itemNeedData = this.findRemainingGroupsNeeded(requiredGroups);
+		Boolean foundItems = (Boolean) itemNeedData[0]; 
+		Map<InventoryItem, Integer> requestedItems = (Map) itemNeedData[1];
+		if (foundItems) {
+			removeItems(requestedItems);
+			return requestedItems.keySet();
+		}
+		return null;
+	}
+	private void removeItems(Map<InventoryItem, Integer> requestedItems) {
+		for (Entry<InventoryItem, Integer> entry: requestedItems.entrySet()) {
+			InventoryItem item = entry.getKey();
+			Integer amountSubtract = entry.getValue();
+			item.quantity -= amountSubtract;
+			if (item.quantity == 0) {
+				if (!this.itemsMappedById.containsKey(item.itemId)) {
+					throw new IllegalArgumentException("Internal method in Inventory::removeItems requires " 
+							+ "item id to be recorded in this inventory");
+				}
+				List<InventoryItem> itemsWithId = this.itemsMappedById.get(item.itemId);
+				if (!itemsWithId.contains(item)) {
+					throw new IllegalArgumentException("Internal method in Inventory::removeItems requires " 
+							+ "exact items to be in this inventory");
+				}
+				itemsWithId.remove(item);
+			}
+		}
 	}
 	
 	public List<InventoryItem> getItems() {
@@ -330,6 +544,51 @@ public class Inventory {
 		}
 		
 		return uniqueCounts;
+	}
+	
+	public static void main(String[] args) {
+		/**
+		   This is to test the group search algorithm.
+		 
+		   Group A = Stone
+		   Group B = Ground
+		  
+		   Items in Group A and B: Basalt, Quartz
+		   Items in Group B only: Sand
+		  
+		   The test case is looking for these needs: 
+		   
+		   A, 5, Q+
+		   B, 2, Q
+		   B, 1, Q++
+		   
+		   with an inventory containing the items:
+		   
+		   A/B, 2,  Q+
+		   A/B, 3,  Q++
+		   B,   4,  Q
+		   B,   1,  Q++
+		   
+		   of which the solution should be
+		   
+		   
+		*/
+		
+		WorldCsvParser.init();
+		
+		List<GroupItem> groupNeeds = new ArrayList<>();
+		groupNeeds.add(new GroupItem("Stone", ItemQuality.GREAT, 5));
+		groupNeeds.add(new GroupItem("Ground", ItemQuality.GOOD, 2));
+		groupNeeds.add(new GroupItem("Ground", ItemQuality.LEGENDARY, 1));
+		
+		Inventory inventory = new Inventory();
+		inventory.addItem(new InventoryItem(ItemData.getIdFromName("Basalt"), 2, ItemQuality.GREAT, "Basalt"));
+		inventory.addItem(new InventoryItem(ItemData.getIdFromName("Basalt"), 3, ItemQuality.LEGENDARY, "Quartz"));
+		inventory.addItem(new InventoryItem(ItemData.getIdFromName("Basalt"), 4, ItemQuality.GOOD, "Sand"));
+		inventory.addItem(new InventoryItem(ItemData.getIdFromName("Basalt"), 1, ItemQuality.LEGENDARY, "Sand"));
+	
+		Object[] results = inventory.findRemainingGroupsNeeded(groupNeeds);
+		TODO;
 	}
 	
 }

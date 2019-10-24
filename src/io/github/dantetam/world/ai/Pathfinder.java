@@ -130,9 +130,9 @@ public class Pathfinder {
         Map<LocalTile, LocalTile> prev = new HashMap<>();
         PriorityQueue<LocalTile> fringe;
         
-        fringe = new PriorityQueue<LocalTile>(16, new Comparator() {
+        fringe = new PriorityQueue<LocalTile>(16, new Comparator<LocalTile>() {
             @Override
-            public int compare(Object o1, Object o2) {
+            public int compare(LocalTile o1, LocalTile o2) {
             	LocalTile n1 = (LocalTile) o1;
             	LocalTile n2 = (LocalTile) o2;
                 if (n1.equals(n2)) return 0;
@@ -175,7 +175,6 @@ public class Pathfinder {
                     results.add(0, v);
                     v = prev.get(v);
                 } while (v != null);
-                CustomLog.outPrintln("Nodes expanded: " + nodesExpanded);
                 return new ScoredPath(results, dist.get(end).doubleValue());
             }
             for (LocalTile c : validNeighbors(being, v)) {

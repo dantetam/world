@@ -14,4 +14,8 @@ public class ImpossibleTaskPlaceholder extends ArrayList<Task> {
 		this.reason = reason;
 	}
 	
+	public String toString() {
+		return "ImpossibleTaskPlaceholder: " + reason;
+	}
+	
 }

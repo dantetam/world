@@ -8,4 +8,8 @@ public class DoneTaskPlaceholder extends ArrayList<Task> {
 		//super();
 	}
 	
+	public String toString() {
+		return "DoneTaskPlaceholder";
+	}
+	
 }

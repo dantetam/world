@@ -52,6 +52,19 @@ public class AnnoRoomProcDeconst {
 					
 			LinkedHashSet<Vector3i> borderRegion = VecGridUtil.getBorderRegionFromCoords(
 					Vector3i.getRange(bestRectangles));
+			//Create a tile/tiles on the border that are doors/openings to the outside
+			//Make sure all of the complex or necessary rooms are pathable to each other, and to the outside
+			Set<Vector3i> corners = VecGridUtil.getCornerRegionCoords3d(borderRegion);
+			List<Vector3i> doorOpenings = new ArrayList<>();
+			for (Vector3i border: borderRegion) {
+				if (!corners.contains(border)) {
+					//Choose this non-corner as a door/opening
+					doorOpenings.add(border);
+					break;
+				}
+			}
+			borderRegion.removeAll(doorOpenings);
+			
 			Set<Integer> bestBuildingMaterials = society.getBestBuildingMaterials(society.calcUtility, 
 					being, borderRegion.size());
 				

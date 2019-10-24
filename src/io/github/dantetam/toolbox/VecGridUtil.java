@@ -313,6 +313,17 @@ public class VecGridUtil {
 		}
 		return corners;
 	}
+	public static Set<Vector3i> getCornerRegionCoords3d(Set<Vector3i> coords) {
+		Map<Vector2i, Vector3i> converted = new HashMap<>();
+		for (Vector3i coord3d: coords) {
+			Vector2i coord = coord3d.getXY();
+			converted.put(coord, coord3d);
+		}
+		Set<Vector2i> corners2d = getCornerRegionCoords2d(converted.keySet());
+		Set<Vector3i> corners3d = new HashSet<>();
+		for (Vector2i vec2: corners2d) corners3d.add(converted.get(vec2));
+		return corners3d;
+	}
 	
 	public static Map<Vector3i, Integer> convertGroupsToMap(List<ClusterVector3i> clusters) {
 		Map<Vector3i, Integer> results = new HashMap<>();

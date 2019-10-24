@@ -203,12 +203,10 @@ public class MapUtil {
 	public static <K, V extends Comparable<? super V>> LinkedHashMap<K, V> getSortedMapByValueAsc(Map<K, V> map) {
         List<Entry<K, V>> list = new ArrayList<>(map.entrySet());
         list.sort(Entry.comparingByValue());
-
         LinkedHashMap<K, V> result = new LinkedHashMap<>();
         for (Entry<K, V> entry : list) {
             result.put(entry.getKey(), entry.getValue());
         }
-
         return result;
     }
 	
@@ -216,13 +214,36 @@ public class MapUtil {
 	public static <K, V extends Comparable<? super V>> LinkedHashMap<K, V> getSortedMapByValueDesc(Map<K, V> map) {
         List<Entry<K, V>> list = new ArrayList<>(map.entrySet());
         list.sort(Entry.comparingByValue());
-
         LinkedHashMap<K, V> result = new LinkedHashMap<>();
         for (int i = list.size() - 1; i >= 0; i--) {
         	Entry<K, V> entry = list.get(i);
             result.put(entry.getKey(), entry.getValue());
         }
-
+        return result;
+    }
+	
+	//Ascending sort using a custom entry comparator
+	public static <K, V extends Comparable<? super V>> LinkedHashMap<K, V> getMapByValueAscComp(Map<K, V> map,
+			Comparator<Entry<K, V>> comparator) {
+        List<Entry<K, V>> list = new ArrayList<>(map.entrySet());
+        list.sort(comparator);
+        LinkedHashMap<K, V> result = new LinkedHashMap<>();
+        for (Entry<K, V> entry : list) {
+            result.put(entry.getKey(), entry.getValue());
+        }
+        return result;
+    }
+	
+	//Descending sort using a custom entry comparator
+	public static <K, V extends Comparable<? super V>> LinkedHashMap<K, V> getMapByValueDescComp(Map<K, V> map,
+			Comparator<Entry<K, V>> comparator) {
+        List<Entry<K, V>> list = new ArrayList<>(map.entrySet());
+        list.sort(comparator);
+        LinkedHashMap<K, V> result = new LinkedHashMap<>();
+        for (int i = list.size() - 1; i >= 0; i--) {
+        	Entry<K, V> entry = list.get(i);
+            result.put(entry.getKey(), entry.getValue());
+        }
         return result;
     }
 	

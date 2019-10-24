@@ -1152,7 +1152,7 @@ public class LocalGrid {
 					new Vector3i(rows, cols, heights) + ", or " + numTilesToCheck + " total entries.");
 		}
 		
-		int lastItemId = ItemData.generateItem("Test Potato");
+		int lastItemId = ItemData.generateNewItemId("Test Potato");
 		int numDigits = (int) Math.ceil(Math.log10(lastItemId));
 		DecimalFormat numFormat = new DecimalFormat("0".repeat(numDigits));
 		

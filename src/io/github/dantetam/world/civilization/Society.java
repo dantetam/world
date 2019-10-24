@@ -230,7 +230,7 @@ public class Society {
 		for (Entry<LocalProcess, Double> procEntry: processByUtil.entrySet()) {
 			LocalProcess proc = procEntry.getKey();
 			if (proc.name.startsWith("Consume Item")) {
-				double newValue = procEntry.getValue() * 0.1;
+				double newValue = procEntry.getValue() * 0.025;
 				newValue = Math.min(newValue, 0.5);
 				procEntry.setValue(newValue);
 			}
@@ -318,6 +318,10 @@ public class Society {
 						for (InventoryItem input: inputs) {
 							double util = allItemsUtility.containsKey(input.itemId) ? 
 									allItemsUtility.get(input.itemId) : 0;
+							if (Double.isNaN(util)) {
+								throw new IllegalArgumentException("Argument allItemsUtility contains NaN." 
+										+ " Check util calculations. Item id: " + input.itemId);
+							}
 							
 							MapUtil.insertKeepMaxMap(bestProcesses, process.clone(), util);
 	
@@ -359,29 +363,33 @@ public class Society {
 		//Check for buildings
 		if (process.requiredBuildNameOrGroup != null) {
 			Set<Integer> buildingIds = ItemData.getIdsFromNameOrGroup(process.requiredBuildNameOrGroup);
-			Collection<Integer> intersectIds = CollectionUtil.colnsIntersection(rawResRarity.keySet(), 
-					buildingIds);
+			Collection<Integer> intersectIds = CollectionUtil.colnsIntersection(
+					rawResRarity.keySet(), buildingIds);
 			if (intersectIds.size() == 0) {
 				//CustomLog.outPrintln("No req building");
 				return false;
 			}
 			else {
-				boolean foundItem = false;
 				for (Integer id: intersectIds) {
 					if (rawResRarity.get(id) > 0) {
-						foundItem = true;
+						//The preliminary item finding test is successful
+						//Use the full access/tile search algorithm to determine truly if the process has a tile
+						LocalBuilding potentialTiles = LocalGridTimeExecution.assignBuilding(
+								grid, being, process, new HashSet<Human>() {{
+									if (being instanceof Human)
+										add((Human) being);
+								}}, process.requiredBuildNameOrGroup);
+						return potentialTiles != null;
 					}
 				}
-				if (!foundItem) {
-					return false;
-				}
+				return false;
 			}
 		}
 		
 		if (process.requiredTileNameOrGroup != null) {
 			Set<Integer> buildingIds = ItemData.getIdsFromNameOrGroup(process.requiredTileNameOrGroup);
-			Collection<Integer> intersectIds = CollectionUtil.colnsIntersection(rawResRarity.keySet(), 
-					buildingIds);
+			Collection<Integer> intersectIds = CollectionUtil.colnsIntersection(
+					rawResRarity.keySet(), buildingIds);
 			if (intersectIds.size() == 0) {
 				//CustomLog.outPrintln("No req tile");
 				return false;
@@ -391,16 +399,12 @@ public class Society {
 					if (rawResRarity.get(id) > 0) {
 						//The preliminary item finding test is successful
 						//Use the full access/tile search algorithm to determine truly if the process has a tile
-						//return true;
-						//TODO
-						
 						Pair<LocalTile> potentialTiles = LocalGridTimeExecution.assignTile(
 								grid, being, new HashSet<Human>() {{
 									if (being instanceof Human)
 										add((Human) being);
 								}}, process);
 						return potentialTiles != null;
-						
 					}
 				}
 				return false;
@@ -450,7 +454,7 @@ public class Society {
 			
 			itemRarity = Math.min(itemRarity, 10);
 			economicRarity = Math.min(economicRarity, 10);
-					
+			
 			//Develop a basic utility value: item use * need for item use / rareness
 			Map<String, Double> needsUtilityFromItems = findUtilityByNeed(itemId);
 			
@@ -460,7 +464,7 @@ public class Society {
 					intensity = 0.5;
 				}
 				//double needWeight = needWeights.containsKey(e.getKey()) ? needWeights.get(e.getKey()) : 0.5;
-				double util = (e.getValue() * intensity) / (itemRarity * economicRarity + 1);
+				double util = (e.getValue() * intensity) / Math.max(itemRarity * economicRarity, 1);
 				needsUtilityFromItems.put(e.getKey(), util);
 			}
 			
@@ -505,9 +509,11 @@ public class Society {
 			Double count = entry.getValue();
 			
 			ItemTotalDrops drops = ItemData.getOnBlockItemDrops(itemId);
-			Map<Integer, Double> itemExpectations = drops.itemExpectation();
-			for (Entry<Integer, Double> dropEntry: itemExpectations.entrySet()) {
-				MapUtil.addNumMap(itemRarity, dropEntry.getKey(), dropEntry.getValue() * count);
+			if (drops != null) {
+				Map<Integer, Double> itemExpectations = drops.itemExpectation();
+				for (Entry<Integer, Double> dropEntry: itemExpectations.entrySet()) {
+					MapUtil.addNumMap(itemRarity, dropEntry.getKey(), dropEntry.getValue() * count);
+				}
 			}
 		}
 		
@@ -703,7 +709,11 @@ public class Society {
 					double processWeight = 1;
 					if (human != null) {
 						Ethos processEthos = human.brain.ethosSet.ethosTowardsProcesses.get(process);
-						processWeight = processEthos.getLogisticVal(0, 3.5);
+						processWeight = processEthos.getLogisticVal(0.5, 3.5);
+						//processWeight can sometimes be NaN
+						if (Double.isNaN(processWeight)) {
+							processWeight = 1;
+						}
 					}
 					
 					double totalItems = 0;
