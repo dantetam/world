@@ -49,6 +49,7 @@ import io.github.dantetam.world.grid.SpaceFillingAlg;
 import io.github.dantetam.world.grid.WorldGrid;
 import io.github.dantetam.world.grid.ItemMetricsUtil.*;
 import io.github.dantetam.world.items.Inventory;
+import io.github.dantetam.world.items.Inventory.GroupItem;
 import io.github.dantetam.world.items.InventoryItem;
 import io.github.dantetam.world.items.InventoryItem.ItemQuality;
 import io.github.dantetam.world.items.ItemProperty;
@@ -1186,11 +1187,13 @@ public class LocalGridTimeExecution {
 		else if (priority instanceof ItemGroupPickupPriority) {
 			ItemGroupPickupPriority itemPriority = (ItemGroupPickupPriority) priority;
 			if (itemPriority.coords.areAdjacent14(being.location.coords)) {
-				TODO;
-				//grid.getTile(itemPriority.coords).building.inventory.subtractItem(itemPriority.item);
-				//being.inventory.addItem(itemPriority.item);
-				
 				//grid.removeItemRecordToWorld(itemPriority.coords, itemPriority.item);
+				TODO;
+				
+				List<GroupItem> requiredGroups = null;
+				Set<InventoryItem> items = grid.getTile(itemPriority.coords).itemsOnFloor
+						.subtractItemsGroups(requiredGroups);
+				being.inventory.addItems(items);
 				return new DoneTaskPlaceholder();
 			}
 			else {

@@ -92,6 +92,22 @@ public class InventoryItem {
 		public static int getIndex(ItemQuality quality) {
 			return Arrays.asList(ItemQuality.values()).indexOf(quality);
 		}
+		
+		public static String toString(ItemQuality quality) {
+			switch (quality) {
+				case TERRIBLE:
+					return "Q--";
+				case NORMAL:
+					return "Q-";
+				case GOOD:
+					return "Q";
+				case GREAT:
+					return "Q+";
+				case LEGENDARY:
+					return "Q++";
+			}
+			return null;
+		}
 	}
 	
 	
