@@ -94,30 +94,48 @@ public class Inventory {
 	}
 	
 	public int findItemCount(int itemId, LivingEntity mainHuman, Set<LivingEntity> otherOwners) {
-		if (!(itemsMappedById.containsKey(itemId))) return 0;
-		List<InventoryItem> items = itemsMappedById.get(itemId);
+		List<InventoryItem> items = this.findItems(itemId, mainHuman, otherOwners);
 		int sum = 0;
 		for (InventoryItem item: items) {
-			if (item.beingHasAccessItem(mainHuman, otherOwners)) {
-				sum += item.quantity;
-			}
+			sum += item.quantity;
 		}
 		return sum;
 	}
 	
 	public int findItemCountGroup(String groupName, LivingEntity mainHuman, Set<LivingEntity> otherOwners) {
-		if (itemsMappedById == null) return 0;
+		List<InventoryItem> items = this.findItemsGroup(groupName, mainHuman, otherOwners);
 		int sum = 0;
+		for (InventoryItem item: items) {
+			sum += item.quantity;
+		}
+		return sum;
+	}
+	
+	public List<InventoryItem> findItems(int itemId, LivingEntity mainHuman, Set<LivingEntity> otherOwners) {
+		List<InventoryItem> validItems = new ArrayList<>();
+		if (!(itemsMappedById.containsKey(itemId))) return validItems;
+		List<InventoryItem> items = itemsMappedById.get(itemId);
+		for (InventoryItem item: items) {
+			if (item.beingHasAccessItem(mainHuman, otherOwners)) {
+				validItems.add(item);
+			}
+		}
+		return validItems;
+	}
+	
+	public List<InventoryItem> findItemsGroup(String groupName, LivingEntity mainHuman, Set<LivingEntity> otherOwners) {
+		List<InventoryItem> validItems = new ArrayList<>();
+		if (itemsMappedById == null) return validItems;
 		Set<Integer> groupItemIds = ItemData.getIdsFromNameOrGroup(groupName);
-			for (Integer itemId: groupItemIds) {
+		for (Integer itemId: groupItemIds) {
 			List<InventoryItem> items = itemsMappedById.get(itemId);
 			for (InventoryItem item: items) {
 				if (item.beingHasAccessItem(mainHuman, otherOwners)) {
-					sum += item.quantity;
+					validItems.add(item);
 				}
 			}
 		}
-		return sum;
+		return validItems;
 	}
 	
 	//Find an algorithm that factors in quality, by choosing the items that have the lowest viable quality
@@ -180,21 +198,6 @@ public class Inventory {
 			}
 		}
 		return new Object[] {neededItems.size() != 0, countedItems, neededItems};
-	}
-	
-	//Find an algorithm that factors in quality, by choosing the items that have the lowest viable quality
-	/**
-	 * @param requiredGroups A list of GroupItem with group names and quantity counts (split by quality).
-	 * 		For now, the quality matches are strictly equal or better.
-	 * 
-	 * @return Three items:
-	 * 		a boolean for success;
-	 * 	    a Map<InventoryItem, Integer> matching the items used to fulfill this request, maximum possible
-	 * 		a List<GroupItem> of the remaining unfulfilled needs (beyond the best guess that is successful or not)
-	 */
-	public static Object[] findRemainingGroupsNeeded(List<Inventory> inventories, 
-			List<GroupItem> requiredGroupsOrig) {	
-		
 	}
 		
 	//Find an algorithm that factors in quality, by choosing the items that have the lowest viable quality
@@ -357,11 +360,12 @@ public class Inventory {
 					if (storedStackUsedNeeds.size() == 0) {
 						//No solution, return the best partial match
 						Map<InventoryItem, Integer> itemUsage = new HashMap<>();
-						for (ItemSatisfy itemUse: bestPartialMatchTrack) {
-							MapUtil.addNumMap(itemUsage, itemUse.itemUsed, itemUse.numUsed);
-							
-							//Return a copy of all the needs that need to be satisfied
-							reqGroups.remove(itemUse.needSatisfied);
+						if (bestPartialMatchTrack != null) {
+							for (ItemSatisfy itemUse: bestPartialMatchTrack) {
+								MapUtil.addNumMap(itemUsage, itemUse.itemUsed, itemUse.numUsed);
+								//Edit the copy of all the needs that need to be satisfied
+								reqGroups.remove(itemUse.needSatisfied);
+							}
 						}
 						return new Object[] {false, itemUsage, bestPartialMatchTrack};
 					}
@@ -389,25 +393,43 @@ public class Inventory {
 		//No solution because no items
 		return new Object[] {false, new HashMap<>(), requiredGroupsOrig};
 	}
-	public static class GroupItem { //A representation of a desire for some group items
-		public String group;
-		public ItemQuality qualityMin;
-		public int desiredCount;
-		public GroupItem(String group) {
-			this(group, null, 0);
+	
+	//Find an algorithm that factors in quality, by choosing the items that have the lowest viable quality
+	/**
+	 * @param requiredGroups A list of GroupItem with group names and quantity counts (split by quality).
+	 * 		For now, the quality matches are strictly equal or better.
+	 * 
+	 * @return Three items:
+	 * 		a boolean for success;
+	 * 	    a Map<InventoryItem, Integer> matching the items used to fulfill this request, maximum possible
+	 * 		a List<GroupItem> of the remaining unfulfilled needs (beyond the best guess that is successful or not)
+	 *      Map<InventoryItem, Inventory> mapping items to their original inventories
+	 */
+	public static Object[] findRemainingGroupsNeeded(List<Inventory> inventories, 
+			List<GroupItem> requiredGroupsOrig) {	
+		List<GroupItem> remainingGroups = new ArrayList<>(requiredGroupsOrig);
+		Map<InventoryItem, Integer> allUsedItems = new HashMap<>();
+		Map<InventoryItem, Inventory> itemToInv = new HashMap<>(); //Top down inventory -> item model, keep track of where items are
+		for (Inventory inventory: inventories) {
+			Object[] singleInvResult = inventory.findRemainingGroupsNeeded(remainingGroups);
+			boolean success = (boolean) singleInvResult[0];
+			Map<InventoryItem, Integer> usedInvItems = (Map<InventoryItem, Integer>) singleInvResult[1];
+			List<GroupItem> remainingNeeds = (List<GroupItem>) singleInvResult[2];
+			
+			MapUtil.addMapToMap(allUsedItems, usedInvItems);
+			for (InventoryItem item: usedInvItems.keySet()) {
+				itemToInv.put(item, inventory);
+			}
+			
+			if (success) {
+				return new Object[] {true, allUsedItems, new ArrayList<>(), itemToInv};
+			}
+			
+			remainingGroups = remainingNeeds;
 		}
-		public GroupItem(String group, ItemQuality qualityMin, int desiredCount) {
-			this.group = group;
-			this.qualityMin = qualityMin;
-			this.desiredCount = desiredCount;
-		}
-		public GroupItem clone() {
-			return new GroupItem(this.group, this.qualityMin, this.desiredCount);
-		}
-		public String toString() {
-			return "GroupNeed: " + group + "; " + this.qualityMin + "; " + desiredCount;
-		}
+		return new Object[] {false, allUsedItems, remainingGroups, itemToInv};
 	}
+	
 	public static class ItemSatisfy { //Used in the group selection/search algorithm
 		public InventoryItem itemUsed;
 		public GroupItem needSatisfied;
@@ -476,23 +498,41 @@ public class Inventory {
 		}
 		return null;
 	}
+	public static Set<InventoryItem> subItemGroupMultiInv(List<Inventory> invs, List<GroupItem> requiredGroups) {
+		Object[] itemNeedData = Inventory.findRemainingGroupsNeeded(invs, requiredGroups);
+		Boolean foundItems = (Boolean) itemNeedData[0]; 
+		Map<InventoryItem, Integer> requestedItems = (Map) itemNeedData[1];
+		Map<InventoryItem, Inventory> itemToInv = (Map) itemNeedData[3];
+		if (foundItems) {
+			for (Entry<InventoryItem, Inventory> entry: itemToInv.entrySet()) {
+				int numNeed = requestedItems.get(entry.getKey());
+				entry.getValue().removeItem(entry.getKey(), numNeed);
+			}
+			return requestedItems.keySet();
+		}
+		return null;
+	}
+	
+	private void removeItem(InventoryItem item, int amountSubtract) {
+		item.quantity -= amountSubtract;
+		if (item.quantity == 0) {
+			if (!this.itemsMappedById.containsKey(item.itemId)) {
+				throw new IllegalArgumentException("Internal method in Inventory::removeItems requires " 
+						+ "item id to be recorded in this inventory");
+			}
+			List<InventoryItem> itemsWithId = this.itemsMappedById.get(item.itemId);
+			if (!itemsWithId.contains(item)) {
+				throw new IllegalArgumentException("Internal method in Inventory::removeItems requires " 
+						+ "exact items to be in this inventory");
+			}
+			itemsWithId.remove(item);
+		}
+	}
 	private void removeItems(Map<InventoryItem, Integer> requestedItems) {
 		for (Entry<InventoryItem, Integer> entry: requestedItems.entrySet()) {
 			InventoryItem item = entry.getKey();
 			Integer amountSubtract = entry.getValue();
-			item.quantity -= amountSubtract;
-			if (item.quantity == 0) {
-				if (!this.itemsMappedById.containsKey(item.itemId)) {
-					throw new IllegalArgumentException("Internal method in Inventory::removeItems requires " 
-							+ "item id to be recorded in this inventory");
-				}
-				List<InventoryItem> itemsWithId = this.itemsMappedById.get(item.itemId);
-				if (!itemsWithId.contains(item)) {
-					throw new IllegalArgumentException("Internal method in Inventory::removeItems requires " 
-							+ "exact items to be in this inventory");
-				}
-				itemsWithId.remove(item);
-			}
+			removeItem(item, amountSubtract);
 		}
 	}
 	

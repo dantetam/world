@@ -48,8 +48,8 @@ import io.github.dantetam.world.grid.LocalTile;
 import io.github.dantetam.world.grid.SpaceFillingAlg;
 import io.github.dantetam.world.grid.WorldGrid;
 import io.github.dantetam.world.grid.ItemMetricsUtil.*;
+import io.github.dantetam.world.items.GroupItem;
 import io.github.dantetam.world.items.Inventory;
-import io.github.dantetam.world.items.Inventory.GroupItem;
 import io.github.dantetam.world.items.InventoryItem;
 import io.github.dantetam.world.items.InventoryItem.ItemQuality;
 import io.github.dantetam.world.items.ItemProperty;
@@ -720,7 +720,7 @@ public class LocalGridTimeExecution {
 		}
 		else if (process.name.equals("Put On Clothes")) {
 			return progressToFindItemGroups(grid, being, validEntitiesBeings, 
-					new HashMap<String, Integer>() {{put("Clothing", 1);}},
+					new GroupItem("Clothing", ItemQuality.TERRIBLE, 1),
 					new ItemMetricsUtil.AvailClothingMetric()
 					);
 		}
@@ -745,8 +745,8 @@ public class LocalGridTimeExecution {
 		}
 		else {
 			if (process.requiredTileNameOrGroup != null && process.processTile == null) {
-				return progressToFindItemGroups(grid, being, validEntitiesBeings, 
-						new HashMap<String, Integer>() {{put(process.requiredTileNameOrGroup, 1);}},
+				return progressToFindItemGroups(grid, being, validEntitiesBeings,
+						new GroupItem(process.requiredTileNameOrGroup, ItemQuality.TERRIBLE, 1),
 						new ItemMetricsUtil.DefaultItemMetric()
 						);
 			}
@@ -1187,14 +1187,24 @@ public class LocalGridTimeExecution {
 		else if (priority instanceof ItemGroupPickupPriority) {
 			ItemGroupPickupPriority itemPriority = (ItemGroupPickupPriority) priority;
 			if (itemPriority.coords.areAdjacent14(being.location.coords)) {
-				//grid.removeItemRecordToWorld(itemPriority.coords, itemPriority.item);
-				TODO;
+				LocalTile pickupTile = grid.getTile(itemPriority.coords);
+				List<Inventory> invs = new ArrayList<>();
+				invs.add(pickupTile.itemsOnFloor);
+				if (pickupTile.building != null) {
+					invs.add(pickupTile.building.inventory);
+				}
+				Set<InventoryItem> items = Inventory.subItemGroupMultiInv(invs, itemPriority.needs);
 				
-				List<GroupItem> requiredGroups = null;
-				Set<InventoryItem> items = grid.getTile(itemPriority.coords).itemsOnFloor
-						.subtractItemsGroups(requiredGroups);
-				being.inventory.addItems(items);
-				return new DoneTaskPlaceholder();
+				if (items != null) {
+					being.inventory.addItems(items);
+					for (InventoryItem item: items) {
+						grid.removeItemRecordToWorld(pickupTile.coords, item);
+					}
+					return new DoneTaskPlaceholder();
+				}
+				else {
+					return new ImpossibleTaskPlaceholder("Could not find item groups in multiple inventories");
+				}
 			}
 			else {
 				return getTasksFromPriority(grid, being, new MoveTolDistOnePriority(itemPriority.coords));
@@ -1265,9 +1275,7 @@ public class LocalGridTimeExecution {
 				}
 				else {
 					Priority itemSearchPriority = progressToFindItemGroups(grid, being, new HashSet<LivingEntity>() {{add(being);}}, 
-							new HashMap<String, Integer>() {{
-								put(buildPriority.buildingName, 1);
-							}}, 
+							new GroupItem(buildPriority.buildingName, ItemQuality.TERRIBLE, 1),
 							new DefaultItemMetric());
 					return getTasksFromPriority(grid, being, itemSearchPriority);
 				}
@@ -1294,7 +1302,7 @@ public class LocalGridTimeExecution {
 		else if (priority instanceof EatPriority) {
 			return getTasksFromPriority(grid, being, 
 					progressToFindItemGroups(grid, being, new HashSet<LivingEntity>() {{add(being);}}, 
-							new HashMap<String, Integer>() {{put("Food", 1);}}, new FoodMetric())
+							new GroupItem("Food", ItemQuality.TERRIBLE, 1), new FoodMetric())
 					);
 		}
 		else if (priority instanceof RestPriority) {
@@ -1529,14 +1537,14 @@ public class LocalGridTimeExecution {
 				
 				if (armorReq > 0 && armorAmt > 0) {
 					resultPriority = progressToFindItemGroups(grid, being, new HashSet<LivingEntity>() {{add(being);}}, 
-							new HashMap<String, Integer>() {{put("Armor", 1);}}, new DefaultItemMetric());
+							new GroupItem("Armor", ItemQuality.TERRIBLE, 1), new DefaultItemMetric());
 					if (!(resultPriority instanceof ImpossiblePriority)) {
 						return getTasksFromPriority(grid, being, resultPriority);
 					}				
 				}
 				if (weaponReq > 0 && weaponAmt > 0) {
 					resultPriority = progressToFindItemGroups(grid, being, new HashSet<LivingEntity>() {{add(being);}}, 
-							new HashMap<String, Integer>() {{put("Weapon", 1);}}, new DefaultItemMetric());
+							new GroupItem("Weapon", ItemQuality.TERRIBLE, 1), new DefaultItemMetric());
 					if (!(resultPriority instanceof ImpossiblePriority)) {
 						return getTasksFromPriority(grid, being, resultPriority);
 					}
@@ -1780,7 +1788,7 @@ public class LocalGridTimeExecution {
 				if (tile.harvestInUse) continue;
 				
 				double score = scoringMetric.score(being, owners, grid, tile, 
-						itemsAmtNeeded, null);
+						itemsAmtNeeded, new ArrayList<>());
 				
 				if (score < bestScore || bestItemIdToFind == -1) {
 					bestItemIdToFind = firstItemNeeded;
@@ -1857,7 +1865,7 @@ public class LocalGridTimeExecution {
 	 */
 	public static Priority progressToFindItemGroups(LocalGrid grid, 
 			LivingEntity being, Set<LivingEntity> owners,
-			Map<String, Integer> itemGroupsAmtNeeded,
+			List<GroupItem> itemGroupsAmtNeeded,
 			DefaultItemMetric scoringMetric) { 
 		
 		//Map<Vector3i, Double> scoreMapping = new HashMap<>();
@@ -1865,8 +1873,8 @@ public class LocalGridTimeExecution {
 		String bestGroupToFind = null;
 		Vector3i bestLocation = null;
 		
-		for (Entry<String, Integer> entry: itemGroupsAmtNeeded.entrySet()) {
-			String itemGroupName = entry.getKey();
+		for (GroupItem groupNeed: itemGroupsAmtNeeded) {
+			String itemGroupName = groupNeed.group;
 			
 			KdTree<Vector3i> nearestItemsTree = grid.getKdTreeForItemGroup(itemGroupName);
 			if (nearestItemsTree != null) {
@@ -1889,12 +1897,12 @@ public class LocalGridTimeExecution {
 		}
 		
 		if (bestGroupToFind != null) {
-			return new ItemGroupPickupPriority(bestLocation, bestGroupToFind, itemGroupsAmtNeeded.get(bestGroupToFind));
+			return new ItemGroupPickupPriority(bestLocation, itemGroupsAmtNeeded);
 		}
 		
-		for (Entry<String, Integer> entry: itemGroupsAmtNeeded.entrySet()) {
-			String itemGroupName = entry.getKey();
-			int amountNeeded = entry.getValue();
+		for (GroupItem groupNeed: itemGroupsAmtNeeded) {
+			String itemGroupName = groupNeed.group;
+			int amountNeeded = groupNeed.desiredCount;
 
 			Set<Integer> groupIds = ItemData.getIdsFromNameOrGroup(itemGroupName);
 
@@ -1936,7 +1944,25 @@ public class LocalGridTimeExecution {
 		if (bestLocation != null) {
 			return new TileHarvestPriority(bestLocation);
 		}
-		return new ImpossiblePriority("Could not find item groups or processes that can output harvest groups: " + itemGroupsAmtNeeded.keySet());
+		return new ImpossiblePriority("Could not find item groups or processes that can output harvest groups: " + itemGroupsAmtNeeded.toString());
+	}
+	public static Priority progressToFindItemGroups(LocalGrid grid, 
+			LivingEntity being, Set<LivingEntity> owners,
+			GroupItem itemGroupsAmtNeeded,
+			DefaultItemMetric scoringMetric) {
+		return LocalGridTimeExecution.progressToFindItemGroups(grid, being, owners, 
+				new ArrayList<GroupItem>() {{add(itemGroupsAmtNeeded);}}, scoringMetric);
+	}
+	public static Priority progressToFindItemGroups(LocalGrid grid,  //temporary
+			LivingEntity being, Set<LivingEntity> owners,
+			Map<String, Integer> itemGroupsAmtNeeded,
+			DefaultItemMetric scoringMetric) { 
+		List<GroupItem> groupNeeds = new ArrayList<>();
+		for (Entry<String, Integer> entry: itemGroupsAmtNeeded.entrySet()) {
+			groupNeeds.add(new GroupItem(entry.getKey(), ItemQuality.TERRIBLE, entry.getValue()));
+		}
+		return LocalGridTimeExecution.progressToFindItemGroups(grid, being, owners, 
+				itemGroupsAmtNeeded, scoringMetric);
 	}
 	
 	/**

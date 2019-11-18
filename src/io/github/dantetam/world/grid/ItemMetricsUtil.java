@@ -2,6 +2,8 @@ package io.github.dantetam.world.grid;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -12,7 +14,10 @@ import java.util.Set;
 import io.github.dantetam.toolbox.MapUtil;
 import io.github.dantetam.toolbox.MathAndDistrUti;
 import io.github.dantetam.world.dataparse.ItemData;
+import io.github.dantetam.world.items.GroupItem;
+import io.github.dantetam.world.items.Inventory;
 import io.github.dantetam.world.items.InventoryItem;
+import io.github.dantetam.world.items.InventoryItem.ItemQuality;
 import io.github.dantetam.world.life.LivingEntity;
 import io.github.dantetam.world.process.LocalProcess;
 import io.github.dantetam.world.process.LocalProcess.ProcessStep;
@@ -20,14 +25,48 @@ import kdtreegeo.KdTree;
 
 public class ItemMetricsUtil {
 
+	private static Map<ItemQuality, Double> qualModMap = new HashMap<ItemQuality, Double>() {{
+		put(ItemQuality.TERRIBLE, 0.3);
+		put(ItemQuality.NORMAL, 0.7);
+		put(ItemQuality.GOOD, 1.0);
+		put(ItemQuality.GREAT, 1.25);
+		put(ItemQuality.LEGENDARY, 1.5);
+	}};
+	public static int scoreItemsQualMetric(List<Inventory> invs, 
+			int itemId, LivingEntity mainHuman, Set<LivingEntity> otherOwners,
+			int desiredCount) {
+		List<InventoryItem> allItems = new ArrayList<>();
+		for (Inventory inv: invs) {
+			allItems.addAll(inv.findItems(itemId, mainHuman, otherOwners));
+		}
+		Collections.sort(allItems, new Comparator<InventoryItem>() {
+			@Override
+			public int compare(InventoryItem o1, InventoryItem o2) {
+				int q1 = ItemQuality.getIndex(o1.quality), q2 = ItemQuality.getIndex(o2.quality);
+				return q2 - q1;
+			}
+		});
+		double score = 0;
+		while (desiredCount >= 0) {
+			TODO;
+		}
+		return score;
+	}
+	
 	public static class DefaultItemMetric {
 		public double score(LivingEntity being, Set<LivingEntity> owners, LocalGrid grid, LocalTile tile, 
-				Map<Integer, Integer> itemsNeeded, Map<String, Integer> itemGroupsAmtNeeded) {
+				Map<Integer, Integer> itemsNeeded, GroupItem groupNeed) {
+			List<GroupItem> itemGroupsAmtNeeded = new ArrayList<>();
+			itemGroupsAmtNeeded.add(groupNeed);
+			return this.score(being, owners, grid, tile, itemsNeeded, itemGroupsAmtNeeded);
+		}
+		public double score(LivingEntity being, Set<LivingEntity> owners, LocalGrid grid, LocalTile tile, 
+				Map<Integer, Integer> itemsNeeded, List<GroupItem> itemGroupsAmtNeeded) {
 			if (itemsNeeded == null) {
 				itemsNeeded = new HashMap<>();
 			}
 			if (itemGroupsAmtNeeded == null) {
-				itemGroupsAmtNeeded = new HashMap<>();
+				itemGroupsAmtNeeded = new ArrayList<>();
 			}
 			
 			Set<Integer> itemsNeededIds = new HashSet<>(itemsNeeded.values());
@@ -36,13 +75,15 @@ public class ItemMetricsUtil {
 			for (Entry<Integer, Integer> entry: itemsNeeded.entrySet()) {
 				MapUtil.insertKeepMaxMap(itemAmtNeeded, entry.getKey(), entry.getValue());
 			}
-			for (Entry<String, Integer> entry: itemGroupsAmtNeeded.entrySet()) {
-				Set<Integer> groupIds = ItemData.getIdsFromNameOrGroup(entry.getKey());
+			for (GroupItem entry: itemGroupsAmtNeeded) {
+				Set<Integer> groupIds = ItemData.getIdsFromNameOrGroup(entry.group);
 				for (Integer groupId: groupIds) {
 					itemsNeededIds.add(groupId);
-					MapUtil.insertKeepMaxMap(itemAmtNeeded, groupId, entry.getValue());
+					MapUtil.insertKeepMaxMap(itemAmtNeeded, groupId, entry.desiredCount);
 				}
 			}
+			
+			TODO; //Factor in item quality into the score
 			
 			double utility = 0;
 			for (Integer itemId: itemsNeededIds) {
@@ -65,9 +106,8 @@ public class ItemMetricsUtil {
 
 		@Override
 		public double score(LivingEntity being, Set<LivingEntity> owners, LocalGrid grid, LocalTile tile, 
-				Map<Integer, Integer> itemsNeeded, Map<String, Integer> itemGroupsNeeded) {
-			Map<String, Integer> armorMapping = new HashMap<>();
-			armorMapping.put("Armor", 1);
+				Map<Integer, Integer> itemsNeeded, List<GroupItem> itemGroupsNeeded) {
+			GroupItem armorMapping = new GroupItem("Armor", ItemQuality.TERRIBLE, 1);
 			double baseScore = super.score(being, owners, grid, tile, itemsNeeded, armorMapping);
 			
 			boolean foundWearableItem = false;
@@ -91,9 +131,8 @@ public class ItemMetricsUtil {
 
 		@Override
 		public double score(LivingEntity being, Set<LivingEntity> owners, LocalGrid grid, LocalTile tile, 
-				Map<Integer, Integer> itemsNeeded, Map<String, Integer> itemGroupsNeeded) {
-			Map<String, Integer> armorMapping = new HashMap<>();
-			armorMapping.put("Clothing", 1);
+				Map<Integer, Integer> itemsNeeded, List<GroupItem> itemGroupsNeeded) {
+			GroupItem armorMapping = new GroupItem("Clothing", ItemQuality.TERRIBLE, 1);
 			double baseScore = super.score(being, owners, grid, tile, itemsNeeded, armorMapping);
 
 			//Use metrics of clothing utility, including wealth, 
@@ -136,12 +175,8 @@ public class ItemMetricsUtil {
 		
 		@Override
 		public double score(LivingEntity being, Set<LivingEntity> owners, LocalGrid grid, LocalTile tile, 
-				Map<Integer, Integer> itemsNeeded, Map<String, Integer> itemGroupsNeeded) {
-			Map<String, Integer> armorMapping = new HashMap<>();
-			for (String itemGroup: itemGroups) {
-				armorMapping.put(itemGroup, 1);
-			}
-			double baseScore = super.score(being, owners, grid, tile, itemsNeeded, armorMapping);
+				Map<Integer, Integer> itemsNeeded, List<GroupItem> itemGroupsNeeded) {
+			double baseScore = super.score(being, owners, grid, tile, itemsNeeded, itemGroupsNeeded);
 			
 			double maxFoodUtil = 0;
 			List<InventoryItem> items = tile.itemsOnFloor.getItems();
