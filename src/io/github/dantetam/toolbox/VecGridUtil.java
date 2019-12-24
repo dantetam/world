@@ -94,7 +94,7 @@ public class VecGridUtil {
 				}
 			}
 		}
-		Pair<Vector2i> zeroCenteredRect = findMaxSubRect(convertedOffsetVec);
+		Pair<Vector2i> zeroCenteredRect = VecGridMaxArea.findMaxSubRect(convertedOffsetVec);
 		zeroCenteredRect.first.x += topLeftBound.x;
 		zeroCenteredRect.first.y += topLeftBound.y;
 		return zeroCenteredRect;
@@ -436,146 +436,6 @@ public class VecGridUtil {
         return true;
 	}
 	
-	//TODO Make this method more time efficient
-	//From VisualVM: findBestRect(...) -> 10883 ms
-	//HashSet.contains() -> 5898 ms
-	public static Pair<Vector2i> findBestRect(Set<Vector3i> coords, int desiredR, int desiredC) {
-		if (coords.size() < desiredR * desiredC) return null;
-		
-		Pair<Vector3i> bounds = findCoordBounds(coords);
-		Vector3i topLeftBound = bounds.first, bottomRightBound = bounds.second;
-		int rows = bottomRightBound.x - topLeftBound.x + 1;
-		int cols = bottomRightBound.y - topLeftBound.y + 1;
-		
-		if (rows < desiredR || cols < desiredC) return null;
-		
-		int[][] convertedOffsetVec = new int[rows][cols];
-		
-		for (Vector3i coord: coords) {
-			int r = coord.x - topLeftBound.x;
-			int c = coord.y - topLeftBound.y;
-			convertedOffsetVec[r][c] = 1;
-		}
-		
-		Pair<Vector2i> zeroCenteredRect = findClosestSubRect(convertedOffsetVec, desiredR, desiredC);
-		if (zeroCenteredRect != null) {
-			zeroCenteredRect.first.x += topLeftBound.x;
-			zeroCenteredRect.first.y += topLeftBound.y;
-		}
-		return zeroCenteredRect;
-	}
-	
-    /**
-	 * @param M 2D boolean array
-	 * @return The maximum rectangle containing all true, 
-	 * at top-left starting location (r,c) and sizes (rows, cols)
-	 */
-	public static Pair<Vector2i> findMaxSubRect(int M[][]) { 
-        int i,j; 
-        int R = M.length;         //no of rows in M[][] 
-        int C = M[0].length;     //no of columns in M[][] 
-        int S[][] = new int[R][C];      
-        int T[][] = new int[R][C];
-      
-        /* Set first column of S[][]*/
-        for (i = 0; i < R; i++) {
-            S[i][0] = M[i][0]; 
-            T[i][0] = M[i][0];
-        }
-      
-        /* Set first row of S[][]*/
-        for (j = 0; j < C; j++) {
-        	S[0][j] = M[0][j]; 
-            T[0][j] = M[0][j]; 
-        }
-          
-        /* Construct other entries of S[][]*/
-        for (i = 1; i < R; i++) { 
-            for (j = 1; j < C; j++) { 
-                if (M[i][j] == 1) {
-                	S[i][j] = Math.min(S[i-1][j-1], S[i][j-1]) + 1;
-                	T[i][j] = Math.min(T[i-1][j-1], T[i-1][j]) + 1; 
-                }
-                else {
-                    S[i][j] = 0;
-                    T[i][j] = 0;
-                }
-            }  
-        }
-        
-        int maxR = -1, maxC = -1, maxArea = 0, rows = 0, cols = 0;
-        for (int r = 0; r < R; r++) {
-        	for (int c = 0; c < C; c++) {
-        		int area = S[r][c] * T[r][c];
-        		if (area > maxArea) {
-        			maxR = r;
-        			maxC = c;
-        			maxArea = area;
-        			rows = T[r][c];
-        			cols = S[r][c];
-        		}
-        	}
-        }  
-        return new Pair<Vector2i>(
-        		new Vector2i(maxR - rows + 1, maxC - cols + 1),
-        		new Vector2i(rows, cols)
-        		);
-    }  
-	
-	/**
-	 * @param M 2D boolean array
-	 * @return The smallest rectangle greater than dimensions (targetR, targetC) containing all true, 
-	 * at top-left starting location (r,c) and sizes (rows, cols)
-	 * 
-	 * 
-		CustomLog.outPrintln("S (col): ###########################");
-		CustomLog.outPrintlnArr(S);
-		CustomLog.outPrintln("T (row): ###########################");
-		CustomLog.outPrintlnArr(T);
-	 */
-	public static Pair<Vector2i> findClosestSubRect(int M[][], int targetR, int targetC) 
-    { 
-        int i,j; 
-        int R = M.length;         //no of rows in M[][] 
-        int C = M[0].length;     //no of columns in M[][] 
-        int S[][] = new int[R][C];      
-        int T[][] = new int[R][C];
-      
-        /* Set first column of S[][]*/
-        for (i = 0; i < R; i++) {
-            S[i][0] = M[i][0]; 
-            T[i][0] = M[i][0];
-        }
-      
-        /* Set first row of S[][]*/
-        for (j = 0; j < C; j++) {
-        	S[0][j] = M[0][j]; 
-            T[0][j] = M[0][j]; 
-        }
-          
-        /* Construct other entries of S[][]*/
-        for (i = 1; i < R; i++) { 
-            for (j = 1; j < C; j++) { 
-                if (M[i][j] == 1) {
-                	S[i][j] = Math.min(S[i-1][j-1], S[i][j-1]) + 1;
-                	T[i][j] = Math.min(T[i-1][j-1], T[i-1][j]) + 1; 
-                	if (S[i][j] >= targetC && T[i][j] >= targetR) {
-                		return new Pair<Vector2i>(
-                        		new Vector2i(i - T[i][j] + 1, j - S[i][j] + 1),
-                        		new Vector2i(T[i][j], S[i][j])
-                        		);
-                	}
-                }
-                else {
-                    S[i][j] = 0;
-                    T[i][j] = 0;
-                }
-            }  
-        }
-         
-        return null;
-    }  
-	
 	public static List<Set<Vector2i>> getConnectedComponents(boolean[][] data, boolean target) {
 		List<Set<Vector2i>> results = new ArrayList<>();
 		boolean[][] visited = new boolean[data.length][data[0].length];
@@ -687,11 +547,11 @@ public class VecGridUtil {
                 {1, 1, 1, 1}, 
                 {0, 1, 0, 0}, 
               }; 
-		CustomLog.outPrintln(findMaxSubRect(A).toString());
+		CustomLog.outPrintln(VecGridMaxArea.findMaxSubRect(A).toString());
 		
-		CustomLog.outPrintln("Closest sub rect (2,2): " + findClosestSubRect(A, 2, 2).toString());
-		CustomLog.outPrintln("Closest sub rect (2,1): " + findClosestSubRect(A, 2, 1).toString());
-		CustomLog.outPrintln("Closest sub rect (1,2): " + findClosestSubRect(A, 1, 2).toString());
+		CustomLog.outPrintln("Closest sub rect (2,2): " + VecGridMaxArea.findClosestSubRect(A, 2, 2).toString());
+		CustomLog.outPrintln("Closest sub rect (2,1): " + VecGridMaxArea.findClosestSubRect(A, 2, 1).toString());
+		CustomLog.outPrintln("Closest sub rect (1,2): " + VecGridMaxArea.findClosestSubRect(A, 1, 2).toString());
 		
 		
 		int B[][] = { 
@@ -699,7 +559,7 @@ public class VecGridUtil {
 				{0, 1, 1, 0}, 
                 {0, 1, 1, 1}
               };
-		CustomLog.outPrintln("Closest sub rect (2,2): " + findClosestSubRect(B, 2, 2).toString());
+		CustomLog.outPrintln("Closest sub rect (2,2): " + VecGridMaxArea.findClosestSubRect(B, 2, 2).toString());
 		
 		
 		

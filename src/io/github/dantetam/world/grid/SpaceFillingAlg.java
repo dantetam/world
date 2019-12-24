@@ -11,11 +11,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import io.github.dantetam.toolbox.VecGridUtil;
 import io.github.dantetam.toolbox.log.CustomLog;
 import io.github.dantetam.toolbox.CollectionUtil;
 import io.github.dantetam.toolbox.MapUtil;
 import io.github.dantetam.toolbox.Pair;
+import io.github.dantetam.toolbox.VecGridMaxArea;
 import io.github.dantetam.vector.Vector2i;
 import io.github.dantetam.vector.Vector3i;
 import io.github.dantetam.world.civilization.Society;
@@ -176,7 +176,7 @@ public class SpaceFillingAlg {
 			//After all the filtering has been done, check if the area is 
 			if (component.size() == 0) continue; 
 			
-			Pair<Vector2i> maxSubRect = VecGridUtil.findBestRect(component, desiredR, desiredC);
+			Pair<Vector2i> maxSubRect = VecGridMaxArea.findBestRect(component, desiredR, desiredC);
 			
 			if (maxSubRect == null || maxSubRect.second.x < desiredR || maxSubRect.second.y < desiredC) 
 				continue; 

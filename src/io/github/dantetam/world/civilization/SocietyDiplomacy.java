@@ -18,6 +18,7 @@ import io.github.dantetam.world.civhumansocietyai.FreeActionsSociety;
 import io.github.dantetam.world.combat.War;
 import io.github.dantetam.world.grid.WorldGrid;
 import io.github.dantetam.world.process.LocalSocietyJob;
+import io.github.dantetam.world.process.customproc.CaravanTradeProcess;
 
 public class SocietyDiplomacy {
 
@@ -182,8 +183,10 @@ public class SocietyDiplomacy {
 			}
 		}
 		
-		//TODO;
-		//CaravanTradeProcess tradeProcess = new CaravanTradeProcess();
+		CaravanTradeProcess tradeProcess = new CaravanTradeProcess("Caravan Intersocietal Trade", 
+				host, target,
+				resourceExchangeResult);
+		//TODO
 		//Create a trade job that allows people to take the priority
 		//to ship goods between societies
 		//LocalSocietyJob societyJob = new LocalSocietyJob();

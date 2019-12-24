@@ -32,7 +32,16 @@ public class ItemMetricsUtil {
 		put(ItemQuality.GREAT, 1.25);
 		put(ItemQuality.LEGENDARY, 1.5);
 	}};
-	public static int scoreItemsQualMetric(List<Inventory> invs, 
+	/**
+	 * Custom method for searching for specific item id and qualities for multiple inventories
+	 * @param invs
+	 * @param itemId
+	 * @param mainHuman
+	 * @param otherOwners
+	 * @param desiredCount
+	 * @return a score denoting the maximum item score, with optimal (highest quality and quantity) usage of items
+	 */
+	public static double scoreItemsQualMetric(List<Inventory> invs, 
 			int itemId, LivingEntity mainHuman, Set<LivingEntity> otherOwners,
 			int desiredCount) {
 		List<InventoryItem> allItems = new ArrayList<>();
@@ -47,8 +56,12 @@ public class ItemMetricsUtil {
 			}
 		});
 		double score = 0;
-		while (desiredCount >= 0) {
-			TODO;
+		while (desiredCount >= 0 && allItems.size() > 0) {
+			InventoryItem item = allItems.remove(0);
+			int usedAmount = (int) Math.min(item.quantity, desiredCount);
+			desiredCount -= usedAmount;
+			double qualMod = qualModMap.get(item.quality);
+			score += usedAmount * qualMod;
 		}
 		return score;
 	}
@@ -83,16 +96,18 @@ public class ItemMetricsUtil {
 				}
 			}
 			
-			TODO; //Factor in item quality into the score
-			
 			double utility = 0;
 			for (Integer itemId: itemsNeededIds) {
-				int tileInvCount = tile.itemsOnFloor.findItemCount(itemId, being, owners);
+				//Factor in item quality into the score
+				List<Inventory> invs = new ArrayList<>();
+				invs.add(tile.itemsOnFloor); 
 				if (tile.building != null)
-					tileInvCount += tile.building.inventory.findItemCount(itemId, being, owners);
+					invs.add(tile.building.inventory);
 				
-				int effCount = Math.min(tileInvCount, itemAmtNeeded.get(itemId)); 
-				utility += effCount;
+				int desiredCount = itemAmtNeeded.get(itemId);
+				double invScore = ItemMetricsUtil.scoreItemsQualMetric(invs, itemId, being, owners, desiredCount);
+				
+				utility += invScore;
 			}
 			
 			double dist = being.location.coords.squareDist(tile.coords);
