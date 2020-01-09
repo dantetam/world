@@ -11,7 +11,7 @@ public class Triplet<T> {
 	}
 	
 	public String toString() {
-		return "Triplet: [" + first.toString() + ", " + second.toString() + "," + third.toString() + "]";
+		return "Triplet: [" + first.toString() + ", " + second.toString() + ", " + third.toString() + "]";
 	}
 	
 }

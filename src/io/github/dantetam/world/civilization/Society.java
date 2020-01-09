@@ -378,7 +378,7 @@ public class Society {
 								grid, being, process, new HashSet<Human>() {{
 									if (being instanceof Human)
 										add((Human) being);
-								}}, process.requiredBuildNameOrGroup);
+								}}, process.requiredBuildNameOrGroup, false);
 						return potentialTiles != null;
 					}
 				}
@@ -403,7 +403,7 @@ public class Society {
 								grid, being, new HashSet<Human>() {{
 									if (being instanceof Human)
 										add((Human) being);
-								}}, process);
+								}}, process, false);
 						return potentialTiles != null;
 					}
 				}

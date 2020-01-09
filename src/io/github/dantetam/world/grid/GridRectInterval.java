@@ -84,7 +84,7 @@ public class GridRectInterval {
 	}
 	
 	public String toString() {
-		return "Grid Interval: " + start + " <-> " + end;
+		return "GridInter: " + start + " <-> " + end;
 	}
 	
 }

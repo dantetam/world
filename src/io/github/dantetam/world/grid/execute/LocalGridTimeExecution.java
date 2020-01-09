@@ -172,10 +172,10 @@ public class LocalGridTimeExecution {
 	public static boolean deconstructionProcessGeneric(LivingEntity unsupervHuman, LocalGrid grid, LocalProcess process) {
 		//Assign the location of the process where the steps are undertaken
 		if (process.requiredBuildNameOrGroup != null && process.processBuilding == null) {
-			assignBuilding(grid, unsupervHuman, process, null, process.requiredBuildNameOrGroup);
+			assignBuilding(grid, unsupervHuman, process, null, process.requiredBuildNameOrGroup, true);
 		}
 		else if (process.requiredTileNameOrGroup != null && process.processTile == null) {
-			assignTile(grid, unsupervHuman, null, process);
+			assignTile(grid, unsupervHuman, null, process, true);
 		}
 		
 		//Follow through with one step, deconstruct into a priority, and get its status back.
@@ -231,10 +231,10 @@ public class LocalGridTimeExecution {
 		}};
 		//Assign the location of the process where the steps are undertaken
 		if (process.requiredBuildNameOrGroup != null && process.processBuilding == null) {
-			assignBuilding(grid, human, process, capitalOwners, process.requiredBuildNameOrGroup);
+			assignBuilding(grid, human, process, capitalOwners, process.requiredBuildNameOrGroup, true);
 		}
 		else if (process.requiredTileNameOrGroup != null && process.processTile == null) {
-			assignTile(grid, human, capitalOwners, process);
+			assignTile(grid, human, capitalOwners, process, true);
 			System.err.println("_>>>>>>>>>>>>>>>>>>> + processTile (" + process.requiredTileNameOrGroup + 
 					"): " + process.processTile + "\n");
 		}
@@ -366,10 +366,10 @@ public class LocalGridTimeExecution {
 		
 		//Assign the location of the process where the steps are undertaken
 		if (process.requiredBuildNameOrGroup != null && process.processBuilding == null) {
-			assignBuilding(grid, human, process, capitalOwners, process.requiredBuildNameOrGroup);
+			assignBuilding(grid, human, process, capitalOwners, process.requiredBuildNameOrGroup, true);
 		}
 		else if (process.requiredTileNameOrGroup != null && process.processTile == null) {
-			assignTile(grid, human, capitalOwners, process);
+			assignTile(grid, human, capitalOwners, process, true);
 		}
 		
 		if (human.currentQueueTasks != null && human.currentQueueTasks.size() > 0) {
@@ -532,7 +532,7 @@ public class LocalGridTimeExecution {
 	
 
 	public static LocalBuilding assignBuilding(LocalGrid grid, LivingEntity being, LocalProcess process,
-			Set<Human> capitalOwners, String buildingName) {
+			Set<Human> capitalOwners, String buildingName, boolean setInUse) {
 		int id = ItemData.getIdFromName(buildingName);
 		KdTree<Vector3i> nearestItemsTree = grid.getKdTreeForBuildings(id);
 		if (nearestItemsTree == null || nearestItemsTree.size() == 0) return null;
@@ -551,7 +551,8 @@ public class LocalGridTimeExecution {
 							ScoredPath scoredPath = grid.pathfinder.findPath(
 									being, being.location, grid.getTile(neighbor));
 							if (scoredPath.isValid()) {
-								building.currentUser = being;
+								if (setInUse)
+									building.currentUser = being;
 								process.processBuilding = building;
 							}
 						}
@@ -573,7 +574,7 @@ public class LocalGridTimeExecution {
 	 * @return The harvest tile, followed by the tile to move to (within <= 1 distance)
 	 */
 	public static Pair<LocalTile> assignTile(LocalGrid grid, LivingEntity being, 
-			Set<Human> validOwners, LocalProcess process) {
+			Set<Human> validOwners, LocalProcess process, boolean setInUse) {
 		
 		String tileName = process.requiredTileNameOrGroup;
 		boolean useAboveTileOverride = !process.name.contains("Harvest Tile ");
@@ -614,21 +615,27 @@ public class LocalGridTimeExecution {
 								being, being.location, dest);
 						if (scoredPath.isValid()) {
 							Pair<LocalTile> pair = new Pair<>(grid.getTile(candidate), dest);
-							process.processTile = pair.second;
-							process.targetTile = pair.first;
-							pair.first.harvestInUse = true;
+							if (setInUse) { //This method can be used to find viability, not actual use
+								process.processTile = pair.second;
+								process.targetTile = pair.first;
+								pair.first.harvestInUse = true;
+							}
 							return pair;
 						}
 					}
-					//System.err.println("Tile not reachable: " + candidate);
+					System.err.println("Tile not reachable: " + candidate);
 				}
 				else {
-					//System.err.println("Tile in use: " + tile.coords);
+					System.err.println("Tile in use: " + tile.coords);
 				}
 			}
 			else {
-				//System.err.println("Tile claimed/no societal access: " + tile.coords);
+				System.err.println("Tile claimed/no societal access: " + tile.coords);
 			}
+		}
+		
+		if (candidates.size() == 0) {
+			System.err.println("No tiles found in world: " + tileName);
 		}
 		
 		/*

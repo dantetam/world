@@ -62,7 +62,8 @@ public class SpaceFillingAlg {
 	 * Intended for finding land (free or occupied by correct owners) near coords center
 	 * When given no owners, it is intended to find new land claims, chunks of new unoccupied land.
 	 * 
-	 * @param validLandOwners  The owners of the land that can be used for finding this space
+	 * @param validLandOwners  The owners of the land that can be used for finding this space; 
+	 * 		if null, no owner checks are made.
 	 * 
 	 * @return The maximum rectangle closest to center, with minimum dimensions (desiredR, desiredC),
 	 * if one exists within maxDistFlat * trials distance (square dist) away from center.
@@ -76,11 +77,14 @@ public class SpaceFillingAlg {
 			Collection<ClusterVector3i> mustBeWithinAreas) {
 		LocalTileCond originalCond = tileCond; 
 		if (!allowAnnotated) { //Add to the custom tile condition to restrict annotated tiles 
+			//Chain these two conditions as AND, if both exist
 			LocalTileCond tempCond = new LocalTileCond() {
 				@Override
 				public boolean isDesiredTile(LocalGrid grid, Vector3i coords) {
-					if (validLandOwners != null) {
+					boolean foundLandClaims = false; //For diagnostics
+					if (validLandOwners != null && validLandOwners.size() > 0) {
 						for (Human human: validLandOwners) {
+							CustomLog.errPrintln("DesignatedBuilds: " + human.designatedBuildsByPurpose);
 							for (List<PurposeAnnotatedBuild> builds: human.designatedBuildsByPurpose.values()) {
 								for (PurposeAnnotatedBuild annoBuild: builds) {
 									if (annoBuild.annoBuildContainsVec(coords)) {
@@ -176,7 +180,7 @@ public class SpaceFillingAlg {
 			//After all the filtering has been done, check if the area is 
 			if (component.size() == 0) continue; 
 			
-			Pair<Vector2i> maxSubRect = VecGridMaxArea.findBestRect(component, desiredR, desiredC);
+			Pair<Vector2i> maxSubRect = VecGridMaxArea.findMaxSubRect(component, desiredR, desiredC);
 			
 			if (maxSubRect == null || maxSubRect.second.x < desiredR || maxSubRect.second.y < desiredC) 
 				continue; 

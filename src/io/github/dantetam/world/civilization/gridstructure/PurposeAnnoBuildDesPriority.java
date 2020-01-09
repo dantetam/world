@@ -7,6 +7,7 @@ import java.util.Map.Entry;
 import java.util.AbstractMap.SimpleEntry;
 
 import io.github.dantetam.toolbox.MapUtil;
+import io.github.dantetam.toolbox.log.CustomLog;
 import io.github.dantetam.world.civhumanai.NeedsGamut;
 import io.github.dantetam.world.life.Human;
 import io.github.dantetam.world.life.LivingEntity;
@@ -44,6 +45,7 @@ public class PurposeAnnoBuildDesPriority {
 			for (PurposeAnnotatedBuild purposeAnnoBuild: purposeAnnoBuilds) {
 				LinkedHashMap<AnnotatedRoom, Double> scoredRooms = futureRoomNeedByScore(being, purposeAnnoBuild,
 						humanNeedsCalc);
+				CustomLog.errPrintln("ScoredRooms: " + scoredRooms);
 				if (scoredRooms != null && scoredRooms.size() > 0) {
 					Entry<AnnotatedRoom, Double> thisComplexBestChoice = scoredRooms.entrySet().iterator().next();
 					if (bestEntry == null || thisComplexBestChoice.getValue() > bestScore) {
@@ -63,7 +65,7 @@ public class PurposeAnnoBuildDesPriority {
 			PurposeAnnotatedBuild complex, NeedsGamut humanNeedsCalc) {
 		LinkedHashMap<AnnotatedRoom, Double> roomScoring = new LinkedHashMap<>();
 		
-		if (PurposeAnnoBuildDesign.complexRoomsMap.containsKey(complex.totalHousePurpose)) {
+		if (!PurposeAnnoBuildDesign.complexRoomsMap.containsKey(complex.totalHousePurpose)) {
 			return roomScoring;
 		}
 		

@@ -52,6 +52,8 @@ import kn.uni.voronoitreemap.j2d.PolygonSimple;
 
 public class WorldGridInstantiate {
 
+	private static final int NUM_HOUSES = 1, NUM_PEOPLE_IN_HOUSE = 3;
+	
 	private Vector2i worldSize;
 	private int generatedTerrainLen;
 	
@@ -127,10 +129,8 @@ public class WorldGridInstantiate {
 		Society testSociety = new Society("TestSociety", grid);
 		testSociety.societyCenter = new Vector3i(50,50,30);
 		
-		int numHouses = 20;
-		
-		for (int i = 0; i < numHouses; i++) {
-			int numPeopleHouse = (int)(Math.random() * 8) + 1;
+		for (int i = 0; i < NUM_HOUSES; i++) {
+			int numPeopleHouse = (int)(Math.random() * NUM_PEOPLE_IN_HOUSE) + 1;
 			List<Human> people = new ArrayList<>();
 			for (int j = 0; j < numPeopleHouse; j++) {
 				int r, c;

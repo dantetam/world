@@ -73,4 +73,8 @@ public class AnnotatedRoom {
 		return room;
 	}
 	
+	public String toString() {
+		return "AnnotatedRoom, " + purpose + ": " + fullRoom;
+	}
+	
 }
