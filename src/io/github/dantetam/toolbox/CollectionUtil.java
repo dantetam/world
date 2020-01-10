@@ -118,15 +118,21 @@ public class CollectionUtil {
 		if (collections == null || collections.length <= 1) {
 			throw new IllegalArgumentException("Collection intersection not defined for empty/null amount of collections");
 		}
-			
+		
 		Set<T> intersection = null;
 		for (Collection<T> coln: collections) {
-			if (coln == null) { //Strictly define intersection with an empty/null set as none
+			if (coln == null) {
 				continue;
 			}
-			
+			if (intersection == null) {
+				intersection = new HashSet<>(coln);
+			}
+			else {
+				for (T item: coln) {
+					intersection.add(item);
+				}
+			}
 		}
-		
 		return intersection;
 	}
 	

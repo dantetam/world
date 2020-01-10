@@ -125,15 +125,15 @@ public class SpaceFillingAlg {
 			LocalTileCond tileCond,
 			Collection<ClusterVector3i> mustBeWithinAreas) {
 		
+		//Find all viable clusters (connected components) that can provide spaces
 		Collection<ClusterVector3i> closestClusters; 
-		
 		if (mustBeWithinAreas != null) {
 			closestClusters = new ArrayList<>(mustBeWithinAreas);
 		}
 		else {
 			if (validLandOwners == null || validLandOwners.size() <= 0) {
 				KdTree<ClusterVector3i> componentsTree = grid.clustersList2dSurfaces;
-				closestClusters = componentsTree.nearestNeighbourListSearch(10, 
+				closestClusters = componentsTree.nearestNeighbourListSearch(25, 
 						new ClusterVector3i(center, new HashSet<>()));
 			}
 			else {
@@ -151,7 +151,6 @@ public class SpaceFillingAlg {
 		List<ClusterVector3i> clustersList = new ArrayList<ClusterVector3i>(closestClusters);
 		Collections.sort(clustersList, 
 				new Comparator<ClusterVector3i>() {
-			
 				@Override
 				public int compare(ClusterVector3i o1, ClusterVector3i o2) {
 					//Ascending sort in distance
@@ -182,7 +181,7 @@ public class SpaceFillingAlg {
 			
 			Pair<Vector2i> maxSubRect = VecGridMaxArea.findMaxSubRect(component, desiredR, desiredC);
 			
-			if (maxSubRect == null || maxSubRect.second.x < desiredR || maxSubRect.second.y < desiredC) 
+			if (maxSubRect == null) // || maxSubRect.second.x < desiredR || maxSubRect.second.y < desiredC) 
 				continue; 
 			
 			Vector3i start = new Vector3i(maxSubRect.first.x, maxSubRect.first.y, height);

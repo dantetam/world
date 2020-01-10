@@ -10,7 +10,9 @@ import io.github.dantetam.vector.Vector3i;
 public class VecGridMaxArea {
 
 	private enum VecGridFillAlg {
-		MAXIMUM, CLOSEST
+		MAXIMUM, 
+		CLOSEST,  
+		MAXIMUM_STRICT //Adds r >= targetR, c >= targetC restriction for  
 	}
 	
 	/**
@@ -138,11 +140,16 @@ public class VecGridMaxArea {
 			}
 			
 			Triplet<Integer> rectangle = null;
-			if (alg == VecGridFillAlg.MAXIMUM) rectangle = maxRectAreaInHist(histogramData);
-			else if (alg == VecGridFillAlg.CLOSEST) rectangle = closestRectAreaInHist(histogramData, desiredR, desiredC);
+			if (alg == VecGridFillAlg.MAXIMUM || alg == VecGridFillAlg.MAXIMUM_STRICT) 
+				rectangle = maxRectAreaInHist(histogramData);
+			else if (alg == VecGridFillAlg.CLOSEST) 
+				rectangle = closestRectAreaInHist(histogramData, desiredR, desiredC);
 			
 			int width = rectangle.second, height = rectangle.third;
-			if ((width * height >= maxArea && width >= desiredC && height >= desiredR) || bestRectangle == null) {
+			if ((width < desiredR || height < desiredC) && alg == VecGridFillAlg.MAXIMUM_STRICT) {
+				continue;
+			}
+			if (width * height > maxArea || bestRectangle == null) {
 				bestRectangle = rectangle;
 				maxArea = width * height;
 				
@@ -165,14 +172,14 @@ public class VecGridMaxArea {
 	 * 		and the dimensions of it.
 	 */
 	public static Pair<Vector2i> findMaxSubRect(Set<Vector3i> coords, int desiredR, int desiredC) {
-		if (coords.size() < desiredR * desiredC) return null;
+		//if (coords.size() < desiredR * desiredC) return null;
 		
 		Pair<Vector3i> bounds = VecGridUtil.findCoordBounds(coords);
 		Vector3i topLeftBound = bounds.first, bottomRightBound = bounds.second;
 		int rows = bottomRightBound.x - topLeftBound.x + 1;
 		int cols = bottomRightBound.y - topLeftBound.y + 1;
 		
-		if (rows < desiredR || cols < desiredC) return null;
+		//if (rows < desiredR || cols < desiredC) return null;
 		
 		int[][] convertedOffsetVec = new int[rows][cols];
 		

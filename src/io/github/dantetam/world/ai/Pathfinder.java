@@ -57,17 +57,15 @@ public class Pathfinder {
 	 * @return
 	 */
 	protected Set<LocalTile> validNeighbors(LivingEntity being, LocalTile tile) {
-		Set<LocalTile> candidates = grid.getAllTiles14(tile.coords); //grid.getAccessibleNeighbors(tile);
+		Set<LocalTile> candidates = grid.getAllTiles14Pathfinding(tile.coords); //grid.getAccessibleNeighbors(tile);
 		return candidates;
 	}
 	
 	//Generate distance between two neighboring tiles, assuming they're adjacent
 	protected double getTileDist(LocalTile a, LocalTile b) {
-		/*
 		if (a.coords.manhattanDist(b.coords) > 1) {
 			return 1.4;
 		}
-		*/
 		return 1.0;
 	}
 	
@@ -90,8 +88,6 @@ public class Pathfinder {
 		}
 		return 0;
 	}
-	
-	//protected static final double 
 	
 	public boolean hasValidPath(LivingEntity being, Vector3i start, Vector3i end) {
 		ScoredPath scoredPath = grid.pathfinder.findPath(

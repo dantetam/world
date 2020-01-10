@@ -84,7 +84,7 @@ public class AnnoRoomProcDeconst {
 				priority = new ConstructRoomPriority(borderRegion, bestBuildingMaterials);
 			}
 			else {
-				priority = new ImpossiblePriority("Could not find open rectangular space");
+				priority = new ImpossiblePriority("Could not find open rectangular space for annotated room");
 			}
 		}
 		

@@ -130,7 +130,13 @@ public class LocalGrid {
 	public boolean tileIsOccupied(Vector3i coords) {
 		LocalTile tile = getTile(coords);
 		if (tile == null) return false;
-		if (tile.tileBlockId != ItemData.ITEM_EMPTY_ID) return true;
+		if (tile.tileBlockId != ItemData.ITEM_EMPTY_ID) {
+			if (ItemData.doesItemIdHaveProp(tile.tileBlockId, "Walkthrough")) {
+				//TODO Better treatment of this item property here
+				return false;
+			}
+			return true;
+		}
 		//if (tile.getPeople() != null) return true;
 		if (tile.building != null) {
 			if (tile.building.calculatedLocations != null) {
@@ -270,7 +276,7 @@ public class LocalGrid {
 	public Set<Vector3i> getAllNeighbors14(Vector3i coords) {
 		return getAllNeighbors(coords, allAdjOffsets14);
 	}
-	public Set<LocalTile> getAllTiles14(Vector3i coords) {
+	public Set<LocalTile> getAllTiles14Pathfinding(Vector3i coords) {
 		Set<Vector3i> vecs = getAllNeighbors(coords, allAdjOffsets14);
 		Set<LocalTile> tiles = new HashSet<>();
 		for (Vector3i vec: vecs) {

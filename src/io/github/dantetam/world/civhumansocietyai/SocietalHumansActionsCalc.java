@@ -214,9 +214,19 @@ public class SocietalHumansActionsCalc {
 		return pairs;
 	}
 	
-	//Figure out a system for people claiming land in a world
-	//More powerful people get first choice? Followed by those who desparately want land and have the power
-	//to obtain/maintain land
+	/**
+	 * TODO
+	 * Figure out a system for people claiming land in a world
+	 * @param grid
+	 * @param society
+	 * @param humans
+	 * More powerful people get first choice? Followed by those who desparately want land and have the power
+	 *	to obtain/maintain land
+	 *
+	 * Also combine with metrics of people's estimated land use e.g. wanting to create twenty shirts,
+	 * which requires a hundred cotton plants, for approximately 150 tiles for this new farm/tailor complex.
+	 * See AnnotatedRoom data.
+	 */
 	public static Map<Human, GridRectInterval> possibleNewLandClaims(LocalGrid grid, Society society,
 			List<Human> humans) {
 		Map<Human, GridRectInterval> humanClaimUtil = new HashMap<>();

@@ -200,7 +200,15 @@ public class LocalGridTimeExecution {
 		//Process has been completed, remove it from person
 		if (process.processStepIndex < 0 || process.processStepIndex >= process.processSteps.size()) {
 			process.recRepeats--;
+			
 			if (process.recRepeats <= 0) {
+				if (process.targetTile != null) {
+					process.targetTile = null;
+				}
+				if (process.processTile != null) {
+					process.processTile.harvestInUse = false;
+					process.processTile = null;
+				}
 				return true;
 			}
 			else {
@@ -313,15 +321,11 @@ public class LocalGridTimeExecution {
 			process.recRepeats--;
 			
 			if (process.targetTile != null) {
-				if (process.processTile.tileBlockId == ItemData.ITEM_EMPTY_ID) {
-					process.targetTile = null;
-					process.processTile = null;
-				}
+				process.targetTile = null;
 			}
 			if (process.processTile != null) {
-				if (process.processTile.tileBlockId == ItemData.ITEM_EMPTY_ID) {
-					process.processTile = null;
-				}
+				process.processTile.harvestInUse = false;
+				process.processTile = null;
 			}
 			
 			if (process.recRepeats <= 0) {
@@ -331,11 +335,6 @@ public class LocalGridTimeExecution {
 				if (process.processBuilding != null) {
 					process.processBuilding.currentUser = null;
 					process.processBuilding = null;
-				}
-				if (process.processTile != null || process.targetTile != null) {
-					process.processTile.harvestInUse = false;
-					process.processTile = null;
-					process.targetTile = null;
 				}
 				assignSingleHumanJob(society, grid, human, date);
 			}
@@ -447,15 +446,11 @@ public class LocalGridTimeExecution {
 			process.recRepeats--;
 			
 			if (process.targetTile != null) {
-				if (process.processTile.tileBlockId == ItemData.ITEM_EMPTY_ID) {
-					process.targetTile = null;
-					process.processTile = null;
-				}
+				process.targetTile = null;
 			}
 			if (process.processTile != null) {
-				if (process.processTile.tileBlockId == ItemData.ITEM_EMPTY_ID) {
-					process.processTile = null;
-				}
+				process.processTile.harvestInUse = false;
+				process.processTile = null;
 			}
 			
 			if (process.recRepeats <= 0) {
@@ -469,11 +464,6 @@ public class LocalGridTimeExecution {
 				if (process.processBuilding != null) {
 					process.processBuilding.currentUser = null;
 					process.processBuilding = null;
-				}
-				if (process.processTile != null || process.targetTile != null) {
-					process.processTile.harvestInUse = false;
-					process.processTile = null;
-					process.targetTile = null;
 				}
 			}
 			else {
@@ -566,10 +556,10 @@ public class LocalGridTimeExecution {
 	
 	/**
 	 * 
-	 * The reason why useAboveTileOverride exists, is because of the two cases in required tile:
-	 * 
+	 * @param useAboveTileOverride Two cases in required tile:
 	 * the user is directly harvesting the tile (point directly at needed tile);
 	 * the user needs to complete a process on top of a tile (point at one above tile, like in farming).
+	 * @param validOwners Restrict tiles to having owners from this set. If null, no restriction on owners.
 	 * 
 	 * @return The harvest tile, followed by the tile to move to (within <= 1 distance)
 	 */
@@ -596,7 +586,7 @@ public class LocalGridTimeExecution {
 			
 			List<Human> claimants = grid.findClaimantToTile(candidate);
 			
-			if (claimants == null || claimants.size() == 0 || 
+			if (claimants == null || claimants.size() == 0 || validOwners == null ||
 					CollectionUtil.colnsHasIntersect(claimants, validOwners)) {
 				if (!tile.harvestInUse) {
 					List<Vector3i> neighbors = grid.getAll14NeighborsSorted(candidate, being.location.coords);
@@ -623,20 +613,22 @@ public class LocalGridTimeExecution {
 							return pair;
 						}
 					}
-					System.err.println("Tile not reachable: " + candidate);
+					//System.err.println("Tile not reachable: " + candidate);
 				}
 				else {
-					System.err.println("Tile in use: " + tile.coords);
+					//System.err.println("Tile in use: " + tile.coords);
 				}
 			}
 			else {
-				System.err.println("Tile claimed/no societal access: " + tile.coords);
+				//System.err.println("Tile claimed/no societal access: " + tile.coords);
 			}
 		}
 		
+		/*
 		if (candidates.size() == 0) {
 			System.err.println("No tiles found in world: " + tileName);
 		}
+		*/
 		
 		/*
 		tileByPathScore = MapUtil.getSortedMapByValueDesc(tileByPathScore);
@@ -677,7 +669,7 @@ public class LocalGridTimeExecution {
 		//Also for hunting priorities and situations where one party can initiate a fight.
 		
 		if (process.name.equals("Build Basic Home")) {
-			int width = (int) Math.ceil(Math.sqrt(being.ownedBuildings.size() + being.inventory.size() + 8));
+			int width = (int) Math.ceil(Math.sqrt(being.ownedBuildings.size() + Math.min(being.inventory.size(), 5) + 2));
 			Vector2i requiredSpace = new Vector2i(width, width);
 			
 			List<GridRectInterval> bestRectangles = findBestOpenRectSpace(
@@ -706,7 +698,7 @@ public class LocalGridTimeExecution {
 				priority = new ConstructRoomPriority(borderRegion, bestBuildingMaterials);
 			}
 			else {
-				priority = new ImpossiblePriority("Could not find open rectangular space");
+				priority = new ImpossiblePriority("Could not find open rectangular space home");
 			}
 			return priority;
 		}
@@ -1075,7 +1067,7 @@ public class LocalGridTimeExecution {
 		}
 		else {
 			CustomLog.errPrintln("Warning, building and/or tile required: " + 
-					process.toString() + ", tile/building may not be assigned");
+					process.toString() + ", tile/building may not be assigned.");
 			return new ImpossiblePriority("Warning, could not find destination for unsupervised process.");
 		}
 
@@ -1488,6 +1480,7 @@ public class LocalGridTimeExecution {
 					Vector3i coordsFrom = path.get(i).coords;
 					Vector3i coordsTo = path.get(i+1).coords;
 					tasks.add(new MoveTask(1, coordsFrom, coordsTo));
+					TODO; //Create a harvest task for tiles that are blocked
 				}
 			}
 			else {
@@ -1623,9 +1616,11 @@ public class LocalGridTimeExecution {
 		}
 		else if (task instanceof PickupTask) {
 			PickupTask pickupTask = (PickupTask) task;
+			//TODO;
 		}
 		else if (task instanceof DropoffInvTask) {
 			DropoffInvTask dropTask = (DropoffInvTask) task;
+			//TODO;
 		}
 		else if (task instanceof HarvestBlockTileTask) {
 			HarvestBlockTileTask harvestTileTask = (HarvestBlockTileTask) task;

@@ -217,7 +217,7 @@ public class RSRPathfinder extends Pathfinder {
 		//Implement the ability to traverse tiles that need to be dug (add accessibility penalty)
 		//Also try to improve height and diagonal height walking across terrain
 		
-		Set<LocalTile> candidates = grid.getAllTiles14(tile.coords);
+		Set<LocalTile> candidates = grid.getAllTiles14Pathfinding(tile.coords);
 		if (macroEdgeConnections.containsKey(tile.coords)) {
 			Set<Vector3i> coords = macroEdgeConnections.get(tile.coords);
 			for (Vector3i coord: coords) {

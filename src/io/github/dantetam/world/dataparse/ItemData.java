@@ -324,6 +324,10 @@ public class ItemData {
 	public static Set<Integer> getItemsWithItemProp(String name) {
 		return itemPropertiesNamed.get(name);
 	}
+	public static boolean doesItemIdHaveProp(int id, String name) {
+		Set<Integer> ids = ItemData.getItemsWithItemProp(name);
+		return ids.contains(id);
+	}
 	
 	public static int getTextureFromItemId(int id) {
 		String itemName = getNameFromId(id);
