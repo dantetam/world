@@ -163,7 +163,8 @@ public class LocalGrid {
 	public boolean tileIsPartAccessible(Vector3i coords) {
 		if (!this.inBounds(coords))
 			return false;
-		return this.accessibleTileRecord[coords.x][coords.y][coords.z] == LocalGridAccess.FULL_ACCESS;
+		LocalGridAccess access = this.accessibleTileRecord[coords.x][coords.y][coords.z];
+		return access == LocalGridAccess.FULL_ACCESS || access == LocalGridAccess.IF_HARVEST_ACCESS;
 	}
 	
 	private LocalGridAccess determineTileIsAccessible(Vector3i coords) {
