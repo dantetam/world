@@ -357,7 +357,6 @@ public class VecGridUtil {
 	public static List<ClusterVector3i> contComp3dSolidsClustersSpec(Vector3i minBoundsInc,
 			Vector3i maxBoundsInc, LocalGrid grid) {
 		List<ClusterVector3i> results = new ArrayList<>();
-		Set<Vector3i> visited = new HashSet<>();
 		
 		if (minBoundsInc == null) {
 			minBoundsInc = new Vector3i(0,0,0);
@@ -366,23 +365,29 @@ public class VecGridUtil {
 			maxBoundsInc = new Vector3i(grid.rows - 1, grid.cols - 1, grid.heights - 1);
 		}
 		
-		for (int r = minBoundsInc.x; r <= maxBoundsInc.x; r++) {
-			for (int c = minBoundsInc.y; c <= maxBoundsInc.y; c++) {
-				for (int h = minBoundsInc.z; h <= maxBoundsInc.z; h++) {
+		Vector3i sizeBounds = maxBoundsInc.getSubtractedBy(minBoundsInc).getSum(1, 1, 1);
+		boolean[][][] visited = new boolean[sizeBounds.x][sizeBounds.y][sizeBounds.z];
+		
+		for (int r = 0; r < sizeBounds.x; r++) {
+			for (int c = 0; c < sizeBounds.y; c++) {
+				for (int h = 0; h < sizeBounds.z; h++) {
+					if (visited[r][c][h]) continue;
+					
 					Set<Vector3i> componentVecs = new HashSet<>();
 					List<Vector3i> fringe = new ArrayList<>();
 					fringe.add(new Vector3i(r,c,h));
 					
 					while (fringe.size() > 0) {
 						Vector3i first = fringe.remove(0);
-						if (!visited.contains(first) && 
-								grid.inBounds(first) && vecInBounds(minBoundsInc, maxBoundsInc, first)) {
-							visited.add(first);
-							if (grid.tileIsPartAccessible(first)) {
-								componentVecs.add(first);
-								Set<Vector3i> neighbors = grid.getAllNeighbors14(first);
+						Vector3i actual = first.getSum(minBoundsInc);
+						if (vecInBounds(minBoundsInc, maxBoundsInc, actual) && 
+								!visited[first.x][first.y][first.z]) {
+							visited[first.x][first.y][first.z] = true;
+							if (grid.tileIsPartAccessible(actual)) {
+								componentVecs.add(actual);
+								Set<Vector3i> neighbors = grid.getAllNeighbors14(actual);
 								for (Vector3i neighbor: neighbors) {
-									fringe.add(neighbor);
+									fringe.add(neighbor.getSubtractedBy(minBoundsInc));
 								}
 							}
 						}
@@ -506,7 +511,7 @@ public class VecGridUtil {
 	}
 	
 	public static void main(String[] args) {
-		matrixAndComp2DTest();
+		cont3dCompTest();
 	}
 	
 	public static void cont3dCompTest() {
@@ -519,16 +524,28 @@ public class VecGridUtil {
 		CustomLog.outPrintln("Start 3d component time trial now");
 		long startTime = Calendar.getInstance().getTimeInMillis();
 		
+		/*
 		Map<Vector3i, Integer> components = contComponent3dSolids(
-				new Vector3i(0,0,0),
-				new Vector3i(199,199,49),
+				//new Vector3i(0,0,0),
+				//new Vector3i(199,199,49),
+				new Vector3i(50,50,20),
+				new Vector3i(90,90,49),
+				activeLocalGrid
+				);
+		*/
+		
+		List<ClusterVector3i> components = contComp3dSolidsClustersSpec(
+				//new Vector3i(0,0,0),
+				//new Vector3i(199,199,49),
+				new Vector3i(20,20,20),
+				new Vector3i(30,30,59),
 				activeLocalGrid
 				);
 		
 		long endTime = Calendar.getInstance().getTimeInMillis();
 		CustomLog.outPrintln("Completed trials in " + (endTime - startTime) + "ms");
 	
-		//CustomLog.outPrintln(components);
+		CustomLog.outPrintln(components);
 	}
 	
 	public static void matrixAndComp2DTest() {

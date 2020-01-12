@@ -27,6 +27,15 @@ import io.github.dantetam.world.life.LivingEntity;
 import io.github.dantetam.world.worldgen.LocalGridBiome;
 import io.github.dantetam.world.worldgen.LocalGridInstantiate;
 
+/**
+ * 
+ * @author Dante
+ * 
+ * A hierarchical pathfinder, which is a modification of A* that condenses the map into a smaller structure.
+ * This approach comes from "Near Optimal Hierarchical Path-Finding", Botea and Muller.
+ *
+ */
+
 public class HierarchicalPathfinder extends Pathfinder {
 
 	public static final int ABSTRACT_BLOCK_SIZE = 10;
@@ -70,10 +79,11 @@ public class HierarchicalPathfinder extends Pathfinder {
 			//CustomLog.outPrintln("\t Score: " + firstNode.distToPathableNodes.get(secondNode).score + ": " + firstNode.distToPathableNodes.get(secondNode).path);
 			//ScoredPath localPath = super.findPath(being, grid.getTile(firstNode.coords), grid.getTile(secondNode.coords));
 			ScoredPath localPath = firstNode.distToPathableNodes.get(secondNode);
-			for (int local = 0; local < localPath.path.size(); local++) {
+			List<LocalTile> pathTiles = localPath.getPath(grid);
+			for (int local = 0; local < pathTiles.size(); local++) {
 				//Do not double count vertices due to the way they are compiled in a hierarchical search
-				if (node != absPath.path.size() - 2 && local == localPath.path.size() - 1) break;
-				LocalTile tile = localPath.path.get(local);
+				if (node != absPath.path.size() - 2 && local == pathTiles.size() - 1) break;
+				LocalTile tile = pathTiles.get(local);
 				completePath.add(tile);
 			}
 			totalScore += localPath.score;
@@ -636,13 +646,14 @@ public class HierarchicalPathfinder extends Pathfinder {
 			endTime = Calendar.getInstance().getTimeInMillis();
 			CustomLog.outPrintln("Completed trials in " + (endTime - startTime) + "ms");
 			
-			if (path != null && path.path != null && path.path.size() > 0) {
+			List<LocalTile> pathTiles = path.getPath(activeLocalGrid);
+			if (path != null && pathTiles != null && pathTiles.size() > 0) {
 				CustomLog.outPrintln("Pathing: " + startVec + ", " + endVec + " ####################################");
 				
 				numPathsTested++;
 				
 				CustomLog.outPrintln("Hierarchical Path: ");
-				CustomLog.outPrintln(path.path);
+				CustomLog.outPrintln(pathTiles);
 				CustomLog.outPrintln("Score (high means longer): " + path.score);
 				
 				List<Vector3i> vecs = new ArrayList<>();
@@ -656,7 +667,7 @@ public class HierarchicalPathfinder extends Pathfinder {
 				ScoredPath oldStylePath = regPather.findPath(people.get(0), 
 						activeLocalGrid.getTile(startVec), activeLocalGrid.getTile(endVec), 
 						tempBounds.first, tempBounds.second);
-				CustomLog.outPrintln(oldStylePath.path);
+				CustomLog.outPrintln(oldStylePath.getPath(activeLocalGrid));
 				CustomLog.outPrintln("Score (high means longer): " + oldStylePath.score);
 			}
 			else {

@@ -624,23 +624,6 @@ public class LocalGridTimeExecution {
 			}
 		}
 		
-		/*
-		if (candidates.size() == 0) {
-			System.err.println("No tiles found in world: " + tileName);
-		}
-		*/
-		
-		/*
-		tileByPathScore = MapUtil.getSortedMapByValueDesc(tileByPathScore);
-		for (Object obj: tileByPathScore.keySet().toArray()) {
-			Pair<LocalTile> bestPair = (Pair) obj;
-			being.processTile = bestPair.second;
-			being.targetTile = bestPair.first;
-			bestPair.first.harvestInUse = true;
-			return bestPair;
-		}
-		*/
-		
 		return null;
 	}
 	
@@ -1473,7 +1456,7 @@ public class LocalGridTimeExecution {
 					ScoredPath scoredPath = grid.pathfinder.findPath(
 							being, being.location, grid.getTile(movePriority.coords));
 					if (scoredPath.isValid()) {
-						movePriority.initPath(scoredPath.path);
+						movePriority.initPath(scoredPath.getPath(grid));
 					}
 					else {
 						CustomLog.errPrintln("Warning, path (exact destination) was not valid from " + 
@@ -1490,7 +1473,7 @@ public class LocalGridTimeExecution {
 						ScoredPath scoredPath = grid.pathfinder.findPath(
 								being, being.location.coords, candidateDest);
 						if (scoredPath.isValid()) {
-							movePriority.initPath(scoredPath.path);
+							movePriority.initPath(scoredPath.getPath(grid));
 						}
 					}
 					

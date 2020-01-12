@@ -188,7 +188,7 @@ public class Pathfinder {
     }
     
     public static class ScoredPath implements Comparable<ScoredPath> {
-    	public List<LocalTile> path;
+    	private List<LocalTile> path;
     	public double score;
     	public ScoredPath(List<LocalTile> path, double score) {
     		this.path = path;
@@ -205,6 +205,10 @@ public class Pathfinder {
 		public int compareTo(ScoredPath o) {
 			//Auto-generated method stub
 			return (int) (o.score - this.score); //Inverted for higher score/longer distance = less ranking
+		}
+		
+		public List<LocalTile> getPath(LocalGrid grid) {
+			return path;
 		}
     }
     

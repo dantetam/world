@@ -18,6 +18,7 @@ import io.github.dantetam.toolbox.VecGridUtil;
 import io.github.dantetam.toolbox.VecGridUtil.RectangularSolid;
 import io.github.dantetam.toolbox.log.CustomLog;
 import io.github.dantetam.vector.Vector3i;
+import io.github.dantetam.world.ai.Pathfinder.ScoredPath;
 import io.github.dantetam.world.civilization.Household;
 import io.github.dantetam.world.civilization.Society;
 import io.github.dantetam.world.dataparse.ProcessData;
@@ -53,42 +54,6 @@ public class RSRPathfinder extends Pathfinder {
 		prunedRectTiles = new boolean[grid.rows][grid.cols][grid.heights];
 		macroEdgeConnections = new HashMap<>();
 		fillMacroedgesWithBlocks();
-	}
-	
-	/**
-	 * @param path  A list of tiles representing a path with possible straight shortcuts
-	 * @return A new path with the straight shortcuts replaced by individual tile movements
-	 */
-	private List<LocalTile> convertMacroedgeToPath(List<LocalTile> path) {
-		if (path == null) return null;
-		List<LocalTile> newPath = new ArrayList<>();
-		for (int i = 0; i < path.size(); i++) {
-			LocalTile tile = path.get(i);
-			LocalTile nextTile = null;
-			newPath.add(tile);
-			if (i != path.size() - 1) {
-				nextTile = path.get(i+1);
-				int distR = nextTile.coords.x - tile.coords.x;
-				int distC = nextTile.coords.y - tile.coords.y;
-				int distH = nextTile.coords.z - tile.coords.z;
-				if (Math.abs(distR) > 1) {
-					for (int d = tile.coords.x + 1; d <= nextTile.coords.x - 1; d += (int) Math.signum(distR)) {
-						newPath.add(grid.getTile(tile.coords.x(d)));
-					}
-				}
-				else if (Math.abs(distC) > 1) {
-					for (int d = tile.coords.y + 1; d <= nextTile.coords.y - 1; d += (int) Math.signum(distR)) {
-						newPath.add(grid.getTile(tile.coords.y(d)));
-					}
-				}
-				else if (Math.abs(distH) > 1) {
-					for (int d = tile.coords.z + 1; d <= nextTile.coords.z - 1; d += (int) Math.signum(distR)) {
-						newPath.add(grid.getTile(tile.coords.z(d)));
-					}
-				}
-			}
-		}
-		return newPath;
 	}
 	
 	private void fillMacroedgesWithBlocks() {
@@ -246,29 +211,28 @@ public class RSRPathfinder extends Pathfinder {
 	/**
 	 * The main RSR pathfinding routine:
 	 * 1) prune by quickly exiting when the path is known to be impossible;
-	 * 2) insert nodes into the RSR memotized structure per the paper; 
+	 * 2) connect start and end to the RSR memotized structure, per the paper; 
 	 * 3) find a path through normal A* in the augmented graph;
 	 * 4) fix the graph by removing temporary nodes added in 2);
 	 * 5) return the resulting path if one exists.
 	 */
-	@Override
 	public ScoredPath findPath(LivingEntity being, LocalTile start, LocalTile end,
     		Vector3i minRestrict, Vector3i maxRestrict) {
 		if (start == null || end == null) {
         	//CustomLog.outPrintln("Start or end null, start: " + start + ", end: " + end);
-    		return new ScoredPath(null, 999);
+    		return new ScoredMacroedgePath(null, 999);
     	}
 		
 		//Do quick check if path is possible (i.e. in same connected component)
 		if (grid.connectedCompsMap.containsKey(start.coords) && grid.connectedCompsMap.containsKey(end.coords)) {
 			if (grid.connectedCompsMap.get(start.coords) != grid.connectedCompsMap.get(end.coords)) {
 				//CustomLog.outPrintln("No match valid comp");
-				return new ScoredPath(null, 999);
+				return new ScoredMacroedgePath(null, 999);
 			}
 		}
 		else {
 			//CustomLog.outPrintln("Not in comp: " + connectedCompsMap.containsKey(start.coords) + "; " + connectedCompsMap.containsKey(end.coords));
-			return new ScoredPath(null, 999);
+			return new ScoredMacroedgePath(null, 999);
 		}
 		
 		//Temporarily insert nodes and macro edges for the start and end as needed
@@ -293,9 +257,9 @@ public class RSRPathfinder extends Pathfinder {
 			tempNodeInRectSolid(endSolid, end.coords, true);
 		}
 		
-		ScoredPath path = super.findPath(being, start, end, minRestrict, maxRestrict);
-		if (path.isValid())
-			path.path = convertMacroedgeToPath(path.path);
+		ScoredPath scoredSuperMethod = super.findPath(being, start, end, minRestrict, maxRestrict);
+		ScoredMacroedgePath macroedgePath = new ScoredMacroedgePath(
+				scoredSuperMethod.getPath(grid), scoredSuperMethod.score);
 		
 		//Remove the temporary data if it was created
 		if (startSolid != null && startSolid == endSolid) {
@@ -308,9 +272,46 @@ public class RSRPathfinder extends Pathfinder {
 			tempNodeInRectSolid(endSolid, end.coords, false);
 		}	
 		
-		return path;
+		return macroedgePath;
 	}
 	
+	/**
+	 * Much like the method below for pathfinding across a batch, but simply take the first available path.
+	 * Use the same pruning procedures.
+	 * @return A pair of localTile -> scoredPath maps: the first indicates normal paths, 
+	 * 	   the second indicates impossible paths. 
+	 */
+	public ScoredPath batchPathfindingFirst(LivingEntity being, LocalTile start, 
+			List<LocalTile> listEndGoals,
+    		Vector3i minRestrict, Vector3i maxRestrict) {
+		//TODO; Also, for RSR paths, do not convert macroedges into paths until actually needed;
+		Map<LocalTile, ScoredPath> impossiblePaths = new HashMap<>();
+		for (LocalTile end: listEndGoals) {
+			if (impossiblePaths.containsKey(end)) {
+				continue;
+			}
+			ScoredPath path = this.findPath(being, start, end, minRestrict, maxRestrict);
+			if (path != null) {
+				return path;
+			}
+			else {
+				impossiblePaths.put(end, null);
+				//Prune paths to all of the cluster, which should be inaccessible as well
+				ClusterVector3i cluster = this.grid.find3dClusterWithCoord(end.coords);
+				if (cluster == null) continue;
+				for (LocalTile pruneCand: listEndGoals) {
+					if (cluster.clusterData.contains(pruneCand.coords)) {
+						impossiblePaths.put(pruneCand, null);
+					}
+				}
+			}
+		}
+		return null;
+	}
+	public ScoredPath batchPathfindingFirst(LivingEntity being, LocalTile start, 
+			List<LocalTile> listEndGoals) {
+		return this.batchPathfindingFirst(being, start, listEndGoals, null, null);
+	}
 	
 	/**
 	 * 
@@ -331,7 +332,7 @@ public class RSRPathfinder extends Pathfinder {
 		Map<LocalTile, ScoredPath> scoring = new HashMap<>();
 		Map<LocalTile, ScoredPath> impossiblePaths = new HashMap<>();
 		for (LocalTile end: listEndGoals) {
-			if (scoring.containsKey(end)) {
+			if (scoring.containsKey(end) || impossiblePaths.containsKey(end)) {
 				continue;
 			}
 			ScoredPath path = this.findPath(being, start, end, minRestrict, maxRestrict);
@@ -351,21 +352,71 @@ public class RSRPathfinder extends Pathfinder {
 					}
 				}
 			}
-		}	
-		/*
-		for (Entry<LocalTile, ScoredPath> entry: scoring.entrySet()) {
-			System.err.println(entry.getKey());
-			System.err.println(entry.getValue());
-			System.err.println("---------------");
 		}
-		*/
-		return new Pair<Map<LocalTile, ScoredPath>>(MapUtil.getSortedMapByValueAsc(scoring), impossiblePaths);
+		return new Pair<Map<LocalTile, ScoredPath>>(
+				MapUtil.getSortedMapByValueAsc(scoring), impossiblePaths);
 	}
 	public Pair<Map<LocalTile, ScoredPath>> batchPathfinding(LivingEntity being, LocalTile start, 
 			List<LocalTile> listEndGoals) {
 		return this.batchPathfinding(being, start, listEndGoals, null, null);
 	}
 		
+	public static class ScoredMacroedgePath extends ScoredPath implements Comparable<ScoredPath> {
+		private List<LocalTile> path, memotizedFullPath = null;
+		public double score;
+		
+		public ScoredMacroedgePath(List<LocalTile> pathTilesCorners, double score) {
+			super(pathTilesCorners, score);
+		}
+		
+		/**
+		 * @param path  A list of tiles representing a path with possible straight shortcuts
+		 * @return A new path with the straight shortcuts replaced by individual tile movements
+		 */
+		@Override
+		public List<LocalTile> getPath(LocalGrid grid) {
+			if (memotizedFullPath != null) return memotizedFullPath;
+			if (path == null) return null;
+			List<LocalTile> newPath = new ArrayList<>();
+			for (int i = 0; i < path.size(); i++) {
+				LocalTile tile = path.get(i);
+				LocalTile nextTile = null;
+				newPath.add(tile);
+				if (i != path.size() - 1) {
+					nextTile = path.get(i+1);
+					int distR = nextTile.coords.x - tile.coords.x;
+					int distC = nextTile.coords.y - tile.coords.y;
+					int distH = nextTile.coords.z - tile.coords.z;
+					if (Math.abs(distR) > 1) {
+						for (int d = tile.coords.x + 1; d <= nextTile.coords.x - 1; 
+								d += (int) Math.signum(distR)) {
+							newPath.add(grid.getTile(tile.coords.x(d)));
+						}
+					}
+					else if (Math.abs(distC) > 1) {
+						for (int d = tile.coords.y + 1; d <= nextTile.coords.y - 1; 
+								d += (int) Math.signum(distC)) {
+							newPath.add(grid.getTile(tile.coords.y(d)));
+						}
+					}
+					else if (Math.abs(distH) > 1) {
+						for (int d = tile.coords.z + 1; d <= nextTile.coords.z - 1; 
+								d += (int) Math.signum(distH)) {
+							newPath.add(grid.getTile(tile.coords.z(d)));
+						}
+					}
+				}
+			}
+			memotizedFullPath = newPath; //Save in memory for later
+			return newPath;
+		}
+		
+		public int compareTo(ScoredMacroedgePath o) {
+			//Auto-generated method stub
+			return (int) (o.score - this.score); //Inverted for higher score/longer distance = less ranking
+		}
+	}
+	
     //Pathfinding trials for analysis, since pathfinding is an intensive and ubiquitous calculation.
     public static void main(String[] args) {
     	WorldCsvParser.init();
@@ -418,7 +469,7 @@ public class RSRPathfinder extends Pathfinder {
 			long endTime = Calendar.getInstance().getTimeInMillis();
 			
 			if (path.isValid())
-				CustomLog.outPrintln(path.path);
+				CustomLog.outPrintln(path.getPath(activeLocalGrid));
 			else
 				CustomLog.outPrintln("No path found");
 			
