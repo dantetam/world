@@ -201,6 +201,13 @@ public class Pathfinder {
     		return this.path != null && this.path.size() > 0;
     	}
     	
+    	public LocalTile getDest() {
+    		if (!this.isValid()) {
+    			throw new IllegalArgumentException("Last tile of path undefined for an invalid path");
+    		}
+    		return this.path.get(this.path.size() - 1);
+    	}
+    	
 		@Override
 		public int compareTo(ScoredPath o) {
 			//Auto-generated method stub

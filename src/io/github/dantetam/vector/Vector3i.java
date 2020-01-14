@@ -111,6 +111,21 @@ public class Vector3i extends KdPoint {
 		return new Vector3i(v1.x + v2.x, v1.y + v2.y, v1.z + v2.z);
 	}
 	
+	public Vector3i restrictGte(Vector3i lowerBound) {
+		return new Vector3i(
+				Math.max(x, lowerBound.x),
+				Math.max(y, lowerBound.y),
+				Math.max(z, lowerBound.z)
+				);
+	}
+	public Vector3i restrictLte(Vector3i upperBound) {
+		return new Vector3i(
+				Math.min(x, upperBound.x),
+				Math.min(y, upperBound.y),
+				Math.min(z, upperBound.z)
+				);
+	}
+	
 	public Vector3i clone() {
 		return new Vector3i(x, y, z);
 	}

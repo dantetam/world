@@ -10,9 +10,11 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Set;
 import java.util.Stack;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.function.Function;
 
 import io.github.dantetam.toolbox.log.CustomLog;
@@ -364,6 +366,8 @@ public class VecGridUtil {
 		if (maxBoundsInc == null) {
 			maxBoundsInc = new Vector3i(grid.rows - 1, grid.cols - 1, grid.heights - 1);
 		}
+		minBoundsInc = minBoundsInc.restrictGte(new Vector3i(0,0,0));
+		maxBoundsInc = maxBoundsInc.restrictLte(new Vector3i(grid.rows, grid.cols, grid.heights));
 		
 		Vector3i sizeBounds = maxBoundsInc.getSubtractedBy(minBoundsInc).getSum(1, 1, 1);
 		boolean[][][] visited = new boolean[sizeBounds.x][sizeBounds.y][sizeBounds.z];
@@ -374,20 +378,20 @@ public class VecGridUtil {
 					if (visited[r][c][h]) continue;
 					
 					Set<Vector3i> componentVecs = new HashSet<>();
-					List<Vector3i> fringe = new ArrayList<>();
+					Queue<Vector3i> fringe = new LinkedList<>();
 					fringe.add(new Vector3i(r,c,h));
 					
 					while (fringe.size() > 0) {
-						Vector3i first = fringe.remove(0);
+						Vector3i first = fringe.poll();
 						Vector3i actual = first.getSum(minBoundsInc);
 						if (vecInBounds(minBoundsInc, maxBoundsInc, actual) && 
 								!visited[first.x][first.y][first.z]) {
 							visited[first.x][first.y][first.z] = true;
-							if (grid.tileIsPartAccessible(actual)) {
+							if (grid.tileIsFullAccessible(actual)) {
 								componentVecs.add(actual);
 								Set<Vector3i> neighbors = grid.getAllNeighbors14(actual);
 								for (Vector3i neighbor: neighbors) {
-									fringe.add(neighbor.getSubtractedBy(minBoundsInc));
+									fringe.offer(neighbor.getSubtractedBy(minBoundsInc));
 								}
 							}
 						}
@@ -448,10 +452,10 @@ public class VecGridUtil {
 			for (int c = 0; c < data[0].length; c++) {
 				if (visited[r][c]) continue;
 				Set<Vector2i> component = new HashSet<>();
-				List<Vector2i> fringe = new ArrayList<>();
+				Queue<Vector2i> fringe = new LinkedList<>();
 				fringe.add(new Vector2i(r,c));
 				while (fringe.size() > 0) {
-					Vector2i first = fringe.remove(0);
+					Vector2i first = fringe.poll();
 					if (first.x < 0 || first.y < 0 || 
 							first.x >= data.length || first.y >= data[0].length || 
 							visited[first.x][first.y] || 
@@ -506,7 +510,7 @@ public class VecGridUtil {
 			for (int c = 0; c < data[0].length; c++) {
 				System.out.print(data[r][c] + " ");
 			}
-			CustomLog.outPrintln(r);
+			CustomLog.outPrintln();
 		}
 	}
 	
@@ -517,7 +521,7 @@ public class VecGridUtil {
 	public static void cont3dCompTest() {
 		WorldCsvParser.init();
     	
-    	Vector3i sizes = new Vector3i(50,50,50);
+    	Vector3i sizes = new Vector3i(200,200,50);
 		LocalGrid activeLocalGrid = new LocalGridInstantiate(sizes, LocalGridBiome.defaultBiomeTest())
 				.setupGrid(false);
 		
@@ -535,10 +539,10 @@ public class VecGridUtil {
 		*/
 		
 		List<ClusterVector3i> components = contComp3dSolidsClustersSpec(
-				//new Vector3i(0,0,0),
-				//new Vector3i(199,199,49),
-				new Vector3i(20,20,20),
-				new Vector3i(30,30,59),
+				new Vector3i(0,0,0),
+				new Vector3i(199,199,49),
+				//new Vector3i(20,20,20),
+				//new Vector3i(30,30,59),
 				activeLocalGrid
 				);
 		

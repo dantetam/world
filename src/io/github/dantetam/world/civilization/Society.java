@@ -181,6 +181,7 @@ public class Society {
 	 */
 	public Map<LocalProcess, Double> prioritizeProcesses(Map<Integer, Double> allItemsUtility, 
 			LocalGrid grid, Human human, int desiredNumProcess, Set<Integer> desiredItems) {
+		//Find highest utility items
 		Map<Integer, Double> sortedUtility = MapUtil.getSortedMapByValueDesc(allItemsUtility);
 		Object[] sortedKeys = sortedUtility.keySet().toArray();
 		
@@ -219,7 +220,7 @@ public class Society {
 						heuristicActionScore += needWeight * resAction.modifier;
 					}
 				}
-				if (heuristicActionScore > 0)
+				if (heuristicActionScore > 0.01)
 					processByUtil.put(process.clone(), heuristicActionScore);
 			}
 		}

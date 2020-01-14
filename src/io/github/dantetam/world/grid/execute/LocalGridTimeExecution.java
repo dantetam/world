@@ -560,6 +560,8 @@ public class LocalGridTimeExecution {
 	 * the user is directly harvesting the tile (point directly at needed tile);
 	 * the user needs to complete a process on top of a tile (point at one above tile, like in farming).
 	 * @param validOwners Restrict tiles to having owners from this set. If null, no restriction on owners.
+	 * @param setInUse If false, use this search as finding the possibility (true/false) of a tile candidate.
+	 * 		If true, set the tile to be in use and return the optimal pathing choice
 	 * 
 	 * @return The harvest tile, followed by the tile to move to (within <= 1 distance)
 	 */
@@ -594,22 +596,31 @@ public class LocalGridTimeExecution {
 					
 					List<LocalTile> listEndGoals = new ArrayList<>();
 					for (Vector3i vec: neighbors) listEndGoals.add(grid.getTile(vec));
-					//Use batch pathfinder in speeding up this calculation
-					Pair<Map<LocalTile, ScoredPath>> allPathingData = grid.pathfinder.batchPathfinding(
-							being, being.location, listEndGoals);
-					Map<LocalTile, ScoredPath> validPaths = allPathingData.first;
 					
-					for (Entry<LocalTile, ScoredPath> entry: validPaths.entrySet()) {
-						LocalTile dest = entry.getKey();
-						ScoredPath scoredPath = grid.pathfinder.findPath(
-								being, being.location, dest);
-						if (scoredPath.isValid()) {
-							Pair<LocalTile> pair = new Pair<>(grid.getTile(candidate), dest);
-							if (setInUse) { //This method can be used to find viability, not actual use
+					//Use batch pathfinder in speeding up this calculation					
+					if (setInUse) {
+						Pair<Map<LocalTile, ScoredPath>> allPathingData = grid.pathfinder.batchPathfinding(
+								being, being.location, listEndGoals);
+						Map<LocalTile, ScoredPath> validPaths = allPathingData.first;
+						
+						for (Entry<LocalTile, ScoredPath> entry: validPaths.entrySet()) {
+							LocalTile dest = entry.getKey();
+							ScoredPath scoredPath = grid.pathfinder.findPath(
+									being, being.location, dest);
+							if (scoredPath.isValid()) {
+								Pair<LocalTile> pair = new Pair<>(grid.getTile(candidate), dest);
 								process.processTile = pair.second;
 								process.targetTile = pair.first;
 								pair.first.harvestInUse = true;
+								return pair;
 							}
+						}
+					}
+					else {
+						ScoredPath newPath = grid.pathfinder.batchPathfindingFirst(
+								being, being.location, listEndGoals);
+						if (newPath != null && newPath.isValid()) {
+							Pair<LocalTile> pair = new Pair<>(grid.getTile(candidate), newPath.getDest());
 							return pair;
 						}
 					}
@@ -626,6 +637,12 @@ public class LocalGridTimeExecution {
 		
 		return null;
 	}
+	
+	/*
+	public static Pair<LocalTile> assignTileBasicHypo(LocalGrid grid, LivingEntity being, 
+			Set<Human> validOwners, LocalProcess process, boolean setInUse) {
+	}
+	*/
 	
 	/**
 	 * Deconstruct a process into a priority.
