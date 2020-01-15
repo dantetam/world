@@ -78,8 +78,6 @@ public class WorldGridInstantiate {
 		
 		//TODO Create all grids instantiated with
 		//new societies, DNA/races/cultures, biomes/flora/fauna, and intersocietal interactions across grids;
-				
-		Vector3i gridSizes = new Vector3i(100,100,60);
 		
 		for (int r = 0; r < worldSize.x; r++) {
 			for (int c = 0; c < worldSize.y; c++) {
@@ -88,7 +86,7 @@ public class WorldGridInstantiate {
 						rain[r][c], yearRoundVarRain[r][c], 
 						terrain[r][c], terrainPerturb[r][c]);
 				
-				LocalGrid grid = createNewLocalGridRoutine(world, gridSizes, assignedBiome);
+				LocalGrid grid = createNewLocalGridRoutine(world, ConstantData.GRID_SIZE, assignedBiome);
 				world.initLocalGrid(new Vector2i(r,c), grid);
 			}
 		}
@@ -124,7 +122,7 @@ public class WorldGridInstantiate {
 	}
 	
 	private LocalGrid createNewLocalGridRoutine(WorldGrid world, Vector3i localGridSizes, LocalGridBiome biome) {
-		LocalGrid grid = new LocalGridInstantiate(localGridSizes, biome).setupGrid(true);
+		LocalGrid grid = new LocalGridInstantiate(localGridSizes, biome).setupGrid();
 		
 		Society testSociety = new Society("TestSociety", grid);
 		testSociety.societyCenter = new Vector3i(50,50,30);

@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import io.github.dantetam.localdata.ConstantData;
 import io.github.dantetam.toolbox.CollectionUtil;
 import io.github.dantetam.toolbox.MapUtil;
 import io.github.dantetam.toolbox.VecGridUtil;
@@ -88,7 +89,11 @@ public class LocalGrid {
 	//2d connected surfaces
 	//All connected, accessible 6-neighbors definition.
 	public Map<Vector3i, Integer> connectedCompsMap2d;
-	public KdTree<ClusterVector3i> clustersList2dSurfaces;
+	public KdTree<ClusterVector3i> clustersListFlat2dSurfaces;
+	
+	//2d connected surfaces where neighbors can move height by at most one (14-neighbors)
+	public Map<Vector3i, Integer> connectedCompsMap2dOneHeight; //TODO;
+	public KdTree<ClusterVector3i> clustersListOneHeight2dSurfaces;
 	
 	public LocalGrid(Vector3i size) {
 		rows = size.x; cols = size.y; heights = size.z;
@@ -534,7 +539,7 @@ public class LocalGrid {
 				//Do the same for the 2d surfaces
 				//Gather all vectors for the new joined together cluster
 				Set<ClusterVector3i> clustersToRemove = new HashSet<>();
-				for (ClusterVector3i cluster: this.clustersList2dSurfaces) {
+				for (ClusterVector3i cluster: this.clustersListFlat2dSurfaces) {
 					for (Entry<Integer, Vector3i> vecEntry: firstVecInCluster.entrySet()) {
 						if (cluster.clusterData.contains(vecEntry.getValue())) {
 							clustersToRemove.add(cluster);
@@ -553,10 +558,10 @@ public class LocalGrid {
 						this.connectedCompsMap.put(vec, minComponentIndex);
 					}
 					//Remove cluster from all clusters
-					this.clustersList2dSurfaces.remove(cluster);
+					this.clustersListFlat2dSurfaces.remove(cluster);
 				}
 				ClusterVector3i cluster = new ClusterVector3i(newRandomVec, newClusterVecs);
-				this.clustersList2dSurfaces.add(cluster);
+				this.clustersListFlat2dSurfaces.add(cluster);
 			}
 		}
 		else {
@@ -591,7 +596,7 @@ public class LocalGrid {
 					this.connectedCompsMap2d.put(vec, compNumCounter);
 				}
 				compNumCounter++;
-				this.clustersList2dSurfaces.add(cluster);
+				this.clustersListFlat2dSurfaces.add(cluster);
 			}
 		}
 	}
@@ -602,8 +607,8 @@ public class LocalGrid {
 		this.connectedCompsMap = VecGridUtil.convertGroupsToMap(clusters);
 		this.compNumCounter = clusters.size();
 		
-		List<ClusterVector3i> clusters2d = SpaceFillingAlg.allFlatSurfaceContTiles(this);
-		this.clustersList2dSurfaces = new KdTree(clusters2d);
+		List<ClusterVector3i> clusters2d = SpaceFillingAlg.allFlatSurfaceContTiles(this, false);
+		this.clustersListFlat2dSurfaces = new KdTree(clusters2d);
 		this.connectedCompsMap2d = VecGridUtil.convertGroupsToMap(clusters2d);
 	}
 	
@@ -1214,7 +1219,9 @@ public class LocalGrid {
 		
 		Vector3i smallVec = new Vector3i(6,6,6);
 		LocalGridBiome biome = LocalGridBiome.determineAllBiomeBroad(0, 0, 0, 0, 0, 0, 0);
-		LocalGrid smallGrid = new LocalGridInstantiate(smallVec, biome).setupGrid(false);
+		
+		ConstantData.ADVANCED_PATHING = false;
+		LocalGrid smallGrid = new LocalGridInstantiate(smallVec, biome).setupGrid();
 		
 		int mods = (smallVec.x * smallVec.y * smallVec.z) / 3;
 		for (int i = 0; i < mods; i++) {

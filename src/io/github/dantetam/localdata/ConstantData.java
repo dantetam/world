@@ -3,10 +3,16 @@ package io.github.dantetam.localdata;
 import java.util.HashMap;
 import java.util.Map;
 
+import io.github.dantetam.vector.Vector2i;
+import io.github.dantetam.vector.Vector3i;
 import io.github.dantetam.world.dataparse.ItemData;
 
 public class ConstantData {
 
+	public static final Vector2i WORLD_NUM_GRIDS = new Vector2i(1,1);
+	public static final Vector3i GRID_SIZE = new Vector3i(200,200,50);
+	public static boolean ADVANCED_PATHING = true;
+	
 	public static final String MOUSE_HIGHLIGHT_NO_CLICK = "_highlight";
 
 	public static Map<Integer, Double> clusterUbiquityMap = new HashMap<Integer, Double>() {{

@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Set;
 
+import io.github.dantetam.localdata.ConstantData;
 import io.github.dantetam.toolbox.log.CustomLog;
 import io.github.dantetam.vector.Vector3i;
 import io.github.dantetam.world.ai.Pathfinder.ScoredPath;
@@ -225,8 +226,9 @@ public class Pathfinder {
     	
     	Vector3i sizes = new Vector3i(200,200,50);
 		int biome = 3;
+		ConstantData.ADVANCED_PATHING = false;
 		LocalGrid activeLocalGrid = new LocalGridInstantiate(sizes, LocalGridBiome.defaultBiomeTest())
-				.setupGrid(false);
+				.setupGrid();
 		
 		Society testSociety = new Society("TestSociety", activeLocalGrid);
 		testSociety.societyCenter = new Vector3i(20,20,10);

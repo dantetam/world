@@ -81,10 +81,8 @@ public class SpaceFillingAlg {
 			LocalTileCond tempCond = new LocalTileCond() {
 				@Override
 				public boolean isDesiredTile(LocalGrid grid, Vector3i coords) {
-					boolean foundLandClaims = false; //For diagnostics
 					if (validLandOwners != null && validLandOwners.size() > 0) {
 						for (Human human: validLandOwners) {
-							CustomLog.errPrintln("DesignatedBuilds: " + human.designatedBuildsByPurpose);
 							for (List<PurposeAnnotatedBuild> builds: human.designatedBuildsByPurpose.values()) {
 								for (PurposeAnnotatedBuild annoBuild: builds) {
 									if (annoBuild.annoBuildContainsVec(coords)) {
@@ -125,14 +123,14 @@ public class SpaceFillingAlg {
 			LocalTileCond tileCond,
 			Collection<ClusterVector3i> mustBeWithinAreas) {
 		
-		//Find all viable clusters (connected components) that can provide spaces
+		//Find all viable clusters (connected components) that can provide open rectangular spaces
 		Collection<ClusterVector3i> closestClusters; 
 		if (mustBeWithinAreas != null) {
 			closestClusters = new ArrayList<>(mustBeWithinAreas);
 		}
 		else {
 			if (validLandOwners == null || validLandOwners.size() <= 0) {
-				KdTree<ClusterVector3i> componentsTree = grid.clustersList2dSurfaces;
+				KdTree<ClusterVector3i> componentsTree = grid.clustersListFlat2dSurfaces;
 				closestClusters = componentsTree.nearestNeighbourListSearch(25, 
 						new ClusterVector3i(center, new HashSet<>()));
 			}
@@ -279,10 +277,13 @@ public class SpaceFillingAlg {
 	}
 	
 	/**
+	 * @param heightWalkableDiff If true, allow neighbors in a surface 
+	 * to have a maximum difference of one in height. Otherwise, enforce same height for the whole surface.
+	 * 
 	 * @return All separate surfaces, where a surface is defined as a group of vectors
-	 * 		   adjacent to each other in the r,c dimensions, and having the exact same height h.
+	 * 		   adjacent to each other in the r,c dimensions.
 	 */
-	public static List<ClusterVector3i> allFlatSurfaceContTiles(LocalGrid grid) {
+	public static List<ClusterVector3i> allFlatSurfaceContTiles(LocalGrid grid, boolean heightWalkableDiff) {
 		List<ClusterVector3i> allSurfaceClusters = new ArrayList<>();
 		Set<Vector3i> visitedSet = new HashSet<>();
 		
@@ -300,7 +301,13 @@ public class SpaceFillingAlg {
 							
 							visitedSet.add(fringeVec);
 							singleComponent.add(fringeVec);
-							Set<Vector3i> neighbors = grid.getAllNeighbors8(fringeVec);
+							Set<Vector3i> neighbors;
+							if (heightWalkableDiff) {
+								neighbors = grid.getAllNeighbors14(fringeVec);
+							}
+							else {
+								neighbors = grid.getAllNeighbors8(fringeVec);
+							}
 							for (Vector3i neighborVec: neighbors) {
 								newFringe.add(neighborVec);
 							}

@@ -17,6 +17,7 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.function.Function;
 
+import io.github.dantetam.localdata.ConstantData;
 import io.github.dantetam.toolbox.log.CustomLog;
 import io.github.dantetam.vector.Vector2i;
 import io.github.dantetam.vector.Vector3i;
@@ -59,19 +60,19 @@ public class VecGridUtil {
 				if (coord.x < minBounds.x) {
 					minBounds.x = coord.x;
 				}
+				else if (coord.x > maxBounds.x) {
+					maxBounds.x = coord.x;
+				}
 				if (coord.y < minBounds.y) {
 					minBounds.y = coord.y;
+				}
+				else if (coord.y > maxBounds.y) {
+					maxBounds.y = coord.y;
 				}
 				if (coord.z < minBounds.z) {
 					minBounds.z = coord.z;
 				}
-				if (coord.x > maxBounds.x) {
-					maxBounds.x = coord.x;
-				}
-				if (coord.y > maxBounds.y) {
-					maxBounds.y = coord.y;
-				}
-				if (coord.z > maxBounds.z) {
+				else if (coord.z > maxBounds.z) {
 					maxBounds.z = coord.z;
 				}
 			}
@@ -522,8 +523,9 @@ public class VecGridUtil {
 		WorldCsvParser.init();
     	
     	Vector3i sizes = new Vector3i(200,200,50);
+    	ConstantData.ADVANCED_PATHING = false;
 		LocalGrid activeLocalGrid = new LocalGridInstantiate(sizes, LocalGridBiome.defaultBiomeTest())
-				.setupGrid(false);
+				.setupGrid();
 		
 		CustomLog.outPrintln("Start 3d component time trial now");
 		long startTime = Calendar.getInstance().getTimeInMillis();

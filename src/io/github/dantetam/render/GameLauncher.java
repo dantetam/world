@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.lwjgl.glfw.GLFW;
 
+import io.github.dantetam.localdata.ConstantData;
 import io.github.dantetam.lwjglEngine.entities.Gui2DCamera;
 import io.github.dantetam.lwjglEngine.render.DisplayManager;
 import io.github.dantetam.lwjglEngine.tests.MainGameLoop;
@@ -70,7 +71,7 @@ public class GameLauncher {
 			SkillBook.init();
 			StringUtil.init();
 			
-			worldGrid = new WorldGridInstantiate(new Vector2i(1, 1)).setupGrid();
+			worldGrid = new WorldGridInstantiate(ConstantData.WORLD_NUM_GRIDS).setupGrid();
 			activeLocalGrid = worldGrid.getLocalGrid(new Vector2i(0, 0));
 			
 			menuSystem.setupLoader();

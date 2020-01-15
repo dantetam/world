@@ -12,6 +12,7 @@ import java.util.PriorityQueue;
 import java.util.Set;
 import java.util.Map.Entry;
 
+import io.github.dantetam.localdata.ConstantData;
 import io.github.dantetam.toolbox.MapUtil;
 import io.github.dantetam.toolbox.Pair;
 import io.github.dantetam.toolbox.VecGridUtil;
@@ -422,9 +423,9 @@ public class RSRPathfinder extends Pathfinder {
     	WorldCsvParser.init();
     	
     	Vector3i sizes = new Vector3i(200,200,50);
-		int biome = 3;
+		ConstantData.ADVANCED_PATHING = false;
 		LocalGrid activeLocalGrid = new LocalGridInstantiate(sizes, LocalGridBiome.defaultBiomeTest())
-				.setupGrid(false);
+				.setupGrid();
 		
 		Society testSociety = new Society("TestSociety", activeLocalGrid);
 		testSociety.societyCenter = new Vector3i(20,20,10);

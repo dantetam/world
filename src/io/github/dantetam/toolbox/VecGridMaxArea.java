@@ -169,7 +169,8 @@ public class VecGridMaxArea {
 	 * @param desiredR
 	 * @param desiredC
 	 * @return A pair of Vector2i, representing the inclusive top-left corner of the rectangle, 
-	 * 		and the dimensions of it.
+	 * 		and the dimensions of it. Find a rectangle of size (desiredR, desiredC), otherwise
+	 * 		find the maximum rectangle.
 	 */
 	public static Pair<Vector2i> findMaxSubRect(Set<Vector3i> coords, int desiredR, int desiredC) {
 		//if (coords.size() < desiredR * desiredC) return null;

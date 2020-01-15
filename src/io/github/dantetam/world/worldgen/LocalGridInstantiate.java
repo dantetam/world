@@ -52,7 +52,7 @@ public class LocalGridInstantiate {
 		localGridBiome = biome;
 	}
 	
-	public LocalGrid setupGrid(boolean setupAdvancedPathfinding) {
+	public LocalGrid setupGrid() {
 		int[][][] advTerrainData = LocalGridTerrainGenerate.genTerrain(
 				localGridBiome,
 				new Vector3i(localGrid.rows, localGrid.cols, localGrid.heights));
@@ -84,14 +84,13 @@ public class LocalGridInstantiate {
 					int advTerrain = advTerrainData[r][c][h];
 
 					LocalTile tile = localGrid.getTile(coords);
-					//if (blockId != airId) { //tile.tileBlockId == airId
-						if (tile == null) {
-							tile = new LocalTile(coords);
-							tile.tileBlockId = advTerrain;
-							tile.tileFloorId = advTerrain;
-						}
-					//}
-						localGrid.setTileInstantiate(coords, tile);
+					if (tile == null) {
+						tile = new LocalTile(coords);
+						tile.tileBlockId = advTerrain;
+						tile.tileFloorId = advTerrain;
+					}
+					
+					localGrid.setTileInstantiate(coords, tile);
 				}
 			}
 		}
@@ -109,7 +108,7 @@ public class LocalGridInstantiate {
 				if (localGrid.inBounds(topCoord)) {
 					LocalTile topTile = localGrid.getTile(topCoord);
 					int surfaceClusterItemId = surfaceClusters[r][c];
-					if (surfaceClusterItemId != ItemData.ITEM_EMPTY_ID) {
+					if (topTile != null && surfaceClusterItemId != ItemData.ITEM_EMPTY_ID) {
 						topTile.tileBlockId = surfaceClusterItemId;
 						localGrid.setTileInstantiate(topCoord, topTile);
 					}
@@ -147,7 +146,7 @@ public class LocalGridInstantiate {
 			TreeVoxelGeneration.generateSingle3dTree(localGrid, entry.getKey(), entry.getValue());
 		}
 		
-		if (setupAdvancedPathfinding)
+		if (ConstantData.ADVANCED_PATHING)
 			localGrid.pathfinder = new RSRPathfinder(localGrid);
 		
 		CustomLog.outPrintln(localGrid.rows + " " + localGrid.cols + " " + localGrid.heights);

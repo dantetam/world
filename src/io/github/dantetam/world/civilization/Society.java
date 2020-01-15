@@ -189,7 +189,7 @@ public class Society {
 		
 		Map<LocalProcess, Double> processByUtil = new HashMap<>();
 		int i = 0;
-		while (i < sortedKeys.length) { //processByUtil.size() < desiredNumProcess
+		while (i < sortedKeys.length && processByUtil.size() < desiredNumProcess) {
 			Integer itemId = (Integer) sortedKeys[i];
 			Map<LocalProcess, Double> bestProcesses = findBestProcess(allItemsUtility, rawResRarity, 
 					grid, human, itemId);
@@ -274,8 +274,12 @@ public class Society {
 	}
 	
 	/**
-	 * Return the first process at the highest level (closest to final product),
+	 * Return the processes sorted by economic scores,
 	 * which is possible to complete by this human, by just crafting and collecting raw resources.
+	 * In the future, cut off the process backprop early by using levels (favor ones closest to final product),
+	 * or by scores cutoff in relation to memotized 
+	 * 
+	 * @param outputItemId The item id being targetted for a viable process
 	 * @param human The human in question who has access to resources, buildings, etc.
 	 */
 	public Map<LocalProcess, Double> findBestProcess(Map<Integer, Double> allItemsUtility, 
@@ -327,7 +331,7 @@ public class Society {
 							MapUtil.insertKeepMaxMap(bestProcesses, process.clone(), util);
 	
 							if (!visitedItemIds.contains(input.itemId)) {
-								if (util > 0)
+								if (util > 0.01)
 									newFringe.add(input.itemId);
 									//CustomLog.outPrintln("Expanding from " + ItemData.getNameFromId(fringeId) + " -----> " + ItemData.getNameFromId(input.itemId));
 							}

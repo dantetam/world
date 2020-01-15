@@ -11,6 +11,7 @@ import java.util.PriorityQueue;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import io.github.dantetam.localdata.ConstantData;
 import io.github.dantetam.toolbox.Pair;
 import io.github.dantetam.toolbox.VecGridUtil;
 import io.github.dantetam.toolbox.log.CustomLog;
@@ -565,8 +566,9 @@ public class HierarchicalPathfinder extends Pathfinder {
 		
 		long startTime = Calendar.getInstance().getTimeInMillis();
 		
+		ConstantData.ADVANCED_PATHING = false;
 		LocalGrid activeLocalGrid = new LocalGridInstantiate(sizes, LocalGridBiome.defaultBiomeTest())
-				.setupGrid(false);
+				.setupGrid();
 		
 		long endTime = Calendar.getInstance().getTimeInMillis();
 		CustomLog.outPrintln("Init hierarchical pathfinder in " + (endTime - startTime) + "ms");
@@ -669,6 +671,8 @@ public class HierarchicalPathfinder extends Pathfinder {
 						tempBounds.first, tempBounds.second);
 				CustomLog.outPrintln(oldStylePath.getPath(activeLocalGrid));
 				CustomLog.outPrintln("Score (high means longer): " + oldStylePath.score);
+				
+				CustomLog.outPrintln();
 			}
 			else {
 				continue;
