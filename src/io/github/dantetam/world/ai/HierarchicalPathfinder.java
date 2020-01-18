@@ -227,12 +227,14 @@ public class HierarchicalPathfinder extends Pathfinder {
 						connectedCompsMap.containsKey(otherNode.coords)) {
 					if (connectedCompsMap.get(node.coords) == connectedCompsMap.get(otherNode.coords)) {
 						attemptConnectAbsNode(node, otherNode, block);
+						/*
 						boolean success = (node.distToPathableNodes != null && 
 								node.distToPathableNodes.containsKey(otherNode));
 						if (!success) {
 							CustomLog.outPrintln("Connected in 3d component");
 							CustomLog.outPrintln("Found path: " + success);
 						}
+						*/
 					}
 				}
 			}
@@ -458,7 +460,7 @@ public class HierarchicalPathfinder extends Pathfinder {
 				}
 				node.distToPathableNodes.clear();
 			}
-			block.importantNodes.remove(node);
+			block.importantNodes.values().remove(node);
 		}
 	}
 	
@@ -562,7 +564,7 @@ public class HierarchicalPathfinder extends Pathfinder {
 	public static void main(String[] args) {
 		WorldCsvParser.init();
     	
-    	Vector3i sizes = new Vector3i(50,50,50);
+    	Vector3i sizes = new Vector3i(200,200,50);
 		
 		long startTime = Calendar.getInstance().getTimeInMillis();
 		
@@ -618,6 +620,7 @@ public class HierarchicalPathfinder extends Pathfinder {
 		Vector3i startVec, endVec;
 		int numPathsTested = 0;
 		while (numPathsTested < 10) {
+			//Find a path that can be tested
 			while (true) {
 				randStartCoords = new Vector3i(
 						(int) (Math.random() * hPath.abstractBlocks.length),
@@ -641,6 +644,7 @@ public class HierarchicalPathfinder extends Pathfinder {
 				}
 			}
 			
+			//Find time of hierarchical pathfinder query
 			startTime = Calendar.getInstance().getTimeInMillis();
 			
 			path = hPath.findPath(null, startVec, endVec);
@@ -648,11 +652,11 @@ public class HierarchicalPathfinder extends Pathfinder {
 			endTime = Calendar.getInstance().getTimeInMillis();
 			CustomLog.outPrintln("Completed trials in " + (endTime - startTime) + "ms");
 			
+			numPathsTested++;
+			
 			List<LocalTile> pathTiles = path.getPath(activeLocalGrid);
 			if (path != null && pathTiles != null && pathTiles.size() > 0) {
 				CustomLog.outPrintln("Pathing: " + startVec + ", " + endVec + " ####################################");
-				
-				numPathsTested++;
 				
 				CustomLog.outPrintln("Hierarchical Path: ");
 				CustomLog.outPrintln(pathTiles);
