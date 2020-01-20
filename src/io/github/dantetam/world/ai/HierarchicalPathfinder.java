@@ -2,6 +2,7 @@ package io.github.dantetam.world.ai;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -12,6 +13,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import io.github.dantetam.localdata.ConstantData;
+import io.github.dantetam.toolbox.MapUtil;
 import io.github.dantetam.toolbox.Pair;
 import io.github.dantetam.toolbox.VecGridUtil;
 import io.github.dantetam.toolbox.log.CustomLog;
@@ -39,16 +41,23 @@ import io.github.dantetam.world.worldgen.LocalGridInstantiate;
 
 public class HierarchicalPathfinder extends Pathfinder {
 
-	public static final int ABSTRACT_BLOCK_SIZE = 10;
-	private LocalGridBlock[][][] abstractBlocks;
+	public static final int ABSTRACT_BLOCK_SIZE = 10, CLUSTERING_FACTOR = 2;
+	private List<LocalGridBlock[][][]> abstractBlocksAtLevel;
 	
 	public HierarchicalPathfinder(LocalGrid grid) {
 		super(grid);
 		int rows = (int) Math.ceil((double) grid.rows / ABSTRACT_BLOCK_SIZE);
 		int cols = (int) Math.ceil((double) grid.cols / ABSTRACT_BLOCK_SIZE);
 		int heights = (int) Math.ceil((double) grid.heights / ABSTRACT_BLOCK_SIZE);
-		abstractBlocks = new LocalGridBlock[rows][cols][heights];
-		initAllAbstractNodes();
+		abstractBlocksAtLevel = new ArrayList<>();
+		initAllAbstractNodes(rows, cols, heights);
+	}
+	
+	public LocalGridBlock[][][] getAbstractBlockArr(int level) {
+		if (level >= abstractBlocksAtLevel.size()) {
+			throw new IllegalArgumentException("Level is too high for grid block hierarchy");
+		}
+		return abstractBlocksAtLevel.get(level);
 	}
 	
 	public double getNodeDist(AbstractNode c, AbstractNode v) {
@@ -56,11 +65,13 @@ public class HierarchicalPathfinder extends Pathfinder {
 	}
 	
 	public ScoredPath findPath(LivingEntity being, LocalTile tileA, LocalTile tileB) {
-		return this.findPath(being, tileA.coords, tileB.coords);
+		return this.findPath(being, tileA.coords, tileB.coords, 0);
 	}
 	
-	public ScoredPath findPath(LivingEntity being, Vector3i startVec, Vector3i endVec) {
-		LocalGridBlock startCluster = getBlockFromCoords(startVec), endCluster = getBlockFromCoords(endVec);
+	public ScoredPath findPath(LivingEntity being, Vector3i startVec, Vector3i endVec, int level) {
+		LocalGridBlock[][][] abstractBlocks = getAbstractBlockArr(level);
+		LocalGridBlock startCluster = getBlockFromCoords(abstractBlocks, startVec), 
+				endCluster = getBlockFromCoords(abstractBlocks, endVec);
 		AbstractNode startNode = addTempNode(startCluster, startVec);
 		AbstractNode endNode = addTempNode(endCluster, endVec);
 		ScoredAbstractPath absPath = findAbstractPath(startNode, endNode);
@@ -92,14 +103,60 @@ public class HierarchicalPathfinder extends Pathfinder {
 		
 		ScoredPath path = new ScoredPath(completePath, totalScore);
 		
-		removeTempNode(getBlockFromCoords(startVec), startNode);
-		removeTempNode(getBlockFromCoords(endVec), endNode);
+		removeTempNode(getBlockFromCoords(abstractBlocks, startVec), startNode);
+		removeTempNode(getBlockFromCoords(abstractBlocks, endVec), endNode);
 		
 		return path;
 	}
 	
+	public ScoredPath convertAbstractPathToScoredPath(List<AbstractNode> absPath, int level) {
+		if (absPath == null) {
+			return new ScoredPath(null, 0);
+		}
+		
+		if (level == 1) {
+			List<LocalTile> completePath = new ArrayList<>();
+			double totalScore = 0;
+			for (int node = 0; node < absPath.size() - 1; node++) {
+				AbstractNode firstNode = absPath.get(node);
+				AbstractNode secondNode = absPath.get(node + 1);
+				ScoredPath localPath = firstNode.distToPathableNodes.get(secondNode);
+				List<LocalTile> pathTiles = localPath.getPath(grid);
+				for (int local = 0; local < pathTiles.size(); local++) {
+					//Do not double count vertices due to the way they are compiled in a hierarchical search
+					if (node != absPath.size() - 2 && local == pathTiles.size() - 1) break;
+					LocalTile tile = pathTiles.get(local);
+					completePath.add(tile);
+				}
+				totalScore += localPath.score;
+			}
+			ScoredPath path = new ScoredPath(completePath, totalScore);
+			return path;
+		}
+		else {
+			List<AbstractNode> expandedAbsPath = new ArrayList<>();
+			for (int node = 0; node < absPath.size() - 1; node++) {
+				AbstractNode firstNode = absPath.get(node);
+				AbstractNode secondNode = absPath.get(node + 1);
+				ScoredAbstractPath absPathInner = findAbstractPathExclusiveBlock(firstNode, secondNode, null);
+				expandedAbsPath.addAll(absPathInner.path);
+			}
+			return convertAbstractPathToScoredPath(expandedAbsPath, level - 1);
+		}
+	}
+	
 	public ScoredAbstractPath findAbstractPath(AbstractNode start, AbstractNode end) {	
-    	List<AbstractNode> results = new ArrayList<>();
+    	return findAbstractPathExclusiveBlock(start, end, null);
+    }
+	
+	public ScoredAbstractPath findAbstractPathExclusiveBlock(AbstractNode start, AbstractNode end,
+			LocalGridBlock block) {
+		Set<AbstractNode> restrictedToNodes = null;
+		if (block != null) {
+			restrictedToNodes = new HashSet<AbstractNode>(block.allNodes.values());
+		}
+		
+		List<AbstractNode> results = new ArrayList<>();
         if (start.equals(end)) {
             results.add(end);
             return new ScoredAbstractPath(results, 0);
@@ -126,6 +183,10 @@ public class HierarchicalPathfinder extends Pathfinder {
         dist.put(start, 0.0);
         while (!fringe.isEmpty()) {        	
         	AbstractNode v = fringe.poll();
+        	if (restrictedToNodes != null && restrictedToNodes.contains(v)) {
+        		continue;
+        	}
+        		
         	//CustomLog.outPrintln("At node: " + v.coords.toString());
             if (visited.contains(v)) {
                 continue;
@@ -152,9 +213,9 @@ public class HierarchicalPathfinder extends Pathfinder {
             }
         }
         return null;
-    }
+	}
 	
-	private LocalGridBlock getBlockFromCoords(Vector3i coords) {
+	private LocalGridBlock getBlockFromCoords(LocalGridBlock[][][] abstractBlocks, Vector3i coords) {
 		int rIndex = coords.x / ABSTRACT_BLOCK_SIZE;
 		int cIndex = coords.y / ABSTRACT_BLOCK_SIZE;
 		int hIndex = coords.z / ABSTRACT_BLOCK_SIZE;
@@ -168,7 +229,11 @@ public class HierarchicalPathfinder extends Pathfinder {
 		return abstractBlocks[rIndex][cIndex][hIndex];
 	}
 	
-	private void initAllAbstractNodes() {
+	/**
+	 * For the first level (lowest) of the hierarchical pathfinder, which establishes boxes and important corners.
+	 */
+	private void initAllAbstractNodes(int rows, int cols, int heights) {
+		LocalGridBlock[][][] abstractBlocks = new LocalGridBlock[rows][cols][heights];
 		for (int r = 0; r < abstractBlocks.length; r++) {
 			for (int c = 0; c < abstractBlocks[0].length; c++) {
 				for (int h = 0; h < abstractBlocks[0][0].length; h++) {
@@ -198,14 +263,15 @@ public class HierarchicalPathfinder extends Pathfinder {
 					//Once the maximal 2d window has been calculated between two 3d blocks,
 					//use it for both sets of important points.
 					
-					getAllMaximalDoors(new Vector3i(r,c,h), 'r', true);
-					getAllMaximalDoors(new Vector3i(r,c,h), 'r', false);
-					getAllMaximalDoors(new Vector3i(r,c,h), 'c', true);
-					getAllMaximalDoors(new Vector3i(r,c,h), 'c', false);
-					getAllMaximalDoors(new Vector3i(r,c,h), 'h', true);
-					getAllMaximalDoors(new Vector3i(r,c,h), 'h', false);
+					int level = 0;
+					getAllMaximalDoors(new Vector3i(r,c,h), LocalGridBlockDimension.PLUS_X, level);
+					getAllMaximalDoors(new Vector3i(r,c,h), LocalGridBlockDimension.PLUS_Y, level);
+					getAllMaximalDoors(new Vector3i(r,c,h), LocalGridBlockDimension.PLUS_Z, level);
+					getAllMaximalDoors(new Vector3i(r,c,h), LocalGridBlockDimension.NEG_X, level);
+					getAllMaximalDoors(new Vector3i(r,c,h), LocalGridBlockDimension.NEG_Y, level);
+					getAllMaximalDoors(new Vector3i(r,c,h), LocalGridBlockDimension.NEG_Z, level);
 					
-					getDistInAbsBlock(block);
+					getDistInAbsBlock(block, level);
 					
 					CustomLog.outPrintln("Completed abstraction at block coord: " + new Vector3i(r,c,h));
 				}
@@ -213,20 +279,20 @@ public class HierarchicalPathfinder extends Pathfinder {
 		}
 	}
 	
-	public void getDistInAbsBlock(LocalGridBlock block) {
-		CustomLog.outPrintln("Computing paths between num blocks: " + block.importantNodes.size());
+	public void getDistInAbsBlock(LocalGridBlock block, int level) {
+		CustomLog.outPrintln("Computing paths between num blocks: " + block.size());
 		
 		//Use a three dimensional flood fill (connected component search)
 		//to eliminate any impossible paths immediately
 		Map<Vector3i, Integer> connectedCompsMap = VecGridUtil.contComponent3dSolids(
 				block.minBound, block.maxBound, grid);
 		
-		for (AbstractNode node: block.importantNodes.values()) {
-			for (AbstractNode otherNode: block.importantNodes.values()) {
+		for (AbstractNode node: block.getAllNodes()) {
+			for (AbstractNode otherNode: block.getAllNodes()) {
 				if (connectedCompsMap.containsKey(node.coords) &&
 						connectedCompsMap.containsKey(otherNode.coords)) {
 					if (connectedCompsMap.get(node.coords) == connectedCompsMap.get(otherNode.coords)) {
-						attemptConnectAbsNode(node, otherNode, block);
+						attemptConnectAbsNode(node, otherNode, block, level);
 						/*
 						boolean success = (node.distToPathableNodes != null && 
 								node.distToPathableNodes.containsKey(otherNode));
@@ -241,7 +307,7 @@ public class HierarchicalPathfinder extends Pathfinder {
 			if (node.mirrorConnections != null) { 
 				//CustomLog.outPrintln(node.coords + " connected " + node.mirrorConnection.coords);
 				for (AbstractNode mirrorConnection: node.mirrorConnections) {
-					attemptConnectAbsNode(node, mirrorConnection, null);
+					attemptConnectAbsNode(node, mirrorConnection, null, level);
 				}
 			}
 		}
@@ -253,32 +319,44 @@ public class HierarchicalPathfinder extends Pathfinder {
 	 * @param otherNode
 	 * @param block      The potential restriction (null if not given)
 	 */
-	private void attemptConnectAbsNode(AbstractNode node, AbstractNode otherNode, LocalGridBlock block) {
+	private void attemptConnectAbsNode(AbstractNode node, AbstractNode otherNode, LocalGridBlock block, int level) {
 		if (node.equals(otherNode)) return;
 		ScoredPath existingPath = otherNode.getDist(node);
 		if (existingPath == null) {
-			if (block != null) {
-				existingPath = super.findPath(null, 
-						this.grid.getTile(node.coords), this.grid.getTile(otherNode.coords),
-						block.minBound, block.maxBound
-						);
+			if (level == 0) {
+				if (block != null) {
+					existingPath = super.findPath(null, 
+							this.grid.getTile(node.coords), this.grid.getTile(otherNode.coords),
+							block.minBound, block.maxBound
+							);
+				}
+				else {
+					existingPath = super.findPath(null, 
+							this.grid.getTile(node.coords), this.grid.getTile(otherNode.coords));
+				}
 			}
 			else {
-				existingPath = super.findPath(null, 
-						this.grid.getTile(node.coords), this.grid.getTile(otherNode.coords));
+				ScoredAbstractPath absPath = this.findAbstractPathExclusiveBlock(node, otherNode, block);
+				
 			}
 		}
 		if (existingPath != null)
 			node.addNode(otherNode, existingPath);
 	}
 	
-	public void getAllMaximalDoors(Vector3i blockCoords, 
-			char dimension, boolean positive) {
+	public void getAllMaximalDoors(Vector3i blockCoords, LocalGridBlockDimension dim, int level) {
+		LocalGridBlock[][][] abstractBlocks = this.getAbstractBlockArr(level);
+		
 		boolean[][] firstBlockAccess = new boolean[ABSTRACT_BLOCK_SIZE][ABSTRACT_BLOCK_SIZE],
 				secondBlockAccess = new boolean[ABSTRACT_BLOCK_SIZE][ABSTRACT_BLOCK_SIZE];
-		
 		LocalGridBlock mainBlock = abstractBlocks[blockCoords.x][blockCoords.y][blockCoords.z]; 
 			
+		char dimension;
+		if (LocalGridBlockDimension.isX(dim)) dimension = 'r';
+		else if (LocalGridBlockDimension.isY(dim)) dimension = 'c';
+		else dimension = 'h';
+		boolean positive = LocalGridBlockDimension.isPos(dim);
+		
 		int firstR;
 		if (dimension == 'r') {
 			firstR = positive ? mainBlock.maxBound.x : mainBlock.minBound.x;
@@ -412,11 +490,11 @@ public class HierarchicalPathfinder extends Pathfinder {
 			for (int coordIndex = 0; coordIndex < trueCoordsFirst.size(); coordIndex++) {
 				Vector3i trueCoordFirst = trueCoordsFirst.get(coordIndex);
 				AbstractNode node1 = new AbstractNode(trueCoordFirst);
-				mainBlock.importantNodes.put(trueCoordFirst, node1);
+				mainBlock.insertNode(node1, dim);
 				
 				Vector3i trueCoordSecond = trueCoordsSecond.get(coordIndex);
 				AbstractNode node2 = new AbstractNode(trueCoordSecond);
-				otherBlock.importantNodes.put(trueCoordSecond, node2);
+				otherBlock.insertNode(node2, LocalGridBlockDimension.opposite(dim));
 				
 				node1.mirrorConnections.add(node2);
 				node2.mirrorConnections.add(node1);
@@ -424,7 +502,111 @@ public class HierarchicalPathfinder extends Pathfinder {
 		}
 	}
 	
-	public AbstractNode addTempNode(LocalGridBlock block, Vector3i coords) {
+	/**
+	 * 
+	 * 
+	 * @param numLevelMax Index of the highest (most abstract, least nodes) level to be generated,
+	 * 		where zero is the default one generated, level one is clusters of n x n 1-level clusters,
+	 * 		level two is n x n 2-level clusters (real dimensions n^2 x n^2), and so on.
+	 */
+	public void generateLevels(int numLevelMax) {
+		if (numLevelMax <= 1) {
+			throw new IllegalArgumentException("See this method HierarchicalPathfinder::generateLevels "
+					+ "for level usage. Level should be greater than or equal to 1.");
+		}
+		LocalGridBlock[][][] prev = this.getAbstractBlockArr(0);
+		LocalGridBlock[][][] newPointerGrid;
+		for (int level = 2; level <= numLevelMax; level++) {
+			int rows = (int) Math.ceil(prev.length / CLUSTERING_FACTOR), 
+					cols = (int) Math.ceil(prev[0].length / CLUSTERING_FACTOR), 
+					heights = (int) Math.ceil(prev[0][0].length / CLUSTERING_FACTOR); 
+			
+			newPointerGrid = new LocalGridBlock[rows][cols][heights];
+			
+			for (int r = 0; r < rows; r++) {
+				for (int c = 0; c < cols; c++) {
+					for (int h = 0; h < heights; h++) {
+						Vector3i blockIndexStart = new Vector3i(
+								r * CLUSTERING_FACTOR, c * CLUSTERING_FACTOR, h * CLUSTERING_FACTOR
+								),
+								blockIndexEnd = new Vector3i(
+										Math.min(r * CLUSTERING_FACTOR + CLUSTERING_FACTOR - 1, prev.length),
+										Math.min(c * CLUSTERING_FACTOR + CLUSTERING_FACTOR - 1, prev[0].length),
+										Math.min(h * CLUSTERING_FACTOR + CLUSTERING_FACTOR - 1, prev[0][0].length)
+										);
+						
+						LocalGridBlock blockStart = prev[blockIndexStart.x][blockIndexStart.y][blockIndexStart.z];
+						Vector3i start = blockStart.minBound;
+						
+						LocalGridBlock blockEnd = prev[blockIndexEnd.x][blockIndexEnd.y][blockIndexEnd.z];
+						Vector3i end = blockEnd.maxBound;
+						
+						LocalGridBlock newCluster = new LocalGridBlock(start, end);
+						
+						//Get all faces in all six directions (+x, -x, +y, -y, +z, -z) of the new L + 1 cluster
+						//and generate their L-intra edges, which form the structure of this L + 1 level hierarchy.
+						for (int x = blockIndexStart.x; x <= blockIndexEnd.x; x++) {
+							for (int y = blockIndexStart.y; y <= blockIndexEnd.y; y++) {
+								for (int z = blockIndexStart.z; z <= blockIndexEnd.z; z++) {
+									LocalGridBlock curBlock = prev[x][y][z];
+									
+									//Collect all abstract nodes that touch the boundary of the new L + 1 cluster
+									List<List<AbstractNode>> listDimMarkNodes = new ArrayList<>();
+									List<LocalGridBlockDimension> dimensions = new ArrayList<>();
+									
+									if (x == blockIndexStart.x) {
+										listDimMarkNodes.add(new ArrayList<>(
+												curBlock.getNodesFromDim(LocalGridBlockDimension.NEG_X)));
+										dimensions.add(LocalGridBlockDimension.NEG_X);
+									}
+									else if (x == blockIndexEnd.x) {
+										listDimMarkNodes.add(new ArrayList<>(
+												curBlock.getNodesFromDim(LocalGridBlockDimension.PLUS_X)));
+										dimensions.add(LocalGridBlockDimension.PLUS_X);
+									}
+									if (y == blockIndexStart.y) {
+										listDimMarkNodes.add(new ArrayList<>(
+												curBlock.getNodesFromDim(LocalGridBlockDimension.NEG_Y)));
+										dimensions.add(LocalGridBlockDimension.NEG_Y);
+									}
+									else if (y == blockIndexEnd.y) {
+										listDimMarkNodes.add(new ArrayList<>(
+												curBlock.getNodesFromDim(LocalGridBlockDimension.PLUS_Y)));
+										dimensions.add(LocalGridBlockDimension.PLUS_Y);
+									}
+									if (z == blockIndexStart.z) {
+										listDimMarkNodes.add(new ArrayList<>(
+												curBlock.getNodesFromDim(LocalGridBlockDimension.NEG_Z)));
+										dimensions.add(LocalGridBlockDimension.NEG_Z);
+									}
+									else if (z == blockIndexEnd.z) {
+										listDimMarkNodes.add(new ArrayList<>(
+												curBlock.getNodesFromDim(LocalGridBlockDimension.PLUS_Z)));
+										dimensions.add(LocalGridBlockDimension.PLUS_Z);
+									}
+									
+									//Connect them to each other using new nodes and L + 1 intra edges
+									for (List<AbstractNode> nodesToMark: listDimMarkNodes) {
+										LocalGridBlockDimension dim = dimensions.remove(0);
+										for (AbstractNode node: nodesToMark) {
+											AbstractNode clone = new AbstractNode(node.coords);
+											newPointerGrid[r][c][h].insertNode(clone, dim);
+										}
+									}
+									
+									TODO;
+								}
+							}
+						}
+						
+						newPointerGrid[r][c][h] = newCluster;
+					}
+				}
+			}
+		}
+	}
+	
+	public AbstractNode addTempNode(LocalGridBlock block, Vector3i coords, int level) {
 		if (block.minBound != null) {
         	if (coords.x < block.minBound.x || 
         		coords.y < block.minBound.y ||
@@ -439,16 +621,16 @@ public class HierarchicalPathfinder extends Pathfinder {
         		return null;
         	}
         }
-        if (block.importantNodes.containsKey(coords)) {
-        	return block.importantNodes.get(coords);
+        if (block.containsVec(coords)) {
+        	return block.getNodeByVec(coords);
         }
         AbstractNode node = new AbstractNode(coords);
         node.temporary = true;
-        for (AbstractNode otherNode: block.importantNodes.values()) {
-        	attemptConnectAbsNode(node, otherNode, null);
-        	attemptConnectAbsNode(otherNode, node, null);
+        for (AbstractNode otherNode: block.getAllNodes()) {
+        	attemptConnectAbsNode(node, otherNode, null, level);
+        	attemptConnectAbsNode(otherNode, node, null, level);
         }
-        block.importantNodes.put(coords, node);
+        block.insertNode(node, null);
         return node;
 	}
 	
@@ -460,7 +642,7 @@ public class HierarchicalPathfinder extends Pathfinder {
 				}
 				node.distToPathableNodes.clear();
 			}
-			block.importantNodes.values().remove(node);
+			block.removeNode(node);
 		}
 	}
 	
@@ -480,13 +662,80 @@ public class HierarchicalPathfinder extends Pathfinder {
 	}
 	
 	private static class LocalGridBlock {
-		public Vector3i minBound, maxBound;
-		public Map<Vector3i, AbstractNode> importantNodes;
+		public Vector3i minBound, maxBound; //Inclusive bounds
+		private Map<Vector3i, AbstractNode> allNodes;
+		//Keep track of nodes by their dimension for grouping them together later in larger clusters
+		private Map<LocalGridBlockDimension, Set<AbstractNode>> nodesBySide; 
 		
 		public LocalGridBlock(Vector3i minB, Vector3i maxB) {
 			this.minBound = minB;
 			this.maxBound = maxB;
-			importantNodes = new HashMap<>();
+			allNodes = new HashMap<>();
+			nodesBySide = new HashMap<>();
+		}
+
+		public boolean containsVec(Vector3i vec) {
+			return allNodes.keySet().contains(vec);
+		}
+		
+		public AbstractNode getNodeByVec(Vector3i vec) {
+			return allNodes.get(vec);
+		}
+		
+		public Collection<AbstractNode> getAllNodes() {
+			return allNodes.values();
+		}
+		
+		public void insertNode(AbstractNode node, LocalGridBlockDimension dim) {
+			allNodes.put(node.coords, node);
+			if (dim != null)
+				MapUtil.insertNestedSetMap(nodesBySide, dim, node);
+		}
+		
+		public void removeNode(AbstractNode node) {
+			for (Entry<LocalGridBlockDimension, Set<AbstractNode>> nodesSet: nodesBySide.entrySet()) {
+				if (nodesSet.getValue().contains(node)) {
+					nodesSet.getValue().remove(node);
+					allNodes.values().remove(node);
+					return;
+				}
+			}
+		}
+		
+		public Collection<AbstractNode> getNodesFromDim(LocalGridBlockDimension dim) {
+			if (!nodesBySide.containsKey(dim)) {
+				return new ArrayList<>();
+			}
+			return nodesBySide.get(dim);
+		}
+		
+		public int size() {
+			return allNodes.size();
+		}
+	}
+	
+	private enum LocalGridBlockDimension {
+		PLUS_X, PLUS_Y, PLUS_Z, NEG_X, NEG_Y, NEG_Z;
+		public static boolean isPos(LocalGridBlockDimension dim) {
+			return dim == PLUS_X || dim == PLUS_Y || dim == PLUS_Z;
+		}
+		public static boolean isX(LocalGridBlockDimension dim) {
+			return dim == PLUS_X || dim == NEG_X;
+		}
+		public static boolean isY(LocalGridBlockDimension dim) {
+			return dim == PLUS_Y || dim == NEG_Y;
+		}
+		public static boolean isZ(LocalGridBlockDimension dim) {
+			return dim == PLUS_Z || dim == NEG_Z;
+		}
+		public static LocalGridBlockDimension opposite(LocalGridBlockDimension dim) {
+			if (dim == PLUS_X) return NEG_X;
+			if (dim == PLUS_Y) return NEG_Y;
+			if (dim == PLUS_Z) return NEG_Z;
+			if (dim == NEG_X) return PLUS_X;
+			if (dim == NEG_Y) return PLUS_Y;
+			if (dim == NEG_Z) return PLUS_Z;
+			return null;
 		}
 	}
 	
@@ -494,14 +743,16 @@ public class HierarchicalPathfinder extends Pathfinder {
 		public Vector3i coords;
 		
 		private Map<AbstractNode, ScoredPath> distToPathableNodes;
-		
 		public Set<AbstractNode> mirrorConnections;
 		
-		public boolean temporary = false;
+		public boolean temporary = false; //If this node was added in the online insertion (i.e. start and goal)
+		
+		public int level;
 		
 		public AbstractNode(Vector3i coords) {
-			this.coords = coords;
+			this.coords = coords.clone();
 			this.mirrorConnections = new HashSet<>();
+			level = 1;
 		}
 		
 		public ScoredPath getDist(AbstractNode otherNode) {
@@ -610,6 +861,8 @@ public class HierarchicalPathfinder extends Pathfinder {
 		
 		//randEndCoords = randStartCoords.getSum(new Vector3i(1,1,1));
 		
+		LocalGridBlock[][][] abstractBlocks = hPath.getAbstractBlockArr(0);
+		
 		LocalGridBlock blockStart;
 		LocalGridBlock blockEnd;
 		//AbstractNode randStartNode = blockStart.importantNodes.values().iterator().next();
@@ -623,18 +876,18 @@ public class HierarchicalPathfinder extends Pathfinder {
 			//Find a path that can be tested
 			while (true) {
 				randStartCoords = new Vector3i(
-						(int) (Math.random() * hPath.abstractBlocks.length),
-						(int) (Math.random() * hPath.abstractBlocks[0].length),
-						(int) (Math.random() * hPath.abstractBlocks[0][0].length)
+						(int) (Math.random() * abstractBlocks.length),
+						(int) (Math.random() * abstractBlocks[0].length),
+						(int) (Math.random() * abstractBlocks[0][0].length)
 						);
 				randEndCoords = new Vector3i(
-						(int) (Math.random() * hPath.abstractBlocks.length),
-						(int) (Math.random() * hPath.abstractBlocks[0].length),
-						(int) (Math.random() * hPath.abstractBlocks[0][0].length)
+						(int) (Math.random() * abstractBlocks.length),
+						(int) (Math.random() * abstractBlocks[0].length),
+						(int) (Math.random() * abstractBlocks[0][0].length)
 						);
 				
-				blockStart = hPath.abstractBlocks[randStartCoords.x][randStartCoords.y][randStartCoords.z];
-				blockEnd = hPath.abstractBlocks[randEndCoords.x][randEndCoords.y][randEndCoords.z];
+				blockStart = abstractBlocks[randStartCoords.x][randStartCoords.y][randStartCoords.z];
+				blockEnd = abstractBlocks[randEndCoords.x][randEndCoords.y][randEndCoords.z];
 				startVec = VecGridUtil.getRandVecInBounds(blockStart.minBound, blockStart.maxBound);
 				endVec = VecGridUtil.getRandVecInBounds(blockEnd.minBound, blockEnd.maxBound);
 				if (activeLocalGrid.tileIsFullAccessible(startVec) && activeLocalGrid.tileIsFullAccessible(endVec)) {

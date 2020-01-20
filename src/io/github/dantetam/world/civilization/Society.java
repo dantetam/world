@@ -404,6 +404,17 @@ public class Society {
 					if (rawResRarity.get(id) > 0) {
 						//The preliminary item finding test is successful
 						//Use the full access/tile search algorithm to determine truly if the process has a tile
+						
+						TODO;
+						/**
+						 * Create a class which does the following: 
+						 * (possibly embedded in grid with other memotized data)
+						 * 
+						 * Record current 2d surface clusters (walkable areas that are 14-traversable);
+						 * record rarity of tiles and current items available as a list/map/"inventory";
+						 * use this instead of pathing to find viable items
+						 */
+						
 						Pair<LocalTile> potentialTiles = LocalGridTimeExecution.assignTile(
 								grid, being, new HashSet<Human>() {{
 									if (being instanceof Human)
