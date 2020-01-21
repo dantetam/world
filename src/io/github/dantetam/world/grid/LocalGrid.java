@@ -71,6 +71,9 @@ public class LocalGrid {
 	
 	private KdTree<Vector3i> peopleLookup;
 	
+	//For conflicts, trading, and other intersocietal 
+	private Map<Society, List<Human>> humanBySocietyMap;
+	
 	public RSRPathfinder pathfinder;
 	
 	public List<LocalGridLandClaim> localLandClaims;
@@ -113,6 +116,8 @@ public class LocalGrid {
 		buildIdQuickTileLookup = new HashMap<>();
 		
 		peopleLookup = new KdTree<>();
+		
+		humanBySocietyMap = new HashMap<>();
 		
 		localLandClaims = new ArrayList<>();
 	}
@@ -940,27 +945,51 @@ public class LocalGrid {
 		return emptySpaces;
 	}
 	
-	public void addLivingEntity(LivingEntity human, Vector3i coords) {
+	public void addLivingEntity(LivingEntity livingEntity, Vector3i coords) {
 		LocalTile tile = getTile(coords);
 		
-		if (human.location != null) {
-			human.location.removePerson(human);
-			if (human.location.getPeople().size() == 0) {
-				peopleLookup.remove(human.location.coords);
-				allLivingBeings.remove(human);
+		if (livingEntity.location != null) {
+			livingEntity.location.removePerson(livingEntity);
+			if (livingEntity.location.getPeople().size() == 0) {
+				peopleLookup.remove(livingEntity.location.coords);
+				allLivingBeings.remove(livingEntity);
 			}
-			human.location = null;
+			livingEntity.location = null;
 		}
 		
 		if (tile == null) {
 			tile = createTile(coords);
 		}
 		if (tile != null) {
-			human.location = tile;
-			tile.addPerson(human);
+			livingEntity.location = tile;
+			tile.addPerson(livingEntity);
 			markAllAdjAsExposed(coords);
 			peopleLookup.add(coords);
-			allLivingBeings.add(human);
+			allLivingBeings.add(livingEntity);
+			if (livingEntity instanceof Human) {
+				Human human = (Human) livingEntity;
+				Society society = human.society;
+				MapUtil.insertNestedListMap(humanBySocietyMap, society, human);
+			}
+		}
+	}
+	
+	public void removeLivingEntity(LivingEntity livingEntity) {
+		LocalTile tile = livingEntity.location;
+		
+		tile.removePerson(livingEntity);
+		if (tile.getPeople().size() == 0) {
+			peopleLookup.remove(livingEntity.location.coords);
+			allLivingBeings.remove(livingEntity);
+		}
+		livingEntity.location = null;
+		
+		tile.removePerson(livingEntity);
+		
+		if (livingEntity instanceof Human) {
+			Human human = (Human) livingEntity;
+			Society society = human.society;
+			MapUtil.removeSafeNestListMap(humanBySocietyMap, society, human);
 		}
 	}
 	
@@ -989,7 +1018,7 @@ public class LocalGrid {
 				continue;
 			}
 			else {
-				return h+1;
+				return h + 1;
 			}
 		}
 		return 0;

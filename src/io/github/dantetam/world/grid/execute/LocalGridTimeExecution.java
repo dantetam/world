@@ -53,6 +53,7 @@ import io.github.dantetam.world.items.Inventory;
 import io.github.dantetam.world.items.InventoryItem;
 import io.github.dantetam.world.items.InventoryItem.ItemQuality;
 import io.github.dantetam.world.items.ItemProperty;
+import io.github.dantetam.world.life.BodyPart;
 import io.github.dantetam.world.life.Human;
 import io.github.dantetam.world.life.LivingEntity;
 import io.github.dantetam.world.process.LocalJob;
@@ -87,6 +88,19 @@ public class LocalGridTimeExecution {
 		//Implement ticking of natural tasks
 		//Fix unsupervised work bug by bringing tasks into the 'grid queue', 
 		//and when human input is needed, shift the task back into the human's queue.
+		
+		/**
+		 * Override some people's processes by combat, if necessary.
+		 * This happens if one party is willing to fight and there are hostile entities
+		 * (for humans, hostile societies).
+		 */
+		TODO;
+		
+		//Also, modify the SoldierProcess to allow for (turn-based, procedural) combat
+		//using the combat engine algorithm.
+		TODO;
+		
+		
 		
 		for (LivingEntity being: grid.getAllLivingBeings()) {
 			if (!(being instanceof Human)) {
@@ -1575,6 +1589,46 @@ public class LocalGridTimeExecution {
 				throw new RuntimeException();
 			}
 		}
+		else if (priority instanceof HealSelfPriority || priority instanceof HealOtherPriority) {
+			double baseHealPercentPart = 0.1;
+			double efficiency;
+			LivingEntity patient, doctor;
+			BodyPart bodyPart;
+			if (priority instanceof HealSelfPriority) {
+				HealSelfPriority healPrior = (HealSelfPriority) priority;
+				patient = healPrior.being;
+				doctor = healPrior.being;
+				efficiency = 0.3;
+				bodyPart = healPrior.part;
+			}
+			else {
+				HealOtherPriority healPrior = (HealOtherPriority) priority;
+				patient = healPrior.patient;
+				doctor = healPrior.doctor;
+				efficiency = 1.0;
+				bodyPart = healPrior.part;
+			}
+			
+			if (bodyPart == null) {
+				List<BodyPart> damaged = patient.body.getAllDamagedBodyParts();
+				if (damaged.size() == 0) return new DoneTaskPlaceholder();
+				bodyPart = damaged.get((int) (damaged.size() * Math.random()));
+				if (priority instanceof HealSelfPriority) {
+					HealSelfPriority healPrior = (HealSelfPriority) priority;
+					healPrior.part = bodyPart;
+				}
+				else {
+					HealOtherPriority healPrior = (HealOtherPriority) priority;
+					healPrior.part = bodyPart;
+				}
+			}
+			if (bodyPart.health == bodyPart.maxHealth) return new DoneTaskPlaceholder();
+			double randVarEff = Math.random() * 0.08 - 0.04;
+			double percentHeal = baseHealPercentPart * (efficiency * randVarEff);
+			bodyPart.health += bodyPart.maxHealth * percentHeal;
+			bodyPart.health = Math.max(bodyPart.health, ); TODO;
+		}
+		
 		else if (priority instanceof PatrolPriority) {
 			PatrolPriority patrolPriority = (PatrolPriority) priority;
 			List<Vector3i> locations = patrolPriority.locations;

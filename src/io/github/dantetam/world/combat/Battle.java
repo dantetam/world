@@ -31,13 +31,12 @@ public class Battle {
 	
 	public Battle(List<Set<LivingEntity>> combatantTeams) {
 		this.combatantTeams = combatantTeams;
-		/*
+		this.allPeople = new ArrayList<>();
 		for (Set<LivingEntity> team: combatantTeams) {
 			for (LivingEntity entity: team) {
-				TODO?
+				this.allPeople.add(entity);
 			} 
 		}
-		*/
 	}
 	
 	public List<LivingEntity> getCombatantsWithNoNeighbors() {

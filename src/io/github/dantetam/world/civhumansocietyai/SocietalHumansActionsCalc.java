@@ -55,6 +55,14 @@ public class SocietalHumansActionsCalc {
 		return 0;
 	}
 	
+	/*
+	 * TODO;
+	 * 
+	 */
+	public static double calcPropensityToFight(Human human, Society society, LocalGrid grid) {
+		
+	}
+	
 	/**
 	 * @param proposer
 	 * @param target

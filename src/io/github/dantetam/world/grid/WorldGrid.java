@@ -119,6 +119,7 @@ public class WorldGrid {
 		currentWorldTime.add(Calendar.SECOND, 1);
 	}
 	
+	
 	public Date getTime() {
 		return currentWorldTime.getTime();
 	}

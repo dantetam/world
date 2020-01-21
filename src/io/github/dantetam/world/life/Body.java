@@ -1,5 +1,6 @@
 package io.github.dantetam.world.life;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -51,6 +52,16 @@ public class Body {
 	
 	public Collection<BodyPart> getAllBodyParts() {
 		return bodyParts.values();
+	}
+	
+	public List<BodyPart> getAllDamagedBodyParts() {
+		List<BodyPart> damaged = new ArrayList<>();
+		for (BodyPart part: this.getAllBodyParts()) {
+			if (part.health < part.maxHealth) {
+				damaged.add(part);
+			}
+		}
+		return damaged;
 	}
 	
 	public int getWeaponNeed() {
