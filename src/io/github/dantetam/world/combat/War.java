@@ -3,8 +3,10 @@ package io.github.dantetam.world.combat;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
+import io.github.dantetam.toolbox.Pair;
 import io.github.dantetam.world.civilization.LocalExperience;
 import io.github.dantetam.world.civilization.Society;
 
@@ -18,12 +20,21 @@ public class War {
 	
 	public double warscoreAttacker;
 	
+	public Map<Society, Double> startingSocietalWealth;
+	public Map<Society, Integer> startingSocietalPeople;
+	
 	public War(Society warLeaderAttacker, Society warLeaderDefender, 
 			Set<Society> attackerAllies, Set<Society> defenderAllies) {
 		this.warLeaderAttacker = warLeaderAttacker;
 		this.warLeaderDefender = warLeaderDefender;
 		this.attackerAllies = attackerAllies;
 		this.defenderAllies = defenderAllies;
+		
+		Set<Society> allSocieties = this.getAllBelligerentsBothSides();
+		for (Society allSociety: allSocieties) {
+			startingSocietalWealth;
+			startingSocietalPeople;
+		}
 		
 		battleHistory = new ArrayList<>();
 		warscoreAttacker = 0;
@@ -67,6 +78,20 @@ public class War {
 	
 	public boolean hostileInThisWar(Society society, Society otherSociety) {
 		return getOppositeSide(society).contains(otherSociety);
+	}
+	
+	public Pair<Set<Society>> getBelligerents() {
+		return new Pair<Set<Society>>(
+				new HashSet<Society>() {{addAll(attackerAllies); add(warLeaderAttacker);}},
+				new HashSet<Society>() {{addAll(defenderAllies); add(warLeaderDefender);}}
+				);
+	}
+	
+	public Set<Society> getAllBelligerentsBothSides() {
+		return new HashSet<Society>() {{
+					addAll(attackerAllies); add(warLeaderAttacker);
+					addAll(defenderAllies); add(warLeaderDefender);
+					}};
 	}
 	
 }

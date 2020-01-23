@@ -20,7 +20,6 @@ import io.github.dantetam.world.items.InventoryItem;
 import io.github.dantetam.world.items.InventoryItem.ItemQuality;
 import io.github.dantetam.world.life.LivingEntity;
 import io.github.dantetam.world.process.LocalProcess;
-import io.github.dantetam.world.process.LocalProcess.ProcessStep;
 import kdtreegeo.KdTree;
 
 public class ItemMetricsUtil {

@@ -91,6 +91,8 @@ public class AnatomyCSVParser extends WorldCsvParser {
 				}
 			}
 		}
+		
+		AnatomyData.doneParsingAllBodies();
 	}
 	
 	public static Vector3f parseVecSplit(CSVRecord record, String fieldX, String fieldY, String fieldZ) {

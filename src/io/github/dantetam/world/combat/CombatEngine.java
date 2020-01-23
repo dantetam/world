@@ -62,6 +62,10 @@ public class CombatEngine {
 				battle.battlePhaseTicksLeft = BATTLE_PHASE_PREPARE;
 			}
 		}
+		
+		TODO; //Calculate battle score based on number dead in society
+		//Use starting vs current measures of wealth, people, societal morale and ethics
+		//then simulate peace talks.
 	}
 	
 	public static void calculateDamageHealth(Body body) {

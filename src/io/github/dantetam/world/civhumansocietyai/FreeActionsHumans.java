@@ -164,7 +164,16 @@ public class FreeActionsHumans {
 				if (randomHuman != null)
 					randomHuman.queuedProcesses.add(ProcessData.getProcessByName("Improve Complex"));
 			}
-			else if (name.equals("chat")) { //Temporarily represent chatting as an instaneous free action
+			else if (name.equals("chat")) { 
+				//Temporarily represent chatting as an instaneous free action
+				TODO;
+				//Add a chat process that can take on conversation memory, ethos debate;
+				//add this process into a person's queue.
+				
+				TODO;
+				//Suppose two people for some reason, need to meet each other, with possibly differing priorities.
+				//Model this as a stable marriage type problem.
+				
 				List<Human[]> chatPairs = SocietalHumansActionsCalc.possibleCordialPairs(humans, date);
 				for (Human[] chatPair: chatPairs) {
 					Human humanA = chatPair[0];

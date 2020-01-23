@@ -23,6 +23,12 @@ import io.github.dantetam.world.grid.LocalTile;
 import io.github.dantetam.world.life.Human;
 import io.github.dantetam.world.life.LivingEntity;
 
+/**
+ * Main 2D rendering system of this game on the LWJGL engine
+ * @author Dante
+ *
+ */
+
 public class GuiSystem extends BaseSystem {
 
 	public MousePicker mousePicker;

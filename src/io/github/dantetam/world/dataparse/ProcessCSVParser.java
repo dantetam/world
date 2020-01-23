@@ -21,7 +21,7 @@ import io.github.dantetam.world.civilization.SkillProcessDistribution.ProcessMod
 import io.github.dantetam.world.civilization.SkillProcessDistribution.SkillOutFunction;
 import io.github.dantetam.world.civilization.SkillProcessDistribution.SkillProcessMod;
 import io.github.dantetam.world.items.InventoryItem;
-import io.github.dantetam.world.process.LocalProcess.ProcessStep;
+import io.github.dantetam.world.process.ProcessStep;
 
 public class ProcessCSVParser extends WorldCsvParser {
 	

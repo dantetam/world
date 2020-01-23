@@ -14,7 +14,7 @@ import io.github.dantetam.vector.Vector3i;
 import io.github.dantetam.world.dataparse.ItemTotalDrops.ItemDrop;
 import io.github.dantetam.world.dataparse.ItemTotalDrops.ItemDropTrial;
 import io.github.dantetam.world.items.InventoryItem;
-import io.github.dantetam.world.process.LocalProcess.ProcessStep;
+import io.github.dantetam.world.process.ProcessStep;
 
 public class ItemCSVParser extends WorldCsvParser {
 
@@ -176,8 +176,16 @@ public class ItemCSVParser extends WorldCsvParser {
 	}
 	
 	/**
-	 * 
 	 * @param dropString
+	 * Represent a propabilistic item dropping. The format for one 'trial':
+	 * item id (required),
+	 * item drop min (default: 1), 
+	 * item drop max (default: 1), 
+	 * item probability (default: 1), 
+	 * distribution (default: uniform from min to max inclusive)
+	 * 
+	 * Independent trials are separated by forward slashes.
+	 * 
 	 * @param namesToIdsMap
 	 * @return Convert a string from the CSV into the ItemTotalDrops object, a code representation
 	 * 	of a probabilistic item dropping.
@@ -198,7 +206,7 @@ public class ItemCSVParser extends WorldCsvParser {
 				} catch (NullPointerException e) {
 					//e.printStackTrace();
 					CustomLog.errPrintln("Could not find item name: " + itemName);
-					id = ItemData.generateNewItemId(itemName);
+					id = ItemData.generateNewItem(itemName);
 				}
 				
 				try {

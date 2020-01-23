@@ -17,6 +17,10 @@ import io.github.dantetam.world.items.InventoryItem;
  * item drop max (default: 1), 
  * item probability (default: 1), 
  * distribution (default: uniform from min to max inclusive)
+ * 
+ * Independent trials are separated by forward slashes.
+ * 
+ * 
  * @author Dante
  *
  */

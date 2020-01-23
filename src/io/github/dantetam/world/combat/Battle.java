@@ -25,6 +25,9 @@ public class Battle {
 	public BattleMode battlePhase;
 	public int battlePhaseTicksLeft;
 	
+	public int score; //Positive means better results for the attacker, negative for the defender
+		//Ranges from -100 to 100
+	
 	public static enum BattleMode {
 		PREPARE, SHOCK, DANCE
 	}

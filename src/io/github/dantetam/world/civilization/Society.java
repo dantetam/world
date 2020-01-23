@@ -37,8 +37,8 @@ import io.github.dantetam.world.life.Human;
 import io.github.dantetam.world.life.LivingEntity;
 import io.github.dantetam.world.process.LocalJob;
 import io.github.dantetam.world.process.LocalProcess;
-import io.github.dantetam.world.process.LocalProcess.ProcessStep;
 import io.github.dantetam.world.process.LocalSocietyJob;
+import io.github.dantetam.world.process.ProcessStep;
 import kdtreegeo.KdTree;
 
 public class Society {

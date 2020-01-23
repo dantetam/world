@@ -23,6 +23,8 @@ import io.github.dantetam.vector.Vector2i;
 import io.github.dantetam.vector.Vector3i;
 import io.github.dantetam.world.ai.RSRPathfinder;
 import io.github.dantetam.world.civilization.Society;
+import io.github.dantetam.world.combat.Battle;
+import io.github.dantetam.world.combat.War;
 import io.github.dantetam.world.dataparse.ItemData;
 import io.github.dantetam.world.dataparse.WorldCsvParser;
 import io.github.dantetam.world.grid.SpaceFillingAlg.NeighborMode;
@@ -72,7 +74,7 @@ public class LocalGrid {
 	private KdTree<Vector3i> peopleLookup;
 	
 	//For conflicts, trading, and other intersocietal 
-	private Map<Society, List<Human>> humanBySocietyMap;
+	public Map<Society, List<Human>> humanBySocietyMap;
 	
 	public RSRPathfinder pathfinder;
 	
@@ -98,6 +100,8 @@ public class LocalGrid {
 	public Map<Vector3i, Integer> connectedCompsMap2dOneHeight; //TODO;
 	public KdTree<ClusterVector3i> clustersListOneHeight2dSurfaces;
 	
+	public Map<War, List<Battle>> activeBattlesInRegion;
+	
 	public LocalGrid(Vector3i size) {
 		rows = size.x; cols = size.y; heights = size.z;
 		grid = new LocalTile[rows][cols][heights];
@@ -120,6 +124,8 @@ public class LocalGrid {
 		humanBySocietyMap = new HashMap<>();
 		
 		localLandClaims = new ArrayList<>();
+		
+		activeBattlesInRegion = new HashMap<>();
 	}
 	
 	/**
@@ -993,6 +999,18 @@ public class LocalGrid {
 		}
 	}
 	
+	/**
+	 * Actually handle the real-world death of a person by representing the body as an actual item
+	 * i.e. a corpse that can be moved, butchered, destroyed, etc.
+	 * @param livingEntity
+	 */
+	public void killLivingEntity(LivingEntity livingEntity) {
+		int bodyItemId = ItemData.getIdFromName(livingEntity.body.highLevelSpeciesName + " Body");
+		InventoryItem item = ItemData.createItem(bodyItemId, 1);
+		livingEntity.location.itemsOnFloor.addItem(item);
+		this.removeLivingEntity(livingEntity);
+	}
+	
 	public void movePerson(LivingEntity person, LocalTile tile) {
 		if (person.location != null) {
 			person.location.removePerson(person);
@@ -1193,7 +1211,7 @@ public class LocalGrid {
 					new Vector3i(rows, cols, heights) + ", or " + numTilesToCheck + " total entries.");
 		}
 		
-		int lastItemId = ItemData.generateNewItemId("Test Potato");
+		int lastItemId = ItemData.generateNewItem("Test Potato");
 		int numDigits = (int) Math.ceil(Math.log10(lastItemId));
 		DecimalFormat numFormat = new DecimalFormat("0".repeat(numDigits));
 		

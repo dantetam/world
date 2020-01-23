@@ -14,7 +14,6 @@ import io.github.dantetam.world.items.Inventory;
 import io.github.dantetam.world.items.InventoryItem;
 import io.github.dantetam.world.process.LocalJob;
 import io.github.dantetam.world.process.LocalProcess;
-import io.github.dantetam.world.process.LocalProcess.ProcessStep;
 import io.github.dantetam.world.process.priority.Priority;
 import io.github.dantetam.world.process.prioritytask.Task;
 

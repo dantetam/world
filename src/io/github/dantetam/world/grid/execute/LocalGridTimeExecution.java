@@ -38,6 +38,9 @@ import io.github.dantetam.world.civilization.artwork.ArtworkGraph;
 import io.github.dantetam.world.civilization.gridstructure.AnnotatedRoom;
 import io.github.dantetam.world.civilization.gridstructure.PurposeAnnoBuildDesPriority;
 import io.github.dantetam.world.civilization.gridstructure.PurposeAnnotatedBuild;
+import io.github.dantetam.world.combat.Battle;
+import io.github.dantetam.world.combat.CombatEngine;
+import io.github.dantetam.world.combat.War;
 import io.github.dantetam.world.dataparse.ItemData;
 import io.github.dantetam.world.dataparse.ProcessData;
 import io.github.dantetam.world.grid.GridRectInterval;
@@ -58,8 +61,8 @@ import io.github.dantetam.world.life.Human;
 import io.github.dantetam.world.life.LivingEntity;
 import io.github.dantetam.world.process.LocalJob;
 import io.github.dantetam.world.process.LocalProcess;
-import io.github.dantetam.world.process.LocalProcess.ProcessStep;
 import io.github.dantetam.world.process.LocalSocietyJob;
+import io.github.dantetam.world.process.ProcessStep;
 import io.github.dantetam.world.process.priority.*;
 import io.github.dantetam.world.process.prioritytask.*;
 import kdtreegeo.KdTree;
@@ -94,13 +97,43 @@ public class LocalGridTimeExecution {
 		 * This happens if one party is willing to fight and there are hostile entities
 		 * (for humans, hostile societies).
 		 */
-		TODO;
+		List<War> allActiveWarsInRegion = new ArrayList<>();
+		Collection<Society> societies = grid.humanBySocietyMap.keySet();
+		for (Society society: societies) {
+			allActiveWarsInRegion.addAll(society.warsInvolved);
+		}
+		
+		for (War war: allActiveWarsInRegion) {
+			if (!grid.activeBattlesInRegion.containsKey(war)) {
+				//Construct a set of attacker and defender entities for each battle in this grid
+				Pair<Set<Society>> belligerents = war.getBelligerents();
+				Set<Society> attackers = belligerents.first, defenders = belligerents.second;
+				Set<LivingEntity> atkerPeople = new HashSet<>(), defPeople = new HashSet<>();
+				for (Society attacker: attackers) {
+					if (grid.humanBySocietyMap.containsKey(attacker)) {
+						atkerPeople.addAll(grid.humanBySocietyMap.get(attacker));
+					}
+				}
+				for (Society defender: defenders) {
+					if (grid.humanBySocietyMap.containsKey(defender)) {
+						defPeople.addAll(grid.humanBySocietyMap.get(defender));
+					}
+				}
+				List<Set<LivingEntity>> combatantTeams = new ArrayList<>();
+				combatantTeams.add(atkerPeople); combatantTeams.add(defPeople);
+				
+				Battle battle = new Battle(combatantTeams);
+				MapUtil.insertNestedListMap(grid.activeBattlesInRegion, war, battle);
+			}
+		}
 		
 		//Also, modify the SoldierProcess to allow for (turn-based, procedural) combat
 		//using the combat engine algorithm.
-		TODO;
-		
-		
+		for (Entry<War, List<Battle>> battlesByWar: grid.activeBattlesInRegion.entrySet()) {
+			for (Battle battle: battlesByWar.getValue()) {
+				CombatEngine.advanceBattle(battle);
+			}
+		}
 		
 		for (LivingEntity being: grid.getAllLivingBeings()) {
 			if (!(being instanceof Human)) {
@@ -1592,7 +1625,10 @@ public class LocalGridTimeExecution {
 		else if (priority instanceof HealSelfPriority || priority instanceof HealOtherPriority) {
 			double baseHealPercentPart = 0.1;
 			double efficiency;
-			LivingEntity patient, doctor;
+			LivingEntity patient, doctor; 
+			//TODO; Use doctor's skill in calculating efficiency.
+			//Heal procedure with different surgeries outlined in CSV
+			
 			BodyPart bodyPart;
 			if (priority instanceof HealSelfPriority) {
 				HealSelfPriority healPrior = (HealSelfPriority) priority;
@@ -1626,7 +1662,10 @@ public class LocalGridTimeExecution {
 			double randVarEff = Math.random() * 0.08 - 0.04;
 			double percentHeal = baseHealPercentPart * (efficiency * randVarEff);
 			bodyPart.health += bodyPart.maxHealth * percentHeal;
-			bodyPart.health = Math.max(bodyPart.health, ); TODO;
+			bodyPart.health = Math.max(bodyPart.health, bodyPart.maxHealth);
+			if (Math.random() < efficiency / 100.0 * 15) {
+				
+			}
 		}
 		
 		else if (priority instanceof PatrolPriority) {

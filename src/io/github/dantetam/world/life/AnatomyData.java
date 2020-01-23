@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.function.Function;
 
@@ -13,7 +14,13 @@ import org.lwjgl.util.vector.Vector3f;
 
 import io.github.dantetam.toolbox.CollectionUtil;
 import io.github.dantetam.toolbox.MapUtil;
+import io.github.dantetam.world.dataparse.ItemCSVParser;
+import io.github.dantetam.world.dataparse.ItemData;
+import io.github.dantetam.world.dataparse.ItemTotalDrops;
+import io.github.dantetam.world.dataparse.ItemTotalDrops.ItemDrop;
+import io.github.dantetam.world.dataparse.ItemTotalDrops.ItemDropTrial;
 import io.github.dantetam.world.items.InventoryItem;
+import io.github.dantetam.world.process.ProcessStep;
 
 
 public class AnatomyData {
@@ -67,6 +74,37 @@ public class AnatomyData {
 				part.vulnerability, part.maxHealth, part.dexterity, part.importance));
 		for (BodyPart insidePart: part.insideParts) {
 			traverseParts(storeNewParts, insidePart);
+		}
+	}
+	
+	/**
+	 * When the Anatomy csv is parsed, that means all bodies have been completely initialized.
+	 * Create the 'corpse' items for these organisms
+	 */
+	public static void doneParsingAllBodies() {
+		for (Entry<String, Set<BodyPart>> entry: allBodies.entrySet()) {
+			String animalName = entry.getKey();
+			String itemName = animalName + " Body";
+			Set<BodyPart> bodyParts = entry.getValue();
+			double size = 0;
+			for (BodyPart bodyPart: bodyParts) {
+				size += bodyPart.size;
+			}
+			final double totalSize = size;
+			ItemTotalDrops dropOnHarvest = ItemCSVParser.processItemDropsString(itemName);
+			
+			ItemData.addItemToDatabase(
+					ItemData.generateIdNoNewItem(), 
+					itemName, 
+					true, 
+					new String[] {"Body"}, 
+					null, 
+					ItemData.ITEM_EMPTY_ID, 
+					dropOnHarvest, 
+					5, 0, 0.5, 
+					new ArrayList<ProcessStep>() {{add(new ProcessStep("Fuel", 0, totalSize));}}, 
+					new ArrayList<ProcessStep>() {{}}, 
+					null);
 		}
 	}
 	

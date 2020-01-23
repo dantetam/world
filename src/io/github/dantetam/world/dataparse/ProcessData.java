@@ -8,7 +8,7 @@ import java.util.Map;
 import io.github.dantetam.world.civilization.SkillProcessDistribution;
 import io.github.dantetam.world.items.InventoryItem;
 import io.github.dantetam.world.process.LocalProcess;
-import io.github.dantetam.world.process.LocalProcess.ProcessStep;
+import io.github.dantetam.world.process.ProcessStep;
 
 public class ProcessData {
 

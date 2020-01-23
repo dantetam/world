@@ -17,7 +17,7 @@ import io.github.dantetam.vector.Vector2i;
 import io.github.dantetam.vector.Vector3i;
 import io.github.dantetam.world.grid.LocalBuilding;
 import io.github.dantetam.world.items.InventoryItem;
-import io.github.dantetam.world.process.LocalProcess.ProcessStep;
+import io.github.dantetam.world.process.ProcessStep;
 
 public class ItemData {
 
@@ -156,7 +156,7 @@ public class ItemData {
 	
 	public static void addItemToDatabase(int id, String name, boolean placeable, 
 			String[] groups, Integer stackable, int refinedForm, ItemTotalDrops itemTotalDrops,
-			int time, double baseValue, double beautyValue, 
+			int harvestTime, double baseValue, double beautyValue, 
 			List<ProcessStep> itemActions, List<ProcessStep> properties,
 			List<Vector3i> specBuildOffsets) {
 		InventoryItem newItem = new InventoryItem(id, 0, name);
@@ -195,7 +195,7 @@ public class ItemData {
 		}
 		//ItemTotalDrops.setItemExpectation(id);
 		
-		pickupTime.put(id, time);
+		pickupTime.put(id, harvestTime);
 		baseItemValue.put(id, baseValue);
 		beautyItemValue.put(id, beautyValue);
 		if (itemActions != null) {
@@ -233,7 +233,16 @@ public class ItemData {
 		GENERATED_BASE_ID = Math.max(GENERATED_BASE_ID, id); 
 	}
 	
-	public static int generateNewItemId(String name) {
+	/**
+	 * Note this method only updates id numbers. It does not create a new item.
+	 * Use addItemToDatabase(...) or generateNewItem(String name) to create actual item entries.
+	 */
+	public static int generateIdNoNewItem() {
+		GENERATED_BASE_ID++;
+		return GENERATED_BASE_ID;
+	}
+	
+	public static int generateNewItem(String name) {
 		GENERATED_BASE_ID++;
 		CustomLog.outPrintln("Generated item of name: " + name + ", id: " + GENERATED_BASE_ID);
 		addItemToDatabase(GENERATED_BASE_ID, name, false, null, 15, ItemData.ITEM_EMPTY_ID, 
