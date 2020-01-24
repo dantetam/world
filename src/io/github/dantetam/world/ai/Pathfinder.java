@@ -11,6 +11,7 @@ import java.util.PriorityQueue;
 import java.util.Set;
 
 import io.github.dantetam.localdata.ConstantData;
+import io.github.dantetam.toolbox.Pair;
 import io.github.dantetam.toolbox.log.CustomLog;
 import io.github.dantetam.vector.Vector3i;
 import io.github.dantetam.world.ai.Pathfinder.ScoredPath;
@@ -187,6 +188,27 @@ public class Pathfinder {
         //CustomLog.outPrintln("Nodes expanded: " + nodesExpanded);
         return new ScoredPath(null, 999);
     }
+	
+	public Pair<ScoredPath> meetInTheMiddlePath(LivingEntity being, Vector3i coordsA, Vector3i coordsB) {
+		
+	}
+	public Pair<ScoredPath> meetInTheMiddlePath(LivingEntity being, LocalTile tileA, LocalTile tileB) {
+		
+	}
+	/**
+	 * 
+	 * @param tileA, tileB The two locations that must meet somewhere in the middle
+	 * @param minRestrict, maxRestrict The restrictions of the path passed to regular pathfinding algs.
+	 * @return Find a path a -> m -> b where m represents a midpoint of the normal path a -> b.
+	 * 		Then return two new paths, a -> m, and b -> m, representing how two people should meet.
+	 * 
+	 * TODO: Override this method with an abstract path in hierarchical pathfinder, also for RSR pathfinders
+	 * Merge with hierarchical pathfinding research branch
+	 */
+	public Pair<ScoredPath> meetInTheMiddlePath(LivingEntity being, LocalTile tileA, LocalTile tileB,
+    		Vector3i minRestrict, Vector3i maxRestrict) {
+		
+	}
     
     public static class ScoredPath implements Comparable<ScoredPath> {
     	private List<LocalTile> path;

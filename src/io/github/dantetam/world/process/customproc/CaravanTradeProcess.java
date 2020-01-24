@@ -16,4 +16,5 @@ public class CaravanTradeProcess extends LocalProcess {
 		//As well as a skill process distribution for social/barter trading skills for trading between societies/people
 	}
 	
+	
 }

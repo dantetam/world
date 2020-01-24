@@ -10,11 +10,14 @@ public class HealOtherPriority extends Priority {
 
 	public LivingEntity doctor, patient;
 	public BodyPart part;
+	public boolean patientConsents;
 	
-	public HealOtherPriority(Vector3i coords, LivingEntity doctor, LivingEntity patient) {
+	public HealOtherPriority(Vector3i coords, LivingEntity doctor, LivingEntity patient, 
+			boolean patientConsents) {
 		super(coords);
 		this.doctor = doctor;
 		this.patient = patient;
+		this.patientConsents = patientConsents;
 	}
 	
 }

@@ -103,6 +103,7 @@ public class LocalGridTimeExecution {
 			allActiveWarsInRegion.addAll(society.warsInvolved);
 		}
 		
+		//TODO; Use these classes to a combat war engine class that advances this data
 		for (War war: allActiveWarsInRegion) {
 			if (!grid.activeBattlesInRegion.containsKey(war)) {
 				//Construct a set of attacker and defender entities for each battle in this grid
@@ -130,8 +131,18 @@ public class LocalGridTimeExecution {
 		//Also, modify the SoldierProcess to allow for (turn-based, procedural) combat
 		//using the combat engine algorithm.
 		for (Entry<War, List<Battle>> battlesByWar: grid.activeBattlesInRegion.entrySet()) {
-			for (Battle battle: battlesByWar.getValue()) {
-				CombatEngine.advanceBattle(battle);
+			War war = battlesByWar.getKey();
+			for (Iterator<Battle> battleIter = battlesByWar.getValue().iterator(); battleIter.hasNext();) {
+			    Battle battle = battleIter.next();
+			    CombatEngine.advanceBattle(war, battle);
+			    if (battle.score > 30) { //Attacker win
+			    	battleIter.remove();
+			    	war.warscoreAttacker += 5;
+			    }
+			    if (battle.score < -30) {
+			    	battleIter.remove();
+			    	war.warscoreAttacker -= 5;
+			    }
 			}
 		}
 		
@@ -1658,14 +1669,30 @@ public class LocalGridTimeExecution {
 					healPrior.part = bodyPart;
 				}
 			}
+			
 			if (bodyPart.health == bodyPart.maxHealth) return new DoneTaskPlaceholder();
+			
+			//For healing process that involve one person healing another,
+			//make sure that the patient consents, and then have the doctor 
+			if (priority instanceof HealOtherPriority) {
+				HealOtherPriority healPriority = (HealOtherPriority) priority;
+				if (healPriority.patientConsents) {
+					if (!patient.location.coords.areAdjacent14(doctor.location.coords)) {
+						return getTasksFromPriority(grid, being, new MovePriority(patient.location.coords, true));
+					}
+				}
+			}
+			
 			double randVarEff = Math.random() * 0.08 - 0.04;
 			double percentHeal = baseHealPercentPart * (efficiency * randVarEff);
 			bodyPart.health += bodyPart.maxHealth * percentHeal;
 			bodyPart.health = Math.max(bodyPart.health, bodyPart.maxHealth);
 			if (Math.random() < efficiency / 100.0 * 15) {
-				
+				int index = (int) (Math.random() * bodyPart.damages.size());
+				bodyPart.damages.remove(index);
 			}
+			
+			return tasks;
 		}
 		
 		else if (priority instanceof PatrolPriority) {

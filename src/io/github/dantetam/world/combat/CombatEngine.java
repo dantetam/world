@@ -14,6 +14,8 @@ import org.apache.commons.math3.distribution.NormalDistribution;
 import org.apache.commons.math3.distribution.UniformRealDistribution;
 
 import io.github.dantetam.toolbox.MapUtil;
+import io.github.dantetam.toolbox.MathAndDistrUti;
+import io.github.dantetam.world.civilization.Society;
 import io.github.dantetam.world.combat.CombatMod.CombatModActor;
 import io.github.dantetam.world.combat.CombatMod.CombatModCalc;
 import io.github.dantetam.world.items.CombatItem;
@@ -28,7 +30,7 @@ public class CombatEngine {
 			BATTLE_PHASE_SHOCK = 30, BATTLE_PHASE_DANCE = 10;
 	private static String BONUS_STRING_PREFIX = "_additive_bonus";
 	
-	public static void advanceBattle(Battle battle) {
+	public static void advanceBattle(War war, Battle battle) {
 		if (battle.battlePhase == null) {
 			battle.battlePhase = Battle.BattleMode.PREPARE;
 			battle.battlePhaseTicksLeft = BATTLE_PHASE_PREPARE;
@@ -63,9 +65,22 @@ public class CombatEngine {
 			}
 		}
 		
-		TODO; //Calculate battle score based on number dead in society
-		//Use starting vs current measures of wealth, people, societal morale and ethics
-		//then simulate peace talks.
+		battle.score += Math.random() < 0.5 ? Math.random() * 1 + 1 : Math.random() * 1 - 2;
+		
+		//Update the war's attacker warscore using the results of this battle,
+		//and the general demographics of the battle, namely current wealth and prestige
+		//compared to the societies' antebellum strengths and balance of power.
+		double curAtkStr = 0, curDefStr = 0;
+		for (Society society: war.getSameSide(war.warLeaderAttacker)) {
+			curAtkStr += society.getTotalWealth() + society.getAllPeople().size() * 50;
+		}
+		for (Society society: war.getSameSide(war.warLeaderDefender)) {
+			curDefStr += society.getTotalWealth() + society.getAllPeople().size() * 50;
+		}
+		double deltaAtkStr = war.startingAtkStrength - curAtkStr, 
+				deltaDefStr = war.startingDefStrength - curDefStr;
+		
+		war.warscoreAttacker += MathAndDistrUti.clamp(deltaAtkStr - deltaDefStr, -10, 10);
 	}
 	
 	public static void calculateDamageHealth(Body body) {

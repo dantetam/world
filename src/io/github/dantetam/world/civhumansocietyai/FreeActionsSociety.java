@@ -10,6 +10,7 @@ import java.util.HashMap;
 
 import io.github.dantetam.world.civhumanrelation.SocietySocietyRel;
 import io.github.dantetam.world.civilization.Society;
+import io.github.dantetam.world.combat.War;
 import io.github.dantetam.world.grid.LocalGrid;
 import io.github.dantetam.world.grid.WorldGrid;
 import io.github.dantetam.world.life.Human;
@@ -21,6 +22,9 @@ public class FreeActionsSociety {
 	public static Map<String, FreeAction> freeActionsInterSociety = new HashMap<String, FreeAction>() {{
 		put("declareWar", new FreeAction("declareWar", null, 250));
 		put("tradeSession", new FreeAction("tradeSession", null, 30));
+		
+		//put("surrenderInAllLosingWars", new FreeAction("surrenderInAllLosingWars", null, 1)); 
+		//use this for diplomatic actions to leave wars early and separately
 	}};
 	
 	public static void considerAllFreeActions(WorldGrid world, 
@@ -49,6 +53,9 @@ public class FreeActionsSociety {
 							world.societalDiplomacy.initiateTrade(host, otherSociety);
 						}
 					}
+				}
+				else if (name.equals("surrenderInAllLosingWars")) {
+					//TODO;
 				}
 			}
 		}

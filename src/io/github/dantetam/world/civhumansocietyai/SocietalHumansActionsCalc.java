@@ -60,7 +60,7 @@ public class SocietalHumansActionsCalc {
 	 * 
 	 */
 	public static double calcPropensityToFight(Human human, Society society, LocalGrid grid) {
-		
+		return 1;
 	}
 	
 	/**
