@@ -1357,10 +1357,18 @@ public class LocalGridTimeExecution {
 			}
 		}
 		else if (priority instanceof EatPriority) {
-			return getTasksFromPriority(grid, being, 
-					progressToFindItemGroups(grid, being, new HashSet<LivingEntity>() {{add(being);}}, 
-							new GroupItem("Food", ItemQuality.TERRIBLE, 1), new FoodMetric())
-					);
+			Priority findItemPriorSearch = progressToFindItemGroups(grid, being, new HashSet<LivingEntity>() {{add(being);}}, 
+					new GroupItem("Food", ItemQuality.TERRIBLE, 1), new FoodMetric());
+			if (findItemPriorSearch instanceof FoundItemForUsePriority) {
+				FoundItemForUsePriority foundPriority = (FoundItemForUsePriority) findItemPriorSearch;
+				 //Make user eat the items
+				Map<InventoryItem, Integer> foundItems = foundPriority.foundItemsMap;
+				being.inventory.removeItems(foundItems);
+				return new DoneTaskPlaceholder(); 
+			}
+			else {
+				return getTasksFromPriority(grid, being, findItemPriorSearch);
+			}
 		}
 		else if (priority instanceof RestPriority) {
 			being.rest(1);
@@ -1588,9 +1596,57 @@ public class LocalGridTimeExecution {
 				}
 			}
 		}
-		else if (priority instanceof SoldierPriority) {
-			//SoldierPriority soldierPriority = (SoldierPriority) priority;
+		else if (priority instanceof PeopleMeetPriority) {
+			/*
+			 * When two people meet, they must go towards one location.
+			 * This is represented by a composite map of MovePriority.
+			 */
 			
+			TODO; //Check memory of experience
+			
+			PeopleMeetPriority meetPrior = (PeopleMeetPriority) priority;
+			if (meetPrior.differentMovePriors.containsKey(being)) {
+				MovePriority individualMovePrior = meetPrior.differentMovePriors.get(being);
+				List<Task> tasksToMove = getTasksFromPriority(grid, being, individualMovePrior);
+				if (tasksToMove instanceof DoneTaskPlaceholder) { //Done moving, start to wait
+					meetPrior.differentMovePriors.remove(being);
+					if (meetPrior.differentMovePriors.size() == 0) { 
+						//Everyone is done moving and this process was not stopped by impossible movement
+						meetPrior.removeThisMeetPrior();
+						
+						for (Human person: meetPrior.allPeople) {
+							//Create experience to when chatting is done or in progress 
+							//TODO: (random chance to create memory, depending on what is talked about?)
+							LocalExperience exp = new LocalExperience("Chat");
+							exp.beingRoles.put(person, CollectionUtil.newSet("chatInitiate"));
+							
+							for (Human otherPerson: meetPrior.allPeople) {
+								if (otherPerson.equals(person)) continue;
+								exp.beingRoles.put(otherPerson, CollectionUtil.newSet("chat"));
+								HumanHumanRel rel = person.brain.getHumanRel(otherPerson);
+								rel.sharedExperiences.add(exp);
+								
+								rel = otherPerson.brain.getHumanRel(person);
+								rel.sharedExperiences.add(exp);
+							}
+						}
+						
+						return new DoneTaskPlaceholder();
+					}
+					return tasks;
+				}
+				else if (tasksToMove instanceof ImpossibleTaskPlaceholder) {
+					meetPrior.removeThisMeetPrior();
+					return new ImpossibleTaskPlaceholder();
+				}
+				return tasksToMove;
+			}
+			else {
+				//Done moving, start to wait
+				return tasks;
+			}
+		}
+		else if (priority instanceof SoldierPriority) {
 			if (!(being instanceof Human)) {
 				return new ImpossibleTaskPlaceholder();
 			}
@@ -1599,7 +1655,6 @@ public class LocalGridTimeExecution {
 			Society society = human.society;
 			
 			try {
-			
 				double weaponAmt = society.groupItemRarity.containsKey("Weapon") ? society.groupItemRarity.get("Weapon") : 0;
 				double armorAmt = society.groupItemRarity.containsKey("Armor") ? society.groupItemRarity.get("Armor") : 0;
 				
@@ -2005,6 +2060,13 @@ public class LocalGridTimeExecution {
 			List<GroupItem> itemGroupsAmtNeeded,
 			DefaultItemMetric scoringMetric) { 
 		
+		Object[] findGroupsInInv = being.inventory.findRemainingGroupsNeeded(itemGroupsAmtNeeded);
+		boolean foundMatching = (boolean) findGroupsInInv[0];
+		if (foundMatching) {
+			Map<InventoryItem, Integer> foundItemsMap = (Map<InventoryItem, Integer>) findGroupsInInv[1];
+			return new FoundItemForUsePriority(being.location.coords, foundItemsMap);
+		}
+		
 		//Map<Vector3i, Double> scoreMapping = new HashMap<>();
 		double bestScore = -1;
 		String bestGroupToFind = null;
@@ -2090,7 +2152,7 @@ public class LocalGridTimeExecution {
 		return LocalGridTimeExecution.progressToFindItemGroups(grid, being, owners, 
 				new ArrayList<GroupItem>() {{add(itemGroupsAmtNeeded);}}, scoringMetric);
 	}
-	public static Priority progressToFindItemGroups(LocalGrid grid,  //temporary
+	public static Priority progressToFindItemGroups(LocalGrid grid,
 			LivingEntity being, Set<LivingEntity> owners,
 			Map<String, Integer> itemGroupsAmtNeeded,
 			DefaultItemMetric scoringMetric) { 

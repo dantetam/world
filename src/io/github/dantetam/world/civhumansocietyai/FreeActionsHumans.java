@@ -15,6 +15,7 @@ import java.util.HashMap;
 import io.github.dantetam.toolbox.CollectionUtil;
 import io.github.dantetam.toolbox.MapUtil;
 import io.github.dantetam.toolbox.Pair;
+import io.github.dantetam.world.ai.Pathfinder.ScoredPath;
 import io.github.dantetam.world.civhumanai.Ethos;
 import io.github.dantetam.world.civhumanai.EthosSet;
 import io.github.dantetam.world.civhumanrelation.HumanHumanRel;
@@ -28,9 +29,12 @@ import io.github.dantetam.world.dataparse.SkillData;
 import io.github.dantetam.world.grid.GridRectInterval;
 import io.github.dantetam.world.grid.LocalGrid;
 import io.github.dantetam.world.grid.LocalGridLandClaim;
+import io.github.dantetam.world.grid.LocalTile;
 import io.github.dantetam.world.grid.WorldGrid;
 import io.github.dantetam.world.life.DNAHuman;
 import io.github.dantetam.world.life.Human;
+import io.github.dantetam.world.life.LivingEntity;
+import io.github.dantetam.world.process.priority.PeopleMeetPriority;
 
 public class FreeActionsHumans {
 	
@@ -43,6 +47,7 @@ public class FreeActionsHumans {
 		put("improveComplex", new FreeAction("improveComplex", null, 2));
 		
 		put("chat", new FreeAction("chat", null, 1));
+		put("chat", new FreeAction("plannedConversation", null, 5));
 		put("ideologicalEthosDebate", new FreeAction("ideologicalEthosDebate", null, 5));
 	}};
 	
@@ -164,13 +169,13 @@ public class FreeActionsHumans {
 				if (randomHuman != null)
 					randomHuman.queuedProcesses.add(ProcessData.getProcessByName("Improve Complex"));
 			}
-			else if (name.equals("chat")) { 
-				//Temporarily represent chatting as an instaneous free action
+			else if (name.equals("chat")) {
 				TODO;
-				//Add a chat process that can take on conversation memory, ethos debate;
-				//add this process into a person's queue.
+			}
+			else if (name.equals("plannedConversation")) { //pre-planned conversation
+				//Past implementation: represent chatting as an instantaneous free action
 				
-				TODO;
+				//TODO;
 				//Suppose two people for some reason, need to meet each other, with possibly differing priorities.
 				//Model this as a stable marriage type problem.
 				
@@ -179,15 +184,24 @@ public class FreeActionsHumans {
 					Human humanA = chatPair[0];
 					Human humanB = chatPair[1];
 					
-					LocalExperience exp = new LocalExperience("Chat");
-					exp.beingRoles.put(humanA, CollectionUtil.newSet("chatInitiate"));
-					exp.beingRoles.put(humanB, CollectionUtil.newSet("chat"));
+					//Add a chat process that can take on conversation memory, ethos debate;
+					//add this process into a person's queue.
+					Pair<ScoredPath> meetMiddlePaths = grid.pathfinder.meetInTheMiddlePath(humanA, 
+							humanA.location, humanB.location);
+					ScoredPath firstPathAToM = meetMiddlePaths.first, secondPathBToM = meetMiddlePaths.second;
+					if (!firstPathAToM.isValid() || !secondPathBToM.isValid()) 
+						continue;
+					List<LocalTile> tilesListA = firstPathAToM.getPath(grid);
+					LocalTile middle = tilesListA.get(tilesListA.size() - 1);
 					
-					HumanHumanRel rel = humanA.brain.getHumanRel(humanB);
-					rel.sharedExperiences.add(exp);
-					
-					rel = humanB.brain.getHumanRel(humanA);
-					rel.sharedExperiences.add(exp);
+					PeopleMeetPriority peopleMeetPrior = new PeopleMeetPriority(middle.coords);
+					Map<LivingEntity, List<LocalTile>> pathsByPerson = new HashMap<>();
+					pathsByPerson.put(humanA, tilesListA);
+					pathsByPerson.put(humanB, secondPathBToM.getPath(grid));
+					peopleMeetPrior.initAllPeoplePaths(pathsByPerson);
+					//Insert into humans' priorities list at top
+					humanA.activePriority = peopleMeetPrior;
+					humanB.activePriority = peopleMeetPrior;
 				}
 			}
 			else if (name.equals("ideologicalEthosDebate")) {

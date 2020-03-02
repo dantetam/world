@@ -138,8 +138,8 @@ public class Inventory {
 		return validItems;
 	}
 	
-	//Find an algorithm that factors in quality, by choosing the items that have the lowest viable quality
-	/**
+	/** 
+	 * Find an algorithm that factors in quality, by choosing the items that have the lowest viable quality
 	 * @param requiredItems A list of items with id and quantity.
 	 * @return Two maps containing the items needed to complete the request that are not in this inventory
 	 *  	The inventory items that can be used to fulfill this request, if possible
@@ -513,9 +513,10 @@ public class Inventory {
 		return null;
 	}
 	
-	private void removeItem(InventoryItem item, int amountSubtract) {
+	public void removeItem(InventoryItem item, int amountSubtract) {
 		item.quantity -= amountSubtract;
 		if (item.quantity == 0) {
+			//Check if item is actually in inventory, since this method is exposed public
 			if (!this.itemsMappedById.containsKey(item.itemId)) {
 				throw new IllegalArgumentException("Internal method in Inventory::removeItems requires " 
 						+ "item id to be recorded in this inventory");
@@ -528,7 +529,7 @@ public class Inventory {
 			itemsWithId.remove(item);
 		}
 	}
-	private void removeItems(Map<InventoryItem, Integer> requestedItems) {
+	public void removeItems(Map<InventoryItem, Integer> requestedItems) {
 		for (Entry<InventoryItem, Integer> entry: requestedItems.entrySet()) {
 			InventoryItem item = entry.getKey();
 			Integer amountSubtract = entry.getValue();

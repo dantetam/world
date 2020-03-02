@@ -57,6 +57,8 @@ public class Pathfinder {
 	 * if minRestrict is (x,y,z), then do not include neighbors with coordinates less than 
 	 * x,y,z in each dimension respectively. If null, there are no restrictions in one direction
 	 * @return
+	 * 
+	 * TODO: Take LivingEntity being into account by restricting movement based on ability to move
 	 */
 	protected Set<LocalTile> validNeighbors(LivingEntity being, LocalTile tile) {
 		Set<LocalTile> candidates = grid.getAllTiles14Pathfinding(tile.coords); //grid.getAccessibleNeighbors(tile);
@@ -190,10 +192,10 @@ public class Pathfinder {
     }
 	
 	public Pair<ScoredPath> meetInTheMiddlePath(LivingEntity being, Vector3i coordsA, Vector3i coordsB) {
-		
+		return meetInTheMiddlePath(being, grid.getTile(coordsA), grid.getTile(coordsB));
 	}
 	public Pair<ScoredPath> meetInTheMiddlePath(LivingEntity being, LocalTile tileA, LocalTile tileB) {
-		
+		return meetInTheMiddlePath(being, tileA, tileB, null, null);
 	}
 	/**
 	 * 
@@ -204,10 +206,28 @@ public class Pathfinder {
 	 * 
 	 * TODO: Override this method with an abstract path in hierarchical pathfinder, also for RSR pathfinders
 	 * Merge with hierarchical pathfinding research branch
+	 *
 	 */
 	public Pair<ScoredPath> meetInTheMiddlePath(LivingEntity being, LocalTile tileA, LocalTile tileB,
     		Vector3i minRestrict, Vector3i maxRestrict) {
-		
+		ScoredPath fullCombinedPath = this.findPath(being, tileA, tileB, minRestrict, maxRestrict);
+		if (fullCombinedPath.isValid()) {
+			List<LocalTile> path = fullCombinedPath.getPath(grid);
+			int middle = path.size() / 2;
+			List<LocalTile> pathB = new ArrayList<>();
+			
+			for (int index = path.size() - 1; index >= middle; index++) {
+				pathB.add(path.remove(index));
+			}
+			
+			double halfScore = fullCombinedPath.score / 2.0;
+			ScoredPath scoredNewPathAToM = new ScoredPath(path, halfScore);
+			ScoredPath scoredNewPathBToM = new ScoredPath(pathB, halfScore);
+			return new Pair<ScoredPath>(scoredNewPathAToM, scoredNewPathBToM);
+		}
+		else {
+			return null;
+		}
 	}
     
     public static class ScoredPath implements Comparable<ScoredPath> {
