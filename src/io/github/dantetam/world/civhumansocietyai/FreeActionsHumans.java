@@ -170,7 +170,7 @@ public class FreeActionsHumans {
 					randomHuman.queuedProcesses.add(ProcessData.getProcessByName("Improve Complex"));
 			}
 			else if (name.equals("chat")) {
-				TODO;
+				//TODO;: Implement this as a process/priority create automatically when people get close
 			}
 			else if (name.equals("plannedConversation")) { //pre-planned conversation
 				//Past implementation: represent chatting as an instantaneous free action
@@ -195,7 +195,7 @@ public class FreeActionsHumans {
 					LocalTile middle = tilesListA.get(tilesListA.size() - 1);
 					
 					PeopleMeetPriority peopleMeetPrior = new PeopleMeetPriority(middle.coords);
-					Map<LivingEntity, List<LocalTile>> pathsByPerson = new HashMap<>();
+					Map<Human, List<LocalTile>> pathsByPerson = new HashMap<>();
 					pathsByPerson.put(humanA, tilesListA);
 					pathsByPerson.put(humanB, secondPathBToM.getPath(grid));
 					peopleMeetPrior.initAllPeoplePaths(pathsByPerson);
@@ -204,7 +204,7 @@ public class FreeActionsHumans {
 					humanB.activePriority = peopleMeetPrior;
 				}
 			}
-			else if (name.equals("ideologicalEthosDebate")) {
+			else if (name.equals("ideologicalEthosDebate")) { //TODO: Convert this to priority, let other people listen
 				//People in good relationships talk about both common and differing beliefs
 				//(reinforcement and rational debate, respectively).
 				

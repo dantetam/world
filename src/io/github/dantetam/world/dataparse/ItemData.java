@@ -136,7 +136,8 @@ public class ItemData {
 		do {
 			Object[] ids = allItemsById.keySet().toArray();
 			id = (Integer) ids[(int) (Math.random() * ids.length)];
-		} while (placeableBlock.get(id) && groupNameById.get(id) != null && groupNameById.get(id).contains("Building"));
+		} while (placeableBlock.get(id) && groupNameById.get(id) != null && 
+				groupNameById.get(id).contains("Building"));
 		
 		int maxStack = stackableMap.get(id); 
 		int oneStackQuantity = (int) Math.ceil(Math.random() * maxStack * 0.75 + maxStack * 0.25);

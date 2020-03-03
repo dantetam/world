@@ -1601,9 +1601,6 @@ public class LocalGridTimeExecution {
 			 * When two people meet, they must go towards one location.
 			 * This is represented by a composite map of MovePriority.
 			 */
-			
-			TODO; //Check memory of experience
-			
 			PeopleMeetPriority meetPrior = (PeopleMeetPriority) priority;
 			if (meetPrior.differentMovePriors.containsKey(being)) {
 				MovePriority individualMovePrior = meetPrior.differentMovePriors.get(being);
