@@ -39,16 +39,16 @@ import io.github.dantetam.world.process.priority.PeopleMeetPriority;
 public class FreeActionsHumans {
 	
 	public static Map<String, FreeAction> freeActionsListHuman = new HashMap<String, FreeAction>() {{
-		put("formNewHouseMarriage", new FreeAction("formNewHouseMarriage", null, 30));
-		put("tryToHaveChild", new FreeAction("tryToHaveChild", null, 15));
-		put("claimNewLand", new FreeAction("claimNewLand", null, 1));
+		put("formNewHouseMarriage", new FreeAction("formNewHouseMarriage", null, 30 * 1440, 1440));
+		put("tryToHaveChild", new FreeAction("tryToHaveChild", null, 15 * 1440, 1440));
+		put("claimNewLand", new FreeAction("claimNewLand", null, 5 * 1440, 1440));
 		
-		put("buildBasicHome", new FreeAction("buildBasicHome", null, 2));
-		put("improveComplex", new FreeAction("improveComplex", null, 2));
+		put("buildBasicHome", new FreeAction("buildBasicHome", null, 2 * 1440, 1440 / 2));
+		put("improveComplex", new FreeAction("improveComplex", null, 2 * 1440, 1440 / 2));
 		
-		put("chat", new FreeAction("chat", null, 1));
-		put("chat", new FreeAction("plannedConversation", null, 5));
-		put("ideologicalEthosDebate", new FreeAction("ideologicalEthosDebate", null, 5));
+		put("chat", new FreeAction("chat", null, 30, 30));
+		put("plannedConversation", new FreeAction("plannedConversation", null, 30, 30));
+		put("ideologicalEthosDebate", new FreeAction("ideologicalEthosDebate", null, 60, 60));
 	}};
 	
 	//TODO;
@@ -66,7 +66,9 @@ public class FreeActionsHumans {
 		//that affect relationships, and also contain memories
 		
 		for (Entry<String, FreeAction> entry: freeActionsListHuman.entrySet()) {
-			if (!entry.getValue().fireChanceExecute()) continue;
+			FreeAction freeAction = entry.getValue();
+			freeAction.tick(); if (freeAction.calcChanceExecute()) freeAction.success(); else continue;
+			
 			String name = entry.getKey();
 			if (name.equals("formNewHouseMarriage")) {
 				List<Human[]> marriagePairs = SocietalHumansActionsCalc.possibleMarriagePairs(humans, date);

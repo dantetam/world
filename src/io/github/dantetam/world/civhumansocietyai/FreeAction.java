@@ -22,10 +22,8 @@ public class FreeAction {
 		if (cooldownRemaining > 0) cooldownRemaining--;
 	}
 	
-	public void conclusion() {
+	public void success() {
 		cooldownRemaining = maxCooldown;
 	}
-	
-	TODO;
 	
 }

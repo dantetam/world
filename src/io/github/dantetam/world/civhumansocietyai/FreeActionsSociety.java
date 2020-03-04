@@ -20,8 +20,8 @@ public class FreeActionsSociety {
 	//Use leadership, ethos of society, and ethos of people factoring into decisions
 	
 	public static Map<String, FreeAction> freeActionsInterSociety = new HashMap<String, FreeAction>() {{
-		put("declareWar", new FreeAction("declareWar", null, 250));
-		put("tradeSession", new FreeAction("tradeSession", null, 30));
+		put("declareWar", new FreeAction("declareWar", null, 250 * 1440, 50 * 1440));
+		put("tradeSession", new FreeAction("tradeSession", null, 30 * 1440, 5 * 1440));
 		
 		//put("surrenderInAllLosingWars", new FreeAction("surrenderInAllLosingWars", null, 1)); 
 		//use this for diplomatic actions to leave wars early and separately
@@ -29,16 +29,18 @@ public class FreeActionsSociety {
 	
 	public static void considerAllFreeActions(WorldGrid world, 
 			Society host, Date date) {
-		for (Entry<String, FreeAction> actionEntry: freeActionsInterSociety.entrySet()) {
-			if (!actionEntry.getValue().fireChanceExecute()) continue;
-			String name = actionEntry.getKey();
+		for (Entry<String, FreeAction> entry: freeActionsInterSociety.entrySet()) {
+			FreeAction freeAction = entry.getValue();
+			freeAction.tick(); if (freeAction.calcChanceExecute()) freeAction.success(); else continue;
+			
+			String name = entry.getKey();
 			
 			//For all societies with valid relations, check these actions
 			Map<Society, SocietySocietyRel> hostRel = world.societalDiplomacy.getInterSocietalRel(host);
 			if (hostRel != null) {
 				if (name.equals("declareWar")) {
-					for (Entry<Society, SocietySocietyRel> entry: hostRel.entrySet()) {
-						Society otherSociety = entry.getKey();
+					for (Entry<Society, SocietySocietyRel> societyRelEntry: hostRel.entrySet()) {
+						Society otherSociety = societyRelEntry.getKey();
 						double util = calcSocietalRelPros(world, host, otherSociety, date);
 						if (util < -2.5) {
 							world.societalDiplomacy.declareWar(host, otherSociety);
@@ -46,8 +48,8 @@ public class FreeActionsSociety {
 					}
 				}
 				else if (name.equals("tradeSession")) {
-					for (Entry<Society, SocietySocietyRel> entry: hostRel.entrySet()) {
-						Society otherSociety = entry.getKey();
+					for (Entry<Society, SocietySocietyRel> societyRelEntry: hostRel.entrySet()) {
+						Society otherSociety = societyRelEntry.getKey();
 						double util = calcSocietalRelPros(world, host, otherSociety, date);
 						if (util > 0.25) {
 							world.societalDiplomacy.initiateTrade(host, otherSociety);

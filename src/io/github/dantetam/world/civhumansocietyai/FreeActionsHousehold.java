@@ -18,17 +18,19 @@ import io.github.dantetam.world.life.Human;
 public class FreeActionsHousehold {
 	
 	public static Map<String, FreeAction> freeActionsListHousehold = new HashMap<String, FreeAction>() {{
-		put("formSociety", new FreeAction("formSociety", null, 50));
+		put("formSociety", new FreeAction("formSociety", null, 50 * 1440, 5 * 1440));
 	}};
 	
 	public static Map<String, FreeAction> freeActionsListHuman = new HashMap<String, FreeAction>() {{
-		put("formNewHousehold", new FreeAction("formNewHousehold", null, 50));
+		put("formNewHousehold", new FreeAction("formNewHousehold", null, 50 * 1440, 5 * 1440));
 	}};
 	
 	public static void considerAllFreeActionsHouseholds(WorldGrid world, LocalGrid grid, 
 			List<Household> freeHouseholds, Date date) {
 		for (Entry<String, FreeAction> entry: freeActionsListHousehold.entrySet()) {
-			if (!entry.getValue().fireChanceExecute()) continue;
+			FreeAction freeAction = entry.getValue();
+			freeAction.tick(); if (freeAction.calcChanceExecute()) freeAction.success(); else continue;
+			
 			String name = entry.getKey();
 			if (name.equals("formSociety")) {
 				List<Household> bestGroup = EmergentSocietyCalc.calcHouseholdGen(
@@ -57,7 +59,9 @@ public class FreeActionsHousehold {
 	public static void considerAllFreeActionsHouse(WorldGrid world, 
 			Society society, Household house, Date date) {
 		for (Entry<String, FreeAction> entry: freeActionsListHuman.entrySet()) {
-			if (!entry.getValue().fireChanceExecute()) continue;
+			FreeAction freeAction = entry.getValue();
+			freeAction.tick(); if (freeAction.calcChanceExecute()) freeAction.success(); else continue;
+			
 			String name = entry.getKey();
 			if (name.equals("formNewHousehold")) {
 				//CustomLog.errPrintln(">>>>>%: " + house.householdMembers.toString());
