@@ -21,9 +21,12 @@ import io.github.dantetam.world.civilization.SkillProcessDistribution.ProcessMod
 import io.github.dantetam.world.civilization.SkillProcessDistribution.SkillOutFunction;
 import io.github.dantetam.world.civilization.SkillProcessDistribution.SkillProcessMod;
 import io.github.dantetam.world.items.InventoryItem;
+import io.github.dantetam.world.process.ProcessCommand;
 import io.github.dantetam.world.process.ProcessStep;
 
 public class ProcessCSVParser extends WorldCsvParser {
+	
+	private static String commandStartSyntax = "_command";
 	
 	public static void init() {
 		List<CSVRecord> csvRecords = parseCsvFile("res/items/world-recipes.csv");
@@ -159,7 +162,11 @@ public class ProcessCSVParser extends WorldCsvParser {
 			}
 		}
 		
+		List<ProcessCommand> processOutputCommands = null;
 		String outputString = record.get("Output");
+		if (isProcessCommand(outputString)) {
+			processOutputCommands = parseProcessCommands(outputString);
+		}
 		ItemTotalDrops processOutput = ItemCSVParser.processItemDropsString(outputString);
 		
 		String buildingNamesString = record.get("Required Buildings");
@@ -218,7 +225,7 @@ public class ProcessCSVParser extends WorldCsvParser {
 			}
 		}
 		
-		ProcessData.addProcess(processName, inputItems, processOutput, 
+		ProcessData.addProcess(processName, inputItems, processOutput, processOutputCommands,
 				buildingNamesString, site, tileFloorId, steps, processResActions, recRepeat, skillProcDistr);
 	}
 	
@@ -287,5 +294,37 @@ public class ProcessCSVParser extends WorldCsvParser {
 		
 		return distr;
 	}
+	
+	public static boolean isProcessCommand(String commands) {
+		String[] splitSemi = commands.split("/");
+		for (String command: splitSemi) {
+			if (command.strip().startsWith(commandStartSyntax + " ")) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public static List<ProcessCommand> parseProcessCommands(String totalCommandsString) {
+		List<ProcessCommand> newCommands = new ArrayList<>();
+		String[] splitSemi = totalCommandsString.split("/");
+		for (String commandString: splitSemi) {
+			if (isProcessCommand(commandString)) {
+				String[] allArguments = commandString.split(" ");
+				if (allArguments.length < 2) {
+					System.err.println("Command requires two or more arguments, including " + commandStartSyntax);
+					throw new IllegalArgumentException("Cannot parse process command, given string "
+							+ "(split by whitespace): " + commandString);
+				}
+				String commandName = allArguments[1].strip();
+				String[] commandValues = new String[allArguments.length - 2];
+				System.arraycopy(allArguments, 0, commandValues, 0, allArguments.length - 2);
+				ProcessCommand newCommand = new ProcessCommand(commandName, commandValues);
+				newCommands.add(newCommand);
+			}
+		}
+		return newCommands;
+	}
+	
 	
 }

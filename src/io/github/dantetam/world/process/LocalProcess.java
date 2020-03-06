@@ -31,6 +31,7 @@ public class LocalProcess {
 	public String name;
 	public List<InventoryItem> inputItems;
 	public ItemTotalDrops outputItems;
+	public List<ProcessCommand> specialOutputCommands;
 	public String requiredBuildNameOrGroup;
 	public boolean isCreatedAtSite;
 	public String requiredTileNameOrGroup;
@@ -54,12 +55,14 @@ public class LocalProcess {
 	//TODO; //Implement all keys of currentSkillProcOutput in LocalGridTimeExecution
 	
 	public LocalProcess(String name, List<InventoryItem> input, ItemTotalDrops output, 
+			List<ProcessCommand> specialOutputCommands,
 			String buildingName, boolean site, String tileFloorId, 
 			List<ProcessStep> steps, List<ProcessStep> processResActions,
 			int recRepeats, SkillProcessDistribution skillProcDistr) {
 		this.name = name;
 		this.inputItems = input;
 		this.outputItems = output;
+		this.specialOutputCommands = specialOutputCommands;
 		this.requiredBuildNameOrGroup = buildingName;
 		this.isCreatedAtSite = site;
 		this.requiredTileNameOrGroup = tileFloorId;
@@ -160,6 +163,7 @@ public class LocalProcess {
 			steps.add(new ProcessStep(step.stepType, step.timeTicks, step.modifier));
 		}
 		LocalProcess clone = new LocalProcess(this.name, this.inputItems, this.outputItems, 
+				this.specialOutputCommands,
 				this.requiredBuildNameOrGroup, this.isCreatedAtSite, this.requiredTileNameOrGroup,
 				new ArrayList<>(steps), this.processResActions, this.recRepeats, this.skillProcDistr);
 		return clone;

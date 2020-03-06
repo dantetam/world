@@ -41,7 +41,9 @@ import io.github.dantetam.world.civilization.gridstructure.PurposeAnnotatedBuild
 import io.github.dantetam.world.combat.Battle;
 import io.github.dantetam.world.combat.CombatEngine;
 import io.github.dantetam.world.combat.War;
+import io.github.dantetam.world.dataparse.ItemCSVParser;
 import io.github.dantetam.world.dataparse.ItemData;
+import io.github.dantetam.world.dataparse.ItemTotalDrops;
 import io.github.dantetam.world.dataparse.ProcessData;
 import io.github.dantetam.world.grid.GridRectInterval;
 import io.github.dantetam.world.grid.ItemMetricsUtil;
@@ -62,6 +64,7 @@ import io.github.dantetam.world.life.LivingEntity;
 import io.github.dantetam.world.process.LocalJob;
 import io.github.dantetam.world.process.LocalProcess;
 import io.github.dantetam.world.process.LocalSocietyJob;
+import io.github.dantetam.world.process.ProcessCommand;
 import io.github.dantetam.world.process.ProcessStep;
 import io.github.dantetam.world.process.priority.*;
 import io.github.dantetam.world.process.prioritytask.*;
@@ -1051,8 +1054,7 @@ public class LocalGridTimeExecution {
 				}
 			}
 			
-			CustomLog.outPrintln("Dropped items: " + new Inventory(outputItems) + " at place: " + itemMode);
-			
+			CustomLog.outPrintln("Dropped items: " + new Inventory(outputItems) + " at place: " + itemMode);	
 			
 			if (being.inventory.canFitItems(outputItems) && (itemMode.equals("Personal") || itemMode.equals("Tile"))) {
 				being.inventory.addItems(outputItems);
@@ -1064,6 +1066,10 @@ public class LocalGridTimeExecution {
 					grid.addItemRecordToWorld(primaryLocation, item);
 				}
 			}
+			
+			//Execute the output process commands, custom key/value commands
+			executeProcessCustomCommands(society, grid, being, ownerProducts, process, process.specialOutputCommands);
+			
 			return new DonePriority();
 		}
 		else if (step.stepType.equals("B")) {
@@ -1125,7 +1131,7 @@ public class LocalGridTimeExecution {
 		}
 		else {
 			CustomLog.errPrintln("Warning, building and/or tile required: " + 
-					process.toString() + ", tile/building may not be assigned.");
+					process.toString() + ", tile/building may not be assigned. ItemMode: " + itemMode);
 			return new ImpossiblePriority("Warning, could not find destination for unsupervised process.");
 		}
 
@@ -1183,6 +1189,10 @@ public class LocalGridTimeExecution {
 					grid.addItemRecordToWorld(primaryLocation, item);
 				}
 			}
+			
+			//Execute the output process commands, custom key/value commands
+			executeProcessCustomCommands(null, grid, unsupervHuman, unsupervHuman, process, process.specialOutputCommands);
+			
 			return new DonePriority();
 		}
 		
@@ -1793,6 +1803,52 @@ public class LocalGridTimeExecution {
 		}
 		else if (action.stepType.equals("Artwork")) {
 			
+		}
+	}
+	
+	public static void executeProcessCustomCommands(Society society, LocalGrid grid, Human being,
+			Human ownerProducts,
+			LocalProcess process, List<ProcessCommand> commands) {
+		for (ProcessCommand command: commands) {
+			executeProcessCustomCommand(society, grid, being, ownerProducts, process, command);
+		}
+	}
+	public static void executeProcessCustomCommand(Society society, LocalGrid grid, 
+			Human being, Human ownerProducts,
+			LocalProcess process, ProcessCommand command) {
+		switch (command.commandName) {
+		case "refine":
+			LocalProcess tempProcess = process.clone();
+			Integer rawItemId = ItemData.getIdFromName(command.otherData[0]);
+			String refinedItemName = ItemData.getNameFromId(ItemData.getRefinedFormId(rawItemId));
+			tempProcess.outputItems = ItemCSVParser.processItemDropsString(refinedItemName + "1,1,1");
+			getPriorityForStep(society, grid, being, ownerProducts, tempProcess, new ProcessStep("O", 1));
+			break;
+		case "world":
+			if (command.otherData[0].equals("generateTree")) {
+				TODO;
+			}
+			break;
+		default:
+			CustomLog.errPrintln("Cannot process command: " + command.toString() + ", skipping.");
+		}
+	}
+	
+	public static void executeProcessCustomCommandsUnsuperv(Society society, LocalGrid grid, 
+			LivingEntity being, LocalProcess process, List<ProcessCommand> commands) {
+		for (ProcessCommand command: commands) {
+			executeProcessCustomCommandUnsuperv(society, grid, being, null, process, command);
+		}
+	}
+	public static void executeProcessCustomCommandUnsuperv(Society society, LocalGrid grid, 
+			LivingEntity being, LivingEntity ownerProducts,
+			LocalProcess process, ProcessCommand command) {
+		switch (command.commandName) {
+		case "":
+			TODO;
+			break;
+		default:
+			CustomLog.errPrintln("Cannot process command: " + command.toString() + ", skipping.");
 		}
 	}
 	
