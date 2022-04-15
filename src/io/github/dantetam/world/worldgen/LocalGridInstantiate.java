@@ -13,12 +13,14 @@ import org.lwjgl.util.vector.Vector2f;
 import io.github.dantetam.localdata.ConstantData;
 import io.github.dantetam.lwjglEngine.terrain.ForestGeneration;
 import io.github.dantetam.lwjglEngine.terrain.ForestGeneration.BiomeData;
+import io.github.dantetam.lwjglEngine.terrain.ForestGeneration.ForestGenerationResult;
 import io.github.dantetam.lwjglEngine.terrain.ForestGeneration.ProceduralTree;
 import io.github.dantetam.lwjglEngine.terrain.RasterizeVoronoi;
 import io.github.dantetam.toolbox.MapUtil;
 import io.github.dantetam.toolbox.MathAndDistrUti;
 import io.github.dantetam.toolbox.VecGridUtil;
 import io.github.dantetam.toolbox.log.CustomLog;
+import io.github.dantetam.vector.Vector2i;
 import io.github.dantetam.vector.Vector3i;
 import io.github.dantetam.world.ai.RSRPathfinder;
 import io.github.dantetam.world.dataparse.ItemData;
@@ -143,7 +145,8 @@ public class LocalGridInstantiate {
 		
 		Map<int[], ProceduralTree> gridTrees = generateTrees(terrain, ultraFineBiomes, temperature, rain);
 		for (Entry<int[], ProceduralTree> entry : gridTrees.entrySet()) {
-			TreeVoxelGeneration.generateSingle3dTree(localGrid, entry.getKey(), entry.getValue());
+			Vector2i coords = new Vector2i(entry.getKey()[0], entry.getKey()[1]);
+			TreeVoxelGeneration.generateSingle3dTree(localGrid, coords, entry.getValue());
 		}
 		
 		if (ConstantData.ADVANCED_PATHING)
@@ -260,16 +263,13 @@ public class LocalGridInstantiate {
 				bottomRightBound = new Point2D(localGrid.rows * rasterExpandFactor, localGrid.cols * rasterExpandFactor);
 		int averageDistance = 25;
 		
-		Object[] forestData = ForestGeneration.generateForest(topLeftBound, bottomRightBound, averageDistance, 
+		ForestGenerationResult forestData = ForestGeneration.generateForest(topLeftBound, bottomRightBound, averageDistance, 
 				terrain, biomes, temperature, rain, 1); 
-		List<JSite> voronoi = (List) forestData[0]; 
-		Map<Integer, ProceduralTree> polygonForestData = (Map) forestData[1]; 
-		Map<Integer, BiomeData> polygonBiomeData = (Map) forestData[2];
 		
 		//Directly convert the centroids of the Voronoi polygons into tree tile locations
 		Map<int[], ProceduralTree> treesByTileLocations = new HashMap<>();
-		for (Entry<Integer, ProceduralTree> entry: polygonForestData.entrySet()) {
-			JSite polygon = voronoi.get(entry.getKey());
+		for (Entry<Integer, ProceduralTree> entry: forestData.polygonForestData.entrySet()) {
+			JSite polygon = forestData.voronoi.get(entry.getKey());
 			Point2D centroid = polygon.getSite().getPolygon().getCentroid();
 			int[] tileLocation = {(int) (centroid.x / rasterExpandFactor), (int) (centroid.y / rasterExpandFactor)};
 			treesByTileLocations.put(tileLocation, entry.getValue());
@@ -284,14 +284,13 @@ public class LocalGridInstantiate {
 		int averageDistance = 25;
 		
 		//Use the Forest Generation to create a forest using the Voronoi libraries and advanced terrain generation
-		Object[] forestData = ForestGeneration.generateForest(topLeftBound, bottomRightBound, averageDistance, 
+		ForestGenerationResult forestData = ForestGeneration.generateForest(topLeftBound, bottomRightBound, averageDistance, 
 				terrain, biomes, temperature, rain, 2.5); 
-		List<JSite> voronoi = (List) forestData[0]; 
 		
 		//Rasterize the Voronoi polygons tile by tile
 		Rectangle2D.Double voronoiBounds = new Rectangle2D.Double(
 				topLeftBound.x, topLeftBound.y, bottomRightBound.x, bottomRightBound.y);
-		double[][] rasterizedGrass = RasterizeVoronoi.getPixelRasterGridFromVoronoi(voronoi, voronoiBounds, 
+		double[][] rasterizedGrass = RasterizeVoronoi.getPixelRasterGridFromVoronoi(forestData.voronoi, voronoiBounds, 
 				biomes, 1, 1);
 		return rasterizedGrass;
 	}

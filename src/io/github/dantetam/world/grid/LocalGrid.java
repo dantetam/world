@@ -929,6 +929,7 @@ public class LocalGrid {
 	public void setInUseRoomSpace(Collection<Vector3i> coords, boolean inUse) {
 		for (Vector3i coord: coords) {
 			if (!this.inBounds(coord)) {
+				CustomLog.errPrintln("Grid dimensions (r,c,h): " + this.rows + " " + this.cols + " " + this.heights);
 				throw new IllegalArgumentException("Could not set in use grid coords: " + coord + 
 						" of collection of coords...: " + coords.toString());
 			}

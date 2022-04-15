@@ -23,6 +23,7 @@ public class LocalTile {
 	public int tileFloorId; //Representing the floor below the block (the block may or may not exist)
 	public boolean exposedToAir = false;
 	public Inventory itemsOnFloor;
+	public int biome; //TODO: Temporary way to handle the biome of a tile, i.e. determine its natural properties
 	
 	public boolean harvestInUse = false; //TODO; //Convert this into a livingentity slot
 	

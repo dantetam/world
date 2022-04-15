@@ -177,7 +177,8 @@ public class SpaceFillingAlg {
 			//After all the filtering has been done, check if the area is 
 			if (component.size() == 0) continue; 
 			
-			Pair<Vector2i> maxSubRect = VecGridMaxArea.findMaxSubRect(component, desiredR, desiredC);
+			System.err.println("Finding max rect of component size: " + component.size());
+			Pair<Vector2i> maxSubRect = VecGridMaxArea.findBestSubRect(component, desiredR, desiredC);
 			
 			if (maxSubRect == null) // || maxSubRect.second.x < desiredR || maxSubRect.second.y < desiredC) 
 				continue; 

@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import io.github.dantetam.lwjglEngine.terrain.ForestGeneration.ProceduralTree;
+import io.github.dantetam.vector.Vector2i;
 import io.github.dantetam.vector.Vector3i;
 import io.github.dantetam.world.dataparse.ItemData;
 import io.github.dantetam.world.grid.LocalBuilding;
@@ -13,8 +14,8 @@ import io.github.dantetam.world.grid.LocalTile;
 
 public class TreeVoxelGeneration {
 
-	public static void generateSingle3dTree(LocalGrid grid, int[] coords, ProceduralTree proceduralTree) {
-		Vector3i startLocation = grid.findLowestAccessibleHeight(coords[0], coords[1]);
+	public static void generateSingle3dTree(LocalGrid grid, Vector2i coordsNoHeight, ProceduralTree proceduralTree) {
+		Vector3i startLocation = grid.findLowestAccessibleHeight(coordsNoHeight.x, coordsNoHeight.y);
 		if (startLocation == null) return;
 		
 		List<Vector3i> treeLocations = new ArrayList<>();

@@ -3,6 +3,10 @@ World civilization exhibition at immense scale in individuals and their actions 
 
 This project builds a physical world, and people to populate it. These people have complicated ideas of utility, economic prosperity, and their abilities to form societies and work together towards common goals. These people do not share a collective hive mind, but work on the basis of utility and rationality in doing their jobs, societal tasks, and so on.
 
+```
+Run the following file with normal Java configs:
+io.github.dantetam.render/GameLauncher.java
+```
 
 ## Research/Algorithmic Accomplishments ## 
 Reverse topological search for resource utility: directly assign utility to some items, back-propogate utility to other items in a relational item graph structure

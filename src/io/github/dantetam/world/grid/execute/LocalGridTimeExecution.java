@@ -20,6 +20,7 @@ import org.apache.commons.math3.distribution.NormalDistribution;
 
 import io.github.dantetam.toolbox.VecGridUtil;
 import io.github.dantetam.toolbox.log.CustomLog;
+import io.github.dantetam.lwjglEngine.terrain.ForestGeneration.ProceduralTree;
 import io.github.dantetam.toolbox.CollectionUtil;
 import io.github.dantetam.toolbox.MapUtil;
 import io.github.dantetam.toolbox.MathAndDistrUti;
@@ -68,6 +69,7 @@ import io.github.dantetam.world.process.ProcessCommand;
 import io.github.dantetam.world.process.ProcessStep;
 import io.github.dantetam.world.process.priority.*;
 import io.github.dantetam.world.process.prioritytask.*;
+import io.github.dantetam.world.worldgen.TreeVoxelGeneration;
 import kdtreegeo.KdTree;
 
 //TODO
@@ -1191,7 +1193,8 @@ public class LocalGridTimeExecution {
 			}
 			
 			//Execute the output process commands, custom key/value commands
-			executeProcessCustomCommands(null, grid, unsupervHuman, unsupervHuman, process, process.specialOutputCommands);
+			executeProcessCustomCommandsUnsuperv(null, grid, unsupervHuman, 
+					process, process.specialOutputCommands);
 			
 			return new DonePriority();
 		}
@@ -1809,6 +1812,7 @@ public class LocalGridTimeExecution {
 	public static void executeProcessCustomCommands(Society society, LocalGrid grid, Human being,
 			Human ownerProducts,
 			LocalProcess process, List<ProcessCommand> commands) {
+		if (commands == null) return;
 		for (ProcessCommand command: commands) {
 			executeProcessCustomCommand(society, grid, being, ownerProducts, process, command);
 		}
@@ -1826,7 +1830,9 @@ public class LocalGridTimeExecution {
 			break;
 		case "world":
 			if (command.otherData[0].equals("generateTree")) {
-				TODO;
+				int size = 12 + (int) (Math.random() * 8);
+				TreeVoxelGeneration.generateSingle3dTree(grid, process.processTile.coords.getXY(), 
+						new ProceduralTree(null, process.processTile.biome, 1, size)); 
 			}
 			break;
 		default:
@@ -1836,6 +1842,7 @@ public class LocalGridTimeExecution {
 	
 	public static void executeProcessCustomCommandsUnsuperv(Society society, LocalGrid grid, 
 			LivingEntity being, LocalProcess process, List<ProcessCommand> commands) {
+		if (commands == null) return;
 		for (ProcessCommand command: commands) {
 			executeProcessCustomCommandUnsuperv(society, grid, being, null, process, command);
 		}
@@ -1845,10 +1852,10 @@ public class LocalGridTimeExecution {
 			LocalProcess process, ProcessCommand command) {
 		switch (command.commandName) {
 		case "":
-			TODO;
 			break;
 		default:
-			CustomLog.errPrintln("Cannot process command: " + command.toString() + ", skipping.");
+			//CustomLog.errPrintln("Cannot process command: " + command.toString() + ", skipping.");
+			break;
 		}
 	}
 	

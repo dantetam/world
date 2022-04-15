@@ -86,14 +86,14 @@ public class VecGridMaxArea {
 	            tp = s.pop();
 	            int w = s.empty() ? i : i - s.peek() - 1;
 
-	            int dr = Math.max(0, desiredR - w), dc = Math.max(0, desiredC - hist[tp]);
+	            int dr = Math.max(0, desiredR - hist[tp]), dc = Math.max(0, desiredC - w);
 	            double diff = Math.pow(dr, 2) + Math.pow(dc, 2);
 	            
 	            if (bestDiff == null || diff < bestDiff) {
 	            	bestDiff = diff;
 	                indexStart = tp;
-	                width = Math.min(desiredR, w);
-	                height = Math.min(desiredC, hist[tp]);
+	                width = Math.min(desiredC, w);
+	                height = Math.min(desiredR, hist[tp]);
 	            }
 	        }
 	    }
@@ -102,14 +102,14 @@ public class VecGridMaxArea {
 	        tp = s.pop();
 	        int w = s.empty() ? i : i - s.peek() - 1;
 	        
-	        int dr = Math.max(0, desiredR - w), dc = Math.max(0, desiredC - hist[tp]);
+	        int dr = Math.max(0, desiredR - hist[tp]), dc = Math.max(0, desiredC - w);
             double diff = Math.pow(dr, 2) + Math.pow(dc, 2);
 	        
 	        if (bestDiff == null || diff < bestDiff) {
 	        	bestDiff = diff;
                 indexStart = tp;
-                width = Math.min(desiredR, w);
-                height = Math.min(desiredC, hist[tp]);
+                width = Math.min(desiredC, w);
+                height = Math.min(desiredR, hist[tp]);
             }
 	    }
 
@@ -146,7 +146,7 @@ public class VecGridMaxArea {
 				rectangle = closestRectAreaInHist(histogramData, desiredR, desiredC);
 			
 			int width = rectangle.second, height = rectangle.third;
-			if ((width < desiredR || height < desiredC) && alg == VecGridFillAlg.MAXIMUM_STRICT) {
+			if ((width < desiredC || height < desiredR) && alg == VecGridFillAlg.MAXIMUM_STRICT) {
 				continue;
 			}
 			if (width * height > maxArea || bestRectangle == null) {
@@ -154,7 +154,7 @@ public class VecGridMaxArea {
 				maxArea = width * height;
 				
 				//Height goes up the rows, convert the bottom-left to top-left coord
-				topLeftCorner = new Vector2i(r - bestRectangle.third, bestRectangle.first); 
+				topLeftCorner = new Vector2i(r - bestRectangle.third + 1, bestRectangle.first - 1); 
 			}
 		}
 
@@ -174,7 +174,17 @@ public class VecGridMaxArea {
 	 */
 	public static Pair<Vector2i> findMaxSubRect(Set<Vector3i> coords, int desiredR, int desiredC) {
 		//if (coords.size() < desiredR * desiredC) return null;
-		
+		int[][] convertedOffsetVec = convertColnVector3iToArr(coords);
+		return findBestRect(convertedOffsetVec, desiredR, desiredC, VecGridFillAlg.MAXIMUM);
+	}
+	
+	public static Pair<Vector2i> findBestSubRect(Set<Vector3i> coords, int desiredR, int desiredC) {
+		//if (coords.size() < desiredR * desiredC) return null;
+		int[][] convertedOffsetVec = convertColnVector3iToArr(coords);
+		return findBestRect(convertedOffsetVec, desiredR, desiredC, VecGridFillAlg.CLOSEST);
+	}
+	
+	public static int[][] convertColnVector3iToArr(Set<Vector3i> coords) {
 		Pair<Vector3i> bounds = VecGridUtil.findCoordBounds(coords);
 		Vector3i topLeftBound = bounds.first, bottomRightBound = bounds.second;
 		int rows = bottomRightBound.x - topLeftBound.x + 1;
@@ -183,14 +193,12 @@ public class VecGridMaxArea {
 		//if (rows < desiredR || cols < desiredC) return null;
 		
 		int[][] convertedOffsetVec = new int[rows][cols];
-		
 		for (Vector3i coord: coords) {
 			int r = coord.x - topLeftBound.x;
 			int c = coord.y - topLeftBound.y;
 			convertedOffsetVec[r][c] = 1;
 		}
-		
-		return findBestRect(convertedOffsetVec, desiredR, desiredC, VecGridFillAlg.MAXIMUM);
+		return convertedOffsetVec;
 	}
 	
 	/**
@@ -221,9 +229,24 @@ public class VecGridMaxArea {
 		int[] histo = {2,3,1,4,5,4,2};
 		Triplet<Integer> rectData = VecGridMaxArea.maxRectAreaInHist(histo);
 		System.out.println(rectData);
+		rectData = VecGridMaxArea.closestRectAreaInHist(histo, 3, 3);
+		System.out.println(rectData);
 		
 		Pair<Vector2i> maxRect = findBestRect(data,3,2,VecGridFillAlg.MAXIMUM);
 		System.out.println(maxRect);
+		
+		int[][] data2 =
+		{
+			{1,1,1,1,1,1,1,1,1},
+			{1,1,1,1,1,1,1,1,1},
+			{0,0,0,0,0,1,1,0,0},
+			{0,0,0,0,0,0,0,0,0}
+		};
+		Pair<Vector2i> maxRect2 = findBestRect(data2,2,3,VecGridFillAlg.CLOSEST);
+		System.out.println(maxRect2);
+		
+		Pair<Vector2i> maxRect3 = findBestRect(data2,3,2,VecGridFillAlg.CLOSEST);
+		System.out.println(maxRect3);
 	}
 
 }

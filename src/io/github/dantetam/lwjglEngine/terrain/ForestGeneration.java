@@ -30,7 +30,7 @@ import kn.uni.voronoitreemap.j2d.PolygonSimple;
 
 public class ForestGeneration {
 
-	public static Object[] generateForest(Point2D topLeftBound, Point2D bottomRightBound, double averageDistance,
+	public static ForestGeneration.ForestGenerationResult generateForest(Point2D topLeftBound, Point2D bottomRightBound, double averageDistance,
 			double[][] terrain, int[][] biomes, double[][] temperature, double[][] rain, double initialSeedsScale) {
 		int lloydRelaxationTimes = 1;
 		List<JSite> voronoi = VoronoiLibrary.voronoiLib(topLeftBound, bottomRightBound, averageDistance,
@@ -175,8 +175,24 @@ public class ForestGeneration {
 				polygonForestData.put(randomPolyIndex, babyTree);
 			}
 		}
+		
+		return new ForestGeneration.ForestGenerationResult(voronoi, polygonForestData, polygonBiomeData);
+	}
+	
+	public static class ForestGenerationResult {
 
-		return new Object[] { voronoi, polygonForestData, polygonBiomeData };
+		public List<JSite> voronoi;
+		public Map<Integer, ProceduralTree> polygonForestData;
+		public Map<Integer, BiomeData> polygonBiomeData;
+		
+		public ForestGenerationResult(List<JSite> voronoi, Map<Integer, ProceduralTree> polygonForestData,
+				Map<Integer, BiomeData> polygonBiomeData) {
+			// TODO Auto-generated constructor stub
+			this.voronoi = voronoi;
+			this.polygonForestData = polygonForestData;
+			this.polygonBiomeData = polygonBiomeData;
+		}
+		
 	}
 	
 	private static double[][] generateFertility(double[][] terrain, int[][] biomes, 
@@ -255,8 +271,7 @@ public class ForestGeneration {
 				DEATH_MAX_CHANCE = 0.05, REPRODUCE_STEEPNESS = 0.2, GROW_STEEPNESS = 0.2, BURN_STEEPNESS = 0.05,
 				DEATH_STEEPNESS = 0.02;
 
-		// Ensure that newly created trees in turn x do not update a second time in turn
-		// x
+		// Ensure that newly created trees in turn x do not update a second time in turn x
 		// public boolean recentlyCreated = true;
 
 		public ProceduralTree(Point2D location, double biome, int age, double size) {
