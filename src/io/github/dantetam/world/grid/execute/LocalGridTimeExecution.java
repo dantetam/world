@@ -659,9 +659,10 @@ public class LocalGridTimeExecution {
 					
 					List<LocalTile> listEndGoals = new ArrayList<>();
 					for (Vector3i vec: neighbors) listEndGoals.add(grid.getTile(vec));
-					
-					//Use batch pathfinder in speeding up this calculation					
+							
 					if (setInUse) {
+						//Use batch pathfinder in speeding up this calculation
+						/*
 						Pair<Map<LocalTile, ScoredPath>> allPathingData = grid.pathfinder.batchPathfinding(
 								being, being.location, listEndGoals);
 						Map<LocalTile, ScoredPath> validPaths = allPathingData.first;
@@ -677,6 +678,18 @@ public class LocalGridTimeExecution {
 								pair.first.harvestInUse = true;
 								return pair;
 							}
+						}
+						*/
+						ScoredPath scoredPath = grid.pathfinder.batchPathfindingFirst(
+								being, being.location, listEndGoals);
+						if (scoredPath.isValid()) {
+							List<LocalTile> path = scoredPath.getPath(grid);
+							System.err.println(path);
+							Pair<LocalTile> pair = new Pair<>(grid.getTile(candidate), path.get(path.size() - 1));
+							process.processTile = pair.second;
+							process.targetTile = pair.first;
+							pair.first.harvestInUse = true;
+							return pair;
 						}
 					}
 					else {

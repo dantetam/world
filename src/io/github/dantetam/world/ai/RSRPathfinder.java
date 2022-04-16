@@ -74,13 +74,13 @@ public class RSRPathfinder extends Pathfinder {
 		if (direction == 'r') {
 			int newDim = minPoint.x;
 			int otherSide = minPoint.x + solid.solidDimensions.x - 1;
-			for (int d0 = minPoint.y + 1; d0 <= minPoint.y + solid.solidDimensions.y - 1; d0++) {
-				for (int d1 = minPoint.z + 1; d1 <= minPoint.z + solid.solidDimensions.z - 1; d1++) {
+			for (int d0 = minPoint.y + 1; d0 < minPoint.y + solid.solidDimensions.y - 1; d0++) {
+				for (int d1 = minPoint.z + 1; d1 < minPoint.z + solid.solidDimensions.z - 1; d1++) {
 					Vector3i sideA = new Vector3i(newDim, d0, d1);
 					Vector3i sideB = new Vector3i(otherSide, d0, d1);
 					MapUtil.insertNestedSetMap(macroEdgeConnections, sideA, sideB);
 					MapUtil.insertNestedSetMap(macroEdgeConnections, sideB, sideA);
-					for (int pruneDim = newDim + 1; pruneDim <= otherSide - 1; pruneDim++) {
+					for (int pruneDim = newDim + 1; pruneDim < otherSide; pruneDim++) {
 						prunedRectTiles[pruneDim][d0][d1] = true;
 					}
 				}
@@ -89,13 +89,13 @@ public class RSRPathfinder extends Pathfinder {
 		else if (direction == 'c') {
 			int newDim = minPoint.y;
 			int otherSide = minPoint.y + solid.solidDimensions.y - 1;
-			for (int d0 = minPoint.x + 1; d0 <= minPoint.x + solid.solidDimensions.x - 1; d0++) {
-				for (int d1 = minPoint.z + 1; d1 <= minPoint.z + solid.solidDimensions.z - 1; d1++) {
+			for (int d0 = minPoint.x + 1; d0 < minPoint.x + solid.solidDimensions.x - 1; d0++) {
+				for (int d1 = minPoint.z + 1; d1 < minPoint.z + solid.solidDimensions.z - 1; d1++) {
 					Vector3i sideA = new Vector3i(d0, newDim, d1);
 					Vector3i sideB = new Vector3i(d0, otherSide, d1);
 					MapUtil.insertNestedSetMap(macroEdgeConnections, sideA, sideB);
 					MapUtil.insertNestedSetMap(macroEdgeConnections, sideB, sideA);
-					for (int pruneDim = newDim + 1; pruneDim <= otherSide - 1; pruneDim++) {
+					for (int pruneDim = newDim + 1; pruneDim < otherSide; pruneDim++) {
 						prunedRectTiles[d0][pruneDim][d1] = true;
 					}
 				}
@@ -104,13 +104,13 @@ public class RSRPathfinder extends Pathfinder {
 		else if (direction == 'h') {
 			int newDim = minPoint.z;
 			int otherSide = minPoint.z + solid.solidDimensions.z - 1;
-			for (int d0 = minPoint.x + 1; d0 <= minPoint.x + solid.solidDimensions.x - 1; d0++) {
-				for (int d1 = minPoint.y + 1; d1 <= minPoint.y + solid.solidDimensions.y - 1; d1++) {
+			for (int d0 = minPoint.x + 1; d0 < minPoint.x + solid.solidDimensions.x - 1; d0++) {
+				for (int d1 = minPoint.y + 1; d1 < minPoint.y + solid.solidDimensions.y - 1; d1++) {
 					Vector3i sideA = new Vector3i(d0, d1, newDim);
 					Vector3i sideB = new Vector3i(d0, d1, otherSide);
 					MapUtil.insertNestedSetMap(macroEdgeConnections, sideA, sideB);
 					MapUtil.insertNestedSetMap(macroEdgeConnections, sideB, sideA);
-					for (int pruneDim = newDim + 1; pruneDim <= otherSide - 1; pruneDim++) {
+					for (int pruneDim = newDim + 1; pruneDim < otherSide; pruneDim++) {
 						prunedRectTiles[d0][d1][pruneDim] = true;
 					}
 				}
@@ -198,8 +198,9 @@ public class RSRPathfinder extends Pathfinder {
 				filtered.add(candidate);
 			}
 		}
-		
 		return filtered;
+		
+		//return candidates;
 	}
 	
 	//Generate distance between two neighboring tiles
@@ -224,6 +225,10 @@ public class RSRPathfinder extends Pathfinder {
         	CustomLog.errPrintln("Start or end null, start: " + start + ", end: " + end);
     		return new ScoredMacroedgePath(null, 999);
     	}
+		if (!grid.tileIsPartAccessible(start.coords) || !grid.tileIsPartAccessible(end.coords)) {
+			CustomLog.outPrintln("Warning, start or end not accessible: " + start + "; " + end);
+			return new ScoredMacroedgePath(null, 999);
+		}
 		
 		/*
 		//Do quick check if path is possible (i.e. in same connected component)
@@ -246,21 +251,19 @@ public class RSRPathfinder extends Pathfinder {
 		for (RectangularSolid solid: solids) {
 			if (solid.insideInterior(start.coords)) {
 				startSolid = solid;
-				break;
 			}
 			if (solid.insideInterior(end.coords)) {
 				endSolid = solid;
-				break;
 			}
 		}
 		if (startSolid != null && startSolid == endSolid) { //If in the same rect solid
 			tempAvailSolid(startSolid, false);
 		}
 		if (startSolid != null) {
-			tempNodeInRectSolid(startSolid, start.coords, false);
+			tempNodeInRectSolid(startSolid, start.coords, true);
 		}
 		if (endSolid != null && startSolid != endSolid) {
-			tempNodeInRectSolid(endSolid, end.coords, false);
+			tempNodeInRectSolid(endSolid, end.coords, true);
 		}
 		
 		ScoredPath scoredSuperMethod = super.findPath(being, start, end, minRestrict, maxRestrict);
@@ -290,6 +293,18 @@ public class RSRPathfinder extends Pathfinder {
 	public ScoredPath batchPathfindingFirst(LivingEntity being, LocalTile start, 
 			List<LocalTile> listEndGoals,
     		Vector3i minRestrict, Vector3i maxRestrict) {
+		for (LocalTile end: listEndGoals) {
+			ScoredPath path = this.findPath(being, start, end, minRestrict, maxRestrict);
+			if (path.isValid()) {
+				return path;
+			}
+		}
+		return null;
+	}
+	/*
+	public ScoredPath batchPathfindingFirst(LivingEntity being, LocalTile start, 
+			List<LocalTile> listEndGoals,
+    		Vector3i minRestrict, Vector3i maxRestrict) {
 		//TODO; Also, for RSR paths, do not convert macroedges into paths until actually needed;
 		Map<LocalTile, ScoredPath> impossiblePaths = new HashMap<>();
 		for (LocalTile end: listEndGoals) {
@@ -297,7 +312,7 @@ public class RSRPathfinder extends Pathfinder {
 				continue;
 			}
 			ScoredPath path = this.findPath(being, start, end, minRestrict, maxRestrict);
-			if (path != null) {
+			if (path.isValid()) {
 				return path;
 			}
 			else {
@@ -314,6 +329,7 @@ public class RSRPathfinder extends Pathfinder {
 		}
 		return null;
 	}
+	*/
 	public ScoredPath batchPathfindingFirst(LivingEntity being, LocalTile start, 
 			List<LocalTile> listEndGoals) {
 		return this.batchPathfindingFirst(being, start, listEndGoals, null, null);

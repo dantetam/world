@@ -89,9 +89,9 @@ public class GameLauncher {
 	}
 
 	public static float[] cycleScreenResolution(int offset) {
-		screenResolutionIndex = Math.floorMod(screenResolutionIndex + offset, screenXValues.length); // Cyclical mod
-																										// (i.e. no
-																										// negatives)
+		screenResolutionIndex = Math.floorMod(screenResolutionIndex + offset, screenXValues.length); 
+		// Cyclical mod (i.e. no negatives)
+		
 		WIDTH = screenXValues[screenResolutionIndex];
 		HEIGHT = screenYValues[screenResolutionIndex];
 		centerX = WIDTH / 2;
