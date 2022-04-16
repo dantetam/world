@@ -73,7 +73,7 @@ public class FastNoiseGen {
 		FastNoiseGen noiseGenLib = new FastNoiseGen(NoiseType.SimplexFractal);
 		noiseGenLib.SetGradientPerturbAmp(0.25f);
 		float[][] data = noiseGenLib.getNoise2d(new Vector2i(200,200));
-		
+		System.out.println(data);
 	}
 
 	// Returns the seed used by this object

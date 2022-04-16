@@ -21,6 +21,7 @@ import org.apache.commons.math3.distribution.NormalDistribution;
 import io.github.dantetam.toolbox.VecGridUtil;
 import io.github.dantetam.toolbox.log.CustomLog;
 import io.github.dantetam.lwjglEngine.terrain.ForestGeneration.ProceduralTree;
+import io.github.dantetam.toolbox.ArrUtil;
 import io.github.dantetam.toolbox.CollectionUtil;
 import io.github.dantetam.toolbox.MapUtil;
 import io.github.dantetam.toolbox.MathAndDistrUti;
@@ -684,7 +685,7 @@ public class LocalGridTimeExecution {
 								being, being.location, listEndGoals);
 						if (scoredPath.isValid()) {
 							List<LocalTile> path = scoredPath.getPath(grid);
-							System.err.println(path);
+							System.err.println("ScoredPath: " + scoredPath + ", Path:" + path);
 							Pair<LocalTile> pair = new Pair<>(grid.getTile(candidate), path.get(path.size() - 1));
 							process.processTile = pair.second;
 							process.targetTile = pair.first;
@@ -1578,17 +1579,21 @@ public class LocalGridTimeExecution {
 					Set<Vector3i> validSpace = grid.getAllNeighbors14(movePriority.coords);
 					validSpace.add(movePriority.coords);
 					
+					boolean foundPath = false;
 					for (Vector3i candidateDest: validSpace) {
 						ScoredPath scoredPath = grid.pathfinder.findPath(
 								being, being.location.coords, candidateDest);
 						if (scoredPath.isValid()) {
 							movePriority.initPath(scoredPath.getPath(grid));
+							foundPath = true;
 						}
 					}
 					
-					CustomLog.errPrintln("Warning, path (one tolerance) was not valid from " + 
-							being.location + ", " + grid.getTile(movePriority.coords));
-					return new ImpossibleTaskPlaceholder();
+					if (!foundPath) {
+						CustomLog.errPrintln("Warning, path (one tolerance) was not valid from " + 
+								being.location + ", " + grid.getTile(movePriority.coords));
+						return new ImpossibleTaskPlaceholder();
+					}
 				}
 			}
 			
@@ -1834,14 +1839,17 @@ public class LocalGridTimeExecution {
 			Human being, Human ownerProducts,
 			LocalProcess process, ProcessCommand command) {
 		switch (command.commandName) {
-		case "refine":
+		case "spawnRefined":
 			LocalProcess tempProcess = process.clone();
 			Integer rawItemId = ItemData.getIdFromName(command.otherData[0]);
-			String refinedItemName = ItemData.getNameFromId(ItemData.getRefinedFormId(rawItemId));
-			tempProcess.outputItems = ItemCSVParser.processItemDropsString(refinedItemName + "1,1,1");
+			String refinedItemNameDrop = ItemData.getNameFromId(ItemData.getRefinedFormId(rawItemId));
+			refinedItemNameDrop += "," + ArrUtil.safeIndex(command.otherData, 1, 1);
+			refinedItemNameDrop += "," + ArrUtil.safeIndex(command.otherData, 2, 1);
+			refinedItemNameDrop += "," + ArrUtil.safeIndex(command.otherData, 3, 1);
+			tempProcess.outputItems = ItemCSVParser.processItemDropsString(refinedItemNameDrop);
 			getPriorityForStep(society, grid, being, ownerProducts, tempProcess, new ProcessStep("O", 1));
 			break;
-		case "world":
+		case "worldAtProcessTile":
 			if (command.otherData[0].equals("generateTree")) {
 				int size = 12 + (int) (Math.random() * 8);
 				TreeVoxelGeneration.generateSingle3dTree(grid, process.processTile.coords.getXY(), 

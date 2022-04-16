@@ -195,6 +195,7 @@ public class ItemCSVParser extends WorldCsvParser {
 		String[] trials = dropString.split("/");
 		ItemTotalDrops itemDrops = new ItemTotalDrops();
 		for (String trial : trials) {
+			if (trial.strip().length() == 0) continue;
 			List<ItemDrop> trialArgs = new ArrayList<>();
 			String[] itemDropsStr = trial.split(";");
 			for (String itemDrop : itemDropsStr) {

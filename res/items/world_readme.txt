@@ -1,5 +1,7 @@
 <groupName> refers to all items that have the group 'groupName'. This means to repeat a recipe or block for every item within the group.
 
+_command,arg1,arg2,... denotes the beginning of a 'process command' in recipe/item processing, which is handled programmatically.
+
 The syntax for an item drop is:
 
 trial1... ; trial2...; ...

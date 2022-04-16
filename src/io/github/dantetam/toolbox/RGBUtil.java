@@ -27,7 +27,7 @@ public class RGBUtil {
 				file.createNewFile();
 			ImageIO.write(image, "png", file);
 		} catch (Exception e) {
-			// e.printStackTrace();
+			e.printStackTrace();
 		}
 	}
 

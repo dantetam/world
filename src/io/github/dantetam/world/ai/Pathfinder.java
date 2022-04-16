@@ -15,6 +15,7 @@ import io.github.dantetam.toolbox.Pair;
 import io.github.dantetam.toolbox.log.CustomLog;
 import io.github.dantetam.vector.Vector3i;
 import io.github.dantetam.world.ai.Pathfinder.ScoredPath;
+import io.github.dantetam.world.ai.RSRPathfinder.ScoredMacroedgePath;
 import io.github.dantetam.world.civilization.Household;
 import io.github.dantetam.world.civilization.Society;
 import io.github.dantetam.world.dataparse.ItemData;
@@ -113,6 +114,10 @@ public class Pathfinder {
         	//throw new IllegalArgumentException("Start or end null, start: " + start + ", end: " + end);
     		return new ScoredPath(null, Integer.MAX_VALUE / 2);
     	}
+    	if (!grid.tileIsPartAccessible(start.coords) || !grid.tileIsPartAccessible(end.coords)) {
+			//CustomLog.outPrintln("Warning, start or end not accessible: " + start + "; " + end);
+			return new ScoredMacroedgePath(null, Integer.MAX_VALUE / 2);
+		}
     	
     	/*
     	CustomLog.outPrintln("-----------");
@@ -175,9 +180,10 @@ public class Pathfinder {
                     results.add(0, v);
                     v = prev.get(v);
                 } while (v != null);
-                
+                /*
                 CustomLog.outPrintln("Nodes expanded (success): " + nodesExpanded + ", from " + start + " to " + end + 
                 		" (dist: " + start.coords.dist(end.coords) + ")");
+        		*/
                 return new ScoredPath(results, dist.get(end).doubleValue());
             }
             for (LocalTile c : validNeighbors(being, v)) {
@@ -195,7 +201,7 @@ public class Pathfinder {
         
         CustomLog.outPrintln("Nodes expanded (failure): " + nodesExpanded + ", from " + start + " to " + end + 
         		" (dist: " + getTileDist(start, end) + ")");
-        return new ScoredPath(null, 999);
+        return new ScoredPath(null, Integer.MAX_VALUE / 2);
     }
 	
 	public Pair<ScoredPath> meetInTheMiddlePath(LivingEntity being, Vector3i coordsA, Vector3i coordsB) {
@@ -238,7 +244,7 @@ public class Pathfinder {
 	}
     
     public static class ScoredPath implements Comparable<ScoredPath> {
-    	private List<LocalTile> path;
+    	protected List<LocalTile> path;
     	public double score;
     	public ScoredPath(List<LocalTile> path, double score) {
     		this.path = path;

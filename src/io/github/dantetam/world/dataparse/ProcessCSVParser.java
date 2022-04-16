@@ -78,8 +78,10 @@ public class ProcessCSVParser extends WorldCsvParser {
 							copyRecord.put("Output", newOutputString);
 						}
 						
+						/*
+						//Superseded by process commands
 						outputData = copyRecord.get("Output");
-						//TODO: Generalize for all functions parsed in CSV
+						//Generalize for all functions parsed in CSV
 						String functionPattern = "(.*)(refine\\((.*)\\))(.*)";
 					    Matcher outputFuncMatcher = Pattern.compile(functionPattern).matcher(outputData);
 						if (outputFuncMatcher.find()) {
@@ -93,6 +95,7 @@ public class ProcessCSVParser extends WorldCsvParser {
 							String newOutputString = outputNamePre + refinedFormName + outputNamePost;
 							copyRecord.put("Output", newOutputString);
 						}
+						*/
 						
 						preprocessExpandingRecipe(copyRecord);
 					}
@@ -162,12 +165,7 @@ public class ProcessCSVParser extends WorldCsvParser {
 			}
 		}
 		
-		List<ProcessCommand> processOutputCommands = null;
 		String outputString = record.get("Output");
-		if (isProcessCommand(outputString)) {
-			processOutputCommands = parseProcessCommands(outputString);
-		}
-		ItemTotalDrops processOutput = ItemCSVParser.processItemDropsString(outputString);
 		
 		String buildingNamesString = record.get("Required Buildings");
 		if (buildingNamesString.isBlank()) buildingNamesString = null;
@@ -225,7 +223,11 @@ public class ProcessCSVParser extends WorldCsvParser {
 			}
 		}
 		
-		ProcessData.addProcess(processName, inputItems, processOutput, processOutputCommands,
+		OutputCommandsResult outputResult = parseProcessCommandsAndOrOutput(outputString);
+		List<ProcessCommand> processOutputCommands = outputResult.processCommands;
+		ItemTotalDrops processOutputDrops = outputResult.itemDrops;
+		
+		ProcessData.addProcess(processName, inputItems, processOutputDrops, processOutputCommands,
 				buildingNamesString, site, tileFloorId, steps, processResActions, recRepeat, skillProcDistr);
 	}
 	
@@ -295,36 +297,50 @@ public class ProcessCSVParser extends WorldCsvParser {
 		return distr;
 	}
 	
-	public static boolean isProcessCommand(String commands) {
-		String[] splitSemi = commands.split("/");
-		for (String command: splitSemi) {
-			if (command.strip().startsWith(commandStartSyntax + " ")) {
-				return true;
-			}
+	public static boolean isProcessCommand(String command) {
+		if (command.strip().startsWith(commandStartSyntax)) {
+			return true;
 		}
 		return false;
 	}
 	
-	public static List<ProcessCommand> parseProcessCommands(String totalCommandsString) {
-		List<ProcessCommand> newCommands = new ArrayList<>();
-		String[] splitSemi = totalCommandsString.split("/");
-		for (String commandString: splitSemi) {
-			if (isProcessCommand(commandString)) {
-				String[] allArguments = commandString.split(" ");
+	public static OutputCommandsResult parseProcessCommandsAndOrOutput(String totalCommandsString) {
+		List<ProcessCommand> processCommands = new ArrayList<>();
+		StringBuilder sb = new StringBuilder();
+		
+		String[] splitLines = totalCommandsString.split("/");
+		for (String line: splitLines) {
+			if (isProcessCommand(line)) {
+				String[] allArguments = line.split(" ");
 				if (allArguments.length < 2) {
-					System.err.println("Command requires two or more arguments, including " + commandStartSyntax);
+					CustomLog.errPrintln("Command requires two or more arguments, including " + commandStartSyntax);
 					throw new IllegalArgumentException("Cannot parse process command, given string "
-							+ "(split by whitespace): " + commandString);
+							+ "(split by whitespace): " + line);
 				}
 				String commandName = allArguments[1].strip();
 				String[] commandValues = new String[allArguments.length - 2];
 				System.arraycopy(allArguments, 0, commandValues, 0, allArguments.length - 2);
+				for (int i = 0; i < commandValues.length; i++) commandValues[i] = commandValues[i].strip(); 
 				ProcessCommand newCommand = new ProcessCommand(commandName, commandValues);
-				newCommands.add(newCommand);
+				processCommands.add(newCommand);
+			} else {
+				sb.append(line + " / ");
 			}
 		}
-		return newCommands;
+		
+		String itemDropsString = sb.toString();
+		ItemTotalDrops itemDrops = ItemCSVParser.processItemDropsString(itemDropsString);
+		
+		return new OutputCommandsResult(processCommands, itemDrops);
 	}
 	
+	public static class OutputCommandsResult {
+		public List<ProcessCommand> processCommands;
+		public ItemTotalDrops itemDrops;
+		public OutputCommandsResult(List<ProcessCommand> processCommands, ItemTotalDrops itemDrops) {
+			this.processCommands = processCommands;
+			this.itemDrops = itemDrops;
+		}
+	}
 	
 }

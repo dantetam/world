@@ -223,11 +223,11 @@ public class RSRPathfinder extends Pathfinder {
     		Vector3i minRestrict, Vector3i maxRestrict) {
 		if (start == null || end == null) {
         	CustomLog.errPrintln("Start or end null, start: " + start + ", end: " + end);
-    		return new ScoredMacroedgePath(null, 999);
+    		return new ScoredMacroedgePath(null, Integer.MAX_VALUE / 2);
     	}
 		if (!grid.tileIsPartAccessible(start.coords) || !grid.tileIsPartAccessible(end.coords)) {
-			CustomLog.outPrintln("Warning, start or end not accessible: " + start + "; " + end);
-			return new ScoredMacroedgePath(null, 999);
+			//CustomLog.outPrintln("Warning, start or end not accessible: " + start + "; " + end);
+			return new ScoredMacroedgePath(null, Integer.MAX_VALUE / 2);
 		}
 		
 		/*
@@ -236,13 +236,13 @@ public class RSRPathfinder extends Pathfinder {
 		if (grid.connectedCompsMap.containsKey(start.coords) && grid.connectedCompsMap.containsKey(end.coords)) {
 			if (grid.connectedCompsMap.get(start.coords) != grid.connectedCompsMap.get(end.coords)) {
 				CustomLog.errPrintln("No match valid component (3d shortcutting)");
-				return new ScoredMacroedgePath(null, 999);
+				return new ScoredMacroedgePath(null, Integer.MAX_VALUE / 2);
 			}
 		}
 		else {
 			CustomLog.errPrintln("Not in comp: " + grid.connectedCompsMap.containsKey(start.coords) + 
 					"; " + grid.connectedCompsMap.containsKey(end.coords));
-			return new ScoredMacroedgePath(null, 999);
+			return new ScoredMacroedgePath(null, Integer.MAX_VALUE / 2);
 		}
 		*/
 		
@@ -384,7 +384,7 @@ public class RSRPathfinder extends Pathfinder {
 	}
 		
 	public static class ScoredMacroedgePath extends ScoredPath implements Comparable<ScoredPath> {
-		private List<LocalTile> path, memotizedFullPath = null;
+		private List<LocalTile> memotizedFullPath = null;
 		public double score;
 		
 		public ScoredMacroedgePath(List<LocalTile> pathTilesCorners, double score) {
@@ -431,6 +431,10 @@ public class RSRPathfinder extends Pathfinder {
 			}
 			memotizedFullPath = newPath; //Save in memory for later
 			return newPath;
+		}
+		
+		public int getNumTiles() {
+			return getPath(null).size();
 		}
 		
 		public int compareTo(ScoredMacroedgePath o) {
