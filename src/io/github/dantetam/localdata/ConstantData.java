@@ -11,7 +11,13 @@ public class ConstantData {
 
 	public static final Vector2i WORLD_NUM_GRIDS = new Vector2i(1,1);
 	public static final Vector3i GRID_SIZE = new Vector3i(200,200,50);
+	
 	public static boolean ADVANCED_PATHING = true;
+	public static double A_STAR_CUR_PATH_MULTIPLIER = 1.0,
+			A_STAR_HEUR_MULTIPLIER = 0.45,
+			A_STAR_ACCESS_PEN_MULTI = 4;
+	
+	public static int MEMORY_PATH_CUTOFF = 30; //Latch onto stored paths 
 	
 	public static final String MOUSE_HIGHLIGHT_NO_CLICK = "_highlight";
 

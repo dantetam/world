@@ -163,7 +163,7 @@ public class LocalGrid {
 	}
 	
 	/**
-	 * Precondition of this method: tile access records must be updated with
+	 * Precondition of these methods: tile access records must be updated with
 	 * LocalGrid::updateAllTilesAccessInit();
 	 */
 	private LocalGridAccess tileIsFullyAccessible(Vector3i coords) {
@@ -225,7 +225,7 @@ public class LocalGrid {
 	
 	private void updateTileAccessibility(Vector3i coords) {
 		if (!this.inBounds(coords)) {
-			throw new IllegalArgumentException("Cannot update tile access info of block over level 50");
+			throw new IllegalArgumentException("Cannot update tile access info of block over level 50 or out of bounds");
 		}
 		this.accessibleTileRecord[coords.x][coords.y][coords.z] = determineTileIsAccessible(coords);
 	}
@@ -294,7 +294,7 @@ public class LocalGrid {
 		return getAllNeighbors(coords, allAdjOffsets14);
 	}
 	public Set<LocalTile> getAllTiles14Pathfinding(Vector3i coords) {
-		Set<Vector3i> vecs = getAllNeighbors(coords, allAdjOffsets14);
+		Set<Vector3i> vecs = getAllNeighbors14(coords);
 		Set<LocalTile> tiles = new HashSet<>();
 		for (Vector3i vec: vecs) {
 			LocalTile tile = this.getTile(vec);
@@ -304,12 +304,15 @@ public class LocalGrid {
 		}
 		return tiles;
 	}
+	public static boolean are14Neighbors(Vector3i a, Vector3i b) {
+		return allAdjOffsets14.contains(b.getSubtractedBy(a));
+	}
 	
 	public Set<LocalTile> getAccessibleNeighbors(LocalTile tile) {
 		Set<Vector3i> neighbors = this.getAllNeighbors14(tile.coords);
 		Set<LocalTile> candidateTiles = new HashSet<>();
 		for (Vector3i neighbor: neighbors) {
-			if (this.tileIsFullyAccessible(neighbor) != LocalGridAccess.NO_ACCESS) {
+			if (this.tileIsPartAccessible(neighbor)) {
 				LocalTile neighborTile = getTile(neighbor);
 				if (neighborTile == null) {
 					neighborTile = createTile(neighbor);

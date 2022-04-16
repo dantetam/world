@@ -61,7 +61,7 @@ public class Pathfinder {
 	 * TODO: Take LivingEntity being into account by restricting movement based on ability to move
 	 */
 	protected Set<LocalTile> validNeighbors(LivingEntity being, LocalTile tile) {
-		Set<LocalTile> candidates = grid.getAllTiles14Pathfinding(tile.coords); //grid.getAccessibleNeighbors(tile);
+		Set<LocalTile> candidates = grid.getAccessibleNeighbors(tile); //grid.getAllTiles14Pathfinding(tile.coords);
 		return candidates;
 	}
 	
@@ -73,7 +73,7 @@ public class Pathfinder {
 		return 1.0;
 	}
 	
-	private int getTileAccessibilityPenalty(LocalTile tile) {
+	protected int getTileAccessibilityPenalty(LocalTile tile) {
 		if (tile == null) return 0;
 
 		if (tile.tileBlockId != ItemData.ITEM_EMPTY_ID) {
@@ -111,7 +111,7 @@ public class Pathfinder {
     	
     	if (start == null || end == null) {
         	//throw new IllegalArgumentException("Start or end null, start: " + start + ", end: " + end);
-    		return new ScoredPath(null, 999);
+    		return new ScoredPath(null, Integer.MAX_VALUE / 2);
     	}
     	
     	/*
@@ -175,11 +175,17 @@ public class Pathfinder {
                     results.add(0, v);
                     v = prev.get(v);
                 } while (v != null);
+                
+                CustomLog.outPrintln("Nodes expanded (success): " + nodesExpanded + ", from " + start + " to " + end + 
+                		" (dist: " + start.coords.dist(end.coords) + ")");
                 return new ScoredPath(results, dist.get(end).doubleValue());
             }
             for (LocalTile c : validNeighbors(being, v)) {
                 if ((!dist.containsKey(c)) || (dist.containsKey(c) && dist.get(c) > dist.get(v) + getTileDist(v, c))) {
-                    dist.put(c, 1*dist.get(v) + 1.05*getTileDist(v, c)); //+ 0*getTileAccessibilityPenalty(c)
+                    dist.put(c, 
+                    		ConstantData.A_STAR_CUR_PATH_MULTIPLIER*dist.get(v) + 
+                    		ConstantData.A_STAR_HEUR_MULTIPLIER*getTileDist(v, c) + 
+                    		ConstantData.A_STAR_ACCESS_PEN_MULTI*getTileAccessibilityPenalty(c));
                     //c.queue = dist.get(v) + v.dist(c) + c.dist(end);
                     fringe.add(c);
                     prev.put(c, v);
@@ -187,7 +193,8 @@ public class Pathfinder {
             }
         }
         
-        //CustomLog.outPrintln("Nodes expanded: " + nodesExpanded);
+        CustomLog.outPrintln("Nodes expanded (failure): " + nodesExpanded + ", from " + start + " to " + end + 
+        		" (dist: " + getTileDist(start, end) + ")");
         return new ScoredPath(null, 999);
     }
 	
@@ -260,6 +267,10 @@ public class Pathfinder {
 		public List<LocalTile> getPath(LocalGrid grid) {
 			return path;
 		}
+		
+		public int getNumTiles() {
+			return path.size();
+		}
     }
     
     //Pathfinding trials for analysis, since pathfinding is an intensive and ubiquitous calculation.
@@ -286,32 +297,58 @@ public class Pathfinder {
 		}
 		testSociety.addHousehold(new Household("", people));
 		
-		CustomLog.outPrintln("Start pathfinding time trial now");
+		//CustomLog.mode = CustomLog.PrintMode.ERR;
 		
-		for (int i = 0; i < 10; i++) {
-			long startTime = Calendar.getInstance().getTimeInMillis();
+		for (double param = 4; param < 12; param = param + 0.5) {
+			ConstantData.A_STAR_ACCESS_PEN_MULTI = param;
 			
-			//int r = (int) (Math.random() * 95) + 5;
-			//int c = (int) (Math.random() * 95) + 5;
-			int r = i*5, c = i*5;
+			long avgTime = 0;
+			for (int i = 0; i < 20; i++) {
+				long startTime = Calendar.getInstance().getTimeInMillis();
+				int r = i*2, c = i*2;
+				
+				LocalTile baseTile = people.get(0).location;
+				Vector3i coords = new Vector3i(
+						baseTile.coords.x + r, 
+						baseTile.coords.y + c, 
+						activeLocalGrid.findHighestGroundHeight(baseTile.coords.x + r, baseTile.coords.y + c) - 3
+				);
+				activeLocalGrid.createTile(coords);
+				
+				CustomLog.errPrintln("Start accessible: " + activeLocalGrid.tileIsPartAccessible(baseTile.coords));
+				CustomLog.errPrintln(activeLocalGrid.getAccessibleNeighbors(baseTile));
+				
+				CustomLog.outPrintln("Finding path from " + baseTile.coords + " to " + coords);
+				
+				ScoredPath foundPath = new Pathfinder(activeLocalGrid).findPath(people.get(0), 
+						baseTile, activeLocalGrid.getTile(coords));
+				Integer pathLen = foundPath.isValid() ? foundPath.path.size() : null;
+				
+				long endTime = Calendar.getInstance().getTimeInMillis();
+				
+				CustomLog.outPrintln("Completed trial in " + (endTime - startTime) + "ms, "
+						+ "found path of length " + pathLen);
+				
+				avgTime += (endTime - startTime);
+			}
+			avgTime /= 10;
 			
-			LocalTile baseTile = people.get(0).location;
-			Vector3i coords = new Vector3i(
-					baseTile.coords.x + r, 
-					baseTile.coords.y + c, 
-					activeLocalGrid.findHighestGroundHeight(baseTile.coords.x + r, baseTile.coords.y + c) - 3
-			);
-			activeLocalGrid.createTile(coords);
-			
-			CustomLog.outPrintln("Finding path from " + baseTile.coords + " to " + coords);
-			
-			new Pathfinder(activeLocalGrid).findPath(people.get(0), 
-					baseTile, activeLocalGrid.getTile(coords));
-			
-			long endTime = Calendar.getInstance().getTimeInMillis();
-			
-			CustomLog.outPrintln("Completed trials in " + (endTime - startTime) + "ms");
+			CustomLog.errPrintln("Param: " + param + ", average trial takes " + avgTime + " ms");
 		}
+		
+		
+    }
+    
+    public static boolean validatePath(List<LocalTile> path) {
+    	boolean result = true;
+    	for (int i = 0; i < path.size() - 1; i++) {
+    		boolean thisValidation = LocalGrid.are14Neighbors(path.get(i).coords, path.get(i+1).coords); 
+    		if (!thisValidation) {
+    			CustomLog.outPrintln("Could not validate: " + path.get(i).coords + " " + path.get(i+1).coords);
+    		}
+    		result = result && thisValidation;
+    	}
+    	return result;
     }
 
 }

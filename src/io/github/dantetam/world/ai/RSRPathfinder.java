@@ -171,9 +171,9 @@ public class RSRPathfinder extends Pathfinder {
 	
 	public void adjustRSR(Vector3i coords, boolean isSolidBlock) {
 		for (Vector3i neighbor: this.grid.getAllNeighbors14(coords)) {
-			//if (grid.tileIsAccessible(neighbor)) {
-			this.tempNodeInRectSolid(neighbor, isSolidBlock);
-			//}
+			if (grid.tileIsPartAccessible(neighbor)) {
+				this.tempNodeInRectSolid(neighbor, isSolidBlock);
+			}
 		}
  	}
 	
@@ -183,7 +183,7 @@ public class RSRPathfinder extends Pathfinder {
 		//Implement the ability to traverse tiles that need to be dug (add accessibility penalty)
 		//Also try to improve height and diagonal height walking across terrain
 		
-		Set<LocalTile> candidates = grid.getAllTiles14Pathfinding(tile.coords);
+		Set<LocalTile> candidates = grid.getAccessibleNeighbors(tile); //grid.getAllTiles14Pathfinding(tile.coords);
 		if (macroEdgeConnections.containsKey(tile.coords)) {
 			Set<Vector3i> coords = macroEdgeConnections.get(tile.coords);
 			for (Vector3i coord: coords) {
@@ -217,24 +217,29 @@ public class RSRPathfinder extends Pathfinder {
 	 * 4) fix the graph by removing temporary nodes added in 2);
 	 * 5) return the resulting path if one exists.
 	 */
+	@Override
 	public ScoredPath findPath(LivingEntity being, LocalTile start, LocalTile end,
     		Vector3i minRestrict, Vector3i maxRestrict) {
 		if (start == null || end == null) {
-        	//CustomLog.outPrintln("Start or end null, start: " + start + ", end: " + end);
+        	CustomLog.errPrintln("Start or end null, start: " + start + ", end: " + end);
     		return new ScoredMacroedgePath(null, 999);
     	}
 		
+		/*
 		//Do quick check if path is possible (i.e. in same connected component)
+		//TODO: Fix or remove this comment block
 		if (grid.connectedCompsMap.containsKey(start.coords) && grid.connectedCompsMap.containsKey(end.coords)) {
 			if (grid.connectedCompsMap.get(start.coords) != grid.connectedCompsMap.get(end.coords)) {
-				//CustomLog.outPrintln("No match valid comp");
+				CustomLog.errPrintln("No match valid component (3d shortcutting)");
 				return new ScoredMacroedgePath(null, 999);
 			}
 		}
 		else {
-			//CustomLog.outPrintln("Not in comp: " + connectedCompsMap.containsKey(start.coords) + "; " + connectedCompsMap.containsKey(end.coords));
+			CustomLog.errPrintln("Not in comp: " + grid.connectedCompsMap.containsKey(start.coords) + 
+					"; " + grid.connectedCompsMap.containsKey(end.coords));
 			return new ScoredMacroedgePath(null, 999);
 		}
+		*/
 		
 		//Temporarily insert nodes and macro edges for the start and end as needed
 		RectangularSolid startSolid = null, endSolid = null;
@@ -252,10 +257,10 @@ public class RSRPathfinder extends Pathfinder {
 			tempAvailSolid(startSolid, false);
 		}
 		if (startSolid != null) {
-			tempNodeInRectSolid(startSolid, start.coords, true);
+			tempNodeInRectSolid(startSolid, start.coords, false);
 		}
 		if (endSolid != null && startSolid != endSolid) {
-			tempNodeInRectSolid(endSolid, end.coords, true);
+			tempNodeInRectSolid(endSolid, end.coords, false);
 		}
 		
 		ScoredPath scoredSuperMethod = super.findPath(being, start, end, minRestrict, maxRestrict);
@@ -264,7 +269,7 @@ public class RSRPathfinder extends Pathfinder {
 		
 		//Remove the temporary data if it was created
 		if (startSolid != null && startSolid == endSolid) {
-			tempAvailSolid(startSolid, true);
+			tempAvailSolid(startSolid, false);
 		}
 		else if (startSolid != null) {
 			tempNodeInRectSolid(startSolid, start.coords, false);
@@ -423,7 +428,7 @@ public class RSRPathfinder extends Pathfinder {
     	WorldCsvParser.init();
     	
     	Vector3i sizes = new Vector3i(200,200,50);
-		ConstantData.ADVANCED_PATHING = false;
+		ConstantData.ADVANCED_PATHING = true;
 		LocalGrid activeLocalGrid = new LocalGridInstantiate(sizes, LocalGridBiome.defaultBiomeTest())
 				.setupGrid();
 		
@@ -442,25 +447,31 @@ public class RSRPathfinder extends Pathfinder {
 		testSociety.addHousehold(new Household("", people));
 		
 		RSRPathfinder pathfinder = new RSRPathfinder(activeLocalGrid);
+		Pathfinder backupPathfinder = new Pathfinder(activeLocalGrid);
 		
 		CustomLog.outPrintln("Start pathfinding time trial now");
 		
-		for (int i = 0; i < 20; i++) {
-			//int r = (int) (Math.random() * 95) + 5;
-			//int c = (int) (Math.random() * 95) + 5;
-			int r = i*2 + 5, c = i*2 + 5;
+		for (int i = 0; i < 10; ) {
+			int r = (int) (Math.random() * 95) + 5;
+			int c = (int) (Math.random() * 95) + 5;
 			
 			int randPersonIndex = (int) (Math.random() * people.size());
 			
 			LocalTile baseTile = people.get(randPersonIndex).location;
 			Vector3i coords = new Vector3i(
-					baseTile.coords.x + r, 
-					baseTile.coords.y + c, 
-					activeLocalGrid.findHighestGroundHeight(baseTile.coords.x + r, baseTile.coords.y + c)
+					r,
+					c,
+					activeLocalGrid.findHighestGroundHeight(r, c)
 			);
 			activeLocalGrid.createTile(coords);
 			
+			if (!activeLocalGrid.tileIsPartAccessible(baseTile.coords)) continue;
+			if (!activeLocalGrid.tileIsPartAccessible(coords)) continue;
+			i++;
+			
 			CustomLog.outPrintln("Finding path from " + baseTile.coords + " to " + coords);
+			//CustomLog.errPrintln(activeLocalGrid.getAccessibleNeighbors(baseTile));
+			CustomLog.errPrintln("Below: " + activeLocalGrid.getTile(baseTile.coords.getSum(0, 0, -1)));
 			
 			long startTime = Calendar.getInstance().getTimeInMillis();
 			
@@ -470,11 +481,32 @@ public class RSRPathfinder extends Pathfinder {
 			long endTime = Calendar.getInstance().getTimeInMillis();
 			
 			if (path.isValid())
-				CustomLog.outPrintln(path.getPath(activeLocalGrid));
+				CustomLog.outPrintln("Found path, size: " + path.getNumTiles());
 			else
 				CustomLog.outPrintln("No path found");
 			
-			CustomLog.outPrintln("Completed trials in " + (endTime - startTime) + "ms");
+			CustomLog.outPrintln("Completed trial in " + (endTime - startTime) + "ms");
+			CustomLog.outPrintln();
+			
+			startTime = Calendar.getInstance().getTimeInMillis();
+			
+			CustomLog.outPrintln("Backup pathfinder: ");
+			path = backupPathfinder.findPath(people.get(0), 
+					baseTile, activeLocalGrid.getTile(coords));
+			
+			endTime = Calendar.getInstance().getTimeInMillis();
+			
+			if (path.isValid()) {
+				CustomLog.outPrintln("Found backup path, size: " + path.getNumTiles());
+				//for (LocalTile tile: path.getPath(activeLocalGrid)) CustomLog.errPrintln("\t" + tile.coords);
+				CustomLog.errPrintln("Path validated: " + validatePath(path.getPath(activeLocalGrid)));
+			} else
+				CustomLog.outPrintln("No backup path found");
+			
+			CustomLog.outPrintln("Completed backup trial in " + (endTime - startTime) + "ms");
+			
+			CustomLog.outPrintln("-----------------------");
+			
 		}
     }
 
