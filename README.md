@@ -33,3 +33,12 @@ Combat system: use of tactics, bonuses, and calculations of hits compared to arm
 DNA, language, and culture spread. Language from Markov chain.
 
 Free actions: events that can fire off, which humans can use to further the agency of their complicated AI: e.g., form households and societies, go to war, create new jobs, etc., all based on utility calculations.
+
+## Citations
+D. Harabor, A. Botea, and P. Kilby. Path Symmetries in Uniform-cost Grid Maps. NICTA and The Australian National University. 2011. https://users.cecs.anu.edu.au/~dharabor/data/papers/harabor-botea-kilby-sara11.pdf
+
+D. Harabor, A. Botea. Breaking Path Symmetries on 4-connected Grid Maps. NICTA and The Australian National University. 2010. https://users.cecs.anu.edu.au/~dharabor/data/papers/harabor-botea-aiide10.pdf
+
+A. Botea, M. Muller, and J. Schaeffer. Near Optimal Hierarchical Path-Finding. Department of Computing Science, University of Alberta Edmonton. 2011. https://webdocs.cs.ualberta.ca/~mmueller/ps/hpastar.pdf
+
+M. Adamsson, A. Vorkapic. A comparison study of Kd-tree, Vp-tree and Octree for storing neuronal morphology data with respect to performance. KTH Royal Institute of Technology. 2016. https://www.diva-portal.org/smash/get/diva2:928589/FULLTEXT01.pdf

@@ -637,7 +637,10 @@ public class LocalGridTimeExecution {
 		
 		//int tileId = ItemData.getIdFromName(tileName);
 		KdTree<Vector3i> items = grid.getKdTreeForItemGroup(tileName);
-		if (items == null) return null;
+		if (items == null) {
+			CustomLog.errPrintln("Warning, could not find any items of group or tile: " + tileName);
+			return null;
+		}
 		
 		Collection<Vector3i> candidates = items.nearestNeighbourListSearch(50, being.location.coords);
 		
@@ -712,6 +715,7 @@ public class LocalGridTimeExecution {
 			}
 		}
 		
+		CustomLog.errPrintln("Tried to assign tile, could not find one");
 		return null;
 	}
 	
@@ -827,7 +831,7 @@ public class LocalGridTimeExecution {
 						);
 			}
 			
-			CustomLog.errPrintln("Warning, building and/or tile required: " + 
+			CustomLog.errPrintln("Line 831: Warning, building and/or tile required: " + 
 					process.toString() + ", tile/building may not be assigned");
 			return new ImpossiblePriority("Warning, could not find case for process. Tile/building may not be assigned");
 		}
@@ -1936,8 +1940,9 @@ public class LocalGridTimeExecution {
 			Map<LocalProcess, Double> bestProcesses = society.prioritizeProcesses(
 					calcUtility, grid, human, NUM_JOBPROCESS_CONSIDER, null);
 			Map<LocalJob, Double> bestJobs = society.prioritizeJobs(human, bestProcesses, date);
+			CustomLog.outPrintln("Current best processes ranked by score:");
 			for (Entry<LocalProcess, Double> entry: bestProcesses.entrySet()) {
-				CustomLog.outPrintln(entry.getKey().name + " " + entry.getValue());
+				CustomLog.outPrintln(entry.getKey().name + " " + MathAndDistrUti.format(entry.getValue()));
 			}
 			
 			Object potentialItem = MapUtil.randChoiceFromMaps(bestProcesses, bestJobs);

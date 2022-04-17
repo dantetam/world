@@ -1,5 +1,7 @@
 package io.github.dantetam.toolbox;
 
+import java.text.DecimalFormat;
+
 public class MathAndDistrUti {
 
 	public static int trueMod(int a, int m) {
@@ -29,6 +31,11 @@ public class MathAndDistrUti {
 	
 	public static double clamp(double a, double min, double max) {
 		return Math.max(min, Math.min(max, a));
+	}
+	
+	public static String format(double d) {
+		DecimalFormat df = new DecimalFormat("#.###");
+		return df.format(d);
 	}
 	
 }

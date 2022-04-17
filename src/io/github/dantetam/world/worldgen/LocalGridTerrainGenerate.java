@@ -158,7 +158,6 @@ public class LocalGridTerrainGenerate {
 	}
 	
 	public static void printTable(boolean[][] a) {
-		DecimalFormat df = new DecimalFormat("#.00"); 
 		for (int i = 0; i < a.length; i++) {
 			for (int j = 0; j < a[0].length; j++) {
 				System.out.print((a[i][j] ? "T" : "F") + " ");
