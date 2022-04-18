@@ -42,3 +42,7 @@ D. Harabor, A. Botea. Breaking Path Symmetries on 4-connected Grid Maps. NICTA a
 A. Botea, M. Muller, and J. Schaeffer. Near Optimal Hierarchical Path-Finding. Department of Computing Science, University of Alberta Edmonton. 2011. https://webdocs.cs.ualberta.ca/~mmueller/ps/hpastar.pdf
 
 M. Adamsson, A. Vorkapic. A comparison study of Kd-tree, Vp-tree and Octree for storing neuronal morphology data with respect to performance. KTH Royal Institute of Technology. 2016. https://www.diva-portal.org/smash/get/diva2:928589/FULLTEXT01.pdf
+
+Drost, B.H., Ilic, S. Almost constant-time 3D nearest-neighbor lookup using implicit octrees. Machine Vision and Applications 29, 299–311. 2018. https://doi.org/10.1007/s00138-017-0889-4
+
+A. Nocaj, U. Brandes. Computing Voronoi Treemaps: Faster, Simpler, and Resolution-independent. Department of Computer & Information Science, University of Konstanz. 2012. https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.259.5707&rep=rep1&type=pdf

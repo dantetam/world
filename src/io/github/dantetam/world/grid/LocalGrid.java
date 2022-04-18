@@ -14,7 +14,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import io.github.dantetam.localdata.ConstantData;
-import io.github.dantetam.toolbox.CollectionUtil;
 import io.github.dantetam.toolbox.MapUtil;
 import io.github.dantetam.toolbox.VecGridUtil;
 import io.github.dantetam.toolbox.VecGridUtil.RectangularSolid;
@@ -28,13 +27,13 @@ import io.github.dantetam.world.combat.War;
 import io.github.dantetam.world.dataparse.ItemData;
 import io.github.dantetam.world.dataparse.WorldCsvParser;
 import io.github.dantetam.world.grid.SpaceFillingAlg.NeighborMode;
-import io.github.dantetam.world.items.Inventory;
 import io.github.dantetam.world.items.InventoryItem;
 import io.github.dantetam.world.life.Human;
 import io.github.dantetam.world.life.LivingEntity;
 import io.github.dantetam.world.process.LocalProcess;
 import io.github.dantetam.world.worldgen.LocalGridBiome;
 import io.github.dantetam.world.worldgen.LocalGridInstantiate;
+
 import kdtreegeo.KdTree;
 
 /**
@@ -711,18 +710,31 @@ public class LocalGrid {
 		building.owner = being;
 	}
 	
+	/*
+	 * Retrieve kd trees for 
+	 */
 	public KdTree<Vector3i> getKdTreeForItemId(Integer itemId) {
 		return this.itemIdQuickTileLookup.get(itemId);
+	}
+	public KdTree<Vector3i> getKdTreeForItemGroup(String groupName) {
+		if (ItemData.isGroup(groupName))
+			return this.itemGroupTileLookup.get(groupName);
+		return this.getKdTreeForTile(ItemData.getIdFromName(groupName));
 	}
 	
 	public KdTree<Vector3i> getKdTreeForTile(Integer itemId) {
 		return this.globalTileBlockLookup.get(itemId);
 	}
 	
-	public KdTree<Vector3i> getKdTreeForItemGroup(String groupName) {
-		if (ItemData.isGroup(groupName))
-			return this.itemGroupTileLookup.get(groupName);
-		return this.getKdTreeForTile(ItemData.getIdFromName(groupName));
+	public List<KdTree<Vector3i>> getKdTreesForTileGroup(String groupName) {
+		List<KdTree<Vector3i>> trees = new ArrayList<>();
+		Set<Integer> ids = ItemData.getIdsFromNameOrGroup(groupName);
+		for (int id : ids) {
+			KdTree<Vector3i> tree = this.getKdTreeForTile(id);
+			if (tree != null)
+				trees.add(tree);
+		}
+		return trees;
 	}
 	
 	public KdTree<Vector3i> getKdTreeForBuildings(Integer buildId) {

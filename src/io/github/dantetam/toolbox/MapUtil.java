@@ -14,6 +14,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import com.sun.tools.javac.util.Assert;
+
 import io.github.dantetam.toolbox.log.CustomLog;
 import io.github.dantetam.world.ai.Pathfinder.ScoredPath;
 import io.github.dantetam.world.grid.LocalTile;
@@ -190,13 +192,32 @@ public class MapUtil {
 	}
 	
 	public static <U extends Number> Object randChoiceFromMaps(Map<?, U>... maps) {
+		return randChoiceFromMapsHelper(false, maps);
+	}
+	
+	/*
+	 * Return a random Object from one of the maps, after removing that item from the corresponding map.
+	 */
+	public static <U extends Number> Object randChoiceFromMapsRemove(Map<?, U>... maps) {
+		return randChoiceFromMapsHelper(true, maps);
+	}
+	
+	private static <U extends Number> Object randChoiceFromMapsHelper(boolean remove, Map<?, U>... maps) {
 		Map<Object, U> allItemsMap = new HashMap<>();
 		for (Map<?, U> map: maps) {
 			for (Entry<?, U> entry: map.entrySet()) {
 				allItemsMap.put(entry.getKey(), entry.getValue());
 			}
 		}
-		return randChoiceFromWeightMap(allItemsMap);
+		Object result = randChoiceFromWeightMap(allItemsMap);
+		if (remove) {
+			for (Map<?, U> map : maps) {
+				if (map.containsKey(result)) {
+					map.remove(result);
+				}
+			}
+		}
+		return result;
 	}
 
 	//Ascending sort on a generic mapping
@@ -277,6 +298,22 @@ public class MapUtil {
 		while (keys.hasNext()) {
 			CustomLog.outPrintSameLine(keys.next() + " ");
 		}
+		
+		Map<String, Integer> data2 = new HashMap<>();
+		data2.put("String", 2);
+		data2.put("String2", 9);
+		data2.put("String3", 7);
+		
+		int totalSize = data.size() + data2.size(); //.size() method changes result on map removal
+		for (int i = 0; i < totalSize; i++) {
+			MapUtil.randChoiceFromMapsRemove(data, data2);
+		}
+		
+		CustomLog.outPrintln(data);
+		CustomLog.outPrintln(data2);
+		
+		Assert.check(data.size() == 0 && data2.size() == 0, 
+				"randChoiceFromMapsRemove should all elements of both maps");
 	}
 	
 }

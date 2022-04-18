@@ -14,8 +14,10 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
+import io.github.dantetam.localdata.ConstantData;
 import io.github.dantetam.toolbox.CollectionUtil;
 import io.github.dantetam.toolbox.MapUtil;
+import io.github.dantetam.toolbox.MathAndDistrUti;
 import io.github.dantetam.toolbox.Pair;
 import io.github.dantetam.toolbox.log.CustomLog;
 import io.github.dantetam.vector.Vector3i;
@@ -171,6 +173,39 @@ public class Society {
 		this.jobMarket.createJobOffers(this, primaryGrid);
 	}
 	
+	public Object choosePossibleJobOrProcessFromMaps(Society society, LocalGrid grid, Human human, Date date) {
+		Map<Integer, Double> calcUtility = society.findCompleteUtilityAllItems(human);
+		Map<LocalProcess, Double> bestProcesses = society.prioritizeProcesses(
+				calcUtility, grid, human, ConstantData.NUM_JOBPROCESS_CONSIDER, null);
+		Map<LocalJob, Double> bestJobs = society.prioritizeJobs(human, bestProcesses, date);
+		CustomLog.outPrintln("Current best processes ranked by score:");
+		for (Entry<LocalProcess, Double> entry: bestProcesses.entrySet()) {
+			CustomLog.outPrintln(entry.getKey().name + " " + MathAndDistrUti.format(entry.getValue()));
+		}
+		
+		/*
+		 * One by one verify the "advanced" possibility of a job, take the first job from random choice
+		 * that is possible, instead of verifying all of them and then choosing. See commit associated
+	     * w/ this comment.
+		*/
+		Object potentialItem;
+		while (bestProcesses.size() > 0 || bestJobs.size() > 0) {
+			LocalProcess processToCheck;
+			potentialItem = MapUtil.randChoiceFromMapsRemove(bestProcesses, bestJobs);
+			if (potentialItem instanceof LocalProcess) processToCheck = (LocalProcess) potentialItem;
+			else {
+				LocalJob job = (LocalJob) potentialItem;
+				processToCheck = job.jobWorkProcess;
+			}
+			if (society.canCompleteProcess(processToCheck, calcUtility, grid, human)) {
+				return potentialItem;
+			}
+		}
+		
+		CustomLog.errPrintln("Warning, shuffled through all jobs and processes, none are possible");
+		return null;
+	}
+	
 	/**
 	 * 
 	 * @param allItemsUtility A mapping of all items linked to their societal utility
@@ -304,7 +339,9 @@ public class Society {
 				List<LocalProcess> processes = ProcessData.getProcessesByOutput(fringeId);
 				for (LocalProcess process: processes) {
 					//TODO: Factor in counts into util. backprop calc.
-					if (canCompleteProcess(process, rawResRarity, grid, human)) {
+					
+					//Do not check all process if they are doable (advanced pathfinding checking), check later
+					//if (canCompleteProcess(process, rawResRarity, grid, human)) {
 						List<InventoryItem> inputs = new ArrayList<>();
 						if (process.requiredBuildNameOrGroup != null) {
 							for (Integer id: ItemData.getIdsFromNameOrGroup(process.requiredBuildNameOrGroup)) {
@@ -336,7 +373,7 @@ public class Society {
 									//CustomLog.outPrintln("Expanding from " + ItemData.getNameFromId(fringeId) + " -----> " + ItemData.getNameFromId(input.itemId));
 							}
 						}
-					}
+					//}
 				}
 				visitedItemIds.add(fringeId);
 			}	
@@ -360,6 +397,7 @@ public class Society {
 			
 			Map<Integer, Integer> itemsAmtNeeded = new HashMap<>();
 			itemsAmtNeeded.put(input.itemId, input.quantity);
+			
 			if (!LocalGridTimeExecution.hasAccessToItem(grid, being, itemsAmtNeeded)) {
 				return false;
 			}

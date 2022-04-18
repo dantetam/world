@@ -19,6 +19,8 @@ public class ConstantData {
 	
 	public static int MEMORY_PATH_CUTOFF = 30; //Latch onto stored paths 
 	
+	public static int NUM_JOBPROCESS_CONSIDER = 40;
+	
 	public static final String MOUSE_HIGHLIGHT_NO_CLICK = "_highlight";
 
 	public static Map<Integer, Double> clusterUbiquityMap = new HashMap<Integer, Double>() {{

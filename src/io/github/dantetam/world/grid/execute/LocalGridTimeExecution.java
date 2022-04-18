@@ -20,6 +20,7 @@ import org.apache.commons.math3.distribution.NormalDistribution;
 
 import io.github.dantetam.toolbox.VecGridUtil;
 import io.github.dantetam.toolbox.log.CustomLog;
+import io.github.dantetam.localdata.ConstantData;
 import io.github.dantetam.lwjglEngine.terrain.ForestGeneration.ProceduralTree;
 import io.github.dantetam.toolbox.ArrUtil;
 import io.github.dantetam.toolbox.CollectionUtil;
@@ -78,8 +79,6 @@ import kdtreegeo.KdTree;
 //transporting themselves, resources, etc. across grids. Also allow for people to travel between grids.
 
 public class LocalGridTimeExecution {
-	
-	public static int NUM_JOBPROCESS_CONSIDER = 40;
 	
 	/** 
 	 * Primarily tick through all of the grid's 'unsupervised' tasks, i.e. those
@@ -234,11 +233,15 @@ public class LocalGridTimeExecution {
 		@return true if the process is done and must be removed from all queues
 	 */
 	public static boolean deconstructionProcessGeneric(LivingEntity unsupervHuman, LocalGrid grid, LocalProcess process) {
+		System.err.println("Deconsturct proc: " + process + "\n\t of human :" + unsupervHuman);
+		
 		//Assign the location of the process where the steps are undertaken
 		if (process.requiredBuildNameOrGroup != null && process.processBuilding == null) {
+			CustomLog.outPrintln("Assigning building (unsuperv) for " + process);
 			assignBuilding(grid, unsupervHuman, process, null, process.requiredBuildNameOrGroup, true);
 		}
 		else if (process.requiredTileNameOrGroup != null && process.processTile == null) {
+			CustomLog.outPrintln("Assigning tile (unsuperv) for " + process);
 			assignTile(grid, unsupervHuman, null, process, true);
 		}
 		
@@ -307,8 +310,8 @@ public class LocalGridTimeExecution {
 		}
 		else if (process.requiredTileNameOrGroup != null && process.processTile == null) {
 			assignTile(grid, human, capitalOwners, process, true);
-			System.err.println("_>>>>>>>>>>>>>>>>>>> + processTile (" + process.requiredTileNameOrGroup + 
-					"): " + process.processTile + "\n");
+			//System.err.println("_>>>>>>>>>>>>>>>>>>> + processTile (" + process.requiredTileNameOrGroup + 
+					//"): " + process.processTile + "\n");
 		}
 		
 		if (human.currentQueueTasks != null && human.currentQueueTasks.size() > 0) {
@@ -632,17 +635,27 @@ public class LocalGridTimeExecution {
 	public static Pair<LocalTile> assignTile(LocalGrid grid, LivingEntity being, 
 			Set<Human> validOwners, LocalProcess process, boolean setInUse) {
 		
+		if (setInUse)
+			CustomLog.outPrintln("Assign tile to process: " + process + " , set in use: " + setInUse);
+		
 		String tileName = process.requiredTileNameOrGroup;
 		boolean useAboveTileOverride = !process.name.contains("Harvest Tile ");
 		
 		//int tileId = ItemData.getIdFromName(tileName);
 		KdTree<Vector3i> items = grid.getKdTreeForItemGroup(tileName);
-		if (items == null) {
-			CustomLog.errPrintln("Warning, could not find any items of group or tile: " + tileName);
-			return null;
+
+		Collection<Vector3i> candidates = items != null ? 
+				items.nearestNeighbourListSearch(30, being.location.coords) : new ArrayList<>();
+		
+		List<KdTree<Vector3i>> tilesInWorldThatAreItem = grid.getKdTreesForTileGroup(tileName);
+		for (KdTree<Vector3i> tileTree : tilesInWorldThatAreItem) {
+			candidates.addAll(tileTree.nearestNeighbourListSearch(10, being.location.coords));
 		}
 		
-		Collection<Vector3i> candidates = items.nearestNeighbourListSearch(50, being.location.coords);
+		if (candidates.size() == 0) {
+			CustomLog.errPrintln("Warning, could not find any items of group or tile (non-existent): " + tileName);
+			return null;
+		}
 		
 		//Collect pair objects: the actual location of interest, followed by an accessible neighbor
 		for (Vector3i candidate: candidates) {
@@ -1117,8 +1130,11 @@ public class LocalGridTimeExecution {
 			}
 		}
 		
-		if (!step.stepType.startsWith("U") && priority == null)
+		if (!step.stepType.startsWith("U") && priority == null) {
 			CustomLog.errPrintln("Warning, case not covered for priority from step, returning null priority");
+			CustomLog.errPrintln("\t Process: " + process);
+			CustomLog.errPrintln("\t Step:" + step.toString());
+		}
 		return priority;
 	}
 	
@@ -1168,8 +1184,7 @@ public class LocalGridTimeExecution {
 			step.timeTicks--;
 			if (step.timeTicks <= 0) {
 				return new DonePriority();
-			}
-			else {
+			} else {
 				return new UnsupervisedDesignation();
 			}
 		}
@@ -1217,8 +1232,12 @@ public class LocalGridTimeExecution {
 			return new DonePriority();
 		}
 		
-		if (!step.stepType.startsWith("U") && priority == null)
-			CustomLog.errPrintln("Warning, case not covered for priority from step, returning null priority");
+		if (!step.stepType.startsWith("U") && priority == null) {
+			CustomLog.errPrintln("Warning, case (unsuperv) not covered for priority from step, returning null priority");
+			CustomLog.errPrintln("\t Process: " + process);
+			CustomLog.errPrintln("\t Step:" + step.toString());
+		}
+		
 		return priority;
 	}
 	
@@ -1936,16 +1955,7 @@ public class LocalGridTimeExecution {
 		}
 		
 		if (!moveJobQueue && !moveProcQueue) {
-			Map<Integer, Double> calcUtility = society.findCompleteUtilityAllItems(human);
-			Map<LocalProcess, Double> bestProcesses = society.prioritizeProcesses(
-					calcUtility, grid, human, NUM_JOBPROCESS_CONSIDER, null);
-			Map<LocalJob, Double> bestJobs = society.prioritizeJobs(human, bestProcesses, date);
-			CustomLog.outPrintln("Current best processes ranked by score:");
-			for (Entry<LocalProcess, Double> entry: bestProcesses.entrySet()) {
-				CustomLog.outPrintln(entry.getKey().name + " " + MathAndDistrUti.format(entry.getValue()));
-			}
-			
-			Object potentialItem = MapUtil.randChoiceFromMaps(bestProcesses, bestJobs);
+			Object potentialItem = society.choosePossibleJobOrProcessFromMaps(society, grid, human, date);
 			if (potentialItem instanceof LocalJob && human.jobProcessProgress == null) {
 				LocalJob potentialJob = (LocalJob) potentialItem;
 				human.jobProcessProgress = potentialJob;
@@ -1966,7 +1976,7 @@ public class LocalGridTimeExecution {
 	private static void collectivelyAssignJobsSociety(Society society) {
 		Map<Integer, Double> calcUtility = society.calcUtility;
 		Map<LocalProcess, Double> bestProcesses = society.prioritizeProcesses(
-				calcUtility, null, null, NUM_JOBPROCESS_CONSIDER, null);
+				calcUtility, null, null, ConstantData.NUM_JOBPROCESS_CONSIDER, null);
 		List<Human> humans = society.getAllPeople();
 		
 		int humanIndex = 0;
