@@ -180,7 +180,9 @@ public class Society {
 		Map<LocalJob, Double> bestJobs = society.prioritizeJobs(human, bestProcesses, date);
 		CustomLog.outPrintln("Current best processes ranked by score:");
 		for (Entry<LocalProcess, Double> entry: bestProcesses.entrySet()) {
-			CustomLog.outPrintln(entry.getKey().name + " " + MathAndDistrUti.format(entry.getValue()));
+			if (entry.getValue() > 0.005) {
+				CustomLog.outPrintln(entry.getKey().name + " " + MathAndDistrUti.format(entry.getValue()));
+			}
 		}
 		
 		/*

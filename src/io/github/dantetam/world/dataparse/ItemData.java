@@ -1,6 +1,5 @@
 package io.github.dantetam.world.dataparse;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -9,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import io.github.dantetam.localdata.ConstantData;
 import io.github.dantetam.lwjglEngine.render.VBOLoader;
 import io.github.dantetam.toolbox.Pair;
 import io.github.dantetam.toolbox.VecGridUtil;
@@ -341,11 +341,11 @@ public class ItemData {
 	
 	public static int getTextureFromItemId(int id) {
 		String itemName = getNameFromId(id);
-		return VBOLoader.loadTexture("res/tiles/" + itemName + ".png");
+		return VBOLoader.loadTexture(ConstantData.getItemTexturePath(itemName));
 	}
 	
 	public static int getTextureFromItemId(String itemName) {
-		return VBOLoader.loadTexture("res/tiles/" + itemName + ".png");
+		return VBOLoader.loadTexture(ConstantData.getItemTexturePath(itemName));
 	}
 	
 	public static LocalBuilding building(int id) {

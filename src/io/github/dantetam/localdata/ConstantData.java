@@ -47,4 +47,8 @@ public class ConstantData {
 		put(ItemData.getIdFromName("Grass"), 10.0);
 	}};
 	
+	public static String getItemTexturePath(String itemName) {
+		return "res/tiles/" + itemName + ".png";
+	}
+	
 }

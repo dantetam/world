@@ -126,7 +126,7 @@ public class ForestGeneration {
 						}
 					}
 				}
-				if (tree.spantaneousDeathChance()) {
+				if (tree.spontaneousDeathChance()) {
 					spontaneousDeath.add(polygonIndex);
 				}
 			}
@@ -311,7 +311,7 @@ public class ForestGeneration {
 			return chance;
 		}
 
-		public boolean spantaneousDeathChance() {
+		public boolean spontaneousDeathChance() {
 			double x = this.age;
 			double chance = DEATH_MAX_CHANCE / (1 + Math.pow(Math.E, -DEATH_STEEPNESS * (x)));
 			// CustomLog.outPrintln("Death chance tree: " + chance);
