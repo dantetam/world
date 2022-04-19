@@ -14,6 +14,7 @@ import io.github.dantetam.toolbox.StringUtil;
 import io.github.dantetam.vector.Vector2i;
 import io.github.dantetam.world.civilization.SkillBook;
 import io.github.dantetam.world.dataparse.WorldCsvParser;
+import io.github.dantetam.world.dataparse.texturespritegen.SpriteHandler;
 import io.github.dantetam.world.grid.LocalGrid;
 import io.github.dantetam.world.grid.WorldGrid;
 import io.github.dantetam.world.worldgen.WorldGridInstantiate;
@@ -68,6 +69,7 @@ public class GameLauncher {
 			GLFW.glfwShowWindow(DisplayManager.window);
 
 			WorldCsvParser.init();
+			SpriteHandler.init();
 			SkillBook.init();
 			StringUtil.init();
 			

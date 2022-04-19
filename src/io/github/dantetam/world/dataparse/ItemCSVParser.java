@@ -16,6 +16,8 @@ import io.github.dantetam.world.dataparse.ItemTotalDrops.ItemDropTrial;
 import io.github.dantetam.world.items.InventoryItem;
 import io.github.dantetam.world.process.ProcessStep;
 
+//TODO: This ItemCSVParser cannot handle group names inside drops
+
 public class ItemCSVParser extends WorldCsvParser {
 
 	public static Map<String, List<String>> groupSyntaxShortcuts;
@@ -81,7 +83,7 @@ public class ItemCSVParser extends WorldCsvParser {
 		boolean placeable = record.get("CanBeBlock").equals("Y");
 		String[] groups = record.get("Groups").split(";");
 		String stackable = record.get("Stackable");
-		Integer stackNum = new Integer(1);
+		Integer stackNum = 1;
 		if (!stackable.isBlank()) {
 			try {
 				stackNum = Integer.parseInt(stackable);

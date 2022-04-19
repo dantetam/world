@@ -2,6 +2,8 @@ package io.github.dantetam.world.dataparse;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import io.github.dantetam.localdata.ConstantData;
@@ -15,6 +17,13 @@ public class ItemTextureFilesAudit {
 	public static void main(String[] args) {
 		System.err.println();
 		List<String> missingItemNames = getMissingItemTextures();
+		Collections.sort(missingItemNames, new Comparator<String>() {
+			@Override
+			public int compare(String o1, String o2) {
+				int id1 = ItemData.getIdFromName(o1), id2 = ItemData.getIdFromName(o2);
+				return id1 - id2;
+			}
+		});
 		StringBuilder javascriptSb = new StringBuilder();
 		javascriptSb.append("const queries = [");
 		for (int i = 0; i < missingItemNames.size(); i++) {

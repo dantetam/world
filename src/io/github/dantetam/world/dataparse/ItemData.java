@@ -86,7 +86,7 @@ public class ItemData {
 	
 	public static int getIdFromName(String name) {
 		if (name.contains("<") && name.contains(">")) {
-			throw new IllegalArgumentException("Gave group name for item id, perhaps use getIdsFromName(Stirng name)");
+			throw new IllegalArgumentException("Gave group name: " + name + " for item id, perhaps use getIdsFromName(Stirng name)");
 		}
 		if (!itemNamesToIds.containsKey(name)) {
 			throw new IllegalArgumentException("Could not find item name: " + name);
@@ -244,6 +244,9 @@ public class ItemData {
 	}
 	
 	public static int generateNewItem(String name) {
+		if (name.contains("<")) {
+			throw new IllegalArgumentException("Attempted to generate a missing item with an angle bracket: " + name);
+		}
 		GENERATED_BASE_ID++;
 		CustomLog.outPrintln("Generated item of name: " + name + ", id: " + GENERATED_BASE_ID);
 		addItemToDatabase(GENERATED_BASE_ID, name, false, null, 15, ItemData.ITEM_EMPTY_ID, 

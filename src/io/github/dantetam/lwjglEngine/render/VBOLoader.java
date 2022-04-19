@@ -65,18 +65,7 @@ public class VBOLoader {
 		return loadTexture(fileName, false, true);
 	}
 
-	/**
-	 * If the texture is already loaded, return the saved the texture ID, otherwise
-	 * load the texture using standard file IO and OpenGL buffers
-	 * 
-	 * @param overrideStoredFileStr If true, potentially reload a texture even when
-	 *                              the file name has been seen before, otherwise,
-	 *                              use the cached VAO texture ID.
-	 */
 	public static int loadTexture(String fileName, boolean overrideStoredFileStr, boolean advancedRender) {
-		if (textureNames.containsKey(fileName) && !overrideStoredFileStr) // Find texture if already loaded
-			return textureNames.get(fileName);
-
 		BufferedImage image = null;
 		try {
 			File file = new File("res/" + fileName + ".png");
@@ -95,17 +84,40 @@ public class VBOLoader {
 				}
 			}
 		}
+		return loadTextureImageCoords(image, fileName, 0, 0, image.getWidth(), image.getHeight(),
+				overrideStoredFileStr, advancedRender);
+	}
+	
+	public static int loadTextureImageCoords(BufferedImage image, String itemName, 
+			int startX, int startY, int width, int height,
+			boolean overrideStoredFileStr, boolean advancedRender) {
+		if (textureNames.containsKey(itemName) && !overrideStoredFileStr) // Find texture if already loaded
+			return textureNames.get(itemName);
+
 		final int BYTES_PER_PIXEL = 4;
 
-		int[] pixels = new int[image.getWidth() * image.getHeight()];
-		image.getRGB(0, 0, image.getWidth(), image.getHeight(), pixels, 0, image.getWidth());
+		int[] pixels = new int[width * height];
+		image.getRGB(startX, startY, width, height, pixels, 0, width);
 
-		ByteBuffer buffer = BufferUtils.createByteBuffer(image.getWidth() * image.getHeight() * BYTES_PER_PIXEL); 
+		return loadTextureImageCoords(pixels, itemName, width, height, overrideStoredFileStr, advancedRender);
+	}
+	
+	/**
+	 * Load full image into texture and memotize it
+	 */
+	public static int loadTextureImageCoords(int[] pixels, String itemName, 
+			int width, int height, boolean overrideStoredFileStr, boolean advancedRender) {
+		if (textureNames.containsKey(itemName) && !overrideStoredFileStr) // Find texture if already loaded
+			return textureNames.get(itemName);
+
+		final int BYTES_PER_PIXEL = 4;
+
+		ByteBuffer buffer = BufferUtils.createByteBuffer(width * height * BYTES_PER_PIXEL); 
 		// 4 for RGBA, 3 for RGB
 		
-		for (int y = 0; y < image.getHeight(); y++) {
-			for (int x = 0; x < image.getWidth(); x++) {
-				int pixel = pixels[y * image.getWidth() + x];
+		for (int y = 0; y < height; y++) {
+			for (int x = 0; x < width; x++) {
+				int pixel = pixels[y * width + x];
 				buffer.put((byte) ((pixel >> 16) & 0xFF));
 				buffer.put((byte) ((pixel >> 8) & 0xFF));
 				buffer.put((byte) (pixel & 0xFF));
@@ -130,7 +142,7 @@ public class VBOLoader {
 		GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_LINEAR);
 
 		// Send texel data to OpenGL
-		GL11.glTexImage2D(GL11.GL_TEXTURE_2D, 0, GL11.GL_RGBA8, image.getWidth(), image.getHeight(), 0, GL11.GL_RGBA,
+		GL11.glTexImage2D(GL11.GL_TEXTURE_2D, 0, GL11.GL_RGBA8, width, height, 0, GL11.GL_RGBA,
 				GL11.GL_UNSIGNED_BYTE, buffer);
 
 		// Mipmap creation in native JOGL
@@ -150,7 +162,7 @@ public class VBOLoader {
 		}
 
 		// Store later for deleting
-		textureNames.put(fileName, textureID);
+		textureNames.put(itemName, textureID);
 		// Return the texture ID so we can bind it later again
 		return textureID;
 	}
