@@ -1,5 +1,6 @@
 package io.github.dantetam.world.dataparse;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -349,6 +350,16 @@ public class ItemData {
 	
 	public static int getTextureFromItemId(String itemName) {
 		return VBOLoader.loadTexture(itemName, ConstantData.getItemTexturePath(itemName));
+	}
+	
+	public static List<String> itemsWithPartName(String part) {
+		List<String> names = new ArrayList<>();
+		for (String itemName : itemNamesToIds.keySet()) {
+			if (itemName.contains(part)) {
+				names.add(itemName);
+			}
+		}
+		return names;
 	}
 	
 	public static LocalBuilding building(int id) {

@@ -37,6 +37,20 @@ public class CustomLog {
 		}
 	}
 	
+	public static <U extends Number> void outPrintlnArr(U[] arr) {
+		StringBuilder sb = new StringBuilder("[");
+		
+		for (int i = 0; i < arr.length; i++) {
+			sb.append(arr[i]);
+			if (i != arr.length - 1) {
+				sb.append(",");
+			}
+		}
+		
+		sb.append("]");
+		outPrintln(sb.toString());
+	}
+	
 	public static void outPrintlnArr(int[][] arr) {
 		int maxDigits = 0;
 		for (int r = 0; r < arr.length; r++) {

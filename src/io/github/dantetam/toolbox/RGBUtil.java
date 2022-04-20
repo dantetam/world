@@ -5,6 +5,9 @@ import java.io.File;
 
 import javax.imageio.ImageIO;
 
+import io.github.dantetam.toolbox.log.CustomLog;
+import io.github.dantetam.vector.Vector3i;
+
 public class RGBUtil {
 
 	public static int getIntColor(int r, int g, int b) {
@@ -53,6 +56,8 @@ public class RGBUtil {
 		double db = (rgb1 & 0xFF) - (rgb2 & 0xFF);
 		//double da = ((rgb1 >> 24) & 0xFF) - ((rgb2 >> 24) & 0xFF);
 		
+		dr = Math.pow(dr, 2); dg = Math.pow(dg, 2); db = Math.pow(db, 2); 
+		
 		double ravg = (red1 + red2) / 2.0;
 		if (ravg < 128) {
 			return Math.sqrt(2.0*dr + 4.0*dg + 3.0*db);
@@ -71,6 +76,26 @@ public class RGBUtil {
 		double newB = blue1 * weightToFirst + blue2 * (1 - weightToFirst);
 		double newA = alpha1 * weightToFirst + alpha2 * (1 - weightToFirst);
 		return getIntColor((int) newR, (int) newG, (int) newB, (int) newA);
+	}
+	
+	public static Vector3i getRgb(int color) {
+		return new Vector3i(
+				(color >> 16) & 0xFF,
+				(color >> 8) & 0xFF,
+				color & 0xFF
+				);
+	}
+	
+	public static void main(String[] args) {
+		CustomLog.errPrintln(getRgb(blendColors(
+				getIntColor(255, 125, 0),
+				getIntColor(0, 0, 0),
+				0.5
+				)));
+		
+		CustomLog.errPrintln(colorDifference(
+				getIntColor(255,0,0), getIntColor(0,255,0)
+				));
 	}
 
 }

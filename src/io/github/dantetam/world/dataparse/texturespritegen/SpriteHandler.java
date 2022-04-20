@@ -29,25 +29,33 @@ import io.github.dantetam.vector.Vector2i;
 public abstract class SpriteHandler {
 
 	//Set these data fields in subclasses i.e. sprite sheets based on a single file
-	protected String fileName;
-	protected int spriteWidth, spriteHeight;
+	protected abstract int getSpriteWidth();
+	protected abstract int getSpriteHeight();
 	protected abstract Map<String, SpriteSheetInstruction> getItemsToSpriteCoordsMap();
 	
-	private static BufferedImage spriteSheetImage;
+	private static Map<String, BufferedImage> spriteSheetImages;
 	
 	public static void init() {
-		new AyeneSpriteHandler().initThisSpriteHandler();
-		new ShikashiSpriteHandler().initThisSpriteHandler();
+		new TerrainSpriteHandler().loadAllSpriteTextures();
+		new ShikashiSpriteHandler().loadAllSpriteTextures();
 	}
 	
-	public void getBufferedImage() {
+	public BufferedImage getBufferedImage(String fileName) {
+		if (spriteSheetImages == null) spriteSheetImages = new HashMap<>();
+		if (spriteSheetImages.containsKey(fileName)) return spriteSheetImages.get(fileName);
 		if (fileName == null) throw new InstantiationError("Sprite sheet needs to have its filename set");
 		try {
 			File file = new File(fileName);
-			spriteSheetImage = ImageIO.read(file);
+			BufferedImage spriteSheetImage = ImageIO.read(file);
+			if (spriteSheetImage == null) {
+				throw new IllegalArgumentException("Had trouble reading in sprite sheet: " + fileName);
+			}
+			spriteSheetImages.put(fileName, spriteSheetImage);
+			return spriteSheetImage;
 		} catch (IOException e) {
 			CustomLog.errPrintln("Could not load sprite sheet in file location: " + fileName);
 		}
+		return null;
 	}
 	
 	protected void loadAllSpriteTextures() {
@@ -56,6 +64,7 @@ public abstract class SpriteHandler {
 			CustomLog.errPrintln("Warning, sprite handler has no itemsToSpriteCoordsMap");
 			return;
 		}
+		int spriteWidth = getSpriteWidth(), spriteHeight = getSpriteHeight();
 		for (Entry<String, SpriteSheetInstruction> entry : spriteMap.entrySet()) {
 			String itemName = entry.getKey();
 			SpriteSheetInstruction instruction = entry.getValue();
@@ -65,7 +74,17 @@ public abstract class SpriteHandler {
 			int startY = (rows - 1) * spriteHeight, startX = (cols - 1) * spriteWidth;
 			
 			int[] pixels = new int[spriteWidth * spriteHeight];
-			spriteSheetImage.getRGB(startX, startY, spriteWidth, spriteHeight, pixels, 0, spriteWidth);
+			
+			BufferedImage spriteSheetImage = getBufferedImage(instruction.spriteFileName);
+			try {
+				spriteSheetImage.getRGB(startX, startY, spriteWidth, spriteHeight, pixels, 0, spriteWidth);			
+			} catch (ArrayIndexOutOfBoundsException e) {
+				CustomLog.errPrintln("Attempted sprite data: " + instruction.spriteFileName + " at coords: " + coords);
+				CustomLog.outPrintlnArr(new Integer[] {startX, startY, spriteWidth, spriteHeight, 0, spriteWidth});
+				CustomLog.errPrintln("Ensure the correct sprite map and coordinates are being used.");
+				continue;
+			}
+			
 			pixels = transformPixels(pixels, instruction.colorsTransform);
 			
 			BufferedImage newImg = new BufferedImage(spriteWidth, spriteHeight, BufferedImage.TYPE_INT_ARGB);
@@ -75,14 +94,13 @@ public abstract class SpriteHandler {
 				}
 			}
 			File outputFile = new File("res/spritesetsTesting/" + itemName + ".png");
-			System.err.println("Attempt to save file: " + itemName);
 		    try {
 				ImageIO.write(newImg, "png", outputFile);
-				System.err.println("Saved item to res/spritesetsTesting" + itemName + ".png");
+				//System.err.println("Saved item to res/spritesetsTesting/" + itemName + ".png");
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-			
+		    
 			VBOLoader.loadTextureImageCoords(pixels, itemName, spriteWidth, spriteHeight,
 					false, true);
 		}
@@ -93,31 +111,52 @@ public abstract class SpriteHandler {
 		for (int i = 0; i < pixels.length; i++) {
 			int pixel = pixels[i];
 			for (ColorTransform colorTransform : colorTransforms) {
-				if (RGBUtil.colorDifference(pixel, colorTransform.baseColor) < colorTransform.colorDiffTolerance) {
+				if (RGBUtil.colorDifference(pixel, colorTransform.baseColor) 
+						< colorTransform.colorDiffTolerance && newPixels[i] == 0) {
 					newPixels[i] = RGBUtil.blendColors(
-							colorTransform.newColor, pixel, 0.75);
-				} else {
-					newPixels[i] = pixels[i];
+							colorTransform.newColor, pixel, 0.5);
+					//TODO: Blend colors with varying (chosen) weighting, and increase contrast of orig. color
+					//if new color is heavily weighted
 				}
+			}
+			if (newPixels[i] == 0) {
+				newPixels[i] = pixels[i];
 			}
 		}
 		return newPixels;
 	}
 	
-	protected void initThisSpriteHandler() {
-		
+	//Shorthand method for RGB conversion
+	protected int rgb(int r, int g, int b) {
+		return RGBUtil.getIntColor(r, g, b);
+	}
+	protected int rgb(int s) {
+		return RGBUtil.getIntColor(s, s, s);
+	}
+	
+	//Shorthand for editing multiple textures at once
+	protected static void listAddTexture(Map<String, SpriteSheetInstruction> itemsToSpriteCoordsMap, 
+			List<String> list, SpriteSheetInstruction inst) {
+		for (String itemName : list) {
+			if (!itemsToSpriteCoordsMap.containsKey(itemName)) {
+				itemsToSpriteCoordsMap.put(itemName, inst);
+			}
+		}
 	}
 	
 	protected static class SpriteSheetInstruction {
+		public String spriteFileName;
+		
 		//Given a width of 32x32 icons, [2,3] represents 2 rows down and 3 columns across 
 		//so the icon would expand from (64, 32) to (96, 64)
 		//The top left is [1,1]
 		public Vector2i coords;
 		public List<ColorTransform> colorsTransform;
-		public SpriteSheetInstruction(int a, int b) {
-			this(new Vector2i(a,b));
+		public SpriteSheetInstruction(String spriteFileName, int a, int b) {
+			this(spriteFileName, new Vector2i(a,b));
 		}
-		public SpriteSheetInstruction(Vector2i coords) {
+		public SpriteSheetInstruction(String spriteFileName, Vector2i coords) {
+			this.spriteFileName = spriteFileName;
 			this.coords = coords;
 			this.colorsTransform = new ArrayList<>();
 		}

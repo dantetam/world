@@ -43,7 +43,12 @@ public class ItemTextureFilesAudit {
 		for (String itemName : ItemData.itemNamesToIds.keySet()) {
 			String pathStr = ConstantData.getItemTexturePath(itemName);
 			File imageFile = new File(pathStr);
-			if (!imageFile.exists()) {
+			
+			String pathStr2 = "res/spritesetsTesting/" + itemName + ".png";
+			File imageFile2 = new File(pathStr2);
+			
+			if (!imageFile.exists() && !imageFile2.exists() && 
+					ItemData.isPlaceable(ItemData.getIdFromName(itemName))) {
 				missingItemNames.add(itemName);
 			}
 		}
