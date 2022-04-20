@@ -61,18 +61,21 @@ public class VBOLoader {
 		return new RawModel(vaoID, positions.length / 2);
 	}
 
-	public static int loadTexture(String fileName) {
-		return loadTexture(fileName, false, true);
+	public static int loadTexture(String itemName, String fileName) {
+		return loadTexture(itemName, fileName, false, true);
 	}
 
-	public static int loadTexture(String fileName, boolean overrideStoredFileStr, boolean advancedRender) {
+	public static int loadTexture(String itemName, String fileName, boolean overrideStoredFileStr, boolean advancedRender) {
+		if (textureNames.containsKey(itemName) && !overrideStoredFileStr) // Find texture if already loaded
+			return textureNames.get(itemName);
+		
 		BufferedImage image = null;
 		try {
-			File file = new File("res/" + fileName + ".png");
+			File file = new File(fileName);
 			image = ImageIO.read(file);
 		} catch (IOException e) {
 			try {
-				File file = new File(fileName);
+				File file = new File("res/" + fileName + ".png");
 				image = ImageIO.read(file);
 			} catch (IOException e2) {
 				CustomLog.outPrintln("Could not load " + fileName + ", loading from default texture instead");
@@ -84,7 +87,7 @@ public class VBOLoader {
 				}
 			}
 		}
-		return loadTextureImageCoords(image, fileName, 0, 0, image.getWidth(), image.getHeight(),
+		return loadTextureImageCoords(image, itemName, 0, 0, image.getWidth(), image.getHeight(),
 				overrideStoredFileStr, advancedRender);
 	}
 	
@@ -93,8 +96,6 @@ public class VBOLoader {
 			boolean overrideStoredFileStr, boolean advancedRender) {
 		if (textureNames.containsKey(itemName) && !overrideStoredFileStr) // Find texture if already loaded
 			return textureNames.get(itemName);
-
-		final int BYTES_PER_PIXEL = 4;
 
 		int[] pixels = new int[width * height];
 		image.getRGB(startX, startY, width, height, pixels, 0, width);
@@ -163,6 +164,7 @@ public class VBOLoader {
 
 		// Store later for deleting
 		textureNames.put(itemName, textureID);
+		
 		// Return the texture ID so we can bind it later again
 		return textureID;
 	}

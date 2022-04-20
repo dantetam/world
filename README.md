@@ -51,5 +51,10 @@ Drost, B.H., Ilic, S. Almost constant-time 3D nearest-neighbor lookup using impl
 ### For Voronoi influenced procedural generation, the actual Voronoi diagram alg.
 A. Nocaj, U. Brandes. Computing Voronoi Treemaps: Faster, Simpler, and Resolution-independent. Department of Computer & Information Science, University of Konstanz. 2012. https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.259.5707&rep=rep1&type=pdf
 
+### For an efficient, "anecdotal" color difference alg. that approximates non-Euclidean YUV/CIE approaches
+T. Riemersma. Colour metric. CompuPhase. 2019. https://www.compuphase.com/cmetric.htm   
 
+## Credits
 
+"RPG Maker VX/Ace - Items" and "RPG Maker Tiles II" by [Ayene-chan](https://www.deviantart.com/ayene-chan)
+"Shikashi's Fantasy Icons Pack" by [cheekyinkling](https://cheekyinkling.itch.io/shikashis-fantasy-icons-pack)

@@ -28,7 +28,7 @@ public class TextMaster {
 		if (!init) {
 			init = true;
 			renderer = new FontRenderer();
-			defaultFont = new FontType(VBOLoader.loadTexture("fonts/dejavusans", false, false),
+			defaultFont = new FontType(VBOLoader.loadTexture("fonts/dejavusans", "res/fonts/dejavusans.png", false, false),
 					new File("res/fonts/dejavusans.fnt"));
 		}
 	}

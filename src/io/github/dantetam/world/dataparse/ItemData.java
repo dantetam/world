@@ -344,11 +344,11 @@ public class ItemData {
 	
 	public static int getTextureFromItemId(int id) {
 		String itemName = getNameFromId(id);
-		return VBOLoader.loadTexture(ConstantData.getItemTexturePath(itemName));
+		return VBOLoader.loadTexture(itemName, ConstantData.getItemTexturePath(itemName));
 	}
 	
 	public static int getTextureFromItemId(String itemName) {
-		return VBOLoader.loadTexture(ConstantData.getItemTexturePath(itemName));
+		return VBOLoader.loadTexture(itemName, ConstantData.getItemTexturePath(itemName));
 	}
 	
 	public static LocalBuilding building(int id) {

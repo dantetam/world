@@ -14,6 +14,7 @@ import javax.imageio.ImageIO;
 
 import io.github.dantetam.lwjglEngine.render.VBOLoader;
 import io.github.dantetam.toolbox.DiffPair;
+import io.github.dantetam.toolbox.RGBUtil;
 import io.github.dantetam.toolbox.log.CustomLog;
 import io.github.dantetam.vector.Vector2i;
 
@@ -25,20 +26,21 @@ import io.github.dantetam.vector.Vector2i;
  *
  */
 
-public class SpriteHandler {
+public abstract class SpriteHandler {
 
 	//Set these data fields in subclasses i.e. sprite sheets based on a single file
-	protected static String fileName;
-	protected static int spriteWidth, spriteHeight;
-	protected static Map<String, SpriteSheetInstruction> itemsToSpriteCoordsMap;
+	protected String fileName;
+	protected int spriteWidth, spriteHeight;
+	protected abstract Map<String, SpriteSheetInstruction> getItemsToSpriteCoordsMap();
 	
 	private static BufferedImage spriteSheetImage;
 	
 	public static void init() {
-		ShikashiSpriteHandler.loadAllSpriteTextures();
+		new AyeneSpriteHandler().initThisSpriteHandler();
+		new ShikashiSpriteHandler().initThisSpriteHandler();
 	}
 	
-	public static void getBufferedImage() {
+	public void getBufferedImage() {
 		if (fileName == null) throw new InstantiationError("Sprite sheet needs to have its filename set");
 		try {
 			File file = new File(fileName);
@@ -48,8 +50,13 @@ public class SpriteHandler {
 		}
 	}
 	
-	protected static void loadAllSpriteTextures() {
-		for (Entry<String, SpriteSheetInstruction> entry : itemsToSpriteCoordsMap.entrySet()) {
+	protected void loadAllSpriteTextures() {
+		Map<String, SpriteSheetInstruction> spriteMap = getItemsToSpriteCoordsMap();
+		if (spriteMap == null) {
+			CustomLog.errPrintln("Warning, sprite handler has no itemsToSpriteCoordsMap");
+			return;
+		}
+		for (Entry<String, SpriteSheetInstruction> entry : spriteMap.entrySet()) {
 			String itemName = entry.getKey();
 			SpriteSheetInstruction instruction = entry.getValue();
 			Vector2i coords = instruction.coords;
@@ -68,8 +75,10 @@ public class SpriteHandler {
 				}
 			}
 			File outputFile = new File("res/spritesetsTesting/" + itemName + ".png");
+			System.err.println("Attempt to save file: " + itemName);
 		    try {
 				ImageIO.write(newImg, "png", outputFile);
+				System.err.println("Saved item to res/spritesetsTesting" + itemName + ".png");
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -84,8 +93,9 @@ public class SpriteHandler {
 		for (int i = 0; i < pixels.length; i++) {
 			int pixel = pixels[i];
 			for (ColorTransform colorTransform : colorTransforms) {
-				if (colorDifference(pixel, colorTransform.baseColor) < colorTransform.colorDiffTolerance) {
-					newPixels[i] = colorTransform.newColor;
+				if (RGBUtil.colorDifference(pixel, colorTransform.baseColor) < colorTransform.colorDiffTolerance) {
+					newPixels[i] = RGBUtil.blendColors(
+							colorTransform.newColor, pixel, 0.75);
 				} else {
 					newPixels[i] = pixels[i];
 				}
@@ -94,31 +104,26 @@ public class SpriteHandler {
 		return newPixels;
 	}
 	
-	public static double colorDifference(int rgb1, int rgb2) {
-		double red1 = ((rgb1 >> 16) & 0xFF);
-		double red2 = ((rgb2 >> 16) & 0xFF);
+	protected void initThisSpriteHandler() {
 		
-		double dr = red1 - red2;
-		double dg = ((rgb1 >> 8) & 0xFF) - ((rgb2 >> 8) & 0xFF);
-		double db = (rgb1 & 0xFF) - (rgb2 & 0xFF);
-		//double da = ((rgb1 >> 24) & 0xFF) - ((rgb2 >> 24) & 0xFF);
-		
-		double ravg = (red1 + red2) / 2.0;
-		if (ravg < 128) {
-			return Math.sqrt(2.0*dr + 4.0*dg + 3.0*db);
-		} else {
-			return Math.sqrt(3.0*dr + 4.0*dg + 2.0*db);
-		}
 	}
 	
 	protected static class SpriteSheetInstruction {
 		//Given a width of 32x32 icons, [2,3] represents 2 rows down and 3 columns across 
 		//so the icon would expand from (64, 32) to (96, 64)
+		//The top left is [1,1]
 		public Vector2i coords;
 		public List<ColorTransform> colorsTransform;
+		public SpriteSheetInstruction(int a, int b) {
+			this(new Vector2i(a,b));
+		}
 		public SpriteSheetInstruction(Vector2i coords) {
 			this.coords = coords;
 			this.colorsTransform = new ArrayList<>();
+		}
+		public SpriteSheetInstruction shade(int baseColor, int newColor, double colorDiffTolerance) {
+			colorsTransform.add(new ColorTransform(baseColor, newColor, colorDiffTolerance));
+			return this;
 		}
 	}
 	

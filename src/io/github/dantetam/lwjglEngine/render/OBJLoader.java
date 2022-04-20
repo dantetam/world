@@ -236,7 +236,7 @@ public class OBJLoader {
 
 	public static Entity newObjectFromModel(CustomVector3f position, CustomVector3f rotation, CustomVector3f size,
 			float scale, RawModel model, String textureName) {
-		LoadedIdTexture texture = new LoadedIdTexture(VBOLoader.loadTexture(textureName));
+		LoadedIdTexture texture = new LoadedIdTexture(VBOLoader.loadTexture(textureName, textureName));
 		TexturedModel texturedModel = new TexturedModel(model, texture);
 		Entity entity = new Entity(texturedModel, position, rotation.x, rotation.y, rotation.z, 1);
 		entity.scale = scale;

@@ -42,7 +42,7 @@ public class GuiSystem extends BaseSystem {
 
 	// Done in this function ideally after GL context has been set up
 	public void setupLoader() {
-		guiDefaultTexture = VBOLoader.loadTexture("guiDefaultTexture");
+		guiDefaultTexture = VBOLoader.loadTexture("guiDefaultTexture", "res/guiDefaultTexture.png");
 	}
 
 	public GuiSystem(GameLauncher gameLauncher) {
