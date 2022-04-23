@@ -116,10 +116,12 @@ public class ItemCSVParser extends WorldCsvParser {
 					add(new InventoryItem(id, 1, name));
 				}};
 				
+				/*
 				List<ProcessStep> steps = new ArrayList<>();
 				steps.add(new ProcessStep("Wait", pickupTime));
 				ProcessData.addProcess("Consume Item " + name, singleItem, null, null, null, false, 
 						null, steps, itemActions, 1, null);
+				*/
 			}
 		}
 		

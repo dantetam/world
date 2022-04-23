@@ -362,6 +362,20 @@ public class ItemData {
 		return names;
 	}
 	
+	public static Set<Integer> itemsWithProp(String property) {
+		return itemPropertiesNamed.get(property);
+	}
+	
+	public static ProcessStep getItemProp(int id, String propName) {
+		List<ProcessStep> props = ItemData.getItemProps(id); 
+		for (ProcessStep prop : props) {
+			if (prop.stepType.equals(propName)) {
+				return prop;
+			}
+		}
+		return null;
+	}
+	
 	public static LocalBuilding building(int id) {
 		if (!allItemsById.containsKey(id)) {
 			throw new IllegalArgumentException("Could not find item id: " + id);

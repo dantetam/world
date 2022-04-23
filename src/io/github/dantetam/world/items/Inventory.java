@@ -20,6 +20,7 @@ import io.github.dantetam.world.dataparse.WorldCsvParser;
 import io.github.dantetam.world.items.InventoryItem.ItemQuality;
 import io.github.dantetam.world.life.Human;
 import io.github.dantetam.world.life.LivingEntity;
+import io.github.dantetam.world.process.ProcessStep;
 
 public class Inventory {
 
@@ -143,6 +144,10 @@ public class Inventory {
 	 * @param requiredItems A list of items with id and quantity.
 	 * @return Two maps containing the items needed to complete the request that are not in this inventory
 	 *  	The inventory items that can be used to fulfill this request, if possible
+	 *  
+	 *  countedItems : The item that is attached to the amount taken from it 
+	 *  	(Banana, 2) means take two bananas
+	 *  
 	 */
 	public Object[] findRemainingItemsNeeded(List<InventoryItem> requiredItems) {		
 		List<InventoryItem> neededItems = new ArrayList<>();
@@ -428,6 +433,35 @@ public class Inventory {
 			remainingGroups = remainingNeeds;
 		}
 		return new Object[] {false, allUsedItems, remainingGroups, itemToInv};
+	}
+	
+	//amountRequired refers to the values in itemdata, like Fuel, 0, 0.5. This is a special unit
+	//unique to each property, not referring to the counts of items like before.
+	public Object[] findItemsWithProps(String property, double amountRequired) {
+		Map<InventoryItem, Integer> usedItems = new HashMap<>();
+		if (this.itemsMappedById != null) {
+			for (Entry<Integer, List<InventoryItem>> entry : this.itemsMappedById.entrySet()) {
+				int itemId = entry.getKey();
+				List<ProcessStep> steps = ItemData.getItemProps(itemId);
+				for (ProcessStep step : steps) {
+					if (step.stepType.equals(property)) {
+						for (InventoryItem item : entry.getValue()) {
+							int numItemUsed = (int) Math.ceil(amountRequired / step.modifier);
+							numItemUsed = Math.min(numItemUsed, item.quantity);
+							usedItems.put(item, numItemUsed);
+							amountRequired -= step.modifier; 
+							//Mo math.min, cannot use a fractional utility prop.
+							//e.g. cannot burn half a piece of coal for half its fuel
+							if (amountRequired <= 0) {
+								return new Object[] {true, usedItems, property, 0};
+							}
+						}
+						break;
+					}
+				}
+			}			
+		}
+		return new Object[] {false, usedItems, property, amountRequired};
 	}
 	
 	public static class ItemSatisfy { //Used in the group selection/search algorithm

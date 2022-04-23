@@ -53,6 +53,7 @@ public class TerrainSpriteHandler extends SpriteHandler {
 		
 		map.put("Water", new SpriteSheetInstruction(mc,13,15));
 		
+		map.put("Woody Shrub", new SpriteSheetInstruction(mc,4,8));
 		map.put("Straw Bale", new SpriteSheetInstruction(ay1,6,8));
 		
 		listAddTexture(map, ItemData.itemsWithPartName("Tree"), new SpriteSheetInstruction(mc,1,16));

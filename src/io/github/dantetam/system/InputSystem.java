@@ -193,7 +193,7 @@ public class InputSystem extends BaseSystem {
 	}
 
 	public void executeAction(String action) {
-		CustomLog.outPrintln("InputSystem executed " + action);
+		//CustomLog.outPrintln("InputSystem executed " + action);
 
 		if (action.equals("ADVANCE_TURN")) {
 			CustomLog.outPrintln("##### End turn #####");

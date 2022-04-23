@@ -20,6 +20,7 @@ import io.github.dantetam.world.items.InventoryItem;
 import io.github.dantetam.world.items.InventoryItem.ItemQuality;
 import io.github.dantetam.world.life.LivingEntity;
 import io.github.dantetam.world.process.LocalProcess;
+import io.github.dantetam.world.process.ProcessStep;
 import kdtreegeo.KdTree;
 
 public class ItemMetricsUtil {
@@ -176,6 +177,22 @@ public class ItemMetricsUtil {
 			}
 			
 			return baseScore;
+		}
+	}
+	
+	public static class PropertyStrAndUtilMetric extends DefaultItemMetric {
+		public double score(LivingEntity being, Set<LivingEntity> owners, LocalGrid grid, LocalTile tile, 
+				int itemId, String propName, double amountPropRequired) {
+			ProcessStep prop = ItemData.getItemProp(itemId, propName);
+			int amountNeeded = (int) Math.ceil(amountPropRequired / prop.modifier);
+			Map<Integer, Integer> itemsNeeded = new HashMap<>();
+			itemsNeeded.put(itemId, amountNeeded);
+			double origScore = super.score(being, owners, grid, tile, itemsNeeded, 
+					new ArrayList<GroupItem>());
+			
+			double newScore = prop.modifier;
+					
+			return (origScore + newScore) / 2.0;
 		}
 	}
 	

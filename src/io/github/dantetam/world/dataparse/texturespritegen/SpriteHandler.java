@@ -37,7 +37,7 @@ public abstract class SpriteHandler {
 	
 	public static void init() {
 		new TerrainSpriteHandler().loadAllSpriteTextures();
-		new ShikashiSpriteHandler().loadAllSpriteTextures();
+		new ToolSpriteHandler().loadAllSpriteTextures();
 	}
 	
 	public BufferedImage getBufferedImage(String fileName) {

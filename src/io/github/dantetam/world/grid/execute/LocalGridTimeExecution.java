@@ -169,7 +169,7 @@ public class LocalGridTimeExecution {
 	public static void tick(WorldGrid world, LocalGrid grid, Society society) {
 		Date date = world.getTime();
 		
-		CustomLog.outPrintln("<<<<>>>> Date: " + date);
+		//CustomLog.outPrintln("<<<<>>>> Date: " + date);
 		
 		//Every day, assign new jobs and new societal measures of utility
 		if (date.getHours() == 0 || society.calcUtility == null) {
@@ -192,7 +192,6 @@ public class LocalGridTimeExecution {
 			society.totalNeedsGamut = society.finalTotalNeedsMap();
 		}
 		
-		CustomLog.outPrintln("################");
 		for (Human human: society.getAllPeople()) {
 			boolean isJob = human.jobProcessProgress != null;
 			boolean isPersonal = human.processProgress != null;
@@ -289,6 +288,7 @@ public class LocalGridTimeExecution {
 	public static void deconstructionProcess(Human human, LocalGrid grid, Society society, Date date, 
 			LocalProcess process) {
 		String processName = process == null ? "null" : process.name;
+		/*
 		CustomLog.outPrintln(human.name + " located at " + human.location.coords + 
 				", with process: " + processName); 
 		CustomLog.outPrintln("Inventory (counts): " + human.inventory.toUniqueItemsMap());
@@ -297,6 +297,7 @@ public class LocalGridTimeExecution {
 				", buildings: " + human.ownedBuildings.size() +
 				", num items: " + human.ownedItems.size());
 		CustomLog.outPrintln("Priority: " + human.activePriority);
+		*/
 		
 		Set<Human> capitalOwners = new HashSet<Human>() {{
 			add(human); 
@@ -316,7 +317,7 @@ public class LocalGridTimeExecution {
 		
 		if (human.currentQueueTasks != null && human.currentQueueTasks.size() > 0) {
 			Task task = human.currentQueueTasks.get(0);
-			CustomLog.outPrintln(human.name + " has " + human.currentQueueTasks.size() + " tasks."); 
+			//CustomLog.outPrintln(human.name + " has " + human.currentQueueTasks.size() + " tasks."); 
 			if (task.taskTime <= 0) {
 				CustomLog.outPrintln(human.name + " FINISHED task: " + task.toString());
 				human.currentQueueTasks.remove(0);
@@ -327,8 +328,8 @@ public class LocalGridTimeExecution {
 			}
 			else {
 				task.taskTime--;
-				CustomLog.outPrintln(human.name + " task in progress: " 
-						+ task.getClass().getSimpleName() + " (" + task.taskTime + ")");
+				//CustomLog.outPrintln(human.name + " task in progress: " 
+						//+ task.getClass().getSimpleName() + " (" + task.taskTime + ")");
 			}
 		}
 		if (human.activePriority != null && //Assign tasks if there are none (do not overwrite existing tasks)
@@ -440,7 +441,7 @@ public class LocalGridTimeExecution {
 		
 		if (human.currentQueueTasks != null && human.currentQueueTasks.size() > 0) {
 			Task task = human.currentQueueTasks.get(0);
-			CustomLog.outPrintln(human.name + " has " + human.currentQueueTasks.size() + " tasks."); 
+			//CustomLog.outPrintln(human.name + " has " + human.currentQueueTasks.size() + " tasks."); 
 			if (task.taskTime <= 0) {
 				CustomLog.outPrintln(human.name + " FINISHED task: " + task.toString());
 				human.currentQueueTasks.remove(0);
@@ -451,13 +452,13 @@ public class LocalGridTimeExecution {
 			}
 			else {
 				task.taskTime--;
-				CustomLog.outPrintln(human.name + " task in progress: " 
-						+ task.getClass().getSimpleName() + " (" + task.taskTime + ")");
+				//CustomLog.outPrintln(human.name + " task in progress: " 
+						//+ task.getClass().getSimpleName() + " (" + task.taskTime + ")");
 			}
 		}
 		if (human.activePriority != null && //Assign tasks if there are none (do not overwrite existing tasks)
 				(human.currentQueueTasks == null || human.currentQueueTasks.size() == 0)) {
-			CustomLog.outPrintln(human.name + ", needs new tasks from priority: " + human.activePriority.toString()); 
+			//CustomLog.outPrintln(human.name + ", needs new tasks from priority: " + human.activePriority.toString()); 
 			human.currentQueueTasks = getTasksFromPriority(grid, human, human.activePriority);
 			
 			if (human.currentQueueTasks != null) {
@@ -954,25 +955,24 @@ public class LocalGridTimeExecution {
 				process.processBuilding.inventory.subtractItems(process.inputItems);
 				return new DonePriority();
 			}
-			else if (destinationInventory.hasItems(process.inputItems) && itemMode.equals("Personal")) {
+			else if (being.inventory.hasItems(process.inputItems) && itemMode.equals("Personal")) {
 				being.inventory.subtractItems(process.inputItems);
 				return new DonePriority();
 			}
 			else if (destinationInventory.hasItems(process.inputItems) && process.processTile != null) {
 				//priority = new ItemDeliveryPriority(primaryLocation, new Inventory(process.inputItems));
 				if (being.location.coords.areAdjacent14(primaryLocation)) {
+					destinationInventory.subtractItems(process.inputItems);
 					return new DonePriority();
-				}
-				else {
+				} else {
 					priority = new MovePriority(primaryLocation, true);
 				}
 			}
 			else {
 				Object[] invData = being.inventory.findRemainingItemsNeeded(process.inputItems);
-
 				List<InventoryItem> regularItemNeeds = (List) invData[2];
 				CustomLog.outPrintln("Searching for: " + regularItemNeeds);
-
+				
 				if (regularItemNeeds.size() == 0) {
 					return new DonePriority();
 				}
@@ -980,11 +980,23 @@ public class LocalGridTimeExecution {
 				InventoryItem chosenItem = regularItemNeeds.get(0);
 				int firstItemNeeded = chosenItem.itemId;
 				int amountNeeded = chosenItem.quantity;
-				
 				return progressToFindItem(grid, being, new HashSet<LivingEntity>() {{add(being);}}, 
 						new HashMap<Integer, Integer>() {{put(firstItemNeeded, amountNeeded);}}, 
 						new DefaultItemMetric());
 			}
+		}
+		else if (step.stepType.startsWith("I")) {
+			//For example, "IFuel" means looking for all items that have the property Fuel,
+			//and input the items with such properties
+			String desiredProperty = step.stepType.substring(1);
+			
+			List<Inventory> inventories = new ArrayList<>();
+			inventories.add(process.processBuilding.inventory);
+			inventories.add(being.inventory);
+			inventories.add(destinationInventory);
+			
+			return progressToFindItemsWithProps(desiredProperty, step.modifier, inventories, grid, being, 
+					new HashSet<LivingEntity>() {{add(being);}}, new DefaultItemMetric());
 		}
 		else if (step.stepType.startsWith("S")) {
 			if (being.location.coords.areAdjacent14(targetLocation)) {
@@ -1137,7 +1149,7 @@ public class LocalGridTimeExecution {
 		}
 		return priority;
 	}
-	
+
 	private static Priority getPriorForStepUnsupervBasic(LocalGrid grid, LivingEntity unsupervHuman, 
 			LocalProcess process, ProcessStep step) {
 		Priority priority = null;
@@ -2258,6 +2270,78 @@ public class LocalGridTimeExecution {
 		}
 		return LocalGridTimeExecution.progressToFindItemGroups(grid, being, owners, 
 				itemGroupsAmtNeeded, scoringMetric);
+	}
+	
+	public static Priority progressToFindItemsWithProps(String desiredProperty, double desiredAmtModifier,
+			List<Inventory> inventories, LocalGrid grid, Human being, HashSet<LivingEntity> owners) {
+		for (Inventory inventory: inventories) {
+			Object[] itemsPropsResult = inventory.findItemsWithProps(desiredProperty, desiredAmtModifier);
+			Boolean hasItems = (Boolean) itemsPropsResult[0];
+			if (hasItems) {
+				Map<InventoryItem, Integer> usedItems = (Map<InventoryItem, Integer>) itemsPropsResult[1];
+				inventory.removeItems(usedItems);
+				return new DonePriority();
+			}
+		}
+		
+		/*
+		KdTree<Vector3i> itemTree = null;
+		
+		if (itemTree == null || itemTree.size() == 0 || effectiveNum == 0) continue;
+		int numCandidates = Math.min(itemTree.size(), 20);
+		Collection<Vector3i> nearestCoords = itemTree.nearestNeighbourListSearch(
+				numCandidates, being.location.coords);
+		for (Vector3i itemCoords: nearestCoords) {
+			LocalTile tile = grid.getTile(itemCoords);
+			List<Human> claimants = grid.findClaimantToTile(itemCoords);
+			if (CollectionUtil.colnsHasIntersect(claimants, owners) && !tile.harvestInUse) {
+				int distUtil = being.location.coords.manhattanDist(itemCoords);
+				if (bestLocation == null || distUtil < bestScore) {
+					bestLocation = itemCoords;
+					bestScore = distUtil - effectiveNum;
+				}
+			}
+		}
+		*/
+		
+		//Could not find item in inventory, find it in the world
+		
+		
+		
+		double bestScore = -1;
+		Vector3i bestLocation = null;
+		
+		Set<Integer> candidateIds = ItemData.itemsWithProp(desiredProperty);
+		for (int candidateId : candidateIds) {
+			KdTree<Vector3i> itemTree = grid.getKdTreeForItemId(candidateId);
+			
+			if (itemTree == null || itemTree.size() == 0) continue;
+			int numCandidates = Math.min(itemTree.size(), 20);
+			Collection<Vector3i> nearestCoords = itemTree.nearestNeighbourListSearch(
+					numCandidates, being.location.coords);
+			for (Vector3i itemCoords: nearestCoords) {
+				LocalTile tile = grid.getTile(itemCoords);
+				List<Human> claimants = grid.findClaimantToTile(itemCoords);
+				if (CollectionUtil.colnsHasIntersect(claimants, owners) && !tile.harvestInUse) {
+					double score = new ItemMetricsUtil.PropertyStrAndUtilMetric().score(being, 
+							new HashSet<LivingEntity>(){{add(being);}}, grid, tile, candidateId,
+							desiredProperty, desiredAmtModifier);
+					
+					if (bestLocation == null || score < bestScore) {
+						bestLocation = itemCoords;
+						bestScore = score;
+					}
+				}
+			}
+			
+			progressToFindItem() //TODO: People should be able to harvest tiles 
+		}
+		
+		if (bestLocation != null) {
+			return new 
+		}
+		return null;
+		TODO;
 	}
 	
 	/**
