@@ -1,6 +1,8 @@
 # World Civilization
 World civilization exhibition at immense scale in individuals and their actions to build the world
 
+![The 2d rendering of a 3d tile world which simulates civilization](https://github.com/dantetam/world/blob/master/res/promo/world_civ_promo.png?raw=true)
+
 This project builds a physical world, and people to populate it. These people have complicated ideas of utility, economic prosperity, and their abilities to form societies and work together towards common goals. These people do not share a collective hive mind, but work on the basis of utility and rationality in doing their jobs, societal tasks, and so on.
 
 ```
